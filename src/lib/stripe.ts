@@ -6,7 +6,7 @@ if (typeof window === 'undefined') {
   // Only import Stripe on server-side
   const StripeServer = require('stripe')
   stripe = new StripeServer(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-12-18.acacia',
+    apiVersion: '2025-07-30.basil',
   })
 }
 
