@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     // Initialize Stripe
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2024-06-20',
+      apiVersion: '2024-12-18.acacia',
     })
 
     // Test Stripe connection by retrieving account info
