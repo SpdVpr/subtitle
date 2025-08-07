@@ -107,7 +107,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     await UserService.updateUser(userId, {
       subscriptionPlan: plan as any,
       subscriptionStatus: 'active',
-      stripeSubscriptionId: subscription.id,
+      subscriptionId: subscription.id,
       updatedAt: new Date() as any
     })
 
@@ -151,7 +151,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     await UserService.updateUser(userId, {
       subscriptionPlan: 'free',
       subscriptionStatus: 'inactive',
-      stripeSubscriptionId: null,
+      subscriptionId: null,
       updatedAt: new Date() as any
     })
 
