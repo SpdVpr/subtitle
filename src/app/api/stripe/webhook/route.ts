@@ -162,15 +162,14 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-  const subscriptionId = typeof invoice.subscription === 'string'
-    ? invoice.subscription
-    : invoice.subscription?.id
+  // Get customer ID from invoice
+  const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
 
-  if (!subscriptionId) return
+  if (!customerId) return
 
   try {
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-    const userId = subscription.metadata?.userId
+    // Find user by customer ID
+    const userId = await getUserIdFromCustomerId(customerId)
 
     if (userId) {
       await UserService.updateUser(userId, {
@@ -186,15 +185,14 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  const subscriptionId = typeof invoice.subscription === 'string'
-    ? invoice.subscription
-    : invoice.subscription?.id
+  // Get customer ID from invoice
+  const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
 
-  if (!subscriptionId) return
+  if (!customerId) return
 
   try {
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-    const userId = subscription.metadata?.userId
+    // Find user by customer ID
+    const userId = await getUserIdFromCustomerId(customerId)
 
     if (userId) {
       await UserService.updateUser(userId, {
