@@ -55,10 +55,6 @@ Sentry.init({
   },
   
   integrations: [
-    new Sentry.Replay({
-      // Mask all text and input content
-      maskAllText: true,
-      blockAllMedia: true,
-    }),
+    // Replay integration removed - not available in this Sentry version
   ],
 })
