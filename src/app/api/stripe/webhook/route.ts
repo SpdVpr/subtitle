@@ -126,7 +126,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   }
 
   try {
-    const status = subscription.status === 'active' ? 'active' : 'inactive'
+    const status = subscription.status === 'active' ? 'active' : 'canceled'
     
     await UserService.updateUser(userId, {
       subscriptionStatus: status,
@@ -150,7 +150,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   try {
     await UserService.updateUser(userId, {
       subscriptionPlan: 'free',
-      subscriptionStatus: 'inactive',
+      subscriptionStatus: 'canceled',
       subscriptionId: null,
       updatedAt: new Date() as any
     })
