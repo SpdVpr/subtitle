@@ -151,7 +151,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     await UserService.updateUser(userId, {
       subscriptionPlan: 'free',
       subscriptionStatus: 'canceled',
-      subscriptionId: null,
+      subscriptionId: undefined,
       updatedAt: new Date() as any
     })
 
