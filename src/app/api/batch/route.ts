@@ -12,7 +12,9 @@ export async function POST(req: NextRequest) {
     const files = formData.getAll('files') as File[]
     const targetLanguage = formData.get('targetLanguage') as string
     const sourceLanguage = formData.get('sourceLanguage') as string | null
-    const aiService = formData.get('aiService') as 'google' | 'openai' | 'premium'
+    const aiServiceRaw = formData.get('aiService') as 'google' | 'openai' | 'premium'
+    // Map premium to openai for database storage
+    const aiService: 'google' | 'openai' = aiServiceRaw === 'premium' ? 'openai' : aiServiceRaw as 'google' | 'openai'
     const userId = formData.get('userId') as string
     const jobName = formData.get('jobName') as string
 
@@ -76,7 +78,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Start processing in background
-    processBatchJob(jobId, files, userId, sourceLanguage, targetLanguage, aiService)
+    processBatchJob(jobId, files, userId, sourceLanguage, targetLanguage, aiServiceRaw)
 
     return NextResponse.json({
       jobId,
@@ -104,9 +106,11 @@ async function processBatchJob(
   userId: string,
   sourceLanguage: string | null,
   targetLanguage: string,
-  aiService: 'google' | 'openai' | 'premium'
+  aiServiceRaw: 'google' | 'openai' | 'premium'
 ) {
   const startTime = Date.now()
+  // Map premium to openai for service creation
+  const aiService: 'google' | 'openai' = aiServiceRaw === 'premium' ? 'openai' : aiServiceRaw as 'google' | 'openai'
 
   try {
     // Update job status
@@ -296,7 +300,7 @@ async function processBatchJob(
       filesProcessed: translatedFiles.length,
       processingTimeMs: processingTime,
       languagePairs: { [`${sourceLanguage || 'auto'}-${targetLanguage}`]: translatedFiles.length },
-      serviceUsage: { [aiService]: translatedFiles.length }
+      serviceUsage: { [aiServiceRaw]: translatedFiles.length }
     })
 
   } catch (error) {

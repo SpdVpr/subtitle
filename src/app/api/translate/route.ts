@@ -12,7 +12,9 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file') as File
     const targetLanguage = formData.get('targetLanguage') as string
     const sourceLanguage = formData.get('sourceLanguage') as string | null
-    const aiService = formData.get('aiService') as 'google' | 'openai' | 'premium'
+    const aiServiceRaw = formData.get('aiService') as 'google' | 'openai' | 'premium'
+    // Map premium to openai for database storage
+    const aiService: 'google' | 'openai' = aiServiceRaw === 'premium' ? 'openai' : aiServiceRaw as 'google' | 'openai'
     const userId = formData.get('userId') as string
 
     // Basic validation (security handled in middleware)
@@ -61,7 +63,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Start processing in background
-    processTranslationJob(jobId, file, userId, sourceLanguage, targetLanguage, aiService)
+    processTranslationJob(jobId, file, userId, sourceLanguage, targetLanguage, aiServiceRaw)
 
     return NextResponse.json({
       jobId,
@@ -89,9 +91,11 @@ async function processTranslationJob(
   userId: string,
   sourceLanguage: string | null,
   targetLanguage: string,
-  aiService: 'google' | 'openai' | 'premium'
+  aiServiceRaw: 'google' | 'openai' | 'premium'
 ) {
   const startTime = Date.now()
+  // Map premium to openai for service creation
+  const aiService: 'google' | 'openai' = aiServiceRaw === 'premium' ? 'openai' : aiServiceRaw as 'google' | 'openai'
 
   try {
     // Update job status
@@ -183,7 +187,7 @@ async function processTranslationJob(
       charactersTranslated: fileContent.length,
       processingTimeMs: processingTime,
       languagePairs: { [`${sourceLanguage || 'auto'}-${targetLanguage}`]: 1 },
-      serviceUsage: { [aiService]: 1 },
+      serviceUsage: { [aiServiceRaw]: 1 },
       averageConfidence: 0.85
     })
 
@@ -213,7 +217,7 @@ async function processTranslationJob(
       {
         sourceLanguage: sourceLanguage || undefined,
         targetLanguage,
-        aiService,
+        aiService: aiServiceRaw,
         fileSize: file.size
       }
     )
