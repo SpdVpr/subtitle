@@ -312,7 +312,7 @@ export default function DashboardPage() {
                   onClick={handleManageSubscription}
                   disabled={loading}
                 >
-                  <Settings className="h-4 w-4 mr-2" />
+                  <CreditCard className="h-4 w-4 mr-2" />
                   Manage
                 </Button>
               </div>

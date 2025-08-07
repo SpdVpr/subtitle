@@ -66,7 +66,7 @@ export default function AnalyticsPage() {
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-medium mb-3">What you'll get with Premium:</h4>
+                    <h4 className="font-medium mb-3">What you&apos;ll get with Premium:</h4>
                     <ul className="space-y-2 text-sm text-gray-700">
                       <li>• Translation usage statistics</li>
                       <li>• Language breakdown charts</li>

@@ -177,7 +177,7 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold mb-2">What languages are supported?</h3>
               <p className="text-gray-600">
-                We support 20+ languages with intelligent timing adjustment for each language's characteristics.
+                We support 20+ languages with intelligent timing adjustment for each language&apos;s characteristics.
               </p>
             </div>
           </div>
