@@ -15,6 +15,7 @@ export interface UserProfile {
   subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'unpaid'
   subscriptionPlan?: 'free' | 'premium' | 'pro'
   subscriptionPeriodEnd?: Timestamp
+  stripeCustomerId?: string
   
   // Usage tracking
   usage: {
