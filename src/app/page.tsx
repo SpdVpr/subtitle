@@ -74,7 +74,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                From English to Japanese, Spanish to Arabic - we've got you covered.
+                From English to Japanese, Spanish to Arabic - we&apos;ve got you covered.
               </p>
             </CardContent>
           </Card>

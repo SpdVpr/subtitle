@@ -12,7 +12,7 @@ export default function AnalyticsPage() {
   const { subscription, canPerformAction } = useSubscription()
 
   // Check if user can access analytics (Pro feature)
-  const analyticsCheck = canPerformAction('analytics' as any)
+  // const analyticsCheck = canPerformAction('analytics' as any)
 
   if (!user) {
     return (

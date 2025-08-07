@@ -12,9 +12,7 @@ import {
   Zap,
   Calendar,
   CreditCard,
-  Settings,
   TrendingUp,
-  Download,
   CheckCircle,
   X
 } from 'lucide-react'
@@ -102,7 +100,7 @@ export default function DashboardPage() {
         <div className="mb-8 text-center sm:text-left">
           <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
           <p className="text-gray-600">
-            Welcome back, {user.email}! Here's your account overview.
+            Welcome back, {user.email}! Here&apos;s your account overview.
           </p>
         </div>
 
@@ -189,7 +187,7 @@ export default function DashboardPage() {
                 <Progress value={usagePercentage} className="h-2" />
                 {usagePercentage > 80 && (
                   <p className="text-sm text-orange-600">
-                    You're approaching your monthly limit. Consider upgrading to continue using our service.
+                    You&apos;re approaching your monthly limit. Consider upgrading to continue using our service.
                   </p>
                 )}
               </div>
@@ -263,7 +261,7 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle>Plan Features</CardTitle>
               <CardDescription>
-                What's included in your {currentPlan.name} plan
+                What&apos;s included in your {currentPlan.name} plan
               </CardDescription>
             </CardHeader>
             <CardContent>
