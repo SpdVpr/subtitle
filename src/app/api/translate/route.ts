@@ -36,17 +36,17 @@ export async function POST(req: NextRequest) {
 
     // Check user limits (skip for demo user)
     let user = null
-    if (userId === 'premium-user-demo') {
-      // Create mock user for demo
+    if (userId && userId.endsWith('-user-demo')) {
+      // Create mock user for any demo account (free/pro/premium)
       user = {
-        uid: 'premium-user-demo',
-        email: 'premium@test.com',
-        displayName: 'Premium Test User',
+        uid: userId,
+        email: userId.includes('premium') ? 'premium@test.com' : userId.includes('pro') ? 'pro@test.com' : 'free@test.com',
+        displayName: userId.includes('premium') ? 'Premium Test User' : userId.includes('pro') ? 'Pro Test User' : 'Free Test User',
         usage: {
           translationsUsed: 0,
-          translationsLimit: 1000,
+          translationsLimit: userId.includes('premium') ? 1000 : userId.includes('pro') ? 200 : 10,
           batchJobsUsed: 0,
-          batchJobsLimit: 10
+          batchJobsLimit: userId.includes('premium') ? 10 : userId.includes('pro') ? 5 : 0
         }
       }
     } else {
