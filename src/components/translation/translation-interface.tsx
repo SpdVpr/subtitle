@@ -12,11 +12,13 @@ import { TranslationServiceFactory } from '@/lib/translation-services'
 import { TranslationResult, SUPPORTED_LANGUAGES } from '@/types/subtitle'
 import { getLanguageCharacteristics } from '@/lib/language-characteristics'
 import { useSubscription } from '@/hooks/useSubscription'
+import { useAuth } from '@/hooks/useAuth'
 import { Download, Crown, AlertCircle, Eye } from 'lucide-react'
 import { SUBSCRIPTION_PLANS } from '@/lib/stripe'
 
 export function TranslationInterface() {
   const { canPerformAction, incrementUsage, subscription, usage } = useSubscription()
+  const { user } = useAuth()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [sourceLanguage, setSourceLanguage] = useState<string>('')
   const [targetLanguage, setTargetLanguage] = useState<string>('')
