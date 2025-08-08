@@ -225,11 +225,9 @@ export function useAuthProvider(): AuthContextType {
           displayName: result.user.displayName || '',
           photoURL: result.user.photoURL || '',
           emailVerified: result.user.emailVerified,
-          provider: 'google',
           subscriptionPlan: 'free',
           subscriptionStatus: 'active',
           createdAt: new Date() as any,
-          lastLoginAt: new Date() as any,
           usage: {
             translationsUsed: 0,
             translationsLimit: 10,
