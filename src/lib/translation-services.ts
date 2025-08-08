@@ -123,9 +123,8 @@ export class OpenAITranslateService implements TranslationService {
     }
 
     try {
-      // Build-safe: only initialize OpenAI at runtime with valid key
-      if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
-        // Build time or development: skip real OpenAI initialization
+      // Check for demo key and skip real API call
+      if (this.apiKey.includes('demo_key')) {
         return this.mockTranslate(texts, targetLanguage)
       }
 
@@ -294,9 +293,8 @@ RULES:
     const startTime = Date.now()
 
     try {
-      // Build-safe: only initialize OpenAI at runtime with valid key
-      if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
-        // Build time or development: skip real OpenAI initialization
+      // Check for demo key and skip real API call
+      if (this.apiKey.includes('demo_key')) {
         return this.mockTranslate(texts, targetLanguage)
       }
 
@@ -637,43 +635,30 @@ export class TranslationServiceFactory {
         // Use free Google Translate service (no API key required)
         return new GoogleTranslateService('free')
       case 'openai':
-        // Build-safe: only access env vars at runtime, not during build
-        if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
-          // Server-side production: check for real keys
-          const openaiApiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.OPENAI_API_KEY
-          if (!openaiApiKey || openaiApiKey.includes('your_openai_api_key')) {
-            throw new Error('OpenAI API key not configured')
-          }
-          return new OpenAITranslateService(openaiApiKey)
-        } else {
-          // Build time or development: use safe fallback
-          return new OpenAITranslateService('demo_key_for_build')
+        // Try frontend API key first (for client-side), then backend
+        const openaiApiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.OPENAI_API_KEY
+        if (!openaiApiKey || openaiApiKey.includes('your_openai_api_key') || openaiApiKey.includes('demo_key')) {
+          throw new Error('OpenAI API key not configured')
         }
+        return new OpenAITranslateService(openaiApiKey)
       case 'libretranslate':
         return new LibreTranslateService()
       case 'mymemory':
         return new MyMemoryService()
       case 'premium':
         console.log('🎬 Creating Premium service...')
-        // Build-safe: only access env vars at runtime
-        if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
-          // Server-side production: check for real keys
-          const premiumApiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.OPENAI_API_KEY
-          console.log('🔑 Premium API key available:', !!premiumApiKey)
-          console.log('🔑 API key starts with:', premiumApiKey?.substring(0, 10))
+        // Try frontend API key first (for client-side), then backend
+        const premiumApiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.OPENAI_API_KEY
+        console.log('🔑 Premium API key available:', !!premiumApiKey)
+        console.log('🔑 API key starts with:', premiumApiKey?.substring(0, 10))
 
-          if (!premiumApiKey || premiumApiKey.includes('your_openai_api_key')) {
-            console.error('❌ Premium API key validation failed')
-            throw new Error('OpenAI API key required for Premium translation')
-          }
-
-          console.log('✅ Premium service created successfully')
-          return new PremiumTranslationService(premiumApiKey)
-        } else {
-          // Build time or development: use safe fallback
-          console.log('✅ Premium service created with demo key for build')
-          return new PremiumTranslationService('demo_key_for_build')
+        if (!premiumApiKey || premiumApiKey.includes('your_openai_api_key') || premiumApiKey.includes('demo_key')) {
+          console.error('❌ Premium API key validation failed')
+          throw new Error('OpenAI API key required for Premium translation')
         }
+
+        console.log('✅ Premium service created successfully')
+        return new PremiumTranslationService(premiumApiKey)
       default:
         throw new Error(`Unsupported translation service: ${service}`)
     }
