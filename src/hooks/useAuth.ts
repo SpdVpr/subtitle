@@ -14,6 +14,8 @@ import { AuthContextType } from '@/types/auth'
 import { UserService } from '@/lib/database'
 import { UserProfile } from '@/types/database'
 
+import { doc, getDoc } from 'firebase/firestore'
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function useAuth() {
