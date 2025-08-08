@@ -3,18 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-// Build-safe: conditionally import providers only at runtime
-const AuthProvider = typeof window !== 'undefined'
-  ? require("@/components/providers/auth-provider").AuthProvider
-  : ({ children }: { children: React.ReactNode }) => <>{children}</>
-
-const SubscriptionProvider = typeof window !== 'undefined'
-  ? require("@/components/providers/subscription-provider").SubscriptionProvider
-  : ({ children }: { children: React.ReactNode }) => <>{children}</>
-
-const BatchProvider = typeof window !== 'undefined'
-  ? require("@/components/providers/batch-provider").BatchProvider
-  : ({ children }: { children: React.ReactNode }) => <>{children}</>
+import { Providers } from "@/components/providers/providers"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,17 +28,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <AuthProvider>
-          <SubscriptionProvider>
-            <BatchProvider>
-              <div className="relative flex min-h-screen flex-col">
-                <Header />
-                <main className="flex-1">{children}</main>
-                <Footer />
-              </div>
-            </BatchProvider>
-          </SubscriptionProvider>
-        </AuthProvider>
+        <Providers>
+          <div className="relative flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </Providers>
       </body>
     </html>
   );
