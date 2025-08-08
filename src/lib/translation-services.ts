@@ -123,6 +123,12 @@ export class OpenAITranslateService implements TranslationService {
     }
 
     try {
+      // Build-safe: only initialize OpenAI at runtime with valid key
+      if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
+        // Build time or development: skip real OpenAI initialization
+        return this.mockTranslate(texts, targetLanguage)
+      }
+
       const { OpenAI } = await import('openai')
 
       const openai = new OpenAI({
@@ -288,6 +294,12 @@ RULES:
     const startTime = Date.now()
 
     try {
+      // Build-safe: only initialize OpenAI at runtime with valid key
+      if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
+        // Build time or development: skip real OpenAI initialization
+        return this.mockTranslate(texts, targetLanguage)
+      }
+
       const { OpenAI } = await import('openai')
 
       const openai = new OpenAI({
