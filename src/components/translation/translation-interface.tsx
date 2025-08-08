@@ -111,13 +111,25 @@ export function TranslationInterface() {
 
         const apiResult = await response.json()
 
+        // If API returned inline completed result (demo user), skip polling
+        if (apiResult.status === 'completed' && apiResult.translatedContent) {
+          const translatedContent = apiResult.translatedContent as string
+          result.progress = 100
+          result.translatedContent = translatedContent
+          result.downloadUrl = URL.createObjectURL(new Blob([translatedContent], { type: 'text/plain' }))
+          result.fileName = apiResult.translatedFileName
+          setTranslationResult(result)
+          return
+        }
+
         // Poll for completion
         let jobStatus = 'pending'
+        let statusData: any = null
         while (jobStatus === 'pending' || jobStatus === 'processing') {
           await new Promise(resolve => setTimeout(resolve, 1000))
 
           const statusResponse = await fetch(`/api/translate?jobId=${apiResult.jobId}&userId=${user.uid}`)
-          const statusData = await statusResponse.json()
+          statusData = await statusResponse.json()
           jobStatus = statusData.status
 
           if (jobStatus === 'processing') {

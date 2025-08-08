@@ -66,6 +66,62 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Inline processing for demo user to avoid Firebase dependencies
+    if (userId === 'premium-user-demo') {
+      try {
+        // Process subtitle file
+        const fileContent = await file.text()
+        const subtitleEntries = SubtitleProcessor.parseSRT(fileContent)
+
+        if (subtitleEntries.length === 0) {
+          return NextResponse.json({ error: 'No valid subtitles found in file' }, { status: 400 })
+        }
+
+        // Split into chunks and translate using requested service (premium -> openai)
+        const textChunks = SubtitleProcessor.splitTextForTranslation(subtitleEntries)
+        let translationService
+        try {
+          translationService = TranslationServiceFactory.create(aiService)
+        } catch (err) {
+          translationService = TranslationServiceFactory.create('google')
+        }
+
+        const translatedChunks: string[][] = []
+        for (const chunk of textChunks) {
+          const translatedChunk = await translationService.translate(
+            chunk,
+            targetLanguage,
+            sourceLanguage || 'en'
+          )
+          translatedChunks.push(translatedChunk)
+        }
+
+        const translatedEntries = SubtitleProcessor.mergeTranslatedChunks(
+          subtitleEntries,
+          translatedChunks,
+          sourceLanguage || 'en',
+          targetLanguage
+        )
+        const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
+        const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
+
+        return NextResponse.json({
+          status: 'completed',
+          translatedContent,
+          translatedFileName,
+          subtitleCount: subtitleEntries.length,
+          characterCount: fileContent.length,
+        })
+      } catch (inlineErr) {
+        await ErrorTracker.logApiError(
+          inlineErr instanceof Error ? inlineErr : new Error(String(inlineErr)),
+          '/api/translate',
+          'POST'
+        )
+        return NextResponse.json({ error: 'Inline translation failed' }, { status: 500 })
+      }
+    }
+
     // Create translation job
     const jobId = await TranslationJobService.createJob({
       userId,
