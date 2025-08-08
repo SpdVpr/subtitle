@@ -17,7 +17,7 @@ export interface TranslationRequest {
   file: File
   targetLanguage: string
   sourceLanguage?: string
-  aiService: 'google' | 'openai'
+  aiService: 'google' | 'openai' | 'premium'
 }
 
 export interface TranslationResult {
@@ -26,7 +26,7 @@ export interface TranslationResult {
   translatedFileName: string
   targetLanguage: string
   sourceLanguage: string
-  aiService: 'google' | 'openai'
+  aiService: 'google' | 'openai' | 'premium'
   status: 'processing' | 'completed' | 'failed'
   progress: number
   downloadUrl?: string
