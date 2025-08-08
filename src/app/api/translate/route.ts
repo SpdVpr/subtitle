@@ -34,20 +34,36 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Check user limits
-    const user = await UserService.getUser(userId)
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
-    }
+    // Check user limits (skip for demo user)
+    let user = null
+    if (userId === 'premium-user-demo') {
+      // Create mock user for demo
+      user = {
+        uid: 'premium-user-demo',
+        email: 'premium@test.com',
+        displayName: 'Premium Test User',
+        usage: {
+          translationsUsed: 0,
+          translationsLimit: 1000,
+          batchJobsUsed: 0,
+          batchJobsLimit: 10
+        }
+      }
+    } else {
+      user = await UserService.getUser(userId)
+      if (!user) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        )
+      }
 
-    if (user.usage.translationsUsed >= user.usage.translationsLimit) {
-      return NextResponse.json(
-        { error: 'Translation limit exceeded' },
-        { status: 429 }
-      )
+      if (user.usage.translationsUsed >= user.usage.translationsLimit) {
+        return NextResponse.json(
+          { error: 'Translation limit exceeded' },
+          { status: 429 }
+        )
+      }
     }
 
     // Create translation job
@@ -183,10 +199,12 @@ async function processTranslationJob(
       confidence: 0.85 // Mock confidence score
     })
 
-    // Update user usage
-    await UserService.updateUsage(userId, {
-      translationsUsed: 1
-    })
+    // Update user usage (skip for demo user)
+    if (userId !== 'premium-user-demo') {
+      await UserService.updateUsage(userId, {
+        translationsUsed: 1
+      })
+    }
 
     // Record analytics
     const today = new Date().toISOString().split('T')[0]
