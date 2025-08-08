@@ -11,9 +11,7 @@ const nextConfig: NextConfig = {
   // Disable static optimization for all pages to avoid build-time initialization
   output: 'standalone',
   // Force all pages to be server-side rendered to avoid build-time issues
-  experimental: {
-    serverComponentsExternalPackages: ['openai', 'stripe'],
-  },
+  serverExternalPackages: ['openai', 'stripe'],
 };
 
 export default nextConfig;

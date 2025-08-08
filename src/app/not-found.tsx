@@ -1,5 +1,9 @@
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
 export default function NotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -11,15 +15,15 @@ export default function NotFound() {
             The page you're looking for doesn't exist or has been moved.
           </p>
         </div>
-        
+
         <div className="space-y-4">
-          <Link 
+          <Link
             href="/"
             className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
           >
             Go Home
           </Link>
-          
+
           <div className="text-sm text-gray-500">
             <Link href="/dashboard" className="text-blue-600 hover:underline">
               Dashboard

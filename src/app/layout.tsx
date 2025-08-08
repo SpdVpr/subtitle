@@ -26,6 +26,11 @@ export const metadata: Metadata = {
   description: "Translate and retime your subtitles with AI. Fast, accurate, and easy to use.",
 };
 
+// Force dynamic rendering to avoid prerender-time side effects
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
 export default function RootLayout({
   children,
 }: Readonly<{
