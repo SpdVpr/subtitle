@@ -79,7 +79,62 @@ export function TranslationInterface() {
       console.log('🔧 Creating translation service for:', aiService)
       console.log('📝 Text chunks to translate:', textChunks.length)
 
-      // Build-safe: only create translation service at runtime
+      // For premium/openai services, use API route instead of direct client calls
+      if (aiService === 'premium' || aiService === 'openai') {
+        console.log('🚀 Using API route for premium/openai translation')
+
+        // Use API route for translation
+        const formData = new FormData()
+        formData.append('file', selectedFile)
+        formData.append('targetLanguage', targetLanguage)
+        formData.append('sourceLanguage', sourceLanguage)
+        formData.append('aiService', aiService)
+        formData.append('userId', user?.uid || 'anonymous')
+
+        const response = await fetch('/api/translate', {
+          method: 'POST',
+          body: formData
+        })
+
+        if (!response.ok) {
+          throw new Error(`Translation API failed: ${response.status}`)
+        }
+
+        const apiResult = await response.json()
+
+        // Poll for completion
+        let jobStatus = 'pending'
+        while (jobStatus === 'pending' || jobStatus === 'processing') {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+
+          const statusResponse = await fetch(`/api/translate?jobId=${apiResult.jobId}&userId=${user?.uid || 'anonymous'}`)
+          const statusData = await statusResponse.json()
+          jobStatus = statusData.status
+
+          if (jobStatus === 'processing') {
+            result.progress = Math.min(80, result.progress + 5)
+            setTranslationResult({ ...result })
+          }
+        }
+
+        if (jobStatus === 'failed') {
+          throw new Error('Translation job failed')
+        }
+
+        // Download the translated file
+        const downloadResponse = await fetch(statusData.translatedFileUrl)
+        const translatedContent = await downloadResponse.text()
+
+        result.progress = 100
+        result.translatedContent = translatedContent
+        result.downloadUrl = URL.createObjectURL(new Blob([translatedContent], { type: 'text/plain' }))
+        result.fileName = statusData.translatedFileName
+
+        setTranslationResult(result)
+        return
+      }
+
+      // For other services, use client-side translation
       let translationService
       try {
         translationService = TranslationServiceFactory.create(aiService)
