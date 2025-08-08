@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe, SUBSCRIPTION_PLANS } from '@/lib/stripe-server'
+import { stripe as serverStripe, SUBSCRIPTION_PLANS } from '@/lib/stripe-server'
 import { headers } from 'next/headers'
 
 export async function POST(request: NextRequest) {
@@ -51,9 +51,18 @@ export async function POST(request: NextRequest) {
         url: mockSession.url
       })
     }
+    // If Stripe is not initialized (no key), return mock session
+    if (!serverStripe) {
+      return NextResponse.json({
+        success: true,
+        sessionId: 'cs_demo_' + Date.now(),
+        url: `${origin}/dashboard?success=true&plan=${plan}&demo=true`
+      })
+    }
+
 
     // Create checkout session (real Stripe)
-    const session = await stripe.checkout.sessions.create({
+    const session = await serverStripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {

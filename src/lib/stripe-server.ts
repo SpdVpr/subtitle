@@ -1,9 +1,16 @@
 import Stripe from 'stripe'
 
-// Server-side only Stripe instance
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil',
-})
+// Server-side only Stripe instance (lazy, safe for build without key)
+let stripe: Stripe | null = null
+try {
+  const key = process.env.STRIPE_SECRET_KEY
+  if (typeof window === 'undefined' && key && !key.includes('demo_key') && !key.includes('your_stripe_secret_key_here')) {
+    stripe = new Stripe(key, { apiVersion: '2025-07-30.basil' })
+  }
+} catch (e) {
+  // Ignore initialization errors during build
+}
+export { stripe }
 
 // Subscription plans configuration
 export const SUBSCRIPTION_PLANS = {
