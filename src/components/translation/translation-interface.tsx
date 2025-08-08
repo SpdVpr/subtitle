@@ -85,13 +85,20 @@ export function TranslationInterface() {
       if (aiService === 'premium' || aiService === 'openai') {
         console.log('🚀 Using API route for premium/openai translation')
 
+        // Check if user is logged in for premium services
+        if (!user?.uid) {
+          throw new Error('Please log in to use premium translation services')
+        }
+
+        console.log('👤 User ID:', user.uid)
+
         // Use API route for translation
         const formData = new FormData()
         formData.append('file', selectedFile)
         formData.append('targetLanguage', targetLanguage)
         formData.append('sourceLanguage', sourceLanguage)
         formData.append('aiService', aiService)
-        formData.append('userId', user?.uid || 'anonymous')
+        formData.append('userId', user.uid)
 
         const response = await fetch('/api/translate', {
           method: 'POST',
@@ -109,7 +116,7 @@ export function TranslationInterface() {
         while (jobStatus === 'pending' || jobStatus === 'processing') {
           await new Promise(resolve => setTimeout(resolve, 1000))
 
-          const statusResponse = await fetch(`/api/translate?jobId=${apiResult.jobId}&userId=${user?.uid || 'anonymous'}`)
+          const statusResponse = await fetch(`/api/translate?jobId=${apiResult.jobId}&userId=${user.uid}`)
           const statusData = await statusResponse.json()
           jobStatus = statusData.status
 
