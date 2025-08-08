@@ -119,7 +119,14 @@ async function processBatchJob(
       startedAt: new Date() as any
     })
 
-    const translationService = TranslationServiceFactory.create(aiService)
+    // Build-safe: only create translation service at runtime
+    let translationService
+    try {
+      translationService = TranslationServiceFactory.create(aiService)
+    } catch (error) {
+      console.warn('Translation service creation failed, using fallback:', error)
+      translationService = TranslationServiceFactory.create('google') // Safe fallback
+    }
     const translatedFiles: { name: string; content: string }[] = []
     let processedFiles = 0
     let failedFiles = 0

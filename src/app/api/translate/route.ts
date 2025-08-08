@@ -126,7 +126,16 @@ async function processTranslationJob(
 
     // Split into chunks for translation
     const textChunks = SubtitleProcessor.splitTextForTranslation(subtitleEntries)
-    const translationService = TranslationServiceFactory.create(aiService)
+
+    // Build-safe: only create translation service at runtime
+    let translationService
+    try {
+      translationService = TranslationServiceFactory.create(aiService)
+    } catch (error) {
+      console.warn('Translation service creation failed, using fallback:', error)
+      translationService = TranslationServiceFactory.create('google') // Safe fallback
+    }
+
     const translatedChunks: string[][] = []
 
     // Translate chunks

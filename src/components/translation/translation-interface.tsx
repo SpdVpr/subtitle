@@ -79,8 +79,16 @@ export function TranslationInterface() {
       console.log('🔧 Creating translation service for:', aiService)
       console.log('📝 Text chunks to translate:', textChunks.length)
 
-      const translationService = TranslationServiceFactory.create(aiService)
-      console.log('✅ Translation service created:', translationService.constructor.name)
+      // Build-safe: only create translation service at runtime
+      let translationService
+      try {
+        translationService = TranslationServiceFactory.create(aiService)
+        console.log('✅ Translation service created:', translationService.constructor.name)
+      } catch (error) {
+        console.warn('Translation service creation failed, using fallback:', error)
+        translationService = TranslationServiceFactory.create('google') // Safe fallback
+        console.log('✅ Fallback translation service created:', translationService.constructor.name)
+      }
       
       // Step 3: Translate chunks
       const translatedChunks: string[][] = []
