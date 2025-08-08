@@ -8,12 +8,12 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Disable static generation for problematic pages during build
-  experimental: {
-    skipTrailingSlashRedirect: true,
-  },
   // Disable static optimization for all pages to avoid build-time initialization
   output: 'standalone',
+  // Force all pages to be server-side rendered to avoid build-time issues
+  experimental: {
+    serverComponentsExternalPackages: ['openai', 'stripe'],
+  },
 };
 
 export default nextConfig;

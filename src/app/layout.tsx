@@ -3,9 +3,18 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { AuthProvider } from "@/components/providers/auth-provider";
-import { SubscriptionProvider } from "@/components/providers/subscription-provider";
-import { BatchProvider } from "@/components/providers/batch-provider";
+// Build-safe: conditionally import providers only at runtime
+const AuthProvider = typeof window !== 'undefined'
+  ? require("@/components/providers/auth-provider").AuthProvider
+  : ({ children }: { children: React.ReactNode }) => <>{children}</>
+
+const SubscriptionProvider = typeof window !== 'undefined'
+  ? require("@/components/providers/subscription-provider").SubscriptionProvider
+  : ({ children }: { children: React.ReactNode }) => <>{children}</>
+
+const BatchProvider = typeof window !== 'undefined'
+  ? require("@/components/providers/batch-provider").BatchProvider
+  : ({ children }: { children: React.ReactNode }) => <>{children}</>
 
 const inter = Inter({
   subsets: ["latin"],
