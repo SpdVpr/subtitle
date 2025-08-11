@@ -3,7 +3,7 @@
   "outputDirectory": "subtitle-ai/.next",
   "framework": "nextjs",
   "functions": {
-    "subtitle-ai/.next/server/app/api/translate/route.js": {
+    "subtitle-ai/.next/server/app/api/**/route.js": {
       "maxDuration": 60
     }
   },
