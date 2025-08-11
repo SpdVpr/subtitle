@@ -1,0 +1,12 @@
+{
+  "name": "subtitle",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "postinstall": "npm ci --prefix subtitle-ai",
+    "build": "npm run build --prefix subtitle-ai",
+    "start": "npm start --prefix subtitle-ai",
+    "dev": "npm run dev --prefix subtitle-ai"
+  }
+}
+
