@@ -9,6 +9,7 @@ import { LanguageSelector } from './language-selector'
 import { TranslationProgress } from './translation-progress'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { TranslationServiceFactory } from '@/lib/translation-services'
+import { PremiumTranslationService } from '@/lib/premium-translation-service'
 import { TranslationResult, SUPPORTED_LANGUAGES } from '@/types/subtitle'
 import { getLanguageCharacteristics } from '@/lib/language-characteristics'
 import { useSubscription } from '@/hooks/useSubscription'
@@ -76,7 +77,9 @@ export function TranslationInterface() {
       result.progress = 20
       setTranslationResult({ ...result })
       
-      const textChunks = SubtitleProcessor.splitTextForTranslation(subtitleFile.entries)
+      const textChunks = aiService === 'premium'
+        ? SubtitleProcessor.splitTextForPremiumTranslation(subtitleFile.entries)
+        : SubtitleProcessor.splitTextForTranslation(subtitleFile.entries)
 
       console.log('🔧 Creating translation service for:', aiService)
       console.log('📝 Text chunks to translate:', textChunks.length)
@@ -100,19 +103,26 @@ export function TranslationInterface() {
         formData.append('aiService', aiService)
         formData.append('userId', user.uid)
 
+        console.log('📤 Sending API request to /api/translate')
         const response = await fetch('/api/translate', {
           method: 'POST',
           body: formData
         })
 
+        console.log('📥 API response status:', response.status, response.ok)
+
         if (!response.ok) {
-          throw new Error(`Translation API failed: ${response.status}`)
+          const errorText = await response.text()
+          console.error('❌ API error response:', errorText)
+          throw new Error(`Translation API failed: ${response.status} - ${errorText}`)
         }
 
         const apiResult = await response.json()
+        console.log('📋 API result:', apiResult)
 
         // If API returned inline completed result (demo user), skip polling
         if (apiResult.status === 'completed' && apiResult.translatedContent) {
+          console.log('✅ API returned completed result, finishing translation')
           const translatedContent = apiResult.translatedContent as string
           result.status = 'completed'
           result.progress = 100
@@ -121,21 +131,25 @@ export function TranslationInterface() {
           result.processingTimeMs = Date.now() - parseInt(result.id)
           setTranslationResult({ ...result })
           await incrementUsage('translation')
+          console.log('🎉 Translation completed via API route')
           return
         }
 
         // Poll for completion
         let jobStatus = 'pending'
         let statusData: any = null
+        let pollCount = 0
         while (jobStatus === 'pending' || jobStatus === 'processing') {
           await new Promise(resolve => setTimeout(resolve, 1000))
 
           const statusResponse = await fetch(`/api/translate?jobId=${apiResult.jobId}&userId=${user.uid}`)
           statusData = await statusResponse.json()
           jobStatus = statusData.status
+          pollCount++
 
           if (jobStatus === 'processing') {
-            result.progress = Math.min(80, result.progress + 5)
+            // More realistic progress updates that can reach 90%
+            result.progress = Math.min(90, 20 + (pollCount * 8))
             setTranslationResult({ ...result })
           }
         }
@@ -143,6 +157,10 @@ export function TranslationInterface() {
         if (jobStatus === 'failed') {
           throw new Error('Translation job failed')
         }
+
+        // Show finalizing message
+        result.progress = 95
+        setTranslationResult({ ...result })
 
         // Download the translated file
         const downloadResponse = await fetch(statusData.translatedFileUrl)
@@ -212,7 +230,7 @@ export function TranslationInterface() {
         translatedChunks,
         sourceLanguage || 'en',
         targetLanguage,
-        false // Premium timing only for premium service (not in this branch)
+        aiService === 'premium' // Enable premium timing for premium service
       )
       
       const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
@@ -233,6 +251,8 @@ export function TranslationInterface() {
       await incrementUsage('translation')
       
     } catch (error) {
+      console.error('❌ Translation error occurred:', error)
+      console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error')
       result.status = 'failed'
       result.errorMessage = error instanceof Error ? error.message : 'Translation failed'
       setTranslationResult({ ...result })

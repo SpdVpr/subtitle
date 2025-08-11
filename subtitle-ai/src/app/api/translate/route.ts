@@ -4,6 +4,7 @@ import { StorageService } from '@/lib/storage'
 import { ErrorTracker } from '@/lib/error-tracking'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { TranslationServiceFactory } from '@/lib/translation-services'
+import { PremiumTranslationService } from '@/lib/premium-translation-service'
 // Security validation will be handled in middleware
 
 export async function POST(req: NextRequest) {
@@ -77,31 +78,46 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'No valid subtitles found in file' }, { status: 400 })
         }
 
-        // Split into chunks and translate using requested service (premium -> openai)
-        const textChunks = SubtitleProcessor.splitTextForTranslation(subtitleEntries)
-        let translationService
-        try {
-          translationService = TranslationServiceFactory.create(aiService)
-        } catch (err) {
-          translationService = TranslationServiceFactory.create('google')
-        }
+        let translatedEntries
 
-        const translatedChunks: string[][] = []
-        for (const chunk of textChunks) {
-          const translatedChunk = await translationService.translate(
-            chunk,
+        if (aiServiceRaw === 'premium') {
+          // Use new Premium Context AI service for best quality
+          console.log('🎬 Using Premium Context AI Translation Service')
+          const premiumService = new PremiumTranslationService(process.env.OPENAI_API_KEY || 'demo_key')
+          translatedEntries = await premiumService.translateSubtitles(
+            subtitleEntries,
             targetLanguage,
             sourceLanguage || 'en'
           )
-          translatedChunks.push(translatedChunk)
-        }
+        } else {
+          // Use traditional chunking approach for other services
+          console.log('🔧 Using traditional translation service:', aiService)
+          const textChunks = SubtitleProcessor.splitTextForTranslation(subtitleEntries)
+          let translationService
+          try {
+            translationService = TranslationServiceFactory.create(aiService)
+          } catch (err) {
+            translationService = TranslationServiceFactory.create('google')
+          }
 
-        const translatedEntries = SubtitleProcessor.mergeTranslatedChunks(
-          subtitleEntries,
-          translatedChunks,
-          sourceLanguage || 'en',
-          targetLanguage
-        )
+          const translatedChunks: string[][] = []
+          for (const chunk of textChunks) {
+            const translatedChunk = await translationService.translate(
+              chunk,
+              targetLanguage,
+              sourceLanguage || 'en'
+            )
+            translatedChunks.push(translatedChunk)
+          }
+
+          translatedEntries = SubtitleProcessor.mergeTranslatedChunks(
+            subtitleEntries,
+            translatedChunks,
+            sourceLanguage || 'en',
+            targetLanguage,
+            false
+          )
+        }
         const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
         const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
 
@@ -196,37 +212,50 @@ async function processTranslationJob(
       throw new Error('No valid subtitles found in file')
     }
 
-    // Split into chunks for translation
-    const textChunks = SubtitleProcessor.splitTextForTranslation(subtitleEntries)
+    let translatedEntries
 
-    // Build-safe: only create translation service at runtime
-    let translationService
-    try {
-      translationService = TranslationServiceFactory.create(aiService)
-    } catch (error) {
-      console.warn('Translation service creation failed, using fallback:', error)
-      translationService = TranslationServiceFactory.create('google') // Safe fallback
-    }
-
-    const translatedChunks: string[][] = []
-
-    // Translate chunks
-    for (const chunk of textChunks) {
-      const translatedChunk = await translationService.translate(
-        chunk,
+    if (aiServiceRaw === 'premium') {
+      // Use new Premium Context AI service for best quality
+      const premiumService = new PremiumTranslationService(process.env.OPENAI_API_KEY || 'demo_key')
+      translatedEntries = await premiumService.translateSubtitles(
+        subtitleEntries,
         targetLanguage,
         sourceLanguage || 'en'
       )
-      translatedChunks.push(translatedChunk)
-    }
+    } else {
+      // Use traditional chunking approach for other services
+      const textChunks = SubtitleProcessor.splitTextForTranslation(subtitleEntries)
 
-    // Merge translated chunks
-    const translatedEntries = SubtitleProcessor.mergeTranslatedChunks(
-      subtitleEntries,
-      translatedChunks,
-      sourceLanguage || 'en',
-      targetLanguage
-    )
+      // Build-safe: only create translation service at runtime
+      let translationService
+      try {
+        translationService = TranslationServiceFactory.create(aiService)
+      } catch (error) {
+        console.warn('Translation service creation failed, using fallback:', error)
+        translationService = TranslationServiceFactory.create('google') // Safe fallback
+      }
+
+      const translatedChunks: string[][] = []
+
+      // Translate chunks
+      for (const chunk of textChunks) {
+        const translatedChunk = await translationService.translate(
+          chunk,
+          targetLanguage,
+          sourceLanguage || 'en'
+        )
+        translatedChunks.push(translatedChunk)
+      }
+
+      // Merge translated chunks
+      translatedEntries = SubtitleProcessor.mergeTranslatedChunks(
+        subtitleEntries,
+        translatedChunks,
+        sourceLanguage || 'en',
+        targetLanguage,
+        false
+      )
+    }
 
     // Generate translated SRT content
     const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)

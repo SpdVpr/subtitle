@@ -145,11 +145,62 @@ export class SubtitleProcessor {
 
     for (const entry of entries) {
       const textLength = entry.text.length
-      
+
       if (currentSize + textLength > maxChunkSize && currentChunk.length > 0) {
         chunks.push([...currentChunk])
         currentChunk = []
         currentSize = 0
+      }
+
+      currentChunk.push(entry.text)
+      currentSize += textLength
+    }
+
+    if (currentChunk.length > 0) {
+      chunks.push(currentChunk)
+    }
+
+    return chunks
+  }
+
+  /**
+   * Smart chunking for Premium Context AI - preserves narrative flow
+   */
+  static splitTextForPremiumTranslation(entries: SubtitleEntry[], maxChunkSize: number = 2000): string[][] {
+    const chunks: string[][] = []
+    let currentChunk: string[] = []
+    let currentSize = 0
+
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i]
+      const textLength = entry.text.length
+
+      // Check if adding this entry would exceed the limit
+      if (currentSize + textLength > maxChunkSize && currentChunk.length > 0) {
+        // Try to find a good break point (avoid breaking in middle of dialogue)
+        let breakPoint = currentChunk.length
+
+        // Look for natural break points in the last few entries
+        for (let j = Math.max(0, currentChunk.length - 5); j < currentChunk.length; j++) {
+          const text = currentChunk[j].toLowerCase()
+          // Good break points: scene changes, speaker changes, music/sound effects
+          if (text.includes('[') || text.includes('♪') || text.includes('narrator') ||
+              text.includes('music') || text.includes('sound') || text.length < 20) {
+            breakPoint = j + 1
+            break
+          }
+        }
+
+        // Split at the break point
+        if (breakPoint < currentChunk.length) {
+          chunks.push(currentChunk.slice(0, breakPoint))
+          currentChunk = currentChunk.slice(breakPoint)
+          currentSize = currentChunk.reduce((sum, text) => sum + text.length, 0)
+        } else {
+          chunks.push([...currentChunk])
+          currentChunk = []
+          currentSize = 0
+        }
       }
 
       currentChunk.push(entry.text)

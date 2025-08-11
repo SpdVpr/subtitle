@@ -28,7 +28,16 @@ export function TranslationProgress({ result }: TranslationProgressProps) {
     switch (result.status) {
       case 'processing':
         if (result.progress < 20) return 'Processing subtitle file...'
-        if (result.progress < 90) return 'Translating with Google Translate...'
+        if (result.progress < 90) {
+          // Show appropriate service name
+          if (result.aiService === 'premium') {
+            return 'Translating with Premium Context AI...'
+          } else if (result.aiService === 'openai') {
+            return 'Translating with OpenAI...'
+          } else {
+            return 'Translating with Google Translate...'
+          }
+        }
         return 'Finalizing translation...'
       case 'completed':
         return 'Translation completed successfully!'
