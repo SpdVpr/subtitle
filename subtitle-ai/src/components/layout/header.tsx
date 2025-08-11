@@ -37,6 +37,12 @@ export function Header() {
             >
               Translate
             </Link>
+            <Link
+              href="/subtitles-search"
+              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+            >
+              Find Subtitles
+            </Link>
             {user && subscription && subscription.plan !== 'free' && (
               <Link
                 href="/batch"

@@ -21,6 +21,9 @@ export default function Home() {
               <Link href="/translate">Start Translating</Link>
             </Button>
             <Button variant="outline" size="lg" asChild>
+              <Link href="/subtitles-search">Find Subtitles</Link>
+            </Button>
+            <Button variant="outline" size="lg" asChild>
               <Link href="/pricing">View Pricing</Link>
             </Button>
           </div>
@@ -78,6 +81,50 @@ export default function Home() {
               </p>
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      {/* New Feature Section */}
+      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="container px-4 mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-4">🎬 New: Find Subtitles</h2>
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Don&apos;t have subtitles yet? Search our database of millions of subtitles from OpenSubtitles.com
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-8">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🔍</span>
+              </div>
+              <h3 className="font-semibold mb-2">Search</h3>
+              <p className="text-sm text-muted-foreground">
+                Find subtitles for any movie or TV show
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">⬇️</span>
+              </div>
+              <h3 className="font-semibold mb-2">Download</h3>
+              <p className="text-sm text-muted-foreground">
+                Get subtitles from OpenSubtitles.com
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🤖</span>
+              </div>
+              <h3 className="font-semibold mb-2">Translate</h3>
+              <p className="text-sm text-muted-foreground">
+                Use our AI to translate to any language
+              </p>
+            </div>
+          </div>
+
+          <Button size="lg" asChild>
+            <Link href="/subtitles-search">Try Subtitle Search</Link>
+          </Button>
         </div>
       </section>
 
