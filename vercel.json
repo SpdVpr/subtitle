@@ -2,11 +2,7 @@
   "buildCommand": "cd subtitle-ai && npm run build",
   "outputDirectory": "subtitle-ai/.next",
   "framework": "nextjs",
-  "functions": {
-    "subtitle-ai/.next/server/app/api/**/route.js": {
-      "maxDuration": 60
-    }
-  },
+
   "headers": [
     {
       "source": "/api/(.*)",
