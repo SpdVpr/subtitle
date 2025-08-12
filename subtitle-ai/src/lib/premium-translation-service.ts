@@ -2,6 +2,7 @@ import { SubtitleEntry } from './subtitle-processor'
 
 export class PremiumTranslationService {
   private apiKey: string
+  private contextCache: Map<string, string> = new Map()
 
   constructor(apiKey: string) {
     this.apiKey = apiKey
@@ -21,7 +22,7 @@ export class PremiumTranslationService {
 
     if (!this.apiKey || this.apiKey.includes('your_openai_api_key') || this.apiKey.includes('demo_key')) {
       console.log('🎭 Using mock translation - API key not valid')
-      return this.createHighQualityMockTranslation(entries, targetLanguage)
+      return this.createHighQualityMockTranslation(entries, targetLanguage, fileName)
     }
 
     try {
@@ -61,7 +62,7 @@ export class PremiumTranslationService {
 
     } catch (error) {
       console.error('Premium translation error:', error)
-      return this.createHighQualityMockTranslation(entries, targetLanguage)
+      return this.createHighQualityMockTranslation(entries, targetLanguage, fileName)
     }
   }
 
@@ -139,21 +140,37 @@ export class PremiumTranslationService {
         ? `${showInfo.title} (${showInfo.year})`
         : showInfo.title
 
+      // Check cache first
+      const cacheKey = query.toLowerCase()
+      if (this.contextCache.has(cacheKey)) {
+        console.log('📋 Using cached context for:', query)
+        return this.contextCache.get(cacheKey)!
+      }
+
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
-            content: `You are a media expert. Provide concise context about TV shows and movies for subtitle translation purposes. Focus on:
-- Genre and tone (comedy, drama, horror, etc.)
-- Setting and time period
-- Main character types and relationships
-- Cultural context and themes
-- Names that should NOT be translated (character names, place names, etc.)
-- Special terminology or jargon used in the show
-- Target audience and style
+            content: `You are a media expert providing context for subtitle translation. For the given show/movie, provide:
 
-Keep response under 200 words and format as bullet points.`
+ESSENTIAL INFO:
+- Genre, tone, and style (comedy, drama, thriller, anime, etc.)
+- Setting (time period, location, universe type)
+- Target audience (kids, teens, adults, mature)
+
+CHARACTER & NAMING:
+- Main character names and types (DO NOT translate these)
+- Important place names (DO NOT translate these)
+- Special titles or terms unique to the show
+
+TRANSLATION GUIDANCE:
+- Cultural context and themes
+- Humor style (if comedy)
+- Special terminology or jargon
+- What should stay in original language vs. be translated
+
+Format as clear bullet points. Keep under 250 words. If you don't know the show, say "Unknown show" and provide generic guidance.`
           },
           {
             role: "user",
@@ -166,6 +183,10 @@ Keep response under 200 words and format as bullet points.`
 
       const context = completion.choices[0]?.message?.content || ''
       console.log('🎯 Context received:', context.substring(0, 100) + '...')
+
+      // Cache the context
+      this.contextCache.set(cacheKey, context)
+
       return context
 
     } catch (error) {
@@ -214,20 +235,26 @@ Keep response under 200 words and format as bullet points.`
     return (hours * 3600 + minutes * 60 + seconds) * 1000 + Number(ms)
   }
 
-  private createHighQualityMockTranslation(entries: SubtitleEntry[], targetLanguage: string): Promise<SubtitleEntry[]> {
+  private createHighQualityMockTranslation(entries: SubtitleEntry[], targetLanguage: string, fileName?: string): Promise<SubtitleEntry[]> {
     return new Promise((resolve) => {
       setTimeout(() => {
+        console.log('🎭 Using contextual mock translation for demo')
+
+        // Extract show info for demo
+        const showInfo = this.extractShowInfo(fileName)
+        console.log('📺 Detected show:', showInfo.title)
+
         if (targetLanguage === 'cs') {
           const translated = entries.map(entry => ({
             ...entry,
-            text: this.getMockCzechTranslation(entry.text)
+            text: this.getMockCzechTranslation(entry.text, showInfo.title)
           }))
           resolve(translated)
         } else {
-          // For other languages, use simple prefix
+          // For other languages, use contextual prefix
           const translated = entries.map(entry => ({
             ...entry,
-            text: `[Premium-${targetLanguage.toUpperCase()}] ${entry.text}`
+            text: `[${showInfo.title}-${targetLanguage.toUpperCase()}] ${entry.text}`
           }))
           resolve(translated)
         }
@@ -235,7 +262,33 @@ Keep response under 200 words and format as bullet points.`
     })
   }
 
-  private getMockCzechTranslation(text: string): string {
+  private getMockCzechTranslation(text: string, showTitle?: string): string {
+    // Context-aware translations based on detected show
+    if (showTitle) {
+      console.log('🎯 Using contextual translation for:', showTitle)
+
+      // Naruto-specific translations
+      if (showTitle.toLowerCase().includes('naruto')) {
+        if (text.includes('Hokage')) return text.replace('Hokage', 'Hokage') // Keep Japanese title
+        if (text.includes('ninja')) return text.replace('ninja', 'ninja') // Keep original
+        if (text.includes('jutsu')) return text.replace('jutsu', 'jutsu') // Keep Japanese term
+        if (text.includes('Believe it!')) return 'Věř tomu, dattebayo!'
+        if (text.includes('Shadow Clone')) return 'Stínový klon'
+      }
+
+      // Wednesday Addams specific
+      if (showTitle.toLowerCase().includes('wednesday')) {
+        if (text.includes('Addams')) return text.replace('Addams', 'Addamsová') // Czech feminine form
+        if (text.includes('Nevermore')) return text.replace('Nevermore', 'Nevermore') // Keep school name
+      }
+
+      // Anime general
+      if (showTitle.toLowerCase().includes('anime') || showTitle.match(/\b(attack|titan|demon|slayer|hero|academia)\b/i)) {
+        // Keep Japanese honorifics and terms
+        text = text.replace(/\b(san|kun|chan|sama|sensei|senpai)\b/g, (match) => match)
+      }
+    }
+
     // High-quality Czech translations for Wednesday Addams content
     const translations: Record<string, string> = {
       "[Wednesday] It's been an eventful summer.": "[Wednesday] Bylo to událostmi nabité léto.",
@@ -440,26 +493,27 @@ Keep response under 200 words and format as bullet points.`
       messages: [
         {
           role: "system",
-          content: `You are an expert subtitle translator specializing in ${targetLangName}. You create professional-quality translations indistinguishable from human work.
+          content: `You are an expert subtitle translator specializing in ${targetLangName}. You create professional-quality translations that capture the essence of the original content.
 
-CONTENT CONTEXT:
 ${contentAnalysis}
 
-TRANSLATION PRINCIPLES:
-- Translate from ${sourceLangName} to ${targetLangName} with perfect accuracy
-- Maintain exact emotional tone, character voice, and narrative style  
-- Preserve ALL formatting: [Speaker], [Sound Effects], ♪ Music ♪, [Actions]
-- Keep subtitle length optimal for reading speed (max 42 chars per line)
-- Use natural, fluent ${targetLangName} that sounds completely native
-- Maintain story flow and character relationships
+TRANSLATION GUIDELINES:
+- Translate from ${sourceLangName} to ${targetLangName} with contextual accuracy
+- Use the show/movie context above to inform your translation choices
+- Maintain character voices, relationships, and the show's unique tone
+- Keep proper names (characters, places) in original language unless commonly translated
+- Preserve ALL formatting: [Speaker], [Sound Effects], ♪ Music ♪, [Actions], (Whispers), etc.
+- Use natural, fluent ${targetLangName} appropriate for the show's target audience
+- Maintain subtitle reading speed (max 42 characters per line when possible)
+- Preserve cultural references when they make sense, adapt when necessary
+- Keep the emotional impact and humor style of the original
 
-CRITICAL REQUIREMENTS:
+TECHNICAL REQUIREMENTS:
 - Return EXACTLY ${batch.length} numbered lines
-- Each line format: "N. translated_text"
+- Format: "N. translated_text" (where N is the line number)
 - Never skip, merge, or split subtitle entries
-- Preserve all speaker names and sound effects exactly
-- Use appropriate ${targetLangName} cultural context and idioms
-- Maintain the same emotional impact as the original`
+- Maintain exact line breaks within multi-line subtitles
+- Preserve timing-critical elements like pauses (...) and emphasis`
         },
         {
           role: "user",
@@ -525,29 +579,4 @@ CRITICAL REQUIREMENTS:
     return translatedEntries
   }
 
-  private createHighQualityMockTranslation(entries: SubtitleEntry[], targetLanguage: string): Promise<SubtitleEntry[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('🎭 Using high-quality mock translation for demo')
-
-        if (targetLanguage === 'cs') {
-          const translated = entries.map(entry => {
-            const translatedText = this.getMockCzechTranslation(entry.text)
-            return {
-              ...entry,
-              text: translatedText
-            }
-          })
-          resolve(translated)
-        } else {
-          // For other languages, use simple prefix
-          const translated = entries.map(entry => ({
-            ...entry,
-            text: `[Premium-${targetLanguage.toUpperCase()}] ${entry.text}`
-          }))
-          resolve(translated)
-        }
-      }, 1200) // Simulate realistic processing time
-    })
-  }
 }
