@@ -138,14 +138,24 @@ export async function POST(req: NextRequest) {
       // Create translation job
       console.log('📋 Creating translation job for premium service')
 
-      // For premium users, use real-time premium translation with progress tracking
-      if (userId === 'premium-user-demo') {
-        console.log('🎬 Premium user detected - using real-time premium translation')
+      // For premium service, always use real OpenAI API - no demo/mock modes
+      if (aiServiceRaw === 'premium') {
+        console.log('🎬 Premium Context AI service - validating OpenAI API key')
 
+        // Validate OpenAI API key
+        const apiKey = process.env.OPENAI_API_KEY
+        if (!apiKey || apiKey === 'demo_key' || !apiKey.startsWith('sk-')) {
+          console.error('❌ Invalid or missing OpenAI API key for premium service')
+          return NextResponse.json({
+            error: 'Premium Context AI requires a valid OpenAI API key. Please configure OPENAI_API_KEY environment variable.'
+          }, { status: 400 })
+        }
+
+        console.log('✅ OpenAI API key validated, creating premium translation job')
         const jobId = `premium_job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
         // Start real premium translation in background
-        processRealTimePremiumTranslation(jobId, file, userId, sourceLanguage, targetLanguage, sessionId)
+        processRealPremiumTranslation(jobId, file, userId, sourceLanguage, targetLanguage, sessionId, apiKey)
           .catch(error => {
             console.error('❌ Premium translation failed:', error)
             // Store error result
@@ -429,8 +439,8 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    // Check for premium jobs first
-    if (jobId.startsWith('premium_job_') && userId === 'premium-user-demo') {
+    // Check for premium jobs
+    if (jobId.startsWith('premium_job_')) {
       console.log('🎬 Checking premium job status:', jobId)
       const premiumResults = (global as any).premiumJobResults || {}
       const premiumJob = premiumResults[jobId]
@@ -478,106 +488,25 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Demo version of processTranslationJob that doesn't use database
-async function processTranslationJobDemo(
+
+
+// Real premium translation function - OpenAI API only, no demo/mock modes
+async function processRealPremiumTranslation(
   jobId: string,
   file: File,
   userId: string,
   sourceLanguage: string | null,
   targetLanguage: string,
-  aiServiceRaw: 'google' | 'openai' | 'premium',
-  sessionId: string
+  sessionId: string,
+  apiKey: string
 ) {
   const startTime = Date.now()
 
   try {
-    console.log('🎭 Processing DEMO translation job:', jobId)
-    console.log('🔧 Demo job details:', { userId, sourceLanguage, targetLanguage, aiServiceRaw, sessionId })
+    console.log('🎬 Starting real premium translation with OpenAI API:', jobId)
 
-    // Process subtitle file
-    const fileContent = await file.text()
-    const subtitleEntries = SubtitleProcessor.parseSRT(fileContent)
-
-    if (subtitleEntries.length === 0) {
-      console.error('❌ No valid subtitles found in file')
-      updateTranslationProgress(sessionId, 'error', 0, 'No valid subtitles found in file')
-      return
-    }
-
-    console.log('📊 Demo: Processing', subtitleEntries.length, 'subtitle entries')
-
-    // Simulate premium translation with realistic progress
-    updateTranslationProgress(sessionId, 'analyzing', 10, 'Analyzing filename and extracting show information...')
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    updateTranslationProgress(sessionId, 'researching', 30, 'Researching content for contextual information...')
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    updateTranslationProgress(sessionId, 'analyzing-content', 50, 'Analyzing subtitle content and themes...')
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    updateTranslationProgress(sessionId, 'translating', 80, 'Translating with contextual awareness...')
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    updateTranslationProgress(sessionId, 'finalizing', 95, 'Finalizing translation and quality checks...')
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    // Create mock translated entries
-    const translatedEntries = subtitleEntries.map((entry, index) => ({
-      ...entry,
-      text: `[Demo ${targetLanguage.toUpperCase()}] ${entry.text} (přeloženo pomocí Premium Context AI)`
-    }))
-
-    // Generate translated content
-    const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
-    const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
-
-    console.log('✅ Demo translation completed successfully')
-
-    // Store result in memory for demo (in real app, this would be in database)
-    ;(global as any).demoJobResults = (global as any).demoJobResults || {}
-    ;(global as any).demoJobResults[jobId] = {
-      status: 'completed',
-      translatedContent,
-      translatedFileName,
-      subtitleCount: translatedEntries.length,
-      processingTimeMs: Date.now() - startTime,
-      completedAt: new Date().toISOString()
-    }
-
-    // Final progress update
-    updateTranslationProgress(sessionId, 'completed', 100, 'Demo translation completed successfully!')
-
-  } catch (error) {
-    const processingTime = Date.now() - startTime
-    console.error('❌ Demo translation job failed:', jobId, error)
-
-    // Update progress with error
-    updateTranslationProgress(sessionId, 'error', 0, `Demo translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-
-    // Store error result
-    ;(global as any).demoJobResults = (global as any).demoJobResults || {}
-    ;(global as any).demoJobResults[jobId] = {
-      status: 'failed',
-      errorMessage: error instanceof Error ? error.message : 'Demo translation failed',
-      processingTimeMs: processingTime
-    }
-  }
-}
-
-// Real-time premium translation function
-async function processRealTimePremiumTranslation(
-  jobId: string,
-  file: File,
-  userId: string,
-  sourceLanguage: string | null,
-  targetLanguage: string,
-  sessionId: string
-) {
-  const startTime = Date.now()
-
-  try {
-    console.log('🎬 Starting real-time premium translation:', jobId)
+    // Initialize premium service
+    const premiumService = new PremiumTranslationService(apiKey)
 
     // Initial progress
     updateTranslationProgress(sessionId, 'initializing', 0, 'Starting premium translation process...')
@@ -591,77 +520,44 @@ async function processRealTimePremiumTranslation(
       throw new Error('No valid subtitles found in file')
     }
 
-    console.log('📊 Processing', subtitleEntries.length, 'subtitle entries')
+    console.log('📊 Processing', subtitleEntries.length, 'subtitle entries with OpenAI API')
 
     // Phase 1: Analyzing filename
     updateTranslationProgress(sessionId, 'analyzing', 10, `Analyzing filename '${file.name}' and extracting show information...`)
     await new Promise(resolve => setTimeout(resolve, 800))
 
-    // Phase 2: Research (use real AI if API key available)
-    updateTranslationProgress(sessionId, 'researching', 30, 'Researching content for contextual information...')
+    // Phase 2: Research using OpenAI API
+    updateTranslationProgress(sessionId, 'researching', 30, 'Researching content for contextual information using OpenAI...')
 
-    let contextualInfo = ''
-    const hasValidApiKey = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'demo_key' && process.env.OPENAI_API_KEY.startsWith('sk-')
+    console.log('🔑 Using OpenAI API for content research')
+    const showName = file.name.split('.')[0] || 'Unknown Show'
+    const contextualInfo = await premiumService.researchShow(showName)
+    console.log('✅ OpenAI research completed:', contextualInfo.substring(0, 100) + '...')
 
-    if (hasValidApiKey) {
-      console.log('🔑 Using real OpenAI API for research')
-      try {
-        const premiumService = new PremiumTranslationService(process.env.OPENAI_API_KEY!)
-        // Extract show name from filename for research
-        const showName = file.name.split('.')[0] || 'Unknown Show'
-        contextualInfo = await premiumService.researchShow(showName)
-        console.log('✅ Research completed:', contextualInfo.substring(0, 100) + '...')
-      } catch (error) {
-        console.warn('⚠️ Research failed, using fallback:', error)
-        contextualInfo = `Contextual translation for ${file.name.split('.')[0] || 'this content'}`
-      }
-    } else {
-      console.log('🎭 Using demo research (no valid API key)')
-      contextualInfo = `Contextual information for ${file.name.split('.')[0] || 'this content'} - demo mode`
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
     // Phase 3: Analyzing content
     updateTranslationProgress(sessionId, 'analyzing-content', 50, 'Analyzing subtitle content and themes...')
     await new Promise(resolve => setTimeout(resolve, 1000))
 
-    // Phase 4: Translation
-    updateTranslationProgress(sessionId, 'translating', 70, 'Translating with contextual awareness...')
+    // Phase 4: Translation using OpenAI API
+    updateTranslationProgress(sessionId, 'translating', 70, 'Translating with contextual awareness using OpenAI...')
 
-    let translatedEntries
-    if (hasValidApiKey) {
-      console.log('🔑 Using real OpenAI API for translation')
-      try {
-        const premiumService = new PremiumTranslationService(process.env.OPENAI_API_KEY!)
-        const progressCallback = (stage: string, progress: number, details?: string) => {
-          console.log(`🔄 Translation Progress: ${stage} (${progress}%) - ${details || ''}`)
-          updateTranslationProgress(sessionId, stage, Math.max(70, progress), details)
-        }
-
-        translatedEntries = await premiumService.translateSubtitles(
-          subtitleEntries,
-          targetLanguage,
-          sourceLanguage || 'en',
-          file.name,
-          progressCallback
-        )
-      } catch (error) {
-        console.warn('⚠️ Premium translation failed, using enhanced fallback:', error)
-        translatedEntries = subtitleEntries.map(entry => ({
-          ...entry,
-          text: `${entry.text} [${targetLanguage.toUpperCase()}]`
-        }))
-      }
-    } else {
-      console.log('🎭 Using enhanced demo translation')
-      translatedEntries = subtitleEntries.map(entry => ({
-        ...entry,
-        text: `${entry.text} [Přeloženo do ${targetLanguage.toUpperCase()}]`
-      }))
+    console.log('🔑 Using OpenAI API for contextual translation')
+    const progressCallback = (stage: string, progress: number, details?: string) => {
+      console.log(`🔄 OpenAI Translation Progress: ${stage} (${progress}%) - ${details || ''}`)
+      updateTranslationProgress(sessionId, stage, Math.max(70, progress), details)
     }
 
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    const translatedEntries = await premiumService.translateSubtitles(
+      subtitleEntries,
+      targetLanguage,
+      sourceLanguage || 'en',
+      file.name,
+      progressCallback
+    )
+
+    console.log('✅ OpenAI translation completed for', translatedEntries.length, 'entries')
 
     // Phase 5: Finalizing
     updateTranslationProgress(sessionId, 'finalizing', 95, 'Finalizing translation and quality checks...')
@@ -671,7 +567,7 @@ async function processRealTimePremiumTranslation(
     const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
     const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
 
-    console.log('✅ Premium translation completed successfully')
+    console.log('✅ Premium translation completed successfully with OpenAI API')
 
     // Store result
     ;(global as any).premiumJobResults = (global as any).premiumJobResults || {}
@@ -683,25 +579,27 @@ async function processRealTimePremiumTranslation(
       processingTimeMs: Date.now() - startTime,
       completedAt: new Date().toISOString(),
       contextualInfo: contextualInfo.substring(0, 200),
-      usedRealAI: hasValidApiKey
+      apiProvider: 'OpenAI',
+      model: 'gpt-4o-mini'
     }
 
     // Final progress update
-    updateTranslationProgress(sessionId, 'completed', 100, 'Premium translation completed successfully!')
+    updateTranslationProgress(sessionId, 'completed', 100, 'Premium translation completed successfully with OpenAI!')
 
   } catch (error) {
     const processingTime = Date.now() - startTime
     console.error('❌ Premium translation failed:', jobId, error)
 
     // Update progress with error
-    updateTranslationProgress(sessionId, 'error', 0, `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    updateTranslationProgress(sessionId, 'error', 0, `OpenAI translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
 
     // Store error result
     ;(global as any).premiumJobResults = (global as any).premiumJobResults || {}
     ;(global as any).premiumJobResults[jobId] = {
       status: 'failed',
       errorMessage: error instanceof Error ? error.message : 'Premium translation failed',
-      processingTimeMs: processingTime
+      processingTimeMs: processingTime,
+      apiProvider: 'OpenAI'
     }
   }
 }

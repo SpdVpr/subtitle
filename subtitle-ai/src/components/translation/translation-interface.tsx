@@ -188,7 +188,9 @@ export function TranslationInterface() {
         let jobStatus = 'pending'
         let statusData: any = null
         let pollCount = 0
-        while (jobStatus === 'pending' || jobStatus === 'processing') {
+        const maxPolls = 120 // 2 minutes max
+
+        while ((jobStatus === 'pending' || jobStatus === 'processing') && pollCount < maxPolls) {
           await new Promise(resolve => setTimeout(resolve, 1000))
 
           const statusResponse = await fetch(`/api/translate?jobId=${apiResult.jobId}&userId=${user.uid}`)
@@ -196,13 +198,17 @@ export function TranslationInterface() {
           jobStatus = statusData.status
           pollCount++
 
-          console.log(`🔄 Job polling ${pollCount}: status = ${jobStatus}`)
+          console.log(`🔄 Premium job polling ${pollCount}: status = ${jobStatus}`)
 
           if (jobStatus === 'processing') {
             // For premium service, progress is handled by SSE, but update basic progress as fallback
-            result.progress = Math.min(90, 20 + (pollCount * 8))
+            result.progress = Math.min(90, 20 + (pollCount * 2))
             setTranslationResult({ ...result })
           }
+        }
+
+        if (pollCount >= maxPolls) {
+          throw new Error('Premium translation timeout - please try again')
         }
 
         if (jobStatus === 'failed') {
