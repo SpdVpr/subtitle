@@ -3,9 +3,8 @@
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "rootDirectory": "subtitle-ai",
   "functions": {
-    "subtitle-ai/src/app/api/**/*.ts": {
+    "src/app/api/**/*.ts": {
       "maxDuration": 60
     }
   },
