@@ -151,34 +151,68 @@ export async function POST(req: NextRequest) {
           }, { status: 400 })
         }
 
-        console.log('✅ OpenAI API key validated, creating premium translation job')
-        const jobId = `premium_job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        console.log('✅ OpenAI API key validated, starting immediate premium translation')
 
-        // Start real premium translation in background with timeout
-        const translationPromise = processRealPremiumTranslation(jobId, file, userId, sourceLanguage, targetLanguage, sessionId, apiKey)
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Premium translation timeout after 60 seconds')), 60000)
-        })
+        // Process subtitle file immediately
+        const fileContent = await file.text()
+        const subtitleEntries = SubtitleProcessor.parseSRT(fileContent)
 
-        Promise.race([translationPromise, timeoutPromise])
-          .catch(error => {
-            console.error('❌ Premium translation failed or timed out:', error)
-            // Store error result
-            ;(global as any).premiumJobResults = (global as any).premiumJobResults || {}
-            ;(global as any).premiumJobResults[jobId] = {
-              status: 'failed',
-              errorMessage: error instanceof Error ? error.message : 'Premium translation failed',
-              processingTimeMs: Date.now() - parseInt(jobId.split('_')[2])
-            }
-            updateTranslationProgress(sessionId, 'error', 0, `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        if (subtitleEntries.length === 0) {
+          return NextResponse.json({ error: 'No valid subtitles found in file' }, { status: 400 })
+        }
+
+        console.log('📊 Processing', subtitleEntries.length, 'subtitle entries with OpenAI API')
+
+        try {
+          // Initialize premium service
+          const premiumService = new PremiumTranslationService(apiKey)
+
+          // Progress callback for real-time updates
+          const progressCallback = (stage: string, progress: number, details?: string) => {
+            console.log(`🔄 OpenAI Translation Progress: ${stage} (${progress}%) - ${details || ''}`)
+            updateTranslationProgress(sessionId, stage, progress, details)
+          }
+
+          // Start with initial progress
+          updateTranslationProgress(sessionId, 'initializing', 0, 'Starting premium translation process...')
+
+          // Perform translation
+          const translatedEntries = await premiumService.translateSubtitles(
+            subtitleEntries,
+            targetLanguage,
+            sourceLanguage || 'en',
+            file.name,
+            progressCallback
+          )
+
+          // Generate final content
+          const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
+          const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
+
+          console.log('✅ Premium translation completed successfully')
+
+          // Final progress update
+          updateTranslationProgress(sessionId, 'completed', 100, 'Premium translation completed successfully!')
+
+          return NextResponse.json({
+            status: 'completed',
+            translatedContent,
+            translatedFileName,
+            subtitleCount: translatedEntries.length,
+            characterCount: translatedContent.length,
+            processingTimeMs: Date.now() - Date.now(), // Will be calculated on client
+            apiProvider: 'OpenAI',
+            model: 'gpt-4o-mini'
           })
 
-        return NextResponse.json({
-          jobId,
-          sessionId,
-          status: 'pending',
-          message: 'Premium translation job created successfully'
-        })
+        } catch (error) {
+          console.error('❌ Premium translation failed:', error)
+          updateTranslationProgress(sessionId, 'error', 0, `OpenAI translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+
+          return NextResponse.json({
+            error: `Premium translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }, { status: 500 })
+        }
       }
 
       // For real users, use full database system
