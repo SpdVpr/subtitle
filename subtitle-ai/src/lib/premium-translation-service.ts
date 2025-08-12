@@ -726,19 +726,20 @@ TECHNICAL REQUIREMENTS:
     // Parse response - handle multi-line translations properly
     const responseLines = response.split('\n').map(line => line.trim())
 
-    // Group lines by entry number
-    const translationGroups: Record<number, string[]> = {}
+    // Group lines by entry number (support both "." and ":" separators)
+    let translationGroups: Record<number, string[]> = {}
     let currentEntryNum = 0
 
     for (const line of responseLines) {
       if (line.length === 0) continue
 
-      const entryMatch = line.match(/^(\d+)\.\s*(.*)$/)
-      if (entryMatch) {
-        currentEntryNum = parseInt(entryMatch[1])
-        translationGroups[currentEntryNum] = [entryMatch[2]]
+      let m = line.match(/^(\d+)\.\s*(.*)$/)
+      if (!m) m = line.match(/^(\d+):\s*(.*)$/)
+
+      if (m) {
+        currentEntryNum = parseInt(m[1])
+        translationGroups[currentEntryNum] = [m[2]]
       } else if (currentEntryNum > 0 && line.length > 0) {
-        // This is a continuation line for the current entry
         if (!translationGroups[currentEntryNum]) {
           translationGroups[currentEntryNum] = []
         }
@@ -746,29 +747,87 @@ TECHNICAL REQUIREMENTS:
       }
     }
 
+    // If model numbered lines 1..batch.length, normalize to absolute indices
+    const keys = Object.keys(translationGroups).map(k => parseInt(k)).sort((a,b)=>a-b)
+    if (keys.length === batch.length && keys[0] === 1 && keys[keys.length-1] === batch.length) {
+      const normalized: Record<number, string[]> = {}
+      for (const k of keys) {
+        const abs = batchStartIndex + k
+        normalized[abs] = translationGroups[k]
+      }
+      translationGroups = normalized
+    }
+
     console.log('📝 Parsed translation groups:', Object.keys(translationGroups).length, 'vs expected:', batch.length)
 
     const translatedEntries: SubtitleEntry[] = []
 
+    // Helper to detect likely untranslated English when target is Czech
+    const hasCz = (s: string) => /[áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]/.test(s)
+    const looksEnglish = (s: string) => /( the | and | you | your | shall | very | bad | good | hate | grief | from | to | will | can )/i.test(' ' + s + ' ')
+
+    const missingOrUntranslated: { absNum: number, idxInBatch: number, text: string }[] = []
+
     for (let i = 0; i < batch.length; i++) {
       const originalEntry = batch[i]
       const entryNum = batchStartIndex + i + 1
-      const translationLines = translationGroups[entryNum]
+      const group = translationGroups[entryNum]
 
-      if (translationLines && translationLines.length > 0) {
-        // Join all lines for this entry
-        const translatedText = translationLines.join('\n').trim()
+      if (group && group.length > 0) {
+        const translatedText = group.join('\n').trim()
+        const likelyUntranslated = (!hasCz(translatedText) && looksEnglish(translatedText)) || translatedText === originalEntry.text
 
-        console.log(`📝 Entry ${i + 1}: "${originalEntry.text}" → "${translatedText}"`)
-
-        translatedEntries.push({
-          ...originalEntry,
-          text: translatedText
-        })
+        if (likelyUntranslated) {
+          console.warn(`⚠️ Likely untranslated at ${entryNum}, scheduling re-translate`)
+          missingOrUntranslated.push({ absNum: entryNum, idxInBatch: i, text: originalEntry.text })
+          // Tentatively push original; will replace after retranslate
+          translatedEntries.push({ ...originalEntry, text: originalEntry.text })
+        } else {
+          translatedEntries.push({ ...originalEntry, text: translatedText })
+        }
       } else {
         console.warn(`⚠️ Missing response for entry ${i + 1}: "${originalEntry.text}"`)
-        // Fallback to original if response is missing
+        missingOrUntranslated.push({ absNum: entryNum, idxInBatch: i, text: originalEntry.text })
         translatedEntries.push(originalEntry)
+      }
+    }
+
+    // Second-pass: retranslate missing/untranslated lines in a compact call
+    if (missingOrUntranslated.length > 0) {
+      console.log('🔁 Retrying', missingOrUntranslated.length, 'untranslated lines')
+      const userList = missingOrUntranslated.map(item => `${item.absNum}. ${item.text}`).join('\n')
+      const fix = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: 'system',
+            content: `You strictly translate provided subtitle lines to ${targetLangName}. Do not leave any English words unless they are proper names. Return EXACTLY the same indices with format "N. translated_text". Keep multi-line breaks with \n. Use idiomatic ${targetLangName}.`
+          },
+          {
+            role: 'user',
+            content: `Translate the following lines:\n\n${userList}`
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: Math.min(2000, missingOrUntranslated.length * 120)
+      })
+
+      const fixResp = fix.choices[0]?.message?.content || ''
+      const map: Record<number, string[]> = {}
+      for (const line of fixResp.split('\n')) {
+        const m = line.trim().match(/^(\d+)\.?\s*(.*)$/)
+        if (m) {
+          const n = parseInt(m[1])
+          map[n] = map[n] || []
+          map[n].push(m[2])
+        }
+      }
+
+      for (const item of missingOrUntranslated) {
+        const lines = map[item.absNum]
+        if (lines && lines.length) {
+          translatedEntries[item.idxInBatch] = { ...translatedEntries[item.idxInBatch], text: lines.join('\n').trim() }
+        }
       }
     }
 
