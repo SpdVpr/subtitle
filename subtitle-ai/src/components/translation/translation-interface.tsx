@@ -167,9 +167,9 @@ export function TranslationInterface() {
         const apiResult = await response.json()
         console.log('📋 API result:', apiResult)
 
-        // If API returned inline completed result (demo user), skip polling
-        if (apiResult.status === 'completed' && apiResult.translatedContent) {
-          console.log('✅ API returned completed result, finishing translation')
+        // If API returned inline completed result (non-premium services), skip polling
+        if (apiResult.status === 'completed' && apiResult.translatedContent && aiService !== 'premium') {
+          console.log('✅ API returned completed result for non-premium service, finishing translation')
           const translatedContent = apiResult.translatedContent as string
           result.status = 'completed'
           result.progress = 100
@@ -179,19 +179,12 @@ export function TranslationInterface() {
           setTranslationResult({ ...result })
           await incrementUsage('translation')
 
-          // Cleanup progress tracking
-          if (aiService === 'premium') {
-            completeProgress()
-            if ((window as any).cleanupProgressTracking) {
-              (window as any).cleanupProgressTracking()
-            }
-          }
-
           console.log('🎉 Translation completed via API route')
           return
         }
 
-        // Poll for completion
+        // Premium service uses job system - poll for completion
+        console.log('🔄 Premium service: Starting job polling for jobId:', apiResult.jobId)
         let jobStatus = 'pending'
         let statusData: any = null
         let pollCount = 0
@@ -203,8 +196,10 @@ export function TranslationInterface() {
           jobStatus = statusData.status
           pollCount++
 
+          console.log(`🔄 Job polling ${pollCount}: status = ${jobStatus}`)
+
           if (jobStatus === 'processing') {
-            // More realistic progress updates that can reach 90%
+            // For premium service, progress is handled by SSE, but update basic progress as fallback
             result.progress = Math.min(90, 20 + (pollCount * 8))
             setTranslationResult({ ...result })
           }
@@ -230,6 +225,16 @@ export function TranslationInterface() {
 
         setTranslationResult({ ...result })
         await incrementUsage('translation')
+
+        // Cleanup progress tracking for premium service
+        if (aiService === 'premium') {
+          completeProgress()
+          if ((window as any).cleanupProgressTracking) {
+            (window as any).cleanupProgressTracking()
+          }
+        }
+
+        console.log('🎉 Premium translation completed via job system')
         return
       }
 

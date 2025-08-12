@@ -80,26 +80,12 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'No valid subtitles found in file' }, { status: 400 })
         }
 
-        let translatedEntries
-
+        // For premium service, always use job system for progress tracking
         if (aiServiceRaw === 'premium') {
-          // Use new Premium Context AI service for best quality
-          console.log('🎬 Using Premium Context AI Translation Service')
-          const premiumService = new PremiumTranslationService(process.env.OPENAI_API_KEY || 'demo_key')
-          // Progress callback for real-time updates
-          const progressCallback = (stage: string, progress: number, details?: string) => {
-            console.log(`🔄 Translation Progress: ${stage} (${progress}%) - ${details || ''}`)
-            updateTranslationProgress(sessionId, stage, progress, details)
-          }
-
-          translatedEntries = await premiumService.translateSubtitles(
-            subtitleEntries,
-            targetLanguage,
-            sourceLanguage || 'en',
-            file.name,
-            progressCallback
-          )
+          console.log('🎬 Premium service will use job system for progress tracking')
+          // Skip inline processing for premium - use job system below
         } else {
+          let translatedEntries
           // Use traditional chunking approach for other services
           console.log('🔧 Using traditional translation service:', aiService)
           const textChunks = SubtitleProcessor.splitTextForTranslation(subtitleEntries)
@@ -127,17 +113,17 @@ export async function POST(req: NextRequest) {
             targetLanguage,
             false
           )
-        }
-        const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
-        const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
+          const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
+          const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
 
-        return NextResponse.json({
-          status: 'completed',
-          translatedContent,
-          translatedFileName,
-          subtitleCount: subtitleEntries.length,
-          characterCount: fileContent.length,
-        })
+          return NextResponse.json({
+            status: 'completed',
+            translatedContent,
+            translatedFileName,
+            subtitleCount: subtitleEntries.length,
+            characterCount: translatedContent.length,
+          })
+        }
       } catch (inlineErr) {
         await ErrorTracker.logApiError(
           inlineErr instanceof Error ? inlineErr : new Error(String(inlineErr)),
