@@ -154,10 +154,15 @@ export async function POST(req: NextRequest) {
         console.log('✅ OpenAI API key validated, creating premium translation job')
         const jobId = `premium_job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-        // Start real premium translation in background
-        processRealPremiumTranslation(jobId, file, userId, sourceLanguage, targetLanguage, sessionId, apiKey)
+        // Start real premium translation in background with timeout
+        const translationPromise = processRealPremiumTranslation(jobId, file, userId, sourceLanguage, targetLanguage, sessionId, apiKey)
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Premium translation timeout after 60 seconds')), 60000)
+        })
+
+        Promise.race([translationPromise, timeoutPromise])
           .catch(error => {
-            console.error('❌ Premium translation failed:', error)
+            console.error('❌ Premium translation failed or timed out:', error)
             // Store error result
             ;(global as any).premiumJobResults = (global as any).premiumJobResults || {}
             ;(global as any).premiumJobResults[jobId] = {
@@ -504,35 +509,56 @@ async function processRealPremiumTranslation(
 
   try {
     console.log('🎬 Starting real premium translation with OpenAI API:', jobId)
+    console.log('🔧 Translation details:', { userId, sourceLanguage, targetLanguage, sessionId, fileName: file.name })
 
     // Initialize premium service
+    console.log('🔑 Initializing PremiumTranslationService with API key')
     const premiumService = new PremiumTranslationService(apiKey)
+    console.log('✅ PremiumTranslationService initialized')
 
     // Initial progress
+    console.log('📊 Sending initial progress update')
     updateTranslationProgress(sessionId, 'initializing', 0, 'Starting premium translation process...')
     await new Promise(resolve => setTimeout(resolve, 500))
+    console.log('✅ Initial progress sent')
 
     // Process subtitle file
+    console.log('📄 Reading subtitle file content')
     const fileContent = await file.text()
+    console.log('📄 File content length:', fileContent.length)
+
+    console.log('📊 Parsing SRT content')
     const subtitleEntries = SubtitleProcessor.parseSRT(fileContent)
+    console.log('📊 Parsed', subtitleEntries.length, 'subtitle entries')
 
     if (subtitleEntries.length === 0) {
+      console.error('❌ No valid subtitles found in file')
       throw new Error('No valid subtitles found in file')
     }
 
-    console.log('📊 Processing', subtitleEntries.length, 'subtitle entries with OpenAI API')
+    console.log('✅ Processing', subtitleEntries.length, 'subtitle entries with OpenAI API')
 
     // Phase 1: Analyzing filename
     updateTranslationProgress(sessionId, 'analyzing', 10, `Analyzing filename '${file.name}' and extracting show information...`)
     await new Promise(resolve => setTimeout(resolve, 800))
 
     // Phase 2: Research using OpenAI API
+    console.log('📊 Sending research progress update')
     updateTranslationProgress(sessionId, 'researching', 30, 'Researching content for contextual information using OpenAI...')
 
-    console.log('🔑 Using OpenAI API for content research')
+    console.log('🔑 Starting OpenAI API research')
     const showName = file.name.split('.')[0] || 'Unknown Show'
-    const contextualInfo = await premiumService.researchShow(showName)
-    console.log('✅ OpenAI research completed:', contextualInfo.substring(0, 100) + '...')
+    console.log('🔍 Researching show:', showName)
+
+    try {
+      const contextualInfo = await premiumService.researchShow(showName)
+      console.log('✅ OpenAI research completed successfully')
+      console.log('📋 Research result length:', contextualInfo.length)
+      console.log('📋 Research preview:', contextualInfo.substring(0, 100) + '...')
+    } catch (researchError) {
+      console.error('❌ OpenAI research failed:', researchError)
+      throw new Error(`Research failed: ${researchError instanceof Error ? researchError.message : 'Unknown error'}`)
+    }
 
     await new Promise(resolve => setTimeout(resolve, 1000))
 
