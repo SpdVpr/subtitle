@@ -328,6 +328,18 @@ export function HierarchicalSubtitleSearch() {
       setShows(groupedShows)
       setTotalCount(data.total_count)
 
+      // Auto-expand first show if there's only one
+      if (groupedShows.length === 1) {
+        const firstShow = groupedShows[0]
+        const showKey = firstShow.feature_type === 'Episode'
+          ? `series-${firstShow.imdb_id}-${firstShow.title}`
+          : `${firstShow.imdb_id}-${firstShow.title}-${firstShow.year}`
+
+        setExpandedShows(prev => new Set(prev).add(showKey))
+        // Load episodes for the first show
+        setTimeout(() => loadShowEpisodes(firstShow), 100)
+      }
+
       if (groupedShows.length === 0) {
         toast.info('Nebyly nalezeny žádné titulky')
       } else {
