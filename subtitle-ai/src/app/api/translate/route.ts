@@ -137,6 +137,25 @@ export async function POST(req: NextRequest) {
     try {
       // Create translation job
       console.log('📋 Creating translation job for premium service')
+
+      // For demo users, use simplified job system
+      if (userId === 'premium-user-demo') {
+        console.log('🎭 Demo user detected - using simplified job system')
+        const jobId = `demo_job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+        // Start processing in background without database
+        console.log('🚀 Starting demo background processing')
+        processTranslationJobDemo(jobId, file, userId, sourceLanguage, targetLanguage, aiServiceRaw, sessionId)
+
+        return NextResponse.json({
+          jobId,
+          sessionId,
+          status: 'pending',
+          message: 'Demo translation job created successfully'
+        })
+      }
+
+      // For real users, use full database system
       const jobId = await TranslationJobService.createJob({
         userId,
         type: 'single',
@@ -161,6 +180,9 @@ export async function POST(req: NextRequest) {
       })
     } catch (jobError) {
       console.error('❌ Job creation failed:', jobError)
+      console.error('❌ Job error details:', jobError instanceof Error ? jobError.message : String(jobError))
+      console.error('❌ Job error stack:', jobError instanceof Error ? jobError.stack : 'No stack trace')
+
       await ErrorTracker.logApiError(
         jobError instanceof Error ? jobError : new Error(String(jobError)),
         '/api/translate',
@@ -396,8 +418,25 @@ export async function GET(req: NextRequest) {
       )
     }
 
+    // Check for demo jobs first
+    if (jobId.startsWith('demo_job_') && userId === 'premium-user-demo') {
+      console.log('🎭 Checking demo job status:', jobId)
+      const demoResults = (global as any).demoJobResults || {}
+      const demoJob = demoResults[jobId]
+
+      if (!demoJob) {
+        return NextResponse.json({
+          status: 'processing',
+          message: 'Demo job is still processing...'
+        })
+      }
+
+      return NextResponse.json(demoJob)
+    }
+
+    // For real users, use database
     const job = await TranslationJobService.getJob(jobId)
-    
+
     if (!job) {
       return NextResponse.json(
         { error: 'Job not found' },
@@ -425,5 +464,87 @@ export async function GET(req: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     )
+  }
+}
+
+// Demo version of processTranslationJob that doesn't use database
+async function processTranslationJobDemo(
+  jobId: string,
+  file: File,
+  userId: string,
+  sourceLanguage: string | null,
+  targetLanguage: string,
+  aiServiceRaw: 'google' | 'openai' | 'premium',
+  sessionId: string
+) {
+  const startTime = Date.now()
+
+  try {
+    console.log('🎭 Processing DEMO translation job:', jobId)
+    console.log('🔧 Demo job details:', { userId, sourceLanguage, targetLanguage, aiServiceRaw, sessionId })
+
+    // Process subtitle file
+    const fileContent = await file.text()
+    const subtitleEntries = SubtitleProcessor.parseSRT(fileContent)
+
+    if (subtitleEntries.length === 0) {
+      console.error('❌ No valid subtitles found in file')
+      updateTranslationProgress(sessionId, 'error', 0, 'No valid subtitles found in file')
+      return
+    }
+
+    console.log('📊 Demo: Processing', subtitleEntries.length, 'subtitle entries')
+
+    // Use Premium Context AI service for demo
+    const premiumService = new PremiumTranslationService(process.env.OPENAI_API_KEY || 'demo_key')
+
+    // Progress callback for real-time updates
+    const progressCallback = (stage: string, progress: number, details?: string) => {
+      console.log(`🔄 Demo Translation Progress: ${stage} (${progress}%) - ${details || ''}`)
+      updateTranslationProgress(sessionId, stage, progress, details)
+    }
+
+    const translatedEntries = await premiumService.translateSubtitles(
+      subtitleEntries,
+      targetLanguage,
+      sourceLanguage || 'en',
+      file.name,
+      progressCallback
+    )
+
+    // Generate translated content
+    const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
+    const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
+
+    console.log('✅ Demo translation completed successfully')
+
+    // Store result in memory for demo (in real app, this would be in database)
+    ;(global as any).demoJobResults = (global as any).demoJobResults || {}
+    ;(global as any).demoJobResults[jobId] = {
+      status: 'completed',
+      translatedContent,
+      translatedFileName,
+      subtitleCount: translatedEntries.length,
+      processingTimeMs: Date.now() - startTime,
+      completedAt: new Date().toISOString()
+    }
+
+    // Final progress update
+    updateTranslationProgress(sessionId, 'completed', 100, 'Demo translation completed successfully!')
+
+  } catch (error) {
+    const processingTime = Date.now() - startTime
+    console.error('❌ Demo translation job failed:', jobId, error)
+
+    // Update progress with error
+    updateTranslationProgress(sessionId, 'error', 0, `Demo translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+
+    // Store error result
+    ;(global as any).demoJobResults = (global as any).demoJobResults || {}
+    ;(global as any).demoJobResults[jobId] = {
+      status: 'failed',
+      errorMessage: error instanceof Error ? error.message : 'Demo translation failed',
+      processingTimeMs: processingTime
+    }
   }
 }
