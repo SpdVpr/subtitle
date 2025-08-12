@@ -167,9 +167,9 @@ export function TranslationInterface() {
         const apiResult = await response.json()
         console.log('📋 API result:', apiResult)
 
-        // If API returned inline completed result (non-premium services), skip polling
-        if (apiResult.status === 'completed' && apiResult.translatedContent && aiService !== 'premium') {
-          console.log('✅ API returned completed result for non-premium service, finishing translation')
+        // If API returned inline completed result, skip polling (now applies to premium too)
+        if (apiResult.status === 'completed' && apiResult.translatedContent) {
+          console.log('✅ API returned completed result, finishing translation (no polling)')
           const translatedContent = apiResult.translatedContent as string
           result.status = 'completed'
           result.progress = 100
@@ -181,6 +181,11 @@ export function TranslationInterface() {
 
           console.log('🎉 Translation completed via API route')
           return
+        }
+
+        // Guard: only poll if jobId exists
+        if (!apiResult.jobId) {
+          throw new Error('No translated content or file URL available')
         }
 
         // Premium service uses job system - poll for completion
