@@ -5,6 +5,7 @@ import { ErrorTracker } from '@/lib/error-tracking'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { TranslationServiceFactory } from '@/lib/translation-services'
 import { PremiumTranslationService } from '@/lib/premium-translation-service'
+import { updateTranslationProgress } from '../translate-progress/route'
 // Security validation will be handled in middleware
 
 export async function POST(req: NextRequest) {
@@ -17,6 +18,7 @@ export async function POST(req: NextRequest) {
     // Map premium to openai for database storage
     const aiService: 'google' | 'openai' = aiServiceRaw === 'premium' ? 'openai' : aiServiceRaw as 'google' | 'openai'
     const userId = formData.get('userId') as string
+    const sessionId = formData.get('sessionId') as string || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
     // Basic validation (security handled in middleware)
     if (!file || !targetLanguage || !userId) {
@@ -84,9 +86,10 @@ export async function POST(req: NextRequest) {
           // Use new Premium Context AI service for best quality
           console.log('🎬 Using Premium Context AI Translation Service')
           const premiumService = new PremiumTranslationService(process.env.OPENAI_API_KEY || 'demo_key')
-          // Progress callback for logging
+          // Progress callback for real-time updates
           const progressCallback = (stage: string, progress: number, details?: string) => {
             console.log(`🔄 Translation Progress: ${stage} (${progress}%) - ${details || ''}`)
+            updateTranslationProgress(sessionId, stage, progress, details)
           }
 
           translatedEntries = await premiumService.translateSubtitles(
@@ -158,10 +161,11 @@ export async function POST(req: NextRequest) {
     })
 
     // Start processing in background
-    processTranslationJob(jobId, file, userId, sourceLanguage, targetLanguage, aiServiceRaw)
+    processTranslationJob(jobId, file, userId, sourceLanguage, targetLanguage, aiServiceRaw, sessionId)
 
     return NextResponse.json({
       jobId,
+      sessionId,
       status: 'pending',
       message: 'Translation job created successfully'
     })
@@ -186,7 +190,8 @@ async function processTranslationJob(
   userId: string,
   sourceLanguage: string | null,
   targetLanguage: string,
-  aiServiceRaw: 'google' | 'openai' | 'premium'
+  aiServiceRaw: 'google' | 'openai' | 'premium',
+  sessionId: string
 ) {
   const startTime = Date.now()
   // Map premium to openai for service creation
@@ -224,10 +229,19 @@ async function processTranslationJob(
     if (aiServiceRaw === 'premium') {
       // Use new Premium Context AI service for best quality
       const premiumService = new PremiumTranslationService(process.env.OPENAI_API_KEY || 'demo_key')
+
+      // Progress callback for real-time updates
+      const progressCallback = (stage: string, progress: number, details?: string) => {
+        console.log(`🔄 Background Translation Progress: ${stage} (${progress}%) - ${details || ''}`)
+        updateTranslationProgress(sessionId, stage, progress, details)
+      }
+
       translatedEntries = await premiumService.translateSubtitles(
         subtitleEntries,
         targetLanguage,
-        sourceLanguage || 'en'
+        sourceLanguage || 'en',
+        file.name,
+        progressCallback
       )
     } else {
       // Use traditional chunking approach for other services

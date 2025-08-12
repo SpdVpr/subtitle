@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FileUpload } from './file-upload'
 import { LanguageSelector } from './language-selector'
 import { TranslationProgress } from './translation-progress'
+import { ContextualTranslationProgress } from './contextual-translation-progress'
+import { useTranslationProgress } from '@/hooks/use-translation-progress'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { TranslationServiceFactory } from '@/lib/translation-services'
 import { PremiumTranslationService } from '@/lib/premium-translation-service'
@@ -28,15 +30,25 @@ export function TranslationInterface() {
   )
   const [isTranslating, setIsTranslating] = useState(false)
   const [translationResult, setTranslationResult] = useState<TranslationResult | null>(null)
+  const {
+    progress: translationProgress,
+    startProgress,
+    updateProgress,
+    completeProgress,
+    errorProgress,
+    resetProgress
+  } = useTranslationProgress()
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file)
     setTranslationResult(null)
+    resetProgress()
   }
 
   const handleFileRemove = () => {
     setSelectedFile(null)
     setTranslationResult(null)
+    resetProgress()
   }
 
   const handleTranslate = async () => {
@@ -95,6 +107,37 @@ export function TranslationInterface() {
 
         console.log('👤 User ID:', user.uid)
 
+        // Generate session ID for progress tracking
+        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+        // Start progress tracking for premium service
+        if (aiService === 'premium') {
+          startProgress()
+
+          // Set up Server-Sent Events for real-time progress
+          const eventSource = new EventSource(`/api/translate-progress?sessionId=${sessionId}`)
+
+          eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data)
+            if (data.type === 'progress') {
+              updateProgress(data.stage, data.progress, data.details)
+            }
+          }
+
+          eventSource.onerror = (error) => {
+            console.error('❌ Progress tracking error:', error)
+            eventSource.close()
+          }
+
+          // Clean up event source when translation completes
+          const cleanup = () => {
+            eventSource.close()
+          }
+
+          // Store cleanup function for later use
+          ;(window as any).cleanupProgressTracking = cleanup
+        }
+
         // Use API route for translation
         const formData = new FormData()
         formData.append('file', selectedFile)
@@ -102,6 +145,7 @@ export function TranslationInterface() {
         formData.append('sourceLanguage', sourceLanguage)
         formData.append('aiService', aiService)
         formData.append('userId', user.uid)
+        formData.append('sessionId', sessionId)
 
         console.log('📤 Sending API request to /api/translate')
         const response = await fetch('/api/translate', {
@@ -114,6 +158,9 @@ export function TranslationInterface() {
         if (!response.ok) {
           const errorText = await response.text()
           console.error('❌ API error response:', errorText)
+          if (aiService === 'premium') {
+            errorProgress(`Translation API failed: ${response.status}`)
+          }
           throw new Error(`Translation API failed: ${response.status} - ${errorText}`)
         }
 
@@ -131,6 +178,15 @@ export function TranslationInterface() {
           result.processingTimeMs = Date.now() - parseInt(result.id)
           setTranslationResult({ ...result })
           await incrementUsage('translation')
+
+          // Cleanup progress tracking
+          if (aiService === 'premium') {
+            completeProgress()
+            if ((window as any).cleanupProgressTracking) {
+              (window as any).cleanupProgressTracking()
+            }
+          }
+
           console.log('🎉 Translation completed via API route')
           return
         }
@@ -256,6 +312,14 @@ export function TranslationInterface() {
       result.status = 'failed'
       result.errorMessage = error instanceof Error ? error.message : 'Translation failed'
       setTranslationResult({ ...result })
+
+      // Cleanup progress tracking on error
+      if (aiService === 'premium') {
+        errorProgress(error instanceof Error ? error.message : 'Translation failed')
+        if ((window as any).cleanupProgressTracking) {
+          (window as any).cleanupProgressTracking()
+        }
+      }
     } finally {
       setIsTranslating(false)
     }
@@ -454,7 +518,17 @@ export function TranslationInterface() {
 
       {/* Translation Progress */}
       {translationResult && (
-        <TranslationProgress result={translationResult} />
+        <>
+          {/* Show contextual progress for premium service */}
+          {aiService === 'premium' && translationProgress.isActive && (
+            <ContextualTranslationProgress progress={translationProgress} />
+          )}
+
+          {/* Show regular progress for other services or when contextual progress is not active */}
+          {(aiService !== 'premium' || !translationProgress.isActive) && (
+            <TranslationProgress result={translationResult} />
+          )}
+        </>
       )}
 
       {/* Download Section */}
