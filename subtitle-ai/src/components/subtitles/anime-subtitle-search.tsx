@@ -48,7 +48,7 @@ const LANGUAGE_OPTIONS = [
 
 export function AnimeSubtitleSearch() {
   const [query, setQuery] = useState('')
-  const [type, setType] = useState<'anime' | 'manga' | 'both'>('anime')
+  const [type, setType] = useState<'anime'>('anime')
   const [language, setLanguage] = useState('en')
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<JimakuEntry[]>([])
@@ -57,7 +57,7 @@ export function AnimeSubtitleSearch() {
 
   const handleSearch = async () => {
     if (!query.trim()) {
-      toast.error('Zadejte název anime nebo mangy')
+      toast.error('Enter anime title')
       return
     }
 
@@ -69,12 +69,7 @@ export function AnimeSubtitleSearch() {
         limit: '50'
       })
 
-      if (type === 'anime') params.set('anime', 'true')
-      else if (type === 'manga') params.set('manga', 'true')
-      else {
-        params.set('anime', 'true')
-        params.set('manga', 'true')
-      }
+      params.set('anime', 'true')
 
       const response = await fetch(`/api/jimaku/search?${params}`)
 
@@ -94,9 +89,9 @@ export function AnimeSubtitleSearch() {
       setFiles(new Map())
 
       if (data.length === 0) {
-        toast.info('Nebyly nalezeny žádné titulky')
+        toast.info('No subtitles found')
       } else {
-        toast.success(`Nalezeno ${data.length} ${data.length === 1 ? 'položka' : 'položek'}`)
+        toast.success(`Found ${data.length} ${data.length === 1 ? 'item' : 'items'}`)
       }
     } catch (error) {
       console.error('Search error:', error)
@@ -122,32 +117,23 @@ export function AnimeSubtitleSearch() {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Film className="h-5 w-5" />
-            <span>Vyhledávání anime/manga titulků</span>
+            <span>Search Anime Subtitles</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
               <Input
-                placeholder="Název anime nebo mangy..."
+                placeholder="Anime title..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
-            <Select value={type} onValueChange={(value) => setType(value as 'anime' | 'manga' | 'both')}>
-              <SelectTrigger>
-                <SelectValue placeholder="Typ" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="anime">Anime</SelectItem>
-                <SelectItem value="manga">Manga</SelectItem>
-                <SelectItem value="both">Obojí</SelectItem>
-              </SelectContent>
-            </Select>
+
             <Select value={language} onValueChange={setLanguage}>
               <SelectTrigger>
-                <SelectValue placeholder="Jazyk" />
+                <SelectValue placeholder="Language" />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGE_OPTIONS.map(lang => (
@@ -160,7 +146,7 @@ export function AnimeSubtitleSearch() {
           </div>
           <div className="flex space-x-4">
             <Button onClick={handleSearch} disabled={loading}>
-              {loading ? 'Vyhledávám...' : 'Vyhledat'}
+              {loading ? 'Searching...' : 'Search'}
             </Button>
           </div>
         </CardContent>
@@ -202,7 +188,7 @@ export function AnimeSubtitleSearch() {
                       <div className="flex flex-wrap gap-2">
                         {entry.flags.movie && (
                           <Badge variant="outline">
-                            Film
+                            Movie
                           </Badge>
                         )}
                         {entry.flags.anime && (
@@ -212,7 +198,7 @@ export function AnimeSubtitleSearch() {
                         )}
                         {entry.flags.external && (
                           <Badge variant="secondary">
-                            Externí
+                            External
                           </Badge>
                         )}
                         {entry.anilist_id && (
@@ -240,7 +226,7 @@ export function AnimeSubtitleSearch() {
                       className="flex items-center space-x-1"
                     >
                       <ExternalLink className="h-4 w-4" />
-                      <span>Zobrazit na Jimaku</span>
+                      <span>View on Jimaku</span>
                     </Button>
                   </div>
                 </CardContent>

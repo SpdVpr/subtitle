@@ -341,9 +341,9 @@ export function HierarchicalSubtitleSearch() {
       }
 
       if (groupedShows.length === 0) {
-        toast.info('Nebyly nalezeny žádné titulky')
+        toast.info('No subtitles found')
       } else {
-        toast.success(`Nalezeno ${groupedShows.length} ${groupedShows.length === 1 ? 'seriál/film' : 'seriálů/filmů'}`)
+        toast.success(`Found ${groupedShows.length} ${groupedShows.length === 1 ? 'show/movie' : 'shows/movies'}`)
       }
     } catch (error) {
       console.error('Search error:', error)
@@ -397,10 +397,10 @@ export function HierarchicalSubtitleSearch() {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Search className="h-5 w-5" />
-            <span>Vyhledat titulky</span>
+            <span>Search Subtitles</span>
           </CardTitle>
           <CardDescription>
-            Vyhledejte titulky seskupené podle seriálů a filmů pro lepší přehlednost
+            Search subtitles grouped by TV series and movies for better organization
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -415,7 +415,7 @@ export function HierarchicalSubtitleSearch() {
             </div>
             <Select value={language} onValueChange={setLanguage}>
               <SelectTrigger>
-                <SelectValue placeholder="Jazyk" />
+                <SelectValue placeholder="Language" />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGE_OPTIONS.map(lang => (
@@ -438,7 +438,7 @@ export function HierarchicalSubtitleSearch() {
           </div>
           <div className="flex space-x-4">
             <Input
-              placeholder="Rok (volitelné)"
+              placeholder="Year (optional)"
               value={year}
               onChange={(e) => setYear(e.target.value)}
               className="max-w-32"
@@ -447,7 +447,7 @@ export function HierarchicalSubtitleSearch() {
               console.log('🔘 Search button clicked')
               handleSearch()
             }} disabled={loading}>
-              {loading ? 'Vyhledávám...' : 'Vyhledat'}
+              {loading ? 'Searching...' : 'Search'}
             </Button>
           </div>
         </CardContent>
@@ -571,7 +571,7 @@ export function HierarchicalSubtitleSearch() {
                                       className="flex items-center space-x-2"
                                     >
                                       <ExternalLink className="h-4 w-4" />
-                                      <span>Stáhnout</span>
+                                      <span>Download</span>
                                     </Button>
                                     <Button
                                       variant="outline"

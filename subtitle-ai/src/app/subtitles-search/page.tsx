@@ -2,11 +2,11 @@ import { Metadata } from 'next'
 import { HierarchicalSubtitleSearch } from '@/components/subtitles/hierarchical-subtitle-search'
 import { AnimeSubtitleSearch } from '@/components/subtitles/anime-subtitle-search'
 import { Separator } from '@/components/ui/separator'
-import { Film, Tv, BookOpen } from 'lucide-react'
+import { Film, Tv, Play } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Vyhledat titulky - SubtitleAI',
-  description: 'Vyhledejte titulky v databázi OpenSubtitles a Jimaku pro filmy, seriály, anime a mangu',
+  title: 'Search Subtitles - SubtitleAI',
+  description: 'Search subtitles in OpenSubtitles and Jimaku databases for movies, TV series, and anime',
 }
 
 export default function SubtitlesSearchPage() {
@@ -15,10 +15,10 @@ export default function SubtitlesSearchPage() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
         {/* Header */}
         <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold mb-4">Vyhledat titulky</h1>
+          <h1 className="text-4xl font-bold mb-4">Search Subtitles</h1>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Najděte titulky k vašemu oblíbenému obsahu ve dvou největších databázích titulků
-            a poté je nechte přeložit pomocí našeho AI překladače
+            Find subtitles for your favorite content in the two largest subtitle databases
+            and then translate them using our AI translator
           </p>
         </div>
 
@@ -28,7 +28,7 @@ export default function SubtitlesSearchPage() {
             <div className="flex items-center gap-2 text-2xl font-semibold">
               <Film className="h-6 w-6 text-blue-600" />
               <Tv className="h-6 w-6 text-green-600" />
-              <span>Filmy & Seriály</span>
+              <span>Movies & TV Series</span>
             </div>
             <div className="flex-1 h-px bg-gradient-to-r from-blue-200 to-transparent"></div>
           </div>
@@ -36,7 +36,7 @@ export default function SubtitlesSearchPage() {
             <div className="mb-4">
               <h2 className="text-xl font-semibold text-gray-800 mb-2">OpenSubtitles Database</h2>
               <p className="text-gray-600">
-                Největší databáze titulků pro filmy a seriály s miliony souborů ve všech jazycích
+                The largest subtitle database for movies and TV series with millions of files in all languages
               </p>
             </div>
             <HierarchicalSubtitleSearch />
@@ -48,7 +48,7 @@ export default function SubtitlesSearchPage() {
           <Separator className="bg-gray-200" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="bg-white px-4 text-sm text-gray-500 font-medium">
-              NEBO
+              OR
             </div>
           </div>
         </div>
@@ -57,8 +57,8 @@ export default function SubtitlesSearchPage() {
         <div>
           <div className="flex items-center gap-3 mb-6">
             <div className="flex items-center gap-2 text-2xl font-semibold">
-              <BookOpen className="h-6 w-6 text-purple-600" />
-              <span>Anime & Manga</span>
+              <Play className="h-6 w-6 text-purple-600" />
+              <span>Anime</span>
             </div>
             <div className="flex-1 h-px bg-gradient-to-r from-purple-200 to-transparent"></div>
           </div>
@@ -66,7 +66,7 @@ export default function SubtitlesSearchPage() {
             <div className="mb-4">
               <h2 className="text-xl font-semibold text-gray-800 mb-2">Jimaku Database</h2>
               <p className="text-gray-600">
-                Specializovaná databáze japonských titulků pro anime a mangu s propojením na AniList
+                Specialized database of Japanese subtitles for anime with AniList integration
               </p>
             </div>
             <AnimeSubtitleSearch />
