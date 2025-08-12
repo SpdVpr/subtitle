@@ -597,7 +597,7 @@ async function processRealPremiumTranslation(
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     // Phase 3: Analyzing content
-    updateTranslationProgress(sessionId, 'analyzing-content', 50, 'Analyzing subtitle content and themes...')
+    updateTranslationProgress(sessionId, 'analyzing_content', 50, 'Analyzing subtitle content and themes...')
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     // Phase 4: Translation using OpenAI API
