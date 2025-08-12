@@ -134,27 +134,40 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Create translation job
-    const jobId = await TranslationJobService.createJob({
-      userId,
-      type: 'single',
-      status: 'pending',
-      originalFileName: file.name,
-      originalFileSize: file.size,
-      sourceLanguage: sourceLanguage || undefined,
-      targetLanguage,
-      aiService
-    })
+    try {
+      // Create translation job
+      console.log('📋 Creating translation job for premium service')
+      const jobId = await TranslationJobService.createJob({
+        userId,
+        type: 'single',
+        status: 'pending',
+        originalFileName: file.name,
+        originalFileSize: file.size,
+        sourceLanguage: sourceLanguage || undefined,
+        targetLanguage,
+        aiService
+      })
+      console.log('✅ Translation job created:', jobId)
 
-    // Start processing in background
-    processTranslationJob(jobId, file, userId, sourceLanguage, targetLanguage, aiServiceRaw, sessionId)
+      // Start processing in background
+      console.log('🚀 Starting background processing')
+      processTranslationJob(jobId, file, userId, sourceLanguage, targetLanguage, aiServiceRaw, sessionId)
 
-    return NextResponse.json({
-      jobId,
-      sessionId,
-      status: 'pending',
-      message: 'Translation job created successfully'
-    })
+      return NextResponse.json({
+        jobId,
+        sessionId,
+        status: 'pending',
+        message: 'Translation job created successfully'
+      })
+    } catch (jobError) {
+      console.error('❌ Job creation failed:', jobError)
+      await ErrorTracker.logApiError(
+        jobError instanceof Error ? jobError : new Error(String(jobError)),
+        '/api/translate',
+        'POST'
+      )
+      return NextResponse.json({ error: 'Failed to create translation job' }, { status: 500 })
+    }
 
   } catch (error) {
     await ErrorTracker.logApiError(
@@ -184,23 +197,32 @@ async function processTranslationJob(
   const aiService: 'google' | 'openai' = aiServiceRaw === 'premium' ? 'openai' : aiServiceRaw as 'google' | 'openai'
 
   try {
+    console.log('🎬 Processing translation job:', jobId)
+    console.log('🔧 Job details:', { userId, sourceLanguage, targetLanguage, aiServiceRaw, sessionId })
+
     // Update job status
+    console.log('📊 Updating job status to processing')
     await TranslationJobService.updateJob(jobId, {
       status: 'processing',
       startedAt: new Date() as any
     })
+    console.log('✅ Job status updated')
 
     // Upload original file
+    console.log('📁 Uploading original file to storage')
     const { url: originalFileUrl } = await StorageService.uploadFile(
       file,
       userId,
       jobId,
       true
     )
+    console.log('✅ Original file uploaded:', originalFileUrl)
 
+    console.log('📊 Updating job with file URL')
     await TranslationJobService.updateJob(jobId, {
       originalFileUrl
     })
+    console.log('✅ Job updated with file URL')
 
     // Process subtitle file
     const fileContent = await file.text()
@@ -319,14 +341,25 @@ async function processTranslationJob(
 
   } catch (error) {
     const processingTime = Date.now() - startTime
+    console.error('❌ Translation job failed:', jobId, error)
+    console.error('❌ Error details:', error instanceof Error ? error.message : String(error))
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+
+    // Update progress with error
+    updateTranslationProgress(sessionId, 'error', 0, `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
 
     // Update job as failed
-    await TranslationJobService.updateJob(jobId, {
-      status: 'failed',
-      completedAt: new Date() as any,
-      processingTimeMs: processingTime,
-      errorMessage: error instanceof Error ? error.message : 'Translation failed'
-    })
+    try {
+      await TranslationJobService.updateJob(jobId, {
+        status: 'failed',
+        completedAt: new Date() as any,
+        processingTimeMs: processingTime,
+        errorMessage: error instanceof Error ? error.message : 'Translation failed'
+      })
+      console.log('✅ Job status updated to failed')
+    } catch (updateError) {
+      console.error('❌ Failed to update job status:', updateError)
+    }
 
     // Log error
     await ErrorTracker.logTranslationError(
