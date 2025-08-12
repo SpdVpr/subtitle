@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // OpenSubtitles API configuration
 const OPENSUBTITLES_API_URL = 'https://api.opensubtitles.com/api/v1'
-const API_KEY = 'l1MF5iPqr52CojMpchsiFqy1P9SH2PCC'
+const API_KEY = process.env.OPENSUBTITLES_API_KEY
 
 interface OpenSubtitlesFile {
   file_id: number
@@ -58,6 +58,14 @@ interface OpenSubtitlesSubtitle {
 
 export async function GET(request: NextRequest) {
   try {
+    // Check if API key is configured
+    if (!API_KEY) {
+      return NextResponse.json(
+        { error: 'OpenSubtitles API key not configured' },
+        { status: 500 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
 
     // Extract search parameters

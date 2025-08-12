@@ -12,6 +12,8 @@ export const serverEnv = {
   // API Keys (server-only)
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   GOOGLE_TRANSLATE_API_KEY: process.env.GOOGLE_TRANSLATE_API_KEY,
+  JIMAKU_API_KEY: process.env.JIMAKU_API_KEY,
+  OPENSUBTITLES_API_KEY: process.env.OPENSUBTITLES_API_KEY,
   
   // Stripe (server-only)
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // Jimaku API configuration
 const JIMAKU_API_URL = 'https://jimaku.cc/api'
-const API_KEY = 'AAAAAAAACtUuAS4gP6cz3gIzXVpQCR3cPXHIktAkHwldOvfFJDv-tqH2hw'
+const API_KEY = process.env.JIMAKU_API_KEY
 
 interface JimakuEntry {
   id: string
@@ -55,6 +55,14 @@ interface JimakuSearchResponse {
 
 export async function GET(request: NextRequest) {
   try {
+    // Check if API key is configured
+    if (!API_KEY) {
+      return NextResponse.json(
+        { error: 'Jimaku API key not configured' },
+        { status: 500 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
 
     // Extract search parameters
