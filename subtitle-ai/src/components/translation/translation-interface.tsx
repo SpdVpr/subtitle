@@ -213,14 +213,26 @@ export function TranslationInterface() {
         result.progress = 95
         setTranslationResult({ ...result })
 
-        // Download the translated file
-        const downloadResponse = await fetch(statusData.translatedFileUrl)
-        const translatedContent = await downloadResponse.text()
+        // Handle both demo jobs (with direct content) and real jobs (with file URL)
+        let translatedContent: string
+
+        if (statusData.translatedContent) {
+          // Demo job - content is directly available
+          console.log('📄 Using direct translated content from demo job')
+          translatedContent = statusData.translatedContent
+        } else if (statusData.translatedFileUrl) {
+          // Real job - download from URL
+          console.log('📄 Downloading translated file from URL:', statusData.translatedFileUrl)
+          const downloadResponse = await fetch(statusData.translatedFileUrl)
+          translatedContent = await downloadResponse.text()
+        } else {
+          throw new Error('No translated content or file URL available')
+        }
 
         result.status = 'completed'
         result.progress = 100
         result.downloadUrl = URL.createObjectURL(new Blob([translatedContent], { type: 'text/plain' }))
-        result.translatedFileName = statusData.translatedFileName
+        result.translatedFileName = statusData.translatedFileName || 'translated.srt'
         result.processingTimeMs = Date.now() - parseInt(result.id)
 
         setTranslationResult({ ...result })
