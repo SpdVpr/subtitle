@@ -13,7 +13,8 @@ export class PremiumTranslationService {
   async translateSubtitles(
     entries: SubtitleEntry[],
     targetLanguage: string,
-    sourceLanguage: string = 'en'
+    sourceLanguage: string = 'en',
+    fileName?: string
   ): Promise<SubtitleEntry[]> {
     console.log('🎬 Premium Context AI Translation started:', entries.length, 'subtitles')
     console.log('🔑 API Key check:', this.apiKey ? `${this.apiKey.substring(0, 10)}...` : 'NO KEY')
@@ -30,8 +31,12 @@ export class PremiumTranslationService {
         dangerouslyAllowBrowser: true,
       })
 
+      // Extract show/movie info from filename and get context
+      const showInfo = this.extractShowInfo(fileName)
+      const contextInfo = await this.getShowContext(showInfo, openai)
+
       // Analyze content for better context
-      const contentAnalysis = this.analyzeContent(entries)
+      const contentAnalysis = this.analyzeContent(entries, contextInfo)
       
       // Process in context-aware batches
       const translatedEntries: SubtitleEntry[] = []
@@ -40,11 +45,12 @@ export class PremiumTranslationService {
       for (let i = 0; i < entries.length; i += batchSize) {
         const batch = entries.slice(i, i + batchSize)
         const translatedBatch = await this.translateBatch(
-          openai, 
-          batch, 
-          targetLanguage, 
-          sourceLanguage, 
+          openai,
+          batch,
+          targetLanguage,
+          sourceLanguage,
           contentAnalysis,
+          contextInfo,
           i
         )
         translatedEntries.push(...translatedBatch)
@@ -59,15 +65,126 @@ export class PremiumTranslationService {
     }
   }
 
-  private analyzeContent(entries: SubtitleEntry[]): string {
-    const allText = entries.map(e => e.text).join(' ').toLowerCase()
-    
-    let context = ""
-    
-    // Detect show/movie type
-    if (allText.includes('wednesday') || allText.includes('addams')) {
-      context += "- Wednesday Addams TV series (dark comedy, gothic humor, macabre themes)\n"
+  /**
+   * Extract show/movie information from filename
+   */
+  private extractShowInfo(fileName?: string): { title: string; season?: number; episode?: number; year?: number } {
+    if (!fileName) {
+      return { title: 'Unknown' }
     }
+
+    console.log('📁 Extracting show info from filename:', fileName)
+
+    // Remove file extension
+    const nameWithoutExt = fileName.replace(/\.(srt|vtt|ass|ssa)$/i, '')
+
+    // Common patterns for TV shows and movies
+    const patterns = [
+      // TV Show patterns
+      /^(.+?)[\.\s]+S(\d{1,2})E(\d{1,2})/i,                    // Show.Name.S01E01
+      /^(.+?)[\.\s]+(\d{1,2})x(\d{1,2})/i,                     // Show.Name.1x01
+      /^(.+?)[\.\s]+Season[\.\s]*(\d{1,2})[\.\s]*Episode[\.\s]*(\d{1,2})/i, // Show Name Season 1 Episode 1
+      /^(.+?)[\.\s]+s(\d{1,2})[\.\s]*e(\d{1,2})/i,             // show.name.s01.e01
+
+      // Movie patterns with year
+      /^(.+?)[\.\s]+\((\d{4})\)/i,                             // Movie.Name.(2023)
+      /^(.+?)[\.\s]+(\d{4})/i,                                 // Movie.Name.2023
+
+      // Anime patterns
+      /^(.+?)[\.\s]+(\d{1,3})[\.\s]*\[/i,                      // Anime.Name.01.[tags]
+      /^(.+?)[\.\s]+Episode[\.\s]*(\d{1,3})/i,                 // Anime Name Episode 01
+
+      // General fallback
+      /^([^\.]+)/i                                             // Just take first part before dots
+    ]
+
+    for (const pattern of patterns) {
+      const match = nameWithoutExt.match(pattern)
+      if (match) {
+        const title = match[1].replace(/[\.\-_]/g, ' ').trim()
+
+        // Check if it's a TV show pattern (has season/episode)
+        if (match[2] && match[3] && !match[1].match(/\d{4}/)) {
+          return {
+            title,
+            season: parseInt(match[2]),
+            episode: parseInt(match[3])
+          }
+        }
+
+        // Check if it's a movie with year
+        if (match[2] && match[2].length === 4) {
+          return {
+            title,
+            year: parseInt(match[2])
+          }
+        }
+
+        // Just title
+        return { title }
+      }
+    }
+
+    return { title: nameWithoutExt.replace(/[\.\-_]/g, ' ').trim() }
+  }
+
+  /**
+   * Get contextual information about the show/movie from AI
+   */
+  private async getShowContext(showInfo: { title: string; season?: number; episode?: number; year?: number }, openai: any): Promise<string> {
+    try {
+      console.log('🎭 Getting context for:', showInfo.title)
+
+      const query = showInfo.year
+        ? `${showInfo.title} (${showInfo.year})`
+        : showInfo.title
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are a media expert. Provide concise context about TV shows and movies for subtitle translation purposes. Focus on:
+- Genre and tone (comedy, drama, horror, etc.)
+- Setting and time period
+- Main character types and relationships
+- Cultural context and themes
+- Names that should NOT be translated (character names, place names, etc.)
+- Special terminology or jargon used in the show
+- Target audience and style
+
+Keep response under 200 words and format as bullet points.`
+          },
+          {
+            role: "user",
+            content: `Provide translation context for: "${query}"`
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 300,
+      })
+
+      const context = completion.choices[0]?.message?.content || ''
+      console.log('🎯 Context received:', context.substring(0, 100) + '...')
+      return context
+
+    } catch (error) {
+      console.warn('⚠️ Failed to get show context:', error)
+      return `Generic context for "${showInfo.title}"`
+    }
+  }
+
+  private analyzeContent(entries: SubtitleEntry[], contextInfo?: string): string {
+    const allText = entries.map(e => e.text).join(' ').toLowerCase()
+
+    let context = ""
+
+    // Add AI-generated context if available
+    if (contextInfo) {
+      context += "SHOW/MOVIE CONTEXT:\n" + contextInfo + "\n\n"
+    }
+
+    context += "CONTENT ANALYSIS:\n"
     
     // Detect content elements
     if (allText.includes('♪') || allText.includes('♫')) {
@@ -300,6 +417,7 @@ export class PremiumTranslationService {
     targetLanguage: string,
     sourceLanguage: string,
     contentAnalysis: string,
+    contextInfo: string,
     batchStartIndex: number
   ): Promise<SubtitleEntry[]> {
     

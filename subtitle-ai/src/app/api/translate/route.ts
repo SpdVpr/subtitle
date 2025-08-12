@@ -87,7 +87,8 @@ export async function POST(req: NextRequest) {
           translatedEntries = await premiumService.translateSubtitles(
             subtitleEntries,
             targetLanguage,
-            sourceLanguage || 'en'
+            sourceLanguage || 'en',
+            file.name
           )
         } else {
           // Use traditional chunking approach for other services
