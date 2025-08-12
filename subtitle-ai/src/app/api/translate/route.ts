@@ -84,11 +84,17 @@ export async function POST(req: NextRequest) {
           // Use new Premium Context AI service for best quality
           console.log('🎬 Using Premium Context AI Translation Service')
           const premiumService = new PremiumTranslationService(process.env.OPENAI_API_KEY || 'demo_key')
+          // Progress callback for logging
+          const progressCallback = (stage: string, progress: number, details?: string) => {
+            console.log(`🔄 Translation Progress: ${stage} (${progress}%) - ${details || ''}`)
+          }
+
           translatedEntries = await premiumService.translateSubtitles(
             subtitleEntries,
             targetLanguage,
             sourceLanguage || 'en',
-            file.name
+            file.name,
+            progressCallback
           )
         } else {
           // Use traditional chunking approach for other services

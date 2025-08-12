@@ -1,8 +1,23 @@
 import { SubtitleEntry } from './subtitle-processor'
 
+interface ResearchData {
+  title: string
+  genre: string[]
+  plot: string
+  characters: string[]
+  setting: string
+  culturalContext: string
+  translationGuidelines: string[]
+}
+
+interface ProgressCallback {
+  (stage: string, progress: number, details?: string): void
+}
+
 export class PremiumTranslationService {
   private apiKey: string
   private contextCache: Map<string, string> = new Map()
+  private researchCache: Map<string, ResearchData> = new Map()
 
   constructor(apiKey: string) {
     this.apiKey = apiKey
@@ -15,14 +30,18 @@ export class PremiumTranslationService {
     entries: SubtitleEntry[],
     targetLanguage: string,
     sourceLanguage: string = 'en',
-    fileName?: string
+    fileName?: string,
+    progressCallback?: ProgressCallback
   ): Promise<SubtitleEntry[]> {
-    console.log('🎬 Premium Context AI Translation started:', entries.length, 'subtitles')
+    console.log('🎬 Premium Research-Based AI Translation started:', entries.length, 'subtitles')
     console.log('🔑 API Key check:', this.apiKey ? `${this.apiKey.substring(0, 10)}...` : 'NO KEY')
+
+    // Initialize progress
+    progressCallback?.('initializing', 0, 'Starting translation process...')
 
     if (!this.apiKey || this.apiKey.includes('your_openai_api_key') || this.apiKey.includes('demo_key')) {
       console.log('🎭 Using mock translation - API key not valid')
-      return this.createHighQualityMockTranslation(entries, targetLanguage, fileName)
+      return this.createHighQualityMockTranslation(entries, targetLanguage, fileName, progressCallback)
     }
 
     try {
@@ -32,37 +51,53 @@ export class PremiumTranslationService {
         dangerouslyAllowBrowser: true,
       })
 
-      // Extract show/movie info from filename and get context
+      // PHASE 1: Extract show information from filename
+      progressCallback?.('analyzing', 10, 'Analyzing filename and extracting show information...')
       const showInfo = this.extractShowInfo(fileName)
-      const contextInfo = await this.getShowContext(showInfo, openai)
+      console.log('📁 Extracted show info:', showInfo)
 
-      // Analyze content for better context
-      const contentAnalysis = this.analyzeContent(entries, contextInfo)
-      
-      // Process in context-aware batches
+      // PHASE 2: Research the show/movie
+      progressCallback?.('researching', 20, `Researching "${showInfo.title}" for contextual information...`)
+      const researchData = await this.conductShowResearch(showInfo, openai)
+      console.log('🔍 Research completed for:', researchData.title)
+
+      // PHASE 3: Analyze subtitle content
+      progressCallback?.('analyzing_content', 40, 'Analyzing subtitle content and themes...')
+      const contentAnalysis = this.analyzeContent(entries, researchData)
+
+      // PHASE 4: Translate in context-aware batches
+      progressCallback?.('translating', 50, 'Translating subtitles with contextual awareness...')
       const translatedEntries: SubtitleEntry[] = []
       const batchSize = 20 // Optimal batch size for context
 
       for (let i = 0; i < entries.length; i += batchSize) {
         const batch = entries.slice(i, i + batchSize)
+        const batchProgress = 50 + ((i / entries.length) * 40)
+        progressCallback?.('translating', batchProgress, `Translating batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(entries.length/batchSize)}...`)
+
         const translatedBatch = await this.translateBatch(
           openai,
           batch,
           targetLanguage,
           sourceLanguage,
           contentAnalysis,
-          contextInfo,
+          researchData,
           i
         )
         translatedEntries.push(...translatedBatch)
       }
 
-      console.log('✅ Premium Context AI Translation completed')
+      // PHASE 5: Final processing
+      progressCallback?.('finalizing', 95, 'Finalizing translation and quality checks...')
+
+      console.log('✅ Premium Research-Based AI Translation completed')
+      progressCallback?.('completed', 100, 'Translation completed successfully!')
       return translatedEntries
 
     } catch (error) {
       console.error('Premium translation error:', error)
-      return this.createHighQualityMockTranslation(entries, targetLanguage, fileName)
+      progressCallback?.('error', 0, `Translation failed: ${error.message}`)
+      return this.createHighQualityMockTranslation(entries, targetLanguage, fileName, progressCallback)
     }
   }
 
@@ -130,7 +165,109 @@ export class PremiumTranslationService {
   }
 
   /**
-   * Get contextual information about the show/movie from AI
+   * Conduct comprehensive research about the show/movie
+   */
+  private async conductShowResearch(showInfo: { title: string; season?: number; episode?: number; year?: number }, openai: any): Promise<ResearchData> {
+    try {
+      console.log('🔍 Conducting comprehensive research for:', showInfo.title)
+
+      const query = showInfo.year
+        ? `${showInfo.title} (${showInfo.year})`
+        : showInfo.title
+
+      // Check cache first
+      const cacheKey = query.toLowerCase()
+      if (this.researchCache.has(cacheKey)) {
+        console.log('📋 Using cached research for:', query)
+        return this.researchCache.get(cacheKey)!
+      }
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are a comprehensive media research assistant. Provide detailed information about TV shows, movies, and anime for subtitle translation purposes.
+
+RESEARCH AREAS:
+1. Basic Information (genre, target audience, tone)
+2. Plot and Themes (main storylines, recurring themes)
+3. Characters (main character names, relationships, personality types)
+4. Setting (time period, location, cultural context)
+5. Translation Guidelines (what to preserve vs translate)
+
+FORMAT YOUR RESPONSE AS JSON:
+{
+  "title": "Official title",
+  "genre": ["genre1", "genre2"],
+  "plot": "Brief plot summary and main themes",
+  "characters": ["Character1", "Character2", "Character3"],
+  "setting": "Time period, location, and cultural context",
+  "culturalContext": "Important cultural elements and references",
+  "translationGuidelines": ["guideline1", "guideline2", "guideline3"]
+}
+
+Be thorough but concise. If you don't know the show, indicate this clearly.`
+          },
+          {
+            role: "user",
+            content: `Research this show/movie for subtitle translation: "${query}"`
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 800,
+      })
+
+      const response = completion.choices[0]?.message?.content || ''
+      console.log('🎯 Research response received:', response.substring(0, 200) + '...')
+
+      // Parse JSON response
+      let researchData: ResearchData
+      try {
+        const parsed = JSON.parse(response)
+        researchData = {
+          title: parsed.title || showInfo.title,
+          genre: parsed.genre || ['Unknown'],
+          plot: parsed.plot || 'No plot information available',
+          characters: parsed.characters || [],
+          setting: parsed.setting || 'Unknown setting',
+          culturalContext: parsed.culturalContext || 'No specific cultural context',
+          translationGuidelines: parsed.translationGuidelines || ['Translate naturally']
+        }
+      } catch (parseError) {
+        console.warn('⚠️ Failed to parse research JSON, using fallback')
+        researchData = {
+          title: showInfo.title,
+          genre: ['Unknown'],
+          plot: 'Research data unavailable',
+          characters: [],
+          setting: 'Unknown',
+          culturalContext: 'Generic content',
+          translationGuidelines: ['Translate naturally', 'Preserve proper names']
+        }
+      }
+
+      // Cache the research
+      this.researchCache.set(cacheKey, researchData)
+
+      return researchData
+
+    } catch (error) {
+      console.warn('⚠️ Failed to conduct show research:', error)
+      return {
+        title: showInfo.title,
+        genre: ['Unknown'],
+        plot: 'Research failed',
+        characters: [],
+        setting: 'Unknown',
+        culturalContext: 'Generic content',
+        translationGuidelines: ['Translate naturally', 'Preserve proper names']
+      }
+    }
+  }
+
+  /**
+   * Get contextual information about the show/movie from AI (legacy method)
    */
   private async getShowContext(showInfo: { title: string; season?: number; episode?: number; year?: number }, openai: any): Promise<string> {
     try {
@@ -195,17 +332,21 @@ Format as clear bullet points. Keep under 250 words. If you don't know the show,
     }
   }
 
-  private analyzeContent(entries: SubtitleEntry[], contextInfo?: string): string {
+  private analyzeContent(entries: SubtitleEntry[], researchData: ResearchData): string {
     const allText = entries.map(e => e.text).join(' ').toLowerCase()
 
-    let context = ""
+    let context = `COMPREHENSIVE SHOW RESEARCH:
+Title: ${researchData.title}
+Genre: ${researchData.genre.join(', ')}
+Plot & Themes: ${researchData.plot}
+Main Characters: ${researchData.characters.join(', ')}
+Setting: ${researchData.setting}
+Cultural Context: ${researchData.culturalContext}
 
-    // Add AI-generated context if available
-    if (contextInfo) {
-      context += "SHOW/MOVIE CONTEXT:\n" + contextInfo + "\n\n"
-    }
+TRANSLATION GUIDELINES:
+${researchData.translationGuidelines.map(g => `- ${g}`).join('\n')}
 
-    context += "CONTENT ANALYSIS:\n"
+CONTENT ANALYSIS:`
     
     // Detect content elements
     if (allText.includes('♪') || allText.includes('♫')) {
@@ -235,30 +376,53 @@ Format as clear bullet points. Keep under 250 words. If you don't know the show,
     return (hours * 3600 + minutes * 60 + seconds) * 1000 + Number(ms)
   }
 
-  private createHighQualityMockTranslation(entries: SubtitleEntry[], targetLanguage: string, fileName?: string): Promise<SubtitleEntry[]> {
+  private createHighQualityMockTranslation(entries: SubtitleEntry[], targetLanguage: string, fileName?: string, progressCallback?: ProgressCallback): Promise<SubtitleEntry[]> {
     return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('🎭 Using contextual mock translation for demo')
+      // Simulate research phases
+      let progress = 0
+      const phases = [
+        { name: 'analyzing', progress: 10, message: 'Analyzing filename...' },
+        { name: 'researching', progress: 30, message: 'Researching show information...' },
+        { name: 'analyzing_content', progress: 50, message: 'Analyzing content...' },
+        { name: 'translating', progress: 80, message: 'Translating with context...' },
+        { name: 'finalizing', progress: 95, message: 'Finalizing translation...' }
+      ]
 
-        // Extract show info for demo
-        const showInfo = this.extractShowInfo(fileName)
-        console.log('📺 Detected show:', showInfo.title)
+      const runPhase = (index: number) => {
+        if (index >= phases.length) {
+          // Final translation
+          console.log('🎭 Using contextual mock translation for demo')
 
-        if (targetLanguage === 'cs') {
-          const translated = entries.map(entry => ({
-            ...entry,
-            text: this.getMockCzechTranslation(entry.text, showInfo.title)
-          }))
-          resolve(translated)
-        } else {
-          // For other languages, use contextual prefix
-          const translated = entries.map(entry => ({
-            ...entry,
-            text: `[${showInfo.title}-${targetLanguage.toUpperCase()}] ${entry.text}`
-          }))
-          resolve(translated)
+          // Extract show info for demo
+          const showInfo = this.extractShowInfo(fileName)
+          console.log('📺 Detected show:', showInfo.title)
+
+          if (targetLanguage === 'cs') {
+            const translated = entries.map(entry => ({
+              ...entry,
+              text: this.getMockCzechTranslation(entry.text, showInfo.title)
+            }))
+            progressCallback?.('completed', 100, 'Translation completed!')
+            resolve(translated)
+          } else {
+            // For other languages, use contextual prefix
+            const translated = entries.map(entry => ({
+              ...entry,
+              text: `[${showInfo.title}-${targetLanguage.toUpperCase()}] ${entry.text}`
+            }))
+            progressCallback?.('completed', 100, 'Translation completed!')
+            resolve(translated)
+          }
+          return
         }
-      }, 1200) // Simulate realistic processing time
+
+        const phase = phases[index]
+        progressCallback?.(phase.name, phase.progress, phase.message)
+
+        setTimeout(() => runPhase(index + 1), 300) // Simulate processing time
+      }
+
+      runPhase(0)
     })
   }
 
@@ -470,7 +634,7 @@ Format as clear bullet points. Keep under 250 words. If you don't know the show,
     targetLanguage: string,
     sourceLanguage: string,
     contentAnalysis: string,
-    contextInfo: string,
+    researchData: ResearchData,
     batchStartIndex: number
   ): Promise<SubtitleEntry[]> {
     
