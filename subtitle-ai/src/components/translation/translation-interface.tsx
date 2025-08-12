@@ -110,78 +110,79 @@ export function TranslationInterface() {
         // Generate session ID for progress tracking
         const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-        // Start progress tracking for premium service
+        // Start progress tracking for premium service via streaming endpoint
         if (aiService === 'premium') {
           startProgress()
 
-          // Set up Server-Sent Events for real-time progress
-          const eventSource = new EventSource(`/api/translate-progress?sessionId=${sessionId}`)
+          const formData = new FormData()
+          formData.append('file', selectedFile)
+          formData.append('targetLanguage', targetLanguage)
+          formData.append('sourceLanguage', sourceLanguage)
 
-          eventSource.onmessage = (event) => {
-            const data = JSON.parse(event.data)
-            if (data.type === 'progress') {
-              updateProgress(data.stage, data.progress, data.details)
+          console.log('📤 Starting streamed translation via /api/translate-stream')
+          const response = await fetch('/api/translate-stream', {
+            method: 'POST',
+            body: formData
+          })
+
+          if (!response.ok || !response.body) {
+            const t = await response.text()
+            throw new Error(`Stream failed: ${response.status} ${t}`)
+          }
+
+          const reader = response.body.getReader()
+          const decoder = new TextDecoder()
+
+          let pending = ''
+          let finalContent: string | null = null
+          let finalFileName: string | null = null
+
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            const chunk = decoder.decode(value, { stream: true })
+            pending += chunk
+
+            const parts = pending.split('\n\n')
+            pending = parts.pop() || ''
+
+            for (const part of parts) {
+              if (!part.startsWith('data: ')) continue
+              const json = part.slice(6).trim()
+              if (!json) continue
+              try {
+                const msg = JSON.parse(json)
+                if (msg.type === 'progress') {
+                  updateProgress(msg.stage, msg.progress, msg.details)
+                } else if (msg.type === 'result' && msg.status === 'completed') {
+                  finalContent = msg.translatedContent
+                  finalFileName = msg.translatedFileName
+                } else if (msg.type === 'error') {
+                  throw new Error(msg.message || 'Streamed translation error')
+                }
+              } catch (e) {
+                console.warn('Failed to parse SSE chunk:', e)
+              }
             }
           }
 
-          eventSource.onerror = (error) => {
-            console.error('❌ Progress tracking error:', error)
-            eventSource.close()
+          if (!finalContent) {
+            throw new Error('Stream ended without result')
           }
 
-          // Clean up event source when translation completes
-          const cleanup = () => {
-            eventSource.close()
-          }
-
-          // Store cleanup function for later use
-          ;(window as any).cleanupProgressTracking = cleanup
-        }
-
-        // Use API route for translation
-        const formData = new FormData()
-        formData.append('file', selectedFile)
-        formData.append('targetLanguage', targetLanguage)
-        formData.append('sourceLanguage', sourceLanguage)
-        formData.append('aiService', aiService)
-        formData.append('userId', user.uid)
-        formData.append('sessionId', sessionId)
-
-        console.log('📤 Sending API request to /api/translate')
-        const response = await fetch('/api/translate', {
-          method: 'POST',
-          body: formData
-        })
-
-        console.log('📥 API response status:', response.status, response.ok)
-
-        if (!response.ok) {
-          const errorText = await response.text()
-          console.error('❌ API error response:', errorText)
-          if (aiService === 'premium') {
-            errorProgress(`Translation API failed: ${response.status}`)
-          }
-          throw new Error(`Translation API failed: ${response.status} - ${errorText}`)
-        }
-
-        const apiResult = await response.json()
-        console.log('📋 API result:', apiResult)
-
-        // If API returned inline completed result, skip polling (now applies to premium too)
-        if (apiResult.status === 'completed' && apiResult.translatedContent) {
-          console.log('✅ API returned completed result, finishing translation (no polling)')
-          const translatedContent = apiResult.translatedContent as string
           result.status = 'completed'
           result.progress = 100
-          result.downloadUrl = URL.createObjectURL(new Blob([translatedContent], { type: 'text/plain' }))
-          result.translatedFileName = apiResult.translatedFileName
+          result.downloadUrl = URL.createObjectURL(new Blob([finalContent], { type: 'text/plain' }))
+          result.translatedFileName = finalFileName || `${selectedFile.name.replace('.srt', '')}_${targetLanguage}.srt`
           result.processingTimeMs = Date.now() - parseInt(result.id)
           setTranslationResult({ ...result })
           await incrementUsage('translation')
 
-          console.log('🎉 Translation completed via API route')
+          completeProgress()
           return
         }
+
+        // Use API route for translation (OpenAI standard, non-stream)
 
         // Guard: only poll if jobId exists
         if (!apiResult.jobId) {

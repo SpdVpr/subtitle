@@ -698,6 +698,12 @@ TRANSLATION GUIDELINES:
 - Preserve cultural references when they make sense, adapt when necessary
 - Keep the emotional impact and humor style of the original
 
+LANGUAGE-SPECIFIC (Czech):
+- Prefer idiomatic Czech over literal translations (e.g., "Finish your bowls" → "Dojezte"/"Dojezte, co máte v miskách")
+- Food context: "bowls" in dining context refers to food portions, not containers
+- Commands should sound natural and concise ("Dojezte", "Jděte", "Jdi na to")
+- Avoid awkward calques like "Dokončete své misky"; choose expressions used by native speakers
+
 TECHNICAL REQUIREMENTS:
 - Return EXACTLY ${batch.length} numbered lines
 - Format: "N. translated_text" (where N is the line number)
@@ -710,7 +716,7 @@ TECHNICAL REQUIREMENTS:
           content: `Translate these ${batch.length} subtitle entries with perfect accuracy:\n\n${structuredInput}`
         }
       ],
-      temperature: 0.02, // Very low for maximum consistency
+      temperature: 0.1,
       max_tokens: Math.min(4000, batch.length * 200),
     })
 
