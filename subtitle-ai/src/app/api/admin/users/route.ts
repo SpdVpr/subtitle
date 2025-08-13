@@ -30,6 +30,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
+    console.log('🔑 Admin API access granted for:', adminEmail)
+
     // Get Firestore instance
     const db = await getServerFirestore()
     if (!db) {

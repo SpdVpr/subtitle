@@ -72,18 +72,35 @@ export class AdminStatsService {
           throw new Error('API failed, falling back to direct query')
         }
       } catch (apiError) {
-        console.log('⚠️ API failed, trying direct Firestore query...')
-        // Fallback to direct query
-        const directUsers = await UserService.getAllUsers()
-        users = directUsers.map(u => ({
-          userId: u.uid,
-          email: u.email,
-          plan: u.subscriptionPlan || 'free',
-          translationsCount: u.usage?.translationsUsed || 0,
-          creditsBalance: (u as any).creditsBalance || 0,
-          lastActive: u.updatedAt || u.createdAt
-        }))
-        console.log('📊 Admin Stats - Found users via direct query:', users.length)
+        console.log('⚠️ API failed, trying mock data...')
+        // Try mock data as fallback
+        try {
+          const adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
+          const mockResponse = await fetch('/api/admin/users-mock', {
+            headers: { 'x-admin-email': adminEmail }
+          })
+
+          if (mockResponse.ok) {
+            const mockData = await mockResponse.json()
+            users = mockData.users || []
+            console.log('🎭 Using mock users data:', users.length)
+          } else {
+            throw new Error('Mock data also failed')
+          }
+        } catch (mockError) {
+          console.log('⚠️ Mock data failed, trying direct Firestore query...')
+          // Final fallback to direct query
+          const directUsers = await UserService.getAllUsers()
+          users = directUsers.map(u => ({
+            userId: u.uid,
+            email: u.email,
+            plan: (u as any).creditsBalance > 0 ? 'credits' : 'free',
+            translationsCount: u.usage?.translationsUsed || 0,
+            creditsBalance: (u as any).creditsBalance || 0,
+            lastActive: u.updatedAt || u.createdAt
+          }))
+          console.log('📊 Admin Stats - Found users via direct query:', users.length)
+        }
       }
 
       // If no users exist, create demo users for testing

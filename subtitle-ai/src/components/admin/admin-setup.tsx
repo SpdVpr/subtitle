@@ -28,11 +28,23 @@ export function AdminSetup() {
   const testAdminAccess = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/debug/admin', {
+      // Test admin endpoint
+      const adminResponse = await fetch('/api/debug/admin', {
         headers: { 'x-admin-email': adminEmail }
       })
-      const data = await response.json()
-      setDebugInfo(data)
+      const adminData = await adminResponse.json()
+
+      // Test mock users endpoint
+      const mockResponse = await fetch('/api/admin/users-mock', {
+        headers: { 'x-admin-email': adminEmail }
+      })
+      const mockData = await mockResponse.json()
+
+      setDebugInfo({
+        admin: adminData,
+        mockUsers: mockData,
+        canUseMockData: mockResponse.ok
+      })
     } catch (error) {
       setDebugInfo({ error: 'Failed to test admin access' })
     } finally {
@@ -83,28 +95,41 @@ export function AdminSetup() {
         </div>
 
         {debugInfo && (
-          <Alert className={debugInfo.debug?.isValidAdmin ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
-            {debugInfo.debug?.isValidAdmin ? (
+          <Alert className={debugInfo.admin?.debug?.isValidAdmin ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+            {debugInfo.admin?.debug?.isValidAdmin ? (
               <CheckCircle className="h-4 w-4 text-green-600" />
             ) : (
               <AlertCircle className="h-4 w-4 text-red-600" />
             )}
             <AlertDescription>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div>
-                  <strong>Status:</strong> {debugInfo.debug?.isValidAdmin ? 'Valid Admin' : 'Access Denied'}
+                  <strong>Admin Status:</strong> {debugInfo.admin?.debug?.isValidAdmin ? 'Valid Admin' : 'Access Denied'}
                 </div>
                 <div>
-                  <strong>Email:</strong> {debugInfo.debug?.receivedEmail || 'None'}
+                  <strong>Email:</strong> {debugInfo.admin?.debug?.receivedEmail || 'None'}
                 </div>
+
+                {debugInfo.canUseMockData && (
+                  <div className="p-3 bg-blue-50 rounded border border-blue-200">
+                    <div className="text-blue-800">
+                      <strong>✅ Mock Data Available:</strong> Found {debugInfo.mockUsers?.count || 0} test users
+                    </div>
+                    <div className="text-sm text-blue-600 mt-1">
+                      You can use mock data while setting up Firestore rules
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <strong>Allowed Emails:</strong>
                   <ul className="list-disc list-inside ml-4 text-sm">
-                    {debugInfo.debug?.allowedEmails?.map((email: string) => (
+                    {debugInfo.admin?.debug?.allowedEmails?.map((email: string) => (
                       <li key={email}>{email}</li>
                     ))}
                   </ul>
                 </div>
+
                 {debugInfo.error && (
                   <div className="text-red-600">
                     <strong>Error:</strong> {debugInfo.error}
