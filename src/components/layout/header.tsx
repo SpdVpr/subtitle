@@ -22,12 +22,26 @@ export function Header() {
 
     console.log('Force navigating to:', path)
 
-    try {
-      router.push(path)
-    } catch (error) {
-      console.error('Router.push failed, using window.location:', error)
-      window.location.href = path
-    }
+    // Use the most aggressive navigation method that cannot be blocked
+    setTimeout(() => {
+      try {
+        // Try router first
+        router.push(path)
+        console.log('Router.push attempted')
+
+        // If router doesn't work within 100ms, force with window.location
+        setTimeout(() => {
+          if (window.location.pathname !== path) {
+            console.log('Router.push failed, forcing with window.location.replace')
+            window.location.replace(path)
+          }
+        }, 100)
+      } catch (error) {
+        console.error('All navigation methods failed:', error)
+        // Last resort - immediate window.location
+        window.location.replace(path)
+      }
+    }, 0)
   }
 
   return (

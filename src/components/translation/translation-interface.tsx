@@ -537,14 +537,34 @@ export function TranslationInterface() {
                 variant="outline"
                 onClick={() => forceNavigate('/')}
               >
-                Go to Home
+                Router Home
               </Button>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => forceNavigate('/dashboard')}
               >
-                Go to Dashboard
+                Router Dashboard
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  console.log('Direct window.location to home')
+                  window.location.href = '/'
+                }}
+              >
+                Direct Home
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  console.log('Window.location.replace to dashboard')
+                  window.location.replace('/dashboard')
+                }}
+              >
+                Replace Dashboard
               </Button>
               <Button
                 size="sm"
