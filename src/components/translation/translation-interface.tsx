@@ -173,7 +173,7 @@ export function TranslationInterface() {
       // If streaming fails with 405, try simple endpoint
       if (response.status === 405) {
         console.log('🔄 Streaming failed with 405, trying simple endpoint...')
-        updateProgress('preparing', 20, 'Switching to simple translation endpoint...')
+        updateProgress('analyzing', 20, 'Switching to simple translation endpoint...')
 
         response = await fetch('/api/translate-simple', {
           method: 'POST',
@@ -252,7 +252,19 @@ export function TranslationInterface() {
           try {
             const msg = JSON.parse(json)
             if (msg.type === 'progress') {
-              updateProgress(msg.stage, msg.progress, msg.details)
+              try {
+                // Validate stage before calling updateProgress
+                const validStages = ['initializing', 'analyzing', 'researching', 'analyzing_content', 'translating', 'finalizing', 'completed', 'error']
+                const stage = validStages.includes(msg.stage) ? msg.stage : 'translating'
+                const progress = typeof msg.progress === 'number' ? msg.progress : 50
+                const details = typeof msg.details === 'string' ? msg.details : 'Processing...'
+
+                console.log('🔄 Progress update:', { stage, progress, details })
+                updateProgress(stage, progress, details)
+              } catch (progressError) {
+                console.error('❌ Progress update failed:', progressError)
+                // Continue without breaking the translation
+              }
             } else if (msg.type === 'result' && msg.status === 'completed') {
               finalContent = msg.translatedContent
               finalFileName = msg.translatedFileName
@@ -298,12 +310,26 @@ export function TranslationInterface() {
       }
     } catch (error) {
       console.error('Translation error:', error)
+
+      // Extract meaningful error message
+      let errorMessage = 'Translation failed'
+      if (error instanceof Error) {
+        errorMessage = error.message
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      }
+
       result.status = 'failed'
-      result.error = error instanceof Error ? error.message : 'Translation failed'
+      result.error = errorMessage
       setTranslationResult({ ...result })
 
       // Cleanup progress tracking on error
-      errorProgress(error instanceof Error ? error.message : 'Translation failed')
+      try {
+        errorProgress(errorMessage)
+      } catch (progressError) {
+        console.error('❌ Error progress update failed:', progressError)
+      }
+
       if ((window as any).cleanupProgressTracking) {
         (window as any).cleanupProgressTracking()
       }
