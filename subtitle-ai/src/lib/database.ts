@@ -48,7 +48,7 @@ export class UserService {
     const userProfile: UserProfile = {
       uid,
       email,
-      displayName,
+      displayName: displayName || null, // Convert undefined to null for Firestore
       createdAt: serverTimestamp() as Timestamp,
       updatedAt: serverTimestamp() as Timestamp,
       emailVerified: false,
@@ -84,8 +84,13 @@ export class UserService {
   static async updateUser(uid: string, updates: Partial<UserProfile>): Promise<void> {
     if (!db) throw new Error('Firestore not initialized')
 
+    // Filter out undefined values to prevent Firestore errors
+    const cleanUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, value]) => value !== undefined)
+    )
+
     await updateDoc(doc(db, COLLECTIONS.USERS, uid), {
-      ...updates,
+      ...cleanUpdates,
       updatedAt: serverTimestamp()
     })
   }

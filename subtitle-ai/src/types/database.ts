@@ -4,7 +4,7 @@ import { Timestamp } from 'firebase/firestore'
 export interface UserProfile {
   uid: string
   email: string
-  displayName?: string
+  displayName?: string | null
   photoURL?: string
   createdAt: Timestamp
   updatedAt: Timestamp
