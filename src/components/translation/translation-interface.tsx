@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FileUpload } from './file-upload'
 import { LanguageSelector } from './language-selector'
 import { ContextualTranslationProgress } from './contextual-translation-progress'
+import { ErrorBoundary } from '../common/ErrorBoundary'
 import { useTranslationProgress } from '@/hooks/use-translation-progress'
 import { TranslationResult } from '@/types/subtitle'
 import { useAuth } from '@/hooks/useAuth'
@@ -436,7 +437,8 @@ export function TranslationInterface() {
 
       {/* Translation Settings */}
       {selectedFile && user && (
-        <Card>
+        <ErrorBoundary>
+          <Card>
           <CardHeader>
             <CardTitle>Translation Settings</CardTitle>
             <CardDescription>
@@ -444,27 +446,56 @@ export function TranslationInterface() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Error boundary to prevent full page crash */}
+            <ErrorBoundary>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Source Language (optional)
                 </label>
-                <LanguageSelector
+                {/* TEMP: native select to avoid Radix/React 185 */}
+                <select
+                  className="w-full border rounded-md p-2"
                   value={sourceLanguage}
-                  onValueChange={setSourceLanguage}
-                  placeholder="Auto-detect"
-                  includeAutoDetect={true}
-                />
+                  onChange={(e) => setSourceLanguage(e.target.value)}
+                >
+                  <option value="">Auto-detect (optional)</option>
+                  <option value="cs">Czech (Čeština)</option>
+                  <option value="en">English</option>
+                  <option value="de">German (Deutsch)</option>
+                  <option value="es">Spanish (Español)</option>
+                  <option value="fr">French (Français)</option>
+                  <option value="it">Italian (Italiano)</option>
+                  <option value="pt">Portuguese (Português)</option>
+                  <option value="ru">Russian (Русский)</option>
+                  <option value="ja">Japanese (日本語)</option>
+                  <option value="ko">Korean (한국어)</option>
+                  <option value="zh">Chinese (中文)</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Target Language *
                 </label>
-                <LanguageSelector
+                {/* TEMP: native select to avoid Radix/React 185 */}
+                <select
+                  className="w-full border rounded-md p-2"
                   value={targetLanguage}
-                  onValueChange={setTargetLanguage}
-                  placeholder="Select target language"
-                />
+                  onChange={(e) => setTargetLanguage(e.target.value)}
+                >
+                  <option value="" disabled>Select target language</option>
+                  <option value="cs">Czech (Čeština)</option>
+                  <option value="en">English</option>
+                  <option value="de">German (Deutsch)</option>
+                  <option value="es">Spanish (Español)</option>
+                  <option value="fr">French (Français)</option>
+                  <option value="it">Italian (Italiano)</option>
+                  <option value="pt">Portuguese (Português)</option>
+                  <option value="ru">Russian (Русский)</option>
+                  <option value="ja">Japanese (日本語)</option>
+                  <option value="ko">Korean (한국어)</option>
+                  <option value="zh">Chinese (中文)</option>
+                </select>
               </div>
             </div>
 
@@ -520,6 +551,7 @@ export function TranslationInterface() {
             </div>
           </CardContent>
         </Card>
+        </ErrorBoundary>
       )}
 
       {/* Translation Progress */}

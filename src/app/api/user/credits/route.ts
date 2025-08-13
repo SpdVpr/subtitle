@@ -17,9 +17,13 @@ export async function GET(request: NextRequest) {
     const user = await UserService.getUser(userId)
     
     if (!user) {
+      // Graceful fallback for demo/unknown users
       return NextResponse.json({
-        error: 'User not found'
-      }, { status: 404 })
+        success: true,
+        credits: 0,
+        totalPurchased: 0,
+        user: { uid: userId, email: null, displayName: null }
+      })
     }
 
     return NextResponse.json({
