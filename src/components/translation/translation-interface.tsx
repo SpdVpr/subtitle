@@ -475,15 +475,15 @@ export function TranslationInterface() {
                   <div>
                     <h4 className="font-medium text-blue-900">Estimated Cost</h4>
                     <p className="text-sm text-blue-700">
-                      {subtitleCount} subtitles • {Math.ceil(subtitleCount / 20)} chunks
+                      {subtitleCount || 0} subtitles • {Math.ceil((subtitleCount || 0) / 20)} chunks
                     </p>
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-blue-900">
-                      {estimatedCost.toFixed(2)} credits
+                      {(estimatedCost || 0).toFixed(2)} credits
                     </div>
                     <div className="text-sm text-blue-600">
-                      ≈ ${(estimatedCost / 100).toFixed(3)} USD
+                      ≈ ${((estimatedCost || 0) / 100).toFixed(3)} USD
                     </div>
                   </div>
                 </div>
@@ -565,7 +565,7 @@ export function TranslationInterface() {
                     <span className="font-medium">Translated:</span> {translationResult.translatedFileName}
                   </div>
                   <div>
-                    <span className="font-medium">Subtitles:</span> {translationResult.subtitleCount}
+                    <span className="font-medium">Subtitles:</span> {translationResult.subtitleCount || 0}
                   </div>
                   <div>
                     <span className="font-medium">Processing time:</span> {translationResult.processingTimeMs ? `${(translationResult.processingTimeMs / 1000).toFixed(1)}s` : 'N/A'}

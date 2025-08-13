@@ -73,9 +73,9 @@ export function TranslationProgress({ result }: TranslationProgressProps) {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>Progress</span>
-            <span>{result.progress}%</span>
+            <span>{Number(result.progress) || 0}%</span>
           </div>
-          <Progress value={result.progress} />
+          <Progress value={Number(result.progress) || 0} />
         </div>
 
         <div className="grid grid-cols-2 gap-4 text-sm">

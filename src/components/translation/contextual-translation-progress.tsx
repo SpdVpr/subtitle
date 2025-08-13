@@ -75,10 +75,10 @@ export function ContextualTranslationProgress({ progress, className }: Contextua
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="font-medium">Overall Progress</span>
-            <span className="text-muted-foreground">{Math.round(progress.progress)}%</span>
+            <span className="text-muted-foreground">{Math.round(Number(progress.progress) || 0)}%</span>
           </div>
-          <Progress 
-            value={progress.progress} 
+          <Progress
+            value={Number(progress.progress) || 0}
             className="h-2"
           />
           {progress.details && (
