@@ -342,8 +342,13 @@ export function TranslationInterface() {
         console.error('❌ Error progress update failed:', progressError)
       }
 
-      if ((window as any).cleanupProgressTracking) {
-        (window as any).cleanupProgressTracking()
+      try {
+        const cleanup = (window as any).cleanupProgressTracking
+        if (typeof cleanup === 'function') {
+          cleanup()
+        }
+      } catch (e) {
+        console.warn('cleanupProgressTracking failed:', e)
       }
     } finally {
       setIsTranslating(false)
