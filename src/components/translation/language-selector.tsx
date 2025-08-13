@@ -40,10 +40,7 @@ export function LanguageSelector({
         )}
         {availableLanguages.map((language) => (
           <SelectItem key={String(language?.code || '')} value={String(language?.code || '')}>
-            <div className="flex items-center space-x-2">
-              <span>{String(language?.name || '')}</span>
-              <span className="text-gray-500 text-sm">({String(language?.nativeName || '')})</span>
-            </div>
+            {`${String(language?.name || '')} (${String(language?.nativeName || '')})`}
           </SelectItem>
         ))}
       </SelectContent>
