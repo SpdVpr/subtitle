@@ -27,18 +27,30 @@ export function Header() {
             <Link
               href="/"
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              onClick={(e) => {
+                console.log('Home link clicked')
+                // Let Next.js handle it normally
+              }}
             >
               Home
             </Link>
             <Link
               href="/translate"
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              onClick={(e) => {
+                console.log('Translate link clicked')
+                // Let Next.js handle it normally
+              }}
             >
               Translate
             </Link>
             <Link
               href="/subtitles-search"
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              onClick={(e) => {
+                console.log('Find Subtitles link clicked')
+                // Let Next.js handle it normally
+              }}
             >
               Find Subtitles
             </Link>
@@ -75,11 +87,27 @@ export function Header() {
               <div className="flex items-center space-x-3">
                 <CreditsDisplay showBuyButton={false} className="hidden sm:flex" />
                 <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
-                  <Link href="/dashboard">Dashboard</Link>
+                  <Link
+                    href="/dashboard"
+                    onClick={(e) => {
+                      console.log('Dashboard link clicked')
+                      // Let Next.js handle it normally
+                    }}
+                  >
+                    Dashboard
+                  </Link>
                 </Button>
                 {user && (
                   <Button variant="ghost" size="sm" asChild className="hidden lg:inline-flex">
-                    <Link href="/analytics">Analytics</Link>
+                    <Link
+                      href="/analytics"
+                      onClick={(e) => {
+                        console.log('Analytics link clicked')
+                        // Let Next.js handle it normally
+                      }}
+                    >
+                      Analytics
+                    </Link>
                   </Button>
                 )}
                 <Button variant="outline" size="sm" onClick={() => signOut()}>

@@ -1,6 +1,24 @@
+'use client'
+
+import { useEffect } from 'react'
 import { TranslationInterface } from '@/components/translation/translation-interface'
 
 export default function TranslatePage() {
+  // Force clear any potential navigation blockers
+  useEffect(() => {
+    // Remove any potential beforeunload listeners that might be blocking navigation
+    const clearNavigationBlockers = () => {
+      // Clear all beforeunload listeners
+      window.onbeforeunload = null
+
+      console.log('Navigation blockers cleared on translate page')
+    }
+
+    clearNavigationBlockers()
+
+    // Also clear on component unmount
+    return clearNavigationBlockers
+  }, [])
   return (
     <div className="py-8">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">

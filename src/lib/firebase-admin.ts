@@ -36,5 +36,5 @@ export function getAdminDb() {
   return admin.firestore(app)
 }
 
-export { admin }
+export { admin, getAdminApp }
 

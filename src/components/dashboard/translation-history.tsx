@@ -47,23 +47,23 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
     setDownloadingJobs(prev => new Set(prev).add(job.id))
 
     try {
-      const response = await fetch('/api/translation-history/download', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          jobId: job.id,
-          userId: user.uid
-        }),
-      })
+      // Get the job data directly from Firestore (client-side)
+      const jobData = await TranslationJobService.getJob(job.id)
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to download file')
+      if (!jobData) {
+        throw new Error('Translation job not found')
       }
 
-      const blob = await response.blob()
+      if (jobData.userId !== user.uid) {
+        throw new Error('Unauthorized access')
+      }
+
+      if (!jobData.translatedContent) {
+        throw new Error('Translated content not available')
+      }
+
+      // Create and download the file directly
+      const blob = new Blob([jobData.translatedContent], { type: 'text/plain; charset=utf-8' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -72,9 +72,10 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
+
+      console.log('✅ Download completed successfully')
     } catch (err) {
       console.error('Download failed:', err)
-      // For now, show an alert - in production you'd want better error handling
       alert(`Download failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
     } finally {
       setDownloadingJobs(prev => {
