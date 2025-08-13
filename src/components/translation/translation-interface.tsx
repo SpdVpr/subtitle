@@ -80,23 +80,16 @@ export function TranslationInterface() {
     }
   }, [translationResult?.downloadUrl])
 
-  // Prevent navigation during active translation only
+  // Debug navigation issues
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Only prevent navigation if translation is actively running
-      if (isTranslating && translationProgress.isActive && translationResult?.status === 'processing') {
-        e.preventDefault()
-        e.returnValue = 'Translation is in progress. Are you sure you want to leave?'
-        return 'Translation is in progress. Are you sure you want to leave?'
-      }
+    console.log('TranslationInterface mounted')
+    return () => {
+      console.log('TranslationInterface unmounted')
     }
+  }, [])
 
-    // Only add listener when translation is actually running
-    if (isTranslating && translationProgress.isActive) {
-      window.addEventListener('beforeunload', handleBeforeUnload)
-      return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-    }
-  }, [isTranslating, translationProgress.isActive, translationResult?.status])
+  // Note: Removed beforeunload listener as it was causing navigation issues
+  // Users can navigate freely, but we'll add a visual warning in the UI instead
 
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file)
@@ -492,6 +485,19 @@ export function TranslationInterface() {
 
   return (
     <div className="space-y-6">
+      {/* Translation in Progress Warning */}
+      {(isTranslating || translationProgress.isActive) && (
+        <Card className="border-orange-500 bg-orange-50">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2 text-orange-800">
+              <AlertCircle className="h-5 w-5" />
+              <span className="font-medium">Translation in progress</span>
+              <span className="text-sm">- Please wait for completion before navigating away</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Header */}
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center space-x-2">
