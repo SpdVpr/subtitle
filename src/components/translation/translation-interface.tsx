@@ -437,8 +437,7 @@ export function TranslationInterface() {
 
       {/* Translation Settings */}
       {selectedFile && user && (
-        <ErrorBoundary>
-          <Card>
+        <Card>
           <CardHeader>
             <CardTitle>Translation Settings</CardTitle>
             <CardDescription>
