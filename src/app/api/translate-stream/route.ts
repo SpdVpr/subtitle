@@ -3,15 +3,27 @@ import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { PremiumTranslationService } from '@/lib/premium-translation-service'
 
 export async function POST(request: NextRequest) {
-  const formData = await request.formData()
-  const file = formData.get('file') as File | null
-  const targetLanguage = (formData.get('targetLanguage') as string) || 'cs'
-  const sourceLanguage = (formData.get('sourceLanguage') as string) || 'en'
-  const userId = (formData.get('userId') as string) || ''
+  try {
+    const formData = await request.formData()
+    const file = formData.get('file') as File | null
+    const targetLanguage = (formData.get('targetLanguage') as string) || 'cs'
+    const sourceLanguage = (formData.get('sourceLanguage') as string) || 'en'
+    const userId = (formData.get('userId') as string) || ''
 
-  if (!file) {
-    return new Response('No file uploaded', { status: 400 })
-  }
+    // Check if user is logged in
+    if (!userId) {
+      return new Response(JSON.stringify({ error: 'Authentication required. Please log in to use translation services.' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    if (!file) {
+      return new Response(JSON.stringify({ error: 'No file uploaded' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
 
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey || !apiKey.startsWith('sk-')) {
@@ -112,5 +124,16 @@ export async function POST(request: NextRequest) {
       'Connection': 'keep-alive'
     }
   })
+
+  } catch (error) {
+    console.error('❌ Translate-stream error:', error)
+    return new Response(JSON.stringify({
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
 }
 

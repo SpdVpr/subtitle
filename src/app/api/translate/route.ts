@@ -21,10 +21,18 @@ export async function POST(req: NextRequest) {
     const sessionId = formData.get('sessionId') as string || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
     // Basic validation (security handled in middleware)
-    if (!file || !targetLanguage || !userId) {
+    if (!file || !targetLanguage) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: file and targetLanguage are required' },
         { status: 400 }
+      )
+    }
+
+    // Check if user is logged in
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please log in to use translation services.' },
+        { status: 401 }
       )
     }
 

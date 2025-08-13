@@ -107,7 +107,8 @@ export function TranslationInterface() {
 
     // Check if user is logged in
     if (!user) {
-      alert('Please log in to use translation services.')
+      alert('Please log in to use translation services. You will be redirected to the login page.')
+      window.location.href = '/login'
       return
     }
 
@@ -262,7 +263,7 @@ export function TranslationInterface() {
     document.body.removeChild(link)
   }
 
-  const canTranslate = selectedFile && targetLanguage && !isTranslating
+  const canTranslate = selectedFile && targetLanguage && !isTranslating && user
 
   return (
     <div className="space-y-6">
@@ -298,8 +299,36 @@ export function TranslationInterface() {
         </CardContent>
       </Card>
 
+      {/* Login Required Notice */}
+      {!user && (
+        <Card className="border-orange-500 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <AlertCircle className="h-5 w-5 text-orange-600" />
+              <span>Login Required</span>
+            </CardTitle>
+            <CardDescription>
+              You need to be logged in to use the translation service.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-orange-700">
+                Please log in to access premium AI translation services and manage your credits.
+              </p>
+              <Button
+                onClick={() => window.location.href = '/login'}
+                className="w-full"
+              >
+                Log In to Continue
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Translation Settings */}
-      {selectedFile && (
+      {selectedFile && user && (
         <Card>
           <CardHeader>
             <CardTitle>Translation Settings</CardTitle>
