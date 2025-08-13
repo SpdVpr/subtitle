@@ -32,10 +32,7 @@ export function LanguageSelector({
       <SelectContent>
         {includeAutoDetect && (
           <SelectItem value="auto">
-            <div className="flex items-center space-x-2">
-              <span>Auto-detect</span>
-              <span className="text-gray-500 text-sm">(automatic)</span>
-            </div>
+            {`Auto-detect (automatic)`}
           </SelectItem>
         )}
         {availableLanguages.map((language) => (
