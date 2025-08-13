@@ -82,7 +82,7 @@ export function ContextualTranslationProgress({ progress, className }: Contextua
             className="h-2"
           />
           {progress.details && (
-            <p className="text-sm text-muted-foreground">{progress.details}</p>
+            <p className="text-sm text-muted-foreground">{String(progress.details)}</p>
           )}
         </div>
 
@@ -98,7 +98,7 @@ export function ContextualTranslationProgress({ progress, className }: Contextua
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
                       <span className={`text-sm font-medium ${getStatusColor(status)}`}>
-                        {stage.icon} {stage.label}
+                        {String(stage.icon || '')} {String(stage.label || '')}
                       </span>
                       {status === 'active' && (
                         <div className="flex space-x-1">
@@ -109,7 +109,7 @@ export function ContextualTranslationProgress({ progress, className }: Contextua
                       )}
                     </div>
                     <p className={`text-xs ${status === 'active' ? 'text-muted-foreground' : 'text-gray-400'}`}>
-                      {stage.description}
+                      {String(stage.description || '')}
                     </p>
                   </div>
                 </div>
@@ -126,7 +126,7 @@ export function ContextualTranslationProgress({ progress, className }: Contextua
               <span className="text-sm font-medium text-red-800">Translation Failed</span>
             </div>
             {progress.details && (
-              <p className="text-sm text-red-700 mt-1">{progress.details}</p>
+              <p className="text-sm text-red-700 mt-1">{String(progress.details)}</p>
             )}
           </div>
         )}

@@ -99,7 +99,7 @@ export function TranslationProgress({ result }: TranslationProgressProps) {
 
         {result.status === 'failed' && result.errorMessage && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600">{result.errorMessage}</p>
+            <p className="text-sm text-red-600">{String(result.errorMessage || 'Unknown error')}</p>
           </div>
         )}
 
