@@ -253,6 +253,9 @@ export function useAuthProvider(): AuthContextType {
 
         await UserService.createOrUpdateUser(result.user.uid, userProfile)
       }
+
+      // Don't set loading to false here - let onAuthStateChanged handle it
+      // This ensures proper redirect flow
     } catch (error) {
       setLoading(false)
       throw error

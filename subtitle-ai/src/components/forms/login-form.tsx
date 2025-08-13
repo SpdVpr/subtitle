@@ -63,11 +63,10 @@ export function LoginForm() {
 
     try {
       await signInWithGoogle()
-      // Redirect to dashboard after successful login
-      router.push('/dashboard')
+      // Don't manually redirect - let the auth state change handle it
+      // The useAuth hook will trigger and redirect to dashboard
     } catch (error: any) {
       setError(error.message || 'Failed to sign in with Google')
-    } finally {
       setIsLoading(false)
     }
   }
