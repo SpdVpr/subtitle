@@ -9,14 +9,16 @@ interface LanguageSelectorProps {
   placeholder: string
   disabled?: boolean
   excludeLanguage?: string
+  includeAutoDetect?: boolean
 }
 
-export function LanguageSelector({ 
-  value, 
-  onValueChange, 
-  placeholder, 
+export function LanguageSelector({
+  value,
+  onValueChange,
+  placeholder,
   disabled,
-  excludeLanguage 
+  excludeLanguage,
+  includeAutoDetect = false
 }: LanguageSelectorProps) {
   const availableLanguages = SUPPORTED_LANGUAGES.filter(
     lang => lang.code !== excludeLanguage
@@ -28,6 +30,14 @@ export function LanguageSelector({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
+        {includeAutoDetect && (
+          <SelectItem value="">
+            <div className="flex items-center space-x-2">
+              <span>Auto-detect</span>
+              <span className="text-gray-500 text-sm">(automatic)</span>
+            </div>
+          </SelectItem>
+        )}
         {availableLanguages.map((language) => (
           <SelectItem key={language.code} value={language.code}>
             <div className="flex items-center space-x-2">

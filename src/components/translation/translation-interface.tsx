@@ -315,9 +315,9 @@ export function TranslationInterface() {
                 </label>
                 <LanguageSelector
                   value={sourceLanguage}
-                  onChange={setSourceLanguage}
+                  onValueChange={setSourceLanguage}
                   placeholder="Auto-detect"
-                  includeAutoDetect
+                  includeAutoDetect={true}
                 />
               </div>
               <div>
@@ -326,7 +326,7 @@ export function TranslationInterface() {
                 </label>
                 <LanguageSelector
                   value={targetLanguage}
-                  onChange={setTargetLanguage}
+                  onValueChange={setTargetLanguage}
                   placeholder="Select target language"
                 />
               </div>
