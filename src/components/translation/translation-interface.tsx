@@ -118,7 +118,7 @@ export function TranslationInterface() {
       originalFileName: selectedFile.name,
       translatedFileName: `${selectedFile.name.replace('.srt', '')}_${targetLanguage}.srt`,
       targetLanguage,
-      sourceLanguage: sourceLanguage || 'auto',
+      sourceLanguage: sourceLanguage === 'auto' || !sourceLanguage ? 'auto' : sourceLanguage,
       aiService: 'premium',
       status: 'processing',
       progress: 0,
@@ -158,7 +158,7 @@ export function TranslationInterface() {
       const formData = new FormData()
       formData.append('file', selectedFile)
       formData.append('targetLanguage', targetLanguage)
-      formData.append('sourceLanguage', sourceLanguage)
+      formData.append('sourceLanguage', sourceLanguage === 'auto' ? '' : sourceLanguage)
       formData.append('userId', user.uid)
 
       console.log('📤 Starting streamed translation via /api/translate-stream')
@@ -224,7 +224,7 @@ export function TranslationInterface() {
         sessionStorage.setItem('previewData', JSON.stringify({
           originalFile: selectedFile?.name,
           translatedFileName: result.translatedFileName,
-          sourceLanguage: sourceLanguage || 'auto',
+          sourceLanguage: sourceLanguage === 'auto' || !sourceLanguage ? 'auto' : sourceLanguage,
           targetLanguage: targetLanguage,
           aiService: 'premium'
         }))
@@ -448,7 +448,7 @@ export function TranslationInterface() {
                       const previewData = {
                         originalFile: selectedFile?.name,
                         translatedFileName: translationResult.translatedFileName,
-                        sourceLanguage: sourceLanguage || 'auto',
+                        sourceLanguage: sourceLanguage === 'auto' || !sourceLanguage ? 'auto' : sourceLanguage,
                         targetLanguage: targetLanguage,
                         aiService: 'premium'
                       }
