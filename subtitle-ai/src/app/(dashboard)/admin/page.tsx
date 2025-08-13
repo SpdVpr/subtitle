@@ -9,6 +9,7 @@ import { StatsCards } from '@/components/admin/stats-cards'
 import { UserActivityTable } from '@/components/admin/user-activity-table'
 import { RevenueChart } from '@/components/admin/revenue-chart'
 import { SecurityDashboard } from '@/components/admin/security-dashboard'
+import { AdminSetup } from '@/components/admin/admin-setup'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RefreshCw, Shield, AlertTriangle } from 'lucide-react'
@@ -130,6 +131,9 @@ export default function AdminDashboard() {
               </button>
             </nav>
           </div>
+
+          {/* Admin Setup */}
+          <AdminSetup />
 
           {/* Error Alert */}
           {error && (
