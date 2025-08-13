@@ -32,7 +32,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
       color: 'text-emerald-600'
     },
     {
-      title: 'Translations',
+      title: 'Files Translated',
       value: stats.totalTranslations.toLocaleString(),
       change: `+${stats.translationsToday} today`,
       icon: FileText,

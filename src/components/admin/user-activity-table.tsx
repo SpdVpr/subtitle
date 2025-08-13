@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { UserActivity } from '@/lib/admin-stats'
 import { formatDistanceToNow } from 'date-fns'
+import { Info } from 'lucide-react'
 
 interface UserActivityTableProps {
   users: UserActivity[]
@@ -196,7 +197,8 @@ export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) 
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
                 <div>
-                  <span className="font-medium">Translations:</span> {user.translationsCount}
+                  <span className="font-medium">Translations:</span>
+                  <span className="ml-1">📄 {user.translationsCount.toLocaleString()}</span>
                 </div>
                 <div>
                   <span className="font-medium">Credits:</span> {(user.creditsBalance || 0).toFixed(2)}
@@ -250,7 +252,22 @@ export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) 
                   </td>
                   <td className="py-3 px-4">
                     <div className="text-sm font-medium text-gray-900">
-                      {user.translationsCount}
+                      <div className="flex items-center space-x-2">
+                        <span className="inline-flex items-center">
+                          📄 {user.translationsCount.toLocaleString()}
+                        </span>
+                        {user.translationsCount > 0 && (
+                          <Info
+                            className="h-3 w-3 text-gray-400 cursor-help"
+                            title={`Total subtitle files translated by this user`}
+                          />
+                        )}
+                      </div>
+                      {user.translationsCount > 0 && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {user.translationsCount === 1 ? '1 file' : `${user.translationsCount} files`} translated
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="py-3 px-4">
