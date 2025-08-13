@@ -80,19 +80,23 @@ export function TranslationInterface() {
     }
   }, [translationResult?.downloadUrl])
 
-  // Prevent navigation during translation
+  // Prevent navigation during active translation only
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isTranslating || translationProgress.isActive) {
+      // Only prevent navigation if translation is actively running
+      if (isTranslating && translationProgress.isActive && translationResult?.status === 'processing') {
         e.preventDefault()
         e.returnValue = 'Translation is in progress. Are you sure you want to leave?'
         return 'Translation is in progress. Are you sure you want to leave?'
       }
     }
 
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [isTranslating, translationProgress.isActive])
+    // Only add listener when translation is actually running
+    if (isTranslating && translationProgress.isActive) {
+      window.addEventListener('beforeunload', handleBeforeUnload)
+      return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [isTranslating, translationProgress.isActive, translationResult?.status])
 
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file)

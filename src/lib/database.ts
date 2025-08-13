@@ -211,6 +211,67 @@ export class AnalyticsService {
   }
 }
 
+// Batch Job Operations
+export class BatchJobService {
+  static async createJob(job: Omit<any, 'id' | 'createdAt'>): Promise<string> {
+    if (!db) throw new Error('Firestore not initialized')
+
+    const jobData = {
+      ...job,
+      createdAt: serverTimestamp()
+    }
+
+    const docRef = await addDoc(collection(db, COLLECTIONS.BATCH_JOBS), jobData)
+    return docRef.id
+  }
+
+  static async getJob(jobId: string): Promise<any | null> {
+    if (!db) throw new Error('Firestore not initialized')
+
+    const jobDoc = await getDoc(doc(db, COLLECTIONS.BATCH_JOBS, jobId))
+    return jobDoc.exists() ? { id: jobDoc.id, ...jobDoc.data() } : null
+  }
+
+  static async updateJob(jobId: string, updates: any): Promise<void> {
+    if (!db) throw new Error('Firestore not initialized')
+
+    await updateDoc(doc(db, COLLECTIONS.BATCH_JOBS, jobId), updates)
+  }
+}
+
+// File Service
+export class FileService {
+  static async createFile(file: any): Promise<string> {
+    if (!db) throw new Error('Firestore not initialized')
+
+    const docRef = await addDoc(collection(db, COLLECTIONS.FILES), {
+      ...file,
+      createdAt: serverTimestamp()
+    })
+    return docRef.id
+  }
+
+  static async getFile(fileId: string): Promise<any | null> {
+    if (!db) throw new Error('Firestore not initialized')
+
+    const fileDoc = await getDoc(doc(db, COLLECTIONS.FILES, fileId))
+    return fileDoc.exists() ? { id: fileDoc.id, ...fileDoc.data() } : null
+  }
+}
+
+// Error Logging Service
+export class ErrorLogService {
+  static async createLog(log: any): Promise<string> {
+    if (!db) throw new Error('Firestore not initialized')
+
+    const docRef = await addDoc(collection(db, COLLECTIONS.ERROR_LOGS), {
+      ...log,
+      createdAt: serverTimestamp()
+    })
+    return docRef.id
+  }
+}
+
 // Error Logging
 export class ErrorTracker {
   static async logError(error: Error, context: string, userId?: string): Promise<void> {
