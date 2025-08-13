@@ -168,9 +168,7 @@ export default function AdminDashboard() {
               )}
 
               {/* User Activity Table */}
-              {userActivity.length > 0 && (
-                <UserActivityTable users={userActivity} />
-              )}
+              <UserActivityTable users={userActivity} />
             </>
           )}
 

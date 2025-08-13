@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { UserService } from '@/lib/database'
+import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -154,6 +156,7 @@ export function TranslationInterface() {
           formData.append('file', selectedFile)
           formData.append('targetLanguage', targetLanguage)
           formData.append('sourceLanguage', sourceLanguage)
+          formData.append('userId', user.uid)
 
           console.log('📤 Starting streamed translation via /api/translate-stream')
           const response = await fetch('/api/translate-stream', {

@@ -38,7 +38,7 @@ export interface UserActivity {
   plan: string
   lastActive: Date
   translationsCount: number
-  totalSpent: number
+  creditsBalance?: number
 }
 
 export interface RevenueData {
@@ -48,8 +48,11 @@ export interface RevenueData {
   userId: string
 }
 
+import { db } from './firebase'
+import { collection, getDocs, query, where, orderBy, Timestamp } from 'firebase/firestore'
+
 export class AdminStatsService {
-  
+
   static async getOverallStats(): Promise<AdminStats> {
     try {
       // Get all users
@@ -133,7 +136,7 @@ export class AdminStatsService {
   static async getUserActivity(): Promise<UserActivity[]> {
     try {
       const users = await UserService.getAllUsers()
-      
+
       return users.map(user => {
         const lastActive = (user as any).lastLoginAt || user.createdAt
         const lastActiveDate = lastActive?.toDate ? lastActive.toDate() : lastActive || new Date()
@@ -145,7 +148,7 @@ export class AdminStatsService {
           plan,
           lastActive: lastActiveDate,
           translationsCount: user.usage?.translationsUsed || 0,
-          totalSpent: plan === 'premium' ? 9.99 : plan === 'pro' ? 19.99 : 0
+          creditsBalance: (user as any).creditsBalance || 0
         }
       }).sort((a, b) => b.lastActive.getTime() - a.lastActive.getTime())
     } catch (error) {
@@ -153,45 +156,33 @@ export class AdminStatsService {
       throw error
     }
   }
-  
+
   static async getRevenueData(): Promise<RevenueData[]> {
     try {
-      const users = await UserService.getAllUsers()
-      const revenueData: RevenueData[] = []
-      
-      // Generate mock revenue data for the last 30 days
+      if (!db) return []
       const now = new Date()
-      for (let i = 29; i >= 0; i--) {
-        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
-        const dateStr = date.toISOString().split('T')[0]
-        
-        // Mock daily revenue
-        const dailyPremium = Math.floor(Math.random() * 5) // 0-4 premium subscriptions
-        const dailyPro = Math.floor(Math.random() * 3) // 0-2 pro subscriptions
-        
-        if (dailyPremium > 0) {
-          revenueData.push({
-            date: dateStr,
-            amount: dailyPremium * 9.99,
-            plan: 'premium',
-            userId: 'mock-user-' + i
-          })
-        }
-        
-        if (dailyPro > 0) {
-          revenueData.push({
-            date: dateStr,
-            amount: dailyPro * 19.99,
-            plan: 'pro',
-            userId: 'mock-user-' + i
-          })
-        }
-      }
-      
-      return revenueData
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      const qRef = query(
+        collection(db, 'creditTransactions'),
+        where('type', '==', 'topup'),
+        orderBy('createdAt', 'desc')
+      )
+      const snapshot = await getDocs(qRef)
+      const revenueMap = new Map<string, number>()
+      const data: RevenueData[] = []
+      snapshot.forEach(docSnap => {
+        const d: any = docSnap.data()
+        const createdAt = d.createdAt?.toDate ? d.createdAt.toDate() : new Date()
+        if (createdAt < thirtyDaysAgo) return
+        const dateStr = createdAt.toISOString().split('T')[0]
+        const amount = typeof d.amountUSD === 'number' ? d.amountUSD : (d.credits ? d.credits / 100 : 0)
+        revenueMap.set(dateStr, (revenueMap.get(dateStr) || 0) + amount)
+        data.push({ date: dateStr, amount, plan: 'topup', userId: d.userId })
+      })
+      return data
     } catch (error) {
       console.error('Failed to get revenue data:', error)
-      throw error
+      return []
     }
   }
 }

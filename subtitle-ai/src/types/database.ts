@@ -27,7 +27,11 @@ export interface UserProfile {
     batchJobsLimit: number
     resetDate: Timestamp // monthly reset
   }
-  
+
+  // Credits wallet
+  creditsBalance?: number // in credits (e.g., 1 USD = 100 credits)
+  creditsTotalPurchased?: number // lifetime purchased credits
+
   // Preferences
   preferences: {
     defaultSourceLanguage?: string
@@ -36,6 +40,19 @@ export interface UserProfile {
     emailNotifications: boolean
     theme: 'light' | 'dark' | 'system'
   }
+}
+
+// Credit transactions (top-ups and debits)
+export interface CreditTransaction {
+  id: string
+  userId: string
+  type: 'topup' | 'debit' | 'refund'
+  credits: number // positive number of credits added or subtracted
+  amountUSD?: number // only for topups/refunds
+  description?: string
+  relatedJobId?: string
+  batchNumber?: number
+  createdAt: Timestamp
 }
 
 // Translation Job

@@ -34,6 +34,7 @@ const COLLECTIONS = {
   ANALYTICS: 'analytics',
   FILES: 'files',
   SUBSCRIPTIONS: 'subscriptions',
+  CREDIT_TRANSACTIONS: 'creditTransactions',
   ERROR_LOGS: 'errorLogs'
 } as const
 
@@ -58,6 +59,8 @@ export class UserService {
         batchJobsLimit: 0, // No batch for free
         resetDate: serverTimestamp() as Timestamp
       },
+      creditsBalance: 0,
+      creditsTotalPurchased: 0,
       preferences: {
         defaultAiService: 'google',
         emailNotifications: true,
@@ -120,42 +123,8 @@ export class UserService {
       } as UserProfile))
     } catch (error) {
       console.error('Failed to get all users:', error)
-      // Return mock data for demo if Firebase fails
-      return [
-        {
-          uid: 'demo-user-1',
-          email: 'premium@test.com',
-          displayName: 'Premium User',
-          createdAt: new Date() as any,
-          updatedAt: new Date() as any,
-          lastLoginAt: new Date() as any,
-          subscription: { plan: 'premium', status: 'active' },
-          translationsUsed: 25,
-          usage: { translationsUsed: 25, storageUsed: 1024, batchJobsUsed: 5 }
-        },
-        {
-          uid: 'demo-user-2',
-          email: 'pro@test.com',
-          displayName: 'Pro User',
-          createdAt: new Date() as any,
-          updatedAt: new Date() as any,
-          lastLoginAt: new Date() as any,
-          subscription: { plan: 'pro', status: 'active' },
-          translationsUsed: 50,
-          usage: { translationsUsed: 50, storageUsed: 2048, batchJobsUsed: 10 }
-        },
-        {
-          uid: 'demo-user-3',
-          email: 'free@test.com',
-          displayName: 'Free User',
-          createdAt: new Date() as any,
-          updatedAt: new Date() as any,
-          lastLoginAt: new Date() as any,
-          subscription: { plan: 'free', status: 'active' },
-          translationsUsed: 3,
-          usage: { translationsUsed: 3, storageUsed: 512, batchJobsUsed: 0 }
-        }
-      ] as UserProfile[]
+      // Do not return mock data in admin; propagate error to show proper message
+      throw error
     }
   }
 
@@ -166,11 +135,33 @@ export class UserService {
     // Always set uid and updatedAt; merge to avoid overwriting existing fields
     await setDoc(doc(db, COLLECTIONS.USERS, uid), {
       uid,
+      creditsBalance: 0,
+      creditsTotalPurchased: 0,
       ...data,
       updatedAt: serverTimestamp()
     } as any, { merge: true })
   }
 
+  static async adjustCredits(uid: string, deltaCredits: number, description?: string, relatedJobId?: string, batchNumber?: number, amountUSD?: number): Promise<void> {
+    if (!db) throw new Error('Firestore not initialized')
+
+    const userRef = doc(db, COLLECTIONS.USERS, uid)
+    await updateDoc(userRef, {
+      creditsBalance: increment(deltaCredits),
+      updatedAt: serverTimestamp()
+    })
+
+    await addDoc(collection(db, COLLECTIONS.CREDIT_TRANSACTIONS), {
+      userId: uid,
+      type: deltaCredits >= 0 ? 'topup' : 'debit',
+      credits: Math.abs(deltaCredits),
+      amountUSD: amountUSD,
+      description,
+      relatedJobId,
+      batchNumber,
+      createdAt: serverTimestamp()
+    })
+  }
 }
 
 // Translation Job Operations
@@ -212,6 +203,26 @@ export class TranslationJobService {
 
     const snapshot = await getDocs(q)
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TranslationJob))
+  }
+  static async adjustCredits(uid: string, deltaCredits: number, description?: string, relatedJobId?: string, batchNumber?: number): Promise<void> {
+    if (!db) throw new Error('Firestore not initialized')
+
+    const userRef = doc(db, COLLECTIONS.USERS, uid)
+    await updateDoc(userRef, {
+      creditsBalance: increment(deltaCredits),
+      updatedAt: serverTimestamp()
+    })
+
+    // Record transaction
+    await addDoc(collection(db, COLLECTIONS.CREDIT_TRANSACTIONS), {
+      userId: uid,
+      type: deltaCredits >= 0 ? 'topup' : 'debit',
+      credits: Math.abs(deltaCredits),
+      description,
+      relatedJobId,
+      batchNumber,
+      createdAt: serverTimestamp()
+    })
   }
 }
 
