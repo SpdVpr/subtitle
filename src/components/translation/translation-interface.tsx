@@ -136,10 +136,12 @@ export function TranslationInterface() {
       setTranslationResult({ ...result })
 
       const fileContent = await selectedFile.text()
+      try { updateProgress('analyzing', 10, 'Reading file...') } catch {}
       const subtitleFile = {
         content: fileContent,
         entries: SubtitleProcessor.parseSRT(fileContent)
       }
+      try { updateProgress('analyzing_content', 35, 'Analyzing subtitles...') } catch {}
 
       if (subtitleFile.entries.length === 0) {
         throw new Error('No valid subtitles found in the file')
@@ -173,7 +175,7 @@ export function TranslationInterface() {
       // If streaming fails with 405, try simple endpoint
       if (response.status === 405) {
         console.log('🔄 Streaming failed with 405, trying simple endpoint...')
-        updateProgress('analyzing', 20, 'Switching to simple translation endpoint...')
+        try { updateProgress('analyzing', 20, 'Switching to simple translation endpoint...') } catch {}
 
         response = await fetch('/api/translate-simple', {
           method: 'POST',
@@ -185,13 +187,13 @@ export function TranslationInterface() {
           throw new Error(`Simple translation failed: ${response.status} ${errorText}`)
         }
 
-        updateProgress('translating', 50, 'Processing translation...')
+        try { updateProgress('translating', 55, 'Processing translation...') } catch {}
 
         // Handle simple response (not streaming)
         const simpleResult = await response.json()
 
         if (simpleResult.status === 'completed') {
-          updateProgress('finalizing', 90, 'Preparing download...')
+          try { updateProgress('finalizing', 95, 'Preparing download...') } catch {}
 
           result.status = 'completed'
           result.progress = 100

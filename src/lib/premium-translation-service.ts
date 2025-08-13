@@ -10,9 +10,7 @@ interface ResearchData {
   translationGuidelines: string[]
 }
 
-interface ProgressCallback {
-  (stage: string, progress: number, details?: string): void
-}
+type ProgressCallback = (stage: string, progress: number, details?: string) => void
 
 export class PremiumTranslationService {
   private apiKey: string
@@ -39,7 +37,7 @@ export class PremiumTranslationService {
     console.log('🔑 API Key starts with sk-:', this.apiKey?.startsWith('sk-') || false)
 
     // Initialize progress
-    progressCallback?.('initializing', 0, 'Starting translation process...')
+    if (typeof progressCallback === 'function') progressCallback('initializing', 0, 'Starting translation process...')
 
     if (!this.apiKey || this.apiKey.includes('your_openai_api_key') || this.apiKey.includes('demo_key') || this.apiKey.length < 20) {
       console.log('🎭 Using mock translation - API key not valid')
@@ -59,28 +57,28 @@ export class PremiumTranslationService {
 
       // PHASE 1: Extract show information from filename
       console.log('📁 PHASE 1: Analyzing filename')
-      progressCallback?.('analyzing', 10, 'Analyzing filename and extracting show information...')
+      if (typeof progressCallback === 'function') progressCallback('analyzing', 10, 'Analyzing filename and extracting show information...')
       await new Promise(resolve => setTimeout(resolve, 500)) // Small delay for UX
       const showInfo = this.extractShowInfo(fileName)
       console.log('📁 Extracted show info:', showInfo)
 
       // PHASE 2: Research the show/movie
       console.log('🔍 PHASE 2: Conducting research')
-      progressCallback?.('researching', 20, `Researching "${showInfo.title}" for contextual information...`)
+      if (typeof progressCallback === 'function') progressCallback('researching', 20, `Researching "${showInfo.title}" for contextual information...`)
       const researchData = await this.conductShowResearch(showInfo, openai)
       console.log('🔍 Research completed for:', researchData.title)
-      progressCallback?.('researching', 40, `Research completed for "${researchData.title}"`)
+      if (typeof progressCallback === 'function') progressCallback('researching', 40, `Research completed for "${researchData.title}"`)
 
       // PHASE 3: Analyze subtitle content
       console.log('📊 PHASE 3: Analyzing content')
-      progressCallback?.('analyzing_content', 45, 'Analyzing subtitle content and themes...')
+      if (typeof progressCallback === 'function') progressCallback('analyzing_content', 45, 'Analyzing subtitle content and themes...')
       await new Promise(resolve => setTimeout(resolve, 300)) // Small delay for UX
       const contentAnalysis = this.analyzeContent(entries, researchData)
-      progressCallback?.('analyzing_content', 50, 'Content analysis completed')
+      if (typeof progressCallback === 'function') progressCallback('analyzing_content', 50, 'Content analysis completed')
 
       // PHASE 4: Translate in context-aware batches
       console.log('🌐 PHASE 4: Starting contextual translation')
-      progressCallback?.('translating', 55, 'Starting contextual translation with research data...')
+      if (typeof progressCallback === 'function') progressCallback('translating', 55, 'Starting contextual translation with research data...')
       const translatedEntries: SubtitleEntry[] = []
       const batchSize = 20 // Optimal batch size for context
 
@@ -91,7 +89,7 @@ export class PremiumTranslationService {
         const batchProgress = 55 + ((i / entries.length) * 35)
 
         console.log(`🌐 Translating batch ${batchNumber}/${totalBatches}`)
-        progressCallback?.('translating', batchProgress, `Translating batch ${batchNumber}/${totalBatches} with contextual awareness...`)
+        if (typeof progressCallback === 'function') progressCallback('translating', batchProgress, `Translating batch ${batchNumber}/${totalBatches} with contextual awareness...`)
 
         const translatedBatch = await this.translateBatch(
           openai,
@@ -107,16 +105,16 @@ export class PremiumTranslationService {
 
       // PHASE 5: Final processing
       console.log('✨ PHASE 5: Finalizing translation')
-      progressCallback?.('finalizing', 95, 'Finalizing translation and quality checks...')
+      if (typeof progressCallback === 'function') progressCallback('finalizing', 95, 'Finalizing translation and quality checks...')
       await new Promise(resolve => setTimeout(resolve, 500)) // Small delay for UX
 
       console.log('✅ Premium Research-Based AI Translation completed')
-      progressCallback?.('completed', 100, 'Translation completed successfully!')
+      if (typeof progressCallback === 'function') progressCallback('completed', 100, 'Translation completed successfully!')
       return translatedEntries
 
     } catch (error) {
       console.error('Premium translation error:', error)
-      progressCallback?.('error', 0, `Translation failed: ${error.message}`)
+      if (typeof progressCallback === 'function') progressCallback('error', 0, `Translation failed: ${error instanceof Error ? error.message : String(error)}`)
       return this.createHighQualityMockTranslation(entries, targetLanguage, fileName, progressCallback)
     }
   }
@@ -425,7 +423,7 @@ CONTENT ANALYSIS:`
               ...entry,
               text: this.getMockCzechTranslation(entry.text, showInfo.title)
             }))
-            progressCallback?.('completed', 100, 'Translation completed successfully!')
+            if (typeof progressCallback === 'function') progressCallback('completed', 100, 'Translation completed successfully!')
             console.log('✅ DEMO: Translation completed with contextual awareness')
             resolve(translated)
           } else {
@@ -434,7 +432,7 @@ CONTENT ANALYSIS:`
               ...entry,
               text: `[${showInfo.title}-${targetLanguage.toUpperCase()}] ${entry.text}`
             }))
-            progressCallback?.('completed', 100, 'Translation completed successfully!')
+            if (typeof progressCallback === 'function') progressCallback('completed', 100, 'Translation completed successfully!')
             console.log('✅ DEMO: Translation completed with contextual awareness')
             resolve(translated)
           }
