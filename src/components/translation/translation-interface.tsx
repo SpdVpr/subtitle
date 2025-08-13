@@ -16,6 +16,7 @@ import { PremiumTranslationService } from '@/lib/premium-translation-service'
 import { TranslationResult, SUPPORTED_LANGUAGES } from '@/types/subtitle'
 import { getLanguageCharacteristics } from '@/lib/language-characteristics'
 import { useAuth } from '@/hooks/useAuth'
+import { CreditsDisplay } from '@/components/ui/credits-display'
 import { Download, Crown, AlertCircle, Eye } from 'lucide-react'
 
 export function TranslationInterface() {
@@ -27,6 +28,8 @@ export function TranslationInterface() {
   const [isTranslating, setIsTranslating] = useState(false)
   const [translationResult, setTranslationResult] = useState<TranslationResult | null>(null)
   const [notifyOnComplete, setNotifyOnComplete] = useState<boolean>(false)
+  const [estimatedCost, setEstimatedCost] = useState<number | null>(null)
+  const [subtitleCount, setSubtitleCount] = useState<number | null>(null)
   const {
     progress: translationProgress,
     startProgress,
@@ -71,17 +74,47 @@ export function TranslationInterface() {
     return () => { /* no-op */ }
   }, [translationProgress.isActive, translationProgress.progress, translationResult?.status, translationResult?.progress, notifyOnComplete, selectedFile])
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     setSelectedFile(file)
     setTranslationResult(null)
     resetProgress()
+
+    // Calculate estimated cost
+    try {
+      const fileContent = await file.text()
+      const subtitleEntries = SubtitleProcessor.parseSRT(fileContent)
+      const count = subtitleEntries.length
+      setSubtitleCount(count)
+
+      // Calculate cost based on service and subtitle count
+      const chunksNeeded = Math.ceil(count / 20) // Approximately 20 subtitles per chunk
+      const costPerChunk = aiService === 'premium' ? 0.2 : 0.1
+      const estimated = chunksNeeded * costPerChunk
+      setEstimatedCost(estimated)
+    } catch (error) {
+      console.error('Failed to calculate estimated cost:', error)
+      setEstimatedCost(null)
+      setSubtitleCount(null)
+    }
   }
 
   const handleFileRemove = () => {
     setSelectedFile(null)
     setTranslationResult(null)
+    setEstimatedCost(null)
+    setSubtitleCount(null)
     resetProgress()
   }
+
+  // Recalculate cost when AI service changes
+  useEffect(() => {
+    if (selectedFile && subtitleCount) {
+      const chunksNeeded = Math.ceil(subtitleCount / 20)
+      const costPerChunk = aiService === 'premium' ? 0.2 : 0.1
+      const estimated = chunksNeeded * costPerChunk
+      setEstimatedCost(estimated)
+    }
+  }, [aiService, subtitleCount])
 
   const handleTranslate = async () => {
     if (!selectedFile || !targetLanguage) return
@@ -456,10 +489,7 @@ export function TranslationInterface() {
                 </div>
               </div>
               <div className="text-right">
-                <div className="flex items-center space-x-2">
-                  <span className="text-lg font-bold text-blue-600">Loading...</span>
-                  <span className="text-sm text-gray-500">credits</span>
-                </div>
+                <CreditsDisplay showBuyButton={false} className="text-lg" />
               </div>
             </div>
           </CardContent>
@@ -604,6 +634,28 @@ export function TranslationInterface() {
               </label>
             </div>
           </div>
+
+          {/* Cost Estimation */}
+          {selectedFile && subtitleCount && estimatedCost !== null && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-blue-900">Estimated Cost</h4>
+                  <p className="text-sm text-blue-700">
+                    {subtitleCount} subtitles • {Math.ceil(subtitleCount / 20)} chunks
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-blue-900">
+                    {estimatedCost.toFixed(2)} credits
+                  </div>
+                  <div className="text-sm text-blue-600">
+                    ≈ ${(estimatedCost / 100).toFixed(3)} USD
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Translate Button */}
           <Button

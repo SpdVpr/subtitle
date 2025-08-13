@@ -348,6 +348,22 @@ async function processTranslationJob(
       throw new Error('No valid subtitles found in file')
     }
 
+    // Check credits before processing (skip for demo user)
+    if (userId !== 'premium-user-demo') {
+      const user = await UserService.getUser(userId)
+      const currentBalance = (user as any)?.creditsBalance || 0
+
+      const chunksNeeded = Math.ceil(subtitleEntries.length / 20)
+      const creditsPerChunk = aiServiceRaw === 'premium' ? 0.2 : 0.1
+      const requiredCredits = chunksNeeded * creditsPerChunk
+
+      console.log(`💰 Required credits: ${requiredCredits}, Current balance: ${currentBalance}`)
+
+      if (currentBalance < requiredCredits) {
+        throw new Error(`Insufficient credits. Required: ${requiredCredits.toFixed(2)}, Available: ${currentBalance.toFixed(2)}`)
+      }
+    }
+
     let translatedEntries
 
     if (aiServiceRaw === 'premium') {
@@ -429,8 +445,24 @@ async function processTranslationJob(
       confidence: 0.85 // Mock confidence score
     })
 
-    // Update user usage (skip for demo user)
+    // Calculate and deduct credits (skip for demo user)
     if (userId !== 'premium-user-demo') {
+      // Calculate credits based on subtitle count and service
+      const chunksNeeded = Math.ceil(subtitleEntries.length / 20)
+      const creditsPerChunk = aiServiceRaw === 'premium' ? 0.2 : 0.1
+      const totalCredits = chunksNeeded * creditsPerChunk
+
+      console.log(`💰 Deducting ${totalCredits} credits for ${subtitleEntries.length} subtitles (${chunksNeeded} chunks, ${creditsPerChunk} per chunk)`)
+
+      // Deduct credits
+      await UserService.adjustCredits(
+        userId,
+        -totalCredits,
+        `${aiServiceRaw === 'premium' ? 'Premium' : 'Standard'} translation: ${subtitleEntries.length} subtitles`,
+        jobId
+      )
+
+      // Update user usage
       await UserService.updateUsage(userId, {
         translationsUsed: 1
       })
