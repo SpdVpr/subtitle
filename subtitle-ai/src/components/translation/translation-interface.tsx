@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -30,6 +30,7 @@ export function TranslationInterface() {
   )
   const [isTranslating, setIsTranslating] = useState(false)
   const [translationResult, setTranslationResult] = useState<TranslationResult | null>(null)
+  const [notifyOnComplete, setNotifyOnComplete] = useState<boolean>(false)
   const {
     progress: translationProgress,
     startProgress,
@@ -38,6 +39,41 @@ export function TranslationInterface() {
     errorProgress,
     resetProgress
   } = useTranslationProgress()
+
+  // Show progress in browser tab title when translating
+  const originalTitleRef = useRef<string>('')
+  useEffect(() => {
+    if (!originalTitleRef.current) originalTitleRef.current = document.title
+    const isActive = translationProgress.isActive || (translationResult?.status === 'processing')
+    if (isActive) {
+      const pct = translationProgress.progress || translationResult?.progress || 0
+      document.title = `${Math.max(0, Math.min(100, Math.round(pct)))}% • SubtitleAI`
+    } else if (translationResult?.status === 'completed') {
+      document.title = `100% • SubtitleAI`
+      // Desktop notification (optional)
+      if (notifyOnComplete && 'Notification' in window) {
+        if (Notification.permission === 'granted') {
+          new Notification('Překlad dokončen', {
+            body: selectedFile ? `${selectedFile.name} je připraven` : 'Soubor je připraven',
+          })
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then((perm) => {
+            if (perm === 'granted') {
+              new Notification('Překlad dokončen', {
+                body: selectedFile ? `${selectedFile.name} je připraven` : 'Soubor je připraven',
+              })
+            }
+          })
+        }
+      }
+      // Small delay then restore
+      const t = setTimeout(() => { document.title = originalTitleRef.current }, 2000)
+      return () => clearTimeout(t)
+    } else {
+      document.title = originalTitleRef.current
+    }
+    return () => { /* no-op */ }
+  }, [translationProgress.isActive, translationProgress.progress, translationResult?.status, translationResult?.progress, notifyOnComplete, selectedFile])
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file)
@@ -176,8 +212,22 @@ export function TranslationInterface() {
           result.translatedFileName = finalFileName || `${selectedFile.name.replace('.srt', '')}_${targetLanguage}.srt`
           result.processingTimeMs = Date.now() - parseInt(result.id)
           setTranslationResult({ ...result })
-          await incrementUsage('translation')
 
+          // Persist preview data and contents for /preview
+          try {
+            sessionStorage.setItem('previewData', JSON.stringify({
+              originalFile: selectedFile?.name,
+              translatedFileName: result.translatedFileName,
+              sourceLanguage: sourceLanguage || 'auto',
+              targetLanguage: targetLanguage,
+              aiService: aiService
+            }))
+            sessionStorage.setItem('translatedContent', finalContent)
+            // Save original content for side-by-side if user provided it (from processed file)
+            try { sessionStorage.setItem('originalContent', subtitleFile.content) } catch {}
+          } catch {}
+
+          await incrementUsage('translation')
           completeProgress()
           return
         }
@@ -248,6 +298,20 @@ export function TranslationInterface() {
         result.processingTimeMs = Date.now() - parseInt(result.id)
 
         setTranslationResult({ ...result })
+
+        // Persist preview data and contents for /preview
+        try {
+          sessionStorage.setItem('previewData', JSON.stringify({
+            originalFile: selectedFile?.name,
+            translatedFileName: result.translatedFileName,
+            sourceLanguage: sourceLanguage || 'auto',
+            targetLanguage: targetLanguage,
+            aiService: aiService
+          }))
+          sessionStorage.setItem('translatedContent', translatedContent)
+          try { sessionStorage.setItem('originalContent', subtitleFile.content) } catch {}
+        } catch {}
+
         await incrementUsage('translation')
 
         // Cleanup progress tracking for premium service
@@ -331,6 +395,19 @@ export function TranslationInterface() {
       result.processingTimeMs = Date.now() - parseInt(result.id)
 
       setTranslationResult({ ...result })
+
+      // Persist preview data and contents for /preview
+      try {
+        sessionStorage.setItem('previewData', JSON.stringify({
+          originalFile: selectedFile?.name,
+          translatedFileName: result.translatedFileName,
+          sourceLanguage: sourceLanguage || 'auto',
+          targetLanguage: targetLanguage,
+          aiService: aiService
+        }))
+        sessionStorage.setItem('translatedContent', translatedContent)
+        try { sessionStorage.setItem('originalContent', subtitleFile.content) } catch {}
+      } catch {}
 
       // Increment usage counter
       await incrementUsage('translation')
@@ -525,6 +602,27 @@ export function TranslationInterface() {
                 🎬 Using Premium Context AI - analyzes film/TV context for optimal translation
               </p>
             )}
+
+            {/* Optional desktop notification toggle */}
+            <div className="mt-4 flex items-center gap-2">
+              <input
+                id="notify_complete"
+                type="checkbox"
+                className="h-4 w-4"
+                disabled={isTranslating}
+                checked={notifyOnComplete}
+                onChange={async (e) => {
+                  const next = e.target.checked
+                  setNotifyOnComplete(next)
+                  if (next && 'Notification' in window && Notification.permission !== 'granted') {
+                    try { await Notification.requestPermission() } catch {}
+                  }
+                }}
+              />
+              <label htmlFor="notify_complete" className="text-sm text-gray-700 select-none">
+                Notify me on completion (desktop notification)
+              </label>
+            </div>
           </div>
 
           {/* Translate Button */}

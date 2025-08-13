@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { SubtitleEditor } from '@/components/preview/subtitle-editor'
 import { useAuth } from '@/hooks/useAuth'
 import { SubtitleEntry } from '@/types/preview'
-import { 
-  Eye, 
-  Download, 
-  ArrowLeft, 
+import { SubtitleProcessor } from '@/lib/subtitle-processor'
+import {
+  Eye,
+  Download,
+  ArrowLeft,
   Save,
   FileText,
   Languages,
@@ -25,13 +26,28 @@ export default function PreviewPage() {
   const [hasChanges, setHasChanges] = useState(false)
 
   useEffect(() => {
-    // Load preview data from sessionStorage
     const storedData = sessionStorage.getItem('previewData')
     if (storedData) {
       const data = JSON.parse(storedData)
       setPreviewData(data)
-      
-      // Generate mock subtitle entries for demo
+
+      // If we have real translated content in sessionStorage, parse it
+      const translatedContent: string | undefined = sessionStorage.getItem('translatedContent') || undefined
+      const originalContent: string | undefined = sessionStorage.getItem('originalContent') || undefined
+
+      if (translatedContent) {
+        try {
+          const translatedEntries = SubtitleProcessor.parseSRT(translatedContent)
+          const baseOriginalEntries = originalContent ? SubtitleProcessor.parseSRT(originalContent) : translatedEntries.map(e => ({...e}))
+          setOriginalEntries(baseOriginalEntries)
+          setEntries(translatedEntries.map((e, idx) => ({ ...e, originalText: baseOriginalEntries[idx]?.text })))
+          return
+        } catch (e) {
+          console.warn('Failed to parse SRT from sessionStorage, falling back to mock entries', e)
+        }
+      }
+
+      // Fallback to mock entries if real content is missing
       generateMockEntries(data)
     }
   }, [])
