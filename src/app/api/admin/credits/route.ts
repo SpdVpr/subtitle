@@ -17,11 +17,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    await UserService.adjustCredits(userId, deltaCredits, description, relatedJobId, batchNumber)
-    const user = await UserService.getUser(userId)
+    console.log('🔧 Admin Credits Adjustment:', { userId, deltaCredits, description, adminEmail: headerEmail })
 
-    return NextResponse.json({ success: true, creditsBalance: user?.creditsBalance ?? 0 })
+    // Get user before adjustment to show previous balance
+    const userBefore = await UserService.getUser(userId)
+    const previousCredits = userBefore?.creditsBalance || 0
+
+    await UserService.adjustCredits(userId, deltaCredits, description || 'Admin adjustment', relatedJobId, batchNumber)
+    const userAfter = await UserService.getUser(userId)
+    const newCredits = userAfter?.creditsBalance || 0
+
+    return NextResponse.json({
+      success: true,
+      userId,
+      deltaCredits,
+      previousCredits,
+      creditsBalance: newCredits,
+      description,
+      adminEmail: headerEmail
+    })
   } catch (e: any) {
+    console.error('Admin credits adjustment error:', e)
     return NextResponse.json({ error: e?.message || 'Failed to adjust credits' }, { status: 500 })
   }
 }

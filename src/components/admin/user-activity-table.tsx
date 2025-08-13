@@ -8,9 +8,102 @@ import { formatDistanceToNow } from 'date-fns'
 
 interface UserActivityTableProps {
   users: UserActivity[]
+  onRefresh?: () => void
 }
 
-function EditableCreditsCell({ userId, initial }: { userId: string; initial: number }) {
+function UserActionsCell({ userId, email, isBlocked, onUpdate }: {
+  userId: string;
+  email: string;
+  isBlocked?: boolean;
+  onUpdate?: () => void
+}) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const performAction = async (action: string, data?: any) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/admin/user-management', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-email': (typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : '')
+        },
+        body: JSON.stringify({ action, userId, data })
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Failed')
+
+      console.log(`✅ User ${action}:`, result)
+
+      // Trigger parent component refresh
+      if (onUpdate) {
+        setTimeout(onUpdate, 500)
+      }
+    } catch (e: any) {
+      setError(e.message)
+      setTimeout(() => setError(null), 3000)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const blockUser = () => {
+    const reason = prompt('Reason for blocking user:')
+    if (reason !== null) {
+      performAction('blockUser', { reason })
+    }
+  }
+
+  const unblockUser = () => {
+    if (confirm(`Unblock user ${email}?`)) {
+      performAction('unblockUser')
+    }
+  }
+
+  const resetUsage = () => {
+    if (confirm(`Reset usage statistics for ${email}?`)) {
+      performAction('resetUserUsage')
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      {!isBlocked ? (
+        <button
+          onClick={blockUser}
+          disabled={loading}
+          className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50"
+        >
+          Block
+        </button>
+      ) : (
+        <button
+          onClick={unblockUser}
+          disabled={loading}
+          className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50"
+        >
+          Unblock
+        </button>
+      )}
+
+      <button
+        onClick={resetUsage}
+        disabled={loading}
+        className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50"
+      >
+        Reset
+      </button>
+
+      {error && (
+        <span className="text-xs text-red-600" title={error}>⚠️</span>
+      )}
+    </div>
+  )
+}
+
+function EditableCreditsCell({ userId, initial, onUpdate }: { userId: string; initial: number; onUpdate?: () => void }) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState<number>(initial)
   const [saving, setSaving] = useState(false)
@@ -22,14 +115,22 @@ function EditableCreditsCell({ userId, initial }: { userId: string; initial: num
     setSaving(true)
     setError(null)
     try {
+      const deltaCredits = value - initial
       const res = await fetch('/api/admin/credits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-email': (typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : '') },
-        body: JSON.stringify({ userId, deltaCredits: value - initial, description: 'Admin adjustment' })
+        body: JSON.stringify({ userId, deltaCredits, description: `Admin adjustment: ${deltaCredits > 0 ? '+' : ''}${deltaCredits} credits` })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed')
+
+      console.log('✅ Credits adjusted:', data)
       setEditing(false)
+
+      // Trigger parent component refresh
+      if (onUpdate) {
+        setTimeout(onUpdate, 500) // Small delay to allow server to update
+      }
     } catch (e: any) {
       setError(e.message)
     } finally {
@@ -55,7 +156,7 @@ function EditableCreditsCell({ userId, initial }: { userId: string; initial: num
   )
 }
 
-export function UserActivityTable({ users }: UserActivityTableProps) {
+export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) {
   const getPlanBadgeColor = (plan: string) => {
     switch (plan) {
       case 'pro':
@@ -75,7 +176,9 @@ export function UserActivityTable({ users }: UserActivityTableProps) {
         <CardTitle className="text-lg font-semibold text-gray-900">Recent User Activity</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-sm text-gray-600 mb-3">Click a credits cell to edit balance</div>
+        <div className="text-sm text-gray-600 mb-3">
+          Click credits to edit • Use action buttons to manage users
+        </div>
         {/* Mobile view */}
         <div className="block sm:hidden space-y-4">
           {users.slice(0, 10).map((user, index) => (
@@ -96,7 +199,7 @@ export function UserActivityTable({ users }: UserActivityTableProps) {
                   <span className="font-medium">Translations:</span> {user.translationsCount}
                 </div>
                 <div>
-                  <span className="font-medium">Spent:</span> ${user.totalSpent.toFixed(2)}
+                  <span className="font-medium">Credits:</span> {(user.creditsBalance || 0).toFixed(2)}
                 </div>
                 <div className="col-span-2">
                   <span className="font-medium">Last Active:</span> {formatDistanceToNow(user.lastActive, { addSuffix: true })}
@@ -116,6 +219,7 @@ export function UserActivityTable({ users }: UserActivityTableProps) {
                 <th className="text-left py-3 px-4 font-medium text-gray-700">Translations</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-700">Credits</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-700">Last Active</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -125,6 +229,11 @@ export function UserActivityTable({ users }: UserActivityTableProps) {
                     <div>
                       <div className="font-medium text-sm text-gray-900">
                         {user.email}
+                        {(user as any).isBlocked && (
+                          <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-700 rounded">
+                            BLOCKED
+                          </span>
+                        )}
                       </div>
                       <div className="text-xs text-gray-500">
                         {user.userId.substring(0, 8)}...
@@ -145,12 +254,24 @@ export function UserActivityTable({ users }: UserActivityTableProps) {
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <EditableCreditsCell userId={user.userId} initial={user.creditsBalance || 0} />
+                    <EditableCreditsCell
+                      userId={user.userId}
+                      initial={user.creditsBalance || 0}
+                      onUpdate={onRefresh}
+                    />
                   </td>
                   <td className="py-3 px-4">
                     <div className="text-sm text-gray-600">
                       {formatDistanceToNow(user.lastActive, { addSuffix: true })}
                     </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <UserActionsCell
+                      userId={user.userId}
+                      email={user.email}
+                      isBlocked={(user as any).isBlocked}
+                      onUpdate={onRefresh}
+                    />
                   </td>
                 </tr>
               ))}

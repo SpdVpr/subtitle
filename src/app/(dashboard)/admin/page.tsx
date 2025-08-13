@@ -172,7 +172,7 @@ export default function AdminDashboard() {
               )}
 
               {/* User Activity Table */}
-              <UserActivityTable users={userActivity} />
+              <UserActivityTable users={userActivity} onRefresh={loadAdminData} />
             </>
           )}
 

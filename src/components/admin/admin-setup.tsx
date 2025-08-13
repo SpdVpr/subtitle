@@ -28,23 +28,11 @@ export function AdminSetup() {
   const testAdminAccess = async () => {
     setLoading(true)
     try {
-      // Test admin endpoint
-      const adminResponse = await fetch('/api/debug/admin', {
+      const response = await fetch('/api/admin/test-setup', {
         headers: { 'x-admin-email': adminEmail }
       })
-      const adminData = await adminResponse.json()
-
-      // Test mock users endpoint
-      const mockResponse = await fetch('/api/admin/users-mock', {
-        headers: { 'x-admin-email': adminEmail }
-      })
-      const mockData = await mockResponse.json()
-
-      setDebugInfo({
-        admin: adminData,
-        mockUsers: mockData,
-        canUseMockData: mockResponse.ok
-      })
+      const data = await response.json()
+      setDebugInfo(data)
     } catch (error) {
       setDebugInfo({ error: 'Failed to test admin access' })
     } finally {
@@ -95,8 +83,8 @@ export function AdminSetup() {
         </div>
 
         {debugInfo && (
-          <Alert className={debugInfo.admin?.debug?.isValidAdmin ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
-            {debugInfo.admin?.debug?.isValidAdmin ? (
+          <Alert className={debugInfo.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+            {debugInfo.success ? (
               <CheckCircle className="h-4 w-4 text-green-600" />
             ) : (
               <AlertCircle className="h-4 w-4 text-red-600" />
@@ -104,31 +92,48 @@ export function AdminSetup() {
             <AlertDescription>
               <div className="space-y-3">
                 <div>
-                  <strong>Admin Status:</strong> {debugInfo.admin?.debug?.isValidAdmin ? 'Valid Admin' : 'Access Denied'}
+                  <strong>Admin Status:</strong> {debugInfo.success ? 'Valid Admin' : 'Access Denied'}
                 </div>
                 <div>
-                  <strong>Email:</strong> {debugInfo.admin?.debug?.receivedEmail || 'None'}
+                  <strong>Email:</strong> {debugInfo.admin?.email || debugInfo.receivedEmail || 'None'}
                 </div>
 
-                {debugInfo.canUseMockData && (
+                {debugInfo.firebase && (
                   <div className="p-3 bg-blue-50 rounded border border-blue-200">
                     <div className="text-blue-800">
-                      <strong>✅ Mock Data Available:</strong> Found {debugInfo.mockUsers?.count || 0} test users
+                      <strong>🔥 Firebase:</strong> {debugInfo.firebase.status}
                     </div>
                     <div className="text-sm text-blue-600 mt-1">
-                      You can use mock data while setting up Firestore rules
+                      Found {debugInfo.firebase.userCount} users • Admin SDK: {debugInfo.firebase.adminSdkAvailable ? 'Available' : 'Not Available'}
                     </div>
                   </div>
                 )}
 
-                <div>
-                  <strong>Allowed Emails:</strong>
-                  <ul className="list-disc list-inside ml-4 text-sm">
-                    {debugInfo.admin?.debug?.allowedEmails?.map((email: string) => (
-                      <li key={email}>{email}</li>
-                    ))}
-                  </ul>
-                </div>
+                {debugInfo.apis && (
+                  <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                    <div className="text-gray-800">
+                      <strong>🔧 API Status:</strong>
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1 space-y-1">
+                      <div>Users API: {debugInfo.apis.usersApi}</div>
+                      <div>Credits API: {debugInfo.apis.creditsApi}</div>
+                      <div>User Management API: {debugInfo.apis.userManagementApi}</div>
+                    </div>
+                  </div>
+                )}
+
+                {debugInfo.recommendations && (
+                  <div className="p-3 bg-yellow-50 rounded border border-yellow-200">
+                    <div className="text-yellow-800">
+                      <strong>💡 Recommendations:</strong>
+                    </div>
+                    <ul className="list-disc list-inside ml-4 text-sm text-yellow-700 mt-1">
+                      {debugInfo.recommendations.map((rec: string, i: number) => (
+                        <li key={i}>{rec}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {debugInfo.error && (
                   <div className="text-red-600">

@@ -55,95 +55,88 @@ export class AdminStatsService {
 
   static async getOverallStats(): Promise<AdminStats> {
     try {
-      // Try to get users via server-side API first
-      let users: any[] = []
+      // Get users via server-side API only - no fallbacks to mock data
+      const adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
 
-      try {
-        const adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
-        const response = await fetch('/api/admin/users', {
-          headers: { 'x-admin-email': adminEmail }
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          users = data.users || []
-          console.log('📊 Admin Stats - Got users from API:', users.length)
-        } else {
-          throw new Error('API failed, falling back to direct query')
-        }
-      } catch (apiError) {
-        console.log('⚠️ API failed, trying mock data...')
-        // Try mock data as fallback
-        try {
-          const adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
-          const mockResponse = await fetch('/api/admin/users-mock', {
-            headers: { 'x-admin-email': adminEmail }
-          })
-
-          if (mockResponse.ok) {
-            const mockData = await mockResponse.json()
-            users = mockData.users || []
-            console.log('🎭 Using mock users data:', users.length)
-          } else {
-            throw new Error('Mock data also failed')
-          }
-        } catch (mockError) {
-          console.log('⚠️ Mock data failed, trying direct Firestore query...')
-          // Final fallback to direct query
-          const directUsers = await UserService.getAllUsers()
-          users = directUsers.map(u => ({
-            userId: u.uid,
-            email: u.email,
-            plan: (u as any).creditsBalance > 0 ? 'credits' : 'free',
-            translationsCount: u.usage?.translationsUsed || 0,
-            creditsBalance: (u as any).creditsBalance || 0,
-            lastActive: u.updatedAt || u.createdAt
-          }))
-          console.log('📊 Admin Stats - Found users via direct query:', users.length)
-        }
+      if (!adminEmail) {
+        throw new Error('Admin email not configured. Please set admin email in localStorage.')
       }
 
-      // If no users exist, create demo users for testing
+      console.log('🔑 Getting admin stats with email:', adminEmail)
+
+      const response = await fetch('/api/admin/users', {
+        headers: { 'x-admin-email': adminEmail }
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ Admin API failed:', response.status, errorText)
+        throw new Error(`Admin API failed: ${response.status} - ${errorText}`)
+      }
+
+      const data = await response.json()
+      const users = data.users || []
+      console.log('📊 Admin Stats - Got users from API:', users.length)
+
       if (users.length === 0) {
-        console.log('👥 No users found, creating demo users...')
-        await AdminStatsService.createDemoUsers()
-        // Re-fetch users after creating demo data
-        const updatedUsers = await UserService.getAllUsers()
-        console.log('👥 After creating demo users:', updatedUsers.length)
-        return AdminStatsService.calculateStatsFromUsers(updatedUsers.map(u => ({
-          userId: u.uid,
-          email: u.email,
-          plan: u.subscriptionPlan || 'free',
-          translationsCount: u.usage?.translationsUsed || 0,
-          creditsBalance: (u as any).creditsBalance || 0,
-          lastActive: u.updatedAt || u.createdAt
-        })))
+        console.warn('⚠️ No users found in database')
       }
+      // Helper function to safely convert to Date
+      const safeToDate = (dateValue: any): Date | null => {
+        if (!dateValue) return null
+
+        // If it's already a Date object
+        if (dateValue instanceof Date) return dateValue
+
+        // If it's a Firestore Timestamp
+        if (dateValue && typeof dateValue.toDate === 'function') {
+          try {
+            return dateValue.toDate()
+          } catch (e) {
+            console.warn('Failed to convert Firestore timestamp:', e)
+            return null
+          }
+        }
+
+        // If it's a string or number, try to parse it
+        if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+          try {
+            const parsed = new Date(dateValue)
+            return isNaN(parsed.getTime()) ? null : parsed
+          } catch (e) {
+            console.warn('Failed to parse date:', dateValue, e)
+            return null
+          }
+        }
+
+        return null
+      }
+
       const now = new Date()
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
       const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
       const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
-      
+
       // Calculate user statistics
       const totalUsers = users.length
       const activeUsers = users.filter(user => {
         const lastActive = (user as any).lastLoginAt || user.createdAt
-        const lastActiveDate = lastActive?.toDate ? lastActive.toDate() : lastActive
+        const lastActiveDate = safeToDate(lastActive)
         return lastActiveDate && (now.getTime() - lastActiveDate.getTime()) < 7 * 24 * 60 * 60 * 1000
       }).length
-      
+
       const newUsersToday = users.filter(user => {
-        const createdAt = user.createdAt?.toDate ? user.createdAt.toDate() : user.createdAt
+        const createdAt = safeToDate(user.createdAt)
         return createdAt && createdAt >= today
       }).length
 
       const newUsersThisWeek = users.filter(user => {
-        const createdAt = user.createdAt?.toDate ? user.createdAt.toDate() : user.createdAt
+        const createdAt = safeToDate(user.createdAt)
         return createdAt && createdAt >= weekAgo
       }).length
 
       const newUsersThisMonth = users.filter(user => {
-        const createdAt = user.createdAt?.toDate ? user.createdAt.toDate() : user.createdAt
+        const createdAt = safeToDate(user.createdAt)
         return createdAt && createdAt >= monthAgo
       }).length
       
@@ -169,26 +162,57 @@ export class AdminStatsService {
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
     const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
 
+    // Helper function to safely convert to Date
+    const safeToDate = (dateValue: any): Date | null => {
+      if (!dateValue) return null
+
+      // If it's already a Date object
+      if (dateValue instanceof Date) return dateValue
+
+      // If it's a Firestore Timestamp
+      if (dateValue && typeof dateValue.toDate === 'function') {
+        try {
+          return dateValue.toDate()
+        } catch (e) {
+          console.warn('Failed to convert Firestore timestamp:', e)
+          return null
+        }
+      }
+
+      // If it's a string or number, try to parse it
+      if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+        try {
+          const parsed = new Date(dateValue)
+          return isNaN(parsed.getTime()) ? null : parsed
+        } catch (e) {
+          console.warn('Failed to parse date:', dateValue, e)
+          return null
+        }
+      }
+
+      return null
+    }
+
     // Calculate user statistics
     const totalUsers = users.length
     const activeUsers = users.filter(user => {
       const lastActive = (user as any).lastLoginAt || user.createdAt
-      const lastActiveDate = lastActive?.toDate ? lastActive.toDate() : lastActive
+      const lastActiveDate = safeToDate(lastActive)
       return lastActiveDate && (now.getTime() - lastActiveDate.getTime()) < 7 * 24 * 60 * 60 * 1000
     }).length
 
     const newUsersToday = users.filter(user => {
-      const createdAt = user.createdAt?.toDate ? user.createdAt.toDate() : user.createdAt
+      const createdAt = safeToDate(user.createdAt)
       return createdAt && createdAt >= today
     }).length
 
     const newUsersThisWeek = users.filter(user => {
-      const createdAt = user.createdAt?.toDate ? user.createdAt.toDate() : user.createdAt
+      const createdAt = safeToDate(user.createdAt)
       return createdAt && createdAt >= weekAgo
     }).length
 
     const newUsersThisMonth = users.filter(user => {
-      const createdAt = user.createdAt?.toDate ? user.createdAt.toDate() : user.createdAt
+      const createdAt = safeToDate(user.createdAt)
       return createdAt && createdAt >= monthAgo
     }).length
 
@@ -236,90 +260,72 @@ export class AdminStatsService {
     }
   }
 
-  private static async createDemoUsers(): Promise<void> {
-    try {
-      const demoUsers = [
-        {
-          uid: 'active-user-demo',
-          email: 'active@test.com',
-          displayName: 'Active User',
-          creditsBalance: 150.0,
-          creditsTotalPurchased: 500.0,
-          usage: { translationsUsed: 25, translationsLimit: -1, storageUsed: 1024, storageLimit: 100 * 1024 * 1024, batchJobsUsed: 5, batchJobsLimit: -1, resetDate: new Date() }
-        },
-        {
-          uid: 'power-user-demo',
-          email: 'power@test.com',
-          displayName: 'Power User',
-          creditsBalance: 75.0,
-          creditsTotalPurchased: 1000.0,
-          usage: { translationsUsed: 50, translationsLimit: -1, storageUsed: 2048, storageLimit: 100 * 1024 * 1024, batchJobsUsed: 10, batchJobsLimit: -1, resetDate: new Date() }
-        },
-        {
-          uid: 'new-user-demo',
-          email: 'newbie@test.com',
-          displayName: 'New User',
-          creditsBalance: 200.0,
-          creditsTotalPurchased: 200.0,
-          usage: { translationsUsed: 3, translationsLimit: -1, storageUsed: 512, storageLimit: 100 * 1024 * 1024, batchJobsUsed: 0, batchJobsLimit: -1, resetDate: new Date() }
-        }
-      ]
 
-      for (const user of demoUsers) {
-        await UserService.createOrUpdateUser(user.uid, user as any)
-      }
-    } catch (error) {
-      console.error('Failed to create demo users:', error)
-    }
-  }
   
   static async getUserActivity(): Promise<UserActivity[]> {
     try {
-      // Try to get users via server-side API first
-      try {
-        const adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
-        const response = await fetch('/api/admin/users', {
-          headers: { 'x-admin-email': adminEmail }
-        })
+      // Get users via server-side API only - no fallbacks to mock data
+      const adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
 
-        if (response.ok) {
-          const data = await response.json()
-          const users = data.users || []
-          console.log('👥 User Activity - Got users from API:', users.length)
-
-          return users.map((user: any) => ({
-            userId: user.userId,
-            email: user.email,
-            plan: user.plan,
-            lastActive: user.lastActive?.toDate ? user.lastActive.toDate() : new Date(user.lastActive || Date.now()),
-            translationsCount: user.translationsCount,
-            creditsBalance: user.creditsBalance
-          })).sort((a: any, b: any) => b.lastActive.getTime() - a.lastActive.getTime())
-        } else {
-          throw new Error('API failed, falling back to direct query')
-        }
-      } catch (apiError) {
-        console.log('⚠️ User Activity API failed, trying direct query...')
-        // Fallback to direct query
-        const users = await UserService.getAllUsers()
-        console.log('👥 User Activity - Found users via direct query:', users.length)
-
-        return users.map(user => {
-          const lastActive = (user as any).lastLoginAt || user.createdAt
-          const lastActiveDate = lastActive?.toDate ? lastActive.toDate() : lastActive || new Date()
-          const creditsBalance = (user as any).creditsBalance || 0
-          const plan = creditsBalance > 0 ? 'credits' : 'free'
-
-          return {
-            userId: user.uid,
-            email: user.email || 'Unknown',
-            plan,
-            lastActive: lastActiveDate,
-            translationsCount: user.usage?.translationsUsed || 0,
-            creditsBalance
-          }
-        }).sort((a, b) => b.lastActive.getTime() - a.lastActive.getTime())
+      if (!adminEmail) {
+        throw new Error('Admin email not configured. Please set admin email in localStorage.')
       }
+
+      console.log('🔑 User Activity - Getting users with email:', adminEmail)
+
+      const response = await fetch('/api/admin/users', {
+        headers: { 'x-admin-email': adminEmail }
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ User Activity API failed:', response.status, errorText)
+        throw new Error(`User Activity API failed: ${response.status} - ${errorText}`)
+      }
+
+      const data = await response.json()
+      const users = data.users || []
+      console.log('👥 User Activity - Got users from API:', users.length)
+
+      // Helper function to safely convert to Date
+      const safeToDate = (dateValue: any): Date => {
+        if (!dateValue) return new Date()
+
+        // If it's already a Date object
+        if (dateValue instanceof Date) return dateValue
+
+        // If it's a Firestore Timestamp
+        if (dateValue && typeof dateValue.toDate === 'function') {
+          try {
+            return dateValue.toDate()
+          } catch (e) {
+            console.warn('Failed to convert Firestore timestamp:', e)
+            return new Date()
+          }
+        }
+
+        // If it's a string or number, try to parse it
+        if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+          try {
+            const parsed = new Date(dateValue)
+            return isNaN(parsed.getTime()) ? new Date() : parsed
+          } catch (e) {
+            console.warn('Failed to parse date:', dateValue, e)
+            return new Date()
+          }
+        }
+
+        return new Date()
+      }
+
+      return users.map((user: any) => ({
+        userId: user.userId,
+        email: user.email,
+        plan: user.plan,
+        lastActive: safeToDate(user.lastActive),
+        translationsCount: user.translationsCount,
+        creditsBalance: user.creditsBalance
+      })).sort((a: any, b: any) => b.lastActive.getTime() - a.lastActive.getTime())
     } catch (error) {
       console.error('Failed to get user activity:', error)
       throw error
