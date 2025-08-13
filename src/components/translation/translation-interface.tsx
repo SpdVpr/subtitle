@@ -219,8 +219,8 @@ export function TranslationInterface() {
               console.warn('Complete progress failed:', progressError)
             }
             // Refresh credits display
-            if (refreshCredits) {
-              refreshCredits()
+            if (typeof refreshCredits === 'function') {
+              try { refreshCredits() } catch (e) { console.warn('refreshCredits failed', e) }
             }
           }
           return
@@ -316,8 +316,8 @@ export function TranslationInterface() {
           console.warn('Complete progress failed:', progressError)
         }
         // Refresh credits display
-        if (refreshCredits) {
-          refreshCredits()
+        if (typeof refreshCredits === 'function') {
+          try { refreshCredits() } catch (e) { console.warn('refreshCredits failed', e) }
         }
       }
     } catch (error) {
@@ -378,7 +378,7 @@ export function TranslationInterface() {
             <CreditsDisplay
               showBuyButton={false}
               className="text-lg"
-              onRefresh={setRefreshCredits}
+              onRefresh={(fn) => setRefreshCredits(() => fn)}
             />
           </div>
         </div>
