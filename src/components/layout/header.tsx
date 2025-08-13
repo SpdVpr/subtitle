@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import { isAdmin } from "@/lib/admin-auth"
@@ -10,6 +11,24 @@ import { CreditsDisplay } from "@/components/ui/credits-display"
 
 export function Header() {
   const { user, signOut, loading } = useAuth()
+  const router = useRouter()
+
+  // Force navigation function to bypass any blocking
+  const forceNavigate = (path: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
+    console.log('Force navigating to:', path)
+
+    try {
+      router.push(path)
+    } catch (error) {
+      console.error('Router.push failed, using window.location:', error)
+      window.location.href = path
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -24,43 +43,31 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/"
-              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              onClick={(e) => {
-                console.log('Home link clicked')
-                // Let Next.js handle it normally
-              }}
+            <button
+              onClick={(e) => forceNavigate('/', e)}
+              className="text-gray-600 hover:text-gray-900 transition-colors font-medium bg-transparent border-none cursor-pointer"
             >
               Home
-            </Link>
-            <Link
-              href="/translate"
-              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              onClick={(e) => {
-                console.log('Translate link clicked')
-                // Let Next.js handle it normally
-              }}
+            </button>
+            <button
+              onClick={(e) => forceNavigate('/translate', e)}
+              className="text-gray-600 hover:text-gray-900 transition-colors font-medium bg-transparent border-none cursor-pointer"
             >
               Translate
-            </Link>
-            <Link
-              href="/subtitles-search"
-              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              onClick={(e) => {
-                console.log('Find Subtitles link clicked')
-                // Let Next.js handle it normally
-              }}
+            </button>
+            <button
+              onClick={(e) => forceNavigate('/subtitles-search', e)}
+              className="text-gray-600 hover:text-gray-900 transition-colors font-medium bg-transparent border-none cursor-pointer"
             >
               Find Subtitles
-            </Link>
+            </button>
             {user && (
-              <Link
-                href="/batch"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              <button
+                onClick={(e) => forceNavigate('/batch', e)}
+                className="text-gray-600 hover:text-gray-900 transition-colors font-medium bg-transparent border-none cursor-pointer"
               >
                 Batch
-              </Link>
+              </button>
             )}
             {user && isAdmin(user) && (
               <Link
@@ -86,28 +93,22 @@ export function Header() {
             ) : user ? (
               <div className="flex items-center space-x-3">
                 <CreditsDisplay showBuyButton={false} className="hidden sm:flex" />
-                <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
-                  <Link
-                    href="/dashboard"
-                    onClick={(e) => {
-                      console.log('Dashboard link clicked')
-                      // Let Next.js handle it normally
-                    }}
-                  >
-                    Dashboard
-                  </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hidden sm:inline-flex"
+                  onClick={(e) => forceNavigate('/dashboard', e)}
+                >
+                  Dashboard
                 </Button>
                 {user && (
-                  <Button variant="ghost" size="sm" asChild className="hidden lg:inline-flex">
-                    <Link
-                      href="/analytics"
-                      onClick={(e) => {
-                        console.log('Analytics link clicked')
-                        // Let Next.js handle it normally
-                      }}
-                    >
-                      Analytics
-                    </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hidden lg:inline-flex"
+                    onClick={(e) => forceNavigate('/analytics', e)}
+                  >
+                    Analytics
                   </Button>
                 )}
                 <Button variant="outline" size="sm" onClick={() => signOut()}>
@@ -116,11 +117,18 @@ export function Header() {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/login">Sign In</Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => forceNavigate('/login', e)}
+                >
+                  Sign In
                 </Button>
-                <Button size="sm" asChild>
-                  <Link href="/register">Get Started</Link>
+                <Button
+                  size="sm"
+                  onClick={(e) => forceNavigate('/register', e)}
+                >
+                  Get Started
                 </Button>
               </div>
             )}
