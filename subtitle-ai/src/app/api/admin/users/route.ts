@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isAdminEmail } from '@/lib/admin-auth-email'
 
+// Force Node.js runtime for Firebase Admin SDK
+export const runtime = 'nodejs'
+
 // Server-side Firebase Admin (bypasses client security rules)
 async function getServerFirestore() {
   try {
@@ -29,24 +32,38 @@ export async function GET(req: NextRequest) {
       throw new Error('Firestore not available')
     }
 
-    // Import Firestore functions
-    const { collection, getDocs, query, orderBy } = await import('firebase/firestore')
-    
     console.log('🔍 Admin API: Querying all users from server-side...')
-    
-    // Query all users (server-side bypasses security rules)
-    const usersQuery = query(
-      collection(db, 'users'),
-      orderBy('createdAt', 'desc')
-    )
 
-    const snapshot = await getDocs(usersQuery)
-    console.log('📄 Admin API: Found', snapshot.size, 'users')
+    let snapshot: any
+    let users: any[]
 
-    const users = snapshot.docs.map(doc => ({
-      uid: doc.id,
-      ...doc.data(),
-    }))
+    // Check if we're using Firebase Admin SDK or client SDK
+    if (db.collection && typeof db.collection === 'function') {
+      // Firebase Admin SDK
+      snapshot = await db.collection('users')
+        .orderBy('createdAt', 'desc')
+        .get()
+      console.log('📄 Admin API: Found', snapshot.size, 'users (Admin SDK)')
+
+      users = snapshot.docs.map((doc: any) => ({
+        uid: doc.id,
+        ...doc.data(),
+      }))
+    } else {
+      // Client SDK fallback
+      const { collection, getDocs, query, orderBy } = await import('firebase/firestore')
+      const usersQuery = query(
+        collection(db, 'users'),
+        orderBy('createdAt', 'desc')
+      )
+      snapshot = await getDocs(usersQuery)
+      console.log('📄 Admin API: Found', snapshot.size, 'users (Client SDK)')
+
+      users = snapshot.docs.map((doc: any) => ({
+        uid: doc.id,
+        ...doc.data(),
+      }))
+    }
 
     return NextResponse.json({
       success: true,
