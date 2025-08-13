@@ -139,17 +139,6 @@ export class AdminStatsService {
       const totalRevenue = premiumUsers * 9.99 + proUsers * 19.99
       const monthlyRevenue = totalRevenue // Simplified for demo
       
-      // Calculate translation statistics
-      const totalTranslations = users.reduce((sum, user) => sum + (user.usage?.translationsUsed || 0), 0)
-      const translationsToday = Math.floor(totalTranslations * 0.1) // 10% today
-      const translationsThisWeek = Math.floor(totalTranslations * 0.3) // 30% this week
-      const translationsThisMonth = Math.floor(totalTranslations * 0.7) // 70% this month
-      
-      // Service usage (mock data)
-      const googleTranslateUsage = Math.floor(totalTranslations * 0.6) // 60% Google
-      const openaiUsage = Math.floor(totalTranslations * 0.25) // 25% OpenAI
-      const premiumAiUsage = Math.floor(totalTranslations * 0.15) // 15% Premium
-      
       return AdminStatsService.calculateStatsFromUsers(users)
     } catch (error) {
       console.error('Failed to get admin stats:', error)
@@ -301,7 +290,8 @@ export class AdminStatsService {
         return users.map(user => {
           const lastActive = (user as any).lastLoginAt || user.createdAt
           const lastActiveDate = lastActive?.toDate ? lastActive.toDate() : lastActive || new Date()
-          const plan = user.subscriptionPlan || 'free'
+          const creditsBalance = (user as any).creditsBalance || 0
+          const plan = creditsBalance > 0 ? 'credits' : 'free'
 
           return {
             userId: user.uid,
@@ -309,7 +299,7 @@ export class AdminStatsService {
             plan,
             lastActive: lastActiveDate,
             translationsCount: user.usage?.translationsUsed || 0,
-            creditsBalance: (user as any).creditsBalance || 0
+            creditsBalance
           }
         }).sort((a, b) => b.lastActive.getTime() - a.lastActive.getTime())
       }

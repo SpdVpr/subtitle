@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
         userId: user.uid,
         email: user.email || 'Unknown',
         displayName: user.displayName,
-        plan: user.subscriptionPlan || 'free',
+        plan: (user.creditsBalance || 0) > 0 ? 'credits' : 'free',
         lastActive: user.updatedAt || user.createdAt,
         translationsCount: user.usage?.translationsUsed || 0,
         creditsBalance: user.creditsBalance || 0,

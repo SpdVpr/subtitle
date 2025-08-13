@@ -15,20 +15,15 @@ import { TranslationServiceFactory } from '@/lib/translation-services'
 import { PremiumTranslationService } from '@/lib/premium-translation-service'
 import { TranslationResult, SUPPORTED_LANGUAGES } from '@/types/subtitle'
 import { getLanguageCharacteristics } from '@/lib/language-characteristics'
-import { useSubscription } from '@/hooks/useSubscription'
 import { useAuth } from '@/hooks/useAuth'
 import { Download, Crown, AlertCircle, Eye } from 'lucide-react'
-import { SUBSCRIPTION_PLANS } from '@/lib/stripe'
 
 export function TranslationInterface() {
-  const { canPerformAction, incrementUsage, subscription, usage } = useSubscription()
   const { user } = useAuth()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [sourceLanguage, setSourceLanguage] = useState<string>('')
   const [targetLanguage, setTargetLanguage] = useState<string>('')
-  const [aiService, setAiService] = useState<'google' | 'openai' | 'premium'>(
-    subscription?.plan === 'premium' || subscription?.plan === 'pro' ? 'premium' : 'google'
-  )
+  const [aiService, setAiService] = useState<'google' | 'openai' | 'premium'>('google')
   const [isTranslating, setIsTranslating] = useState(false)
   const [translationResult, setTranslationResult] = useState<TranslationResult | null>(null)
   const [notifyOnComplete, setNotifyOnComplete] = useState<boolean>(false)
@@ -91,10 +86,9 @@ export function TranslationInterface() {
   const handleTranslate = async () => {
     if (!selectedFile || !targetLanguage) return
 
-    // Check subscription limits
-    const translationCheck = canPerformAction('translate')
-    if (!translationCheck.allowed) {
-      alert(`Translation limit reached: ${translationCheck.reason}. Please upgrade your plan.`)
+    // Check if user is logged in
+    if (!user) {
+      alert('Please log in to use translation services.')
       return
     }
 
@@ -229,7 +223,7 @@ export function TranslationInterface() {
             try { sessionStorage.setItem('originalContent', subtitleFile.content) } catch {}
           } catch {}
 
-          await incrementUsage('translation')
+          // Translation completed successfully
           completeProgress()
           return
         }
@@ -314,7 +308,7 @@ export function TranslationInterface() {
           try { sessionStorage.setItem('originalContent', subtitleFile.content) } catch {}
         } catch {}
 
-        await incrementUsage('translation')
+        // Translation completed successfully
 
         // Cleanup progress tracking for premium service
         if (aiService === 'premium') {
@@ -411,8 +405,7 @@ export function TranslationInterface() {
         try { sessionStorage.setItem('originalContent', subtitleFile.content) } catch {}
       } catch {}
 
-      // Increment usage counter
-      await incrementUsage('translation')
+      // Translation completed successfully
       
     } catch (error) {
       console.error('❌ Translation error occurred:', error)
@@ -445,43 +438,30 @@ export function TranslationInterface() {
   }
 
   const canTranslate = selectedFile && targetLanguage && !isTranslating
-  const currentPlan = subscription ? SUBSCRIPTION_PLANS[subscription.plan] : SUBSCRIPTION_PLANS.free
-  const translationCheck = canPerformAction('translate')
 
   return (
     <div className="space-y-6">
-      {/* Subscription Status */}
-      {subscription && (
-        <Card className={`${!translationCheck.allowed ? 'border-orange-500 bg-orange-50' : ''}`}>
+      {/* Credits Status */}
+      {user && (
+        <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Crown className="h-5 w-5 text-blue-600" />
                 <div>
-                  <p className="font-medium">{currentPlan.name} Plan</p>
+                  <h3 className="font-semibold">Credits Balance</h3>
                   <p className="text-sm text-gray-600">
-                    {currentPlan.limits.translationsPerMonth === -1
-                      ? 'Unlimited translations'
-                      : `${currentPlan.limits.translationsPerMonth - (usage?.translationsUsed || 0)} translations remaining this month`
-                    }
+                    Pay-as-you-go translation system
                   </p>
                 </div>
               </div>
-              {!translationCheck.allowed && (
-                <div className="flex items-center space-x-2 text-orange-600">
-                  <AlertCircle className="h-4 w-4" />
-                  <span className="text-sm">Limit reached</span>
+              <div className="text-right">
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg font-bold text-blue-600">Loading...</span>
+                  <span className="text-sm text-gray-500">credits</span>
                 </div>
-              )}
-            </div>
-            {!translationCheck.allowed && (
-              <div className="mt-4 p-3 bg-orange-100 rounded-md">
-                <p className="text-sm text-orange-800 mb-2">{translationCheck.reason}</p>
-                <Button size="sm" onClick={() => window.location.href = '/pricing'}>
-                  Upgrade Plan
-                </Button>
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -579,14 +559,12 @@ export function TranslationInterface() {
                     <span className="text-xs text-gray-500">AI translation • Requires API key</span>
                   </div>
                 </SelectItem>
-                {subscription?.plan !== 'free' && (
-                  <SelectItem value="premium">
-                    <div className="flex flex-col">
-                      <span>🎬 Premium Context AI (Premium)</span>
-                      <span className="text-xs text-blue-600">✓ Context-aware • Film/TV optimized</span>
-                    </div>
-                  </SelectItem>
-                )}
+                <SelectItem value="premium">
+                  <div className="flex flex-col">
+                    <span>🎬 Premium Context AI (~0.2 credits/20 lines)</span>
+                    <span className="text-xs text-blue-600">✓ Context-aware • Film/TV optimized</span>
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
             {aiService === 'google' && (
