@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { UserService } from '@/lib/database'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Coins, Plus, Info } from 'lucide-react'
@@ -26,8 +25,14 @@ export function CreditsDisplay({ showBuyButton = true, className = '' }: Credits
       }
 
       try {
-        const userProfile = await UserService.getUser(user.uid)
-        setCredits((userProfile as any)?.creditsBalance || 0)
+        const response = await fetch(`/api/user/credits?userId=${user.uid}`)
+        if (response.ok) {
+          const data = await response.json()
+          setCredits(data.credits || 0)
+        } else {
+          console.error('Failed to fetch credits:', response.status)
+          setCredits(0)
+        }
       } catch (error) {
         console.error('Failed to fetch credits:', error)
         setCredits(0)
@@ -88,9 +93,15 @@ export function CreditsCard() {
       }
 
       try {
-        const userProfile = await UserService.getUser(user.uid)
-        setCredits((userProfile as any)?.creditsBalance || 0)
-        setTotalPurchased((userProfile as any)?.creditsTotalPurchased || 0)
+        const response = await fetch(`/api/user/credits?userId=${user.uid}`)
+        if (response.ok) {
+          const data = await response.json()
+          setCredits(data.credits || 0)
+          setTotalPurchased(data.totalPurchased || 0)
+        } else {
+          console.error('Failed to fetch credits:', response.status)
+          setCredits(0)
+        }
       } catch (error) {
         console.error('Failed to fetch credits:', error)
         setCredits(0)
