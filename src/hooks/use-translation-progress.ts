@@ -93,12 +93,16 @@ export function useTranslationProgress() {
   }, [])
 
   const completeProgress = useCallback(() => {
-    setProgress({
-      stage: 'completed',
-      progress: 100,
-      details: 'Translation completed successfully!',
-      isActive: false
-    })
+    try {
+      setProgress({
+        stage: 'completed',
+        progress: 100,
+        details: 'Translation completed successfully!',
+        isActive: false
+      })
+    } catch (error) {
+      console.error('completeProgress error:', error)
+    }
   }, [])
 
   const errorProgress = useCallback((error: string) => {

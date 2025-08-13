@@ -24,6 +24,7 @@ export function TranslationInterface() {
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null)
   const [subtitleCount, setSubtitleCount] = useState<number | null>(null)
   const [refreshCredits, setRefreshCredits] = useState<(() => void) | null>(null)
+  const [isCompleted, setIsCompleted] = useState(false)
   const {
     progress: translationProgress,
     startProgress,
@@ -115,6 +116,7 @@ export function TranslationInterface() {
     }
 
     setIsTranslating(true)
+    setIsCompleted(false)
     startProgress()
 
     const result: TranslationResult = {
@@ -209,10 +211,17 @@ export function TranslationInterface() {
             try { sessionStorage.setItem('originalContent', subtitleFile.content) } catch {}
           } catch {}
 
-          completeProgress()
-          // Refresh credits display
-          if (refreshCredits) {
-            refreshCredits()
+          if (!isCompleted) {
+            setIsCompleted(true)
+            try {
+              completeProgress()
+            } catch (progressError) {
+              console.warn('Complete progress failed:', progressError)
+            }
+            // Refresh credits display
+            if (refreshCredits) {
+              refreshCredits()
+            }
           }
           return
         } else {
@@ -299,10 +308,17 @@ export function TranslationInterface() {
       } catch {}
 
       // Translation completed successfully
-      completeProgress()
-      // Refresh credits display
-      if (refreshCredits) {
-        refreshCredits()
+      if (!isCompleted) {
+        setIsCompleted(true)
+        try {
+          completeProgress()
+        } catch (progressError) {
+          console.warn('Complete progress failed:', progressError)
+        }
+        // Refresh credits display
+        if (refreshCredits) {
+          refreshCredits()
+        }
       }
     } catch (error) {
       console.error('Translation error:', error)
