@@ -262,10 +262,32 @@ export function TranslationInterface() {
         }
 
         // Use API route for translation (OpenAI standard, non-stream)
+        console.log('📤 Creating OpenAI translation job via /api/translate')
+
+        const formData = new FormData()
+        formData.append('file', selectedFile)
+        formData.append('targetLanguage', targetLanguage)
+        formData.append('sourceLanguage', sourceLanguage || '')
+        formData.append('aiService', aiService)
+        formData.append('userId', user.uid)
+        formData.append('sessionId', sessionId)
+
+        const createResponse = await fetch('/api/translate', {
+          method: 'POST',
+          body: formData
+        })
+
+        if (!createResponse.ok) {
+          const errorText = await createResponse.text()
+          throw new Error(`Failed to create translation job: ${createResponse.status} ${errorText}`)
+        }
+
+        const apiResult = await createResponse.json()
+        console.log('✅ Translation job created:', apiResult)
 
         // Guard: only poll if jobId exists
         if (!apiResult.jobId) {
-          throw new Error('No translated content or file URL available')
+          throw new Error('No jobId returned from API')
         }
 
         // Premium service uses job system - poll for completion
@@ -356,6 +378,55 @@ export function TranslationInterface() {
       }
 
       // For other services, use client-side translation
+
+      // Calculate and check/deduct credits for client-side translation
+      if (user?.uid) {
+        const chunksNeeded = Math.ceil(subtitleFile.entries.length / 20)
+        const creditsPerChunk = 0.1 // Standard rate for Google/client-side
+        const totalCredits = chunksNeeded * creditsPerChunk
+
+        // First check if user has enough credits
+        try {
+          const userProfile = await UserService.getUser(user.uid)
+          const currentBalance = (userProfile as any)?.creditsBalance || 0
+
+          if (currentBalance < totalCredits) {
+            throw new Error(`Insufficient credits. Required: ${totalCredits.toFixed(2)}, Available: ${currentBalance.toFixed(2)}`)
+          }
+        } catch (checkError) {
+          console.error('❌ Credit check failed:', checkError)
+          throw new Error(`Credit check failed: ${checkError instanceof Error ? checkError.message : 'Unknown error'}`)
+        }
+
+        console.log(`💰 Client-side translation: Deducting ${totalCredits} credits for ${subtitleFile.entries.length} subtitles (${chunksNeeded} chunks)`)
+
+        try {
+          const response = await fetch('/api/admin/credits', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-email': user.email || ''
+            },
+            body: JSON.stringify({
+              userId: user.uid,
+              deltaCredits: -totalCredits,
+              description: `Google Translate: ${subtitleFile.entries.length} subtitles`,
+              adminEmail: user.email
+            })
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.error || 'Failed to deduct credits')
+          }
+
+          console.log('✅ Credits deducted successfully for client-side translation')
+        } catch (creditError) {
+          console.error('❌ Failed to deduct credits:', creditError)
+          throw new Error(`Credit deduction failed: ${creditError instanceof Error ? creditError.message : 'Unknown error'}`)
+        }
+      }
+
       let translationService
       try {
         translationService = TranslationServiceFactory.create(aiService)
