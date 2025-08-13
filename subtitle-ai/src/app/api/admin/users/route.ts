@@ -4,19 +4,10 @@ import { isAdminEmail } from '@/lib/admin-auth-email'
 // Server-side Firebase Admin (bypasses client security rules)
 async function getServerFirestore() {
   try {
-    // Use Firebase Admin SDK on server-side to bypass security rules
-    const admin = await import('firebase-admin')
-    
-    if (!admin.apps.length) {
-      // Initialize Firebase Admin if not already done
-      // For now, we'll use the client SDK with elevated permissions
-      const { db } = await import('@/lib/firebase')
-      return db
-    }
-    
-    return admin.firestore()
+    const { getAdminDb } = await import('@/lib/firebase-admin')
+    return getAdminDb()
   } catch (error) {
-    // Fallback to client SDK
+    console.warn('⚠️ Falling back to client Firestore. Admin SDK not configured:', error)
     const { db } = await import('@/lib/firebase')
     return db
   }
