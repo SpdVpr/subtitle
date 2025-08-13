@@ -83,10 +83,51 @@ export function TranslationInterface() {
   // Debug navigation issues
   useEffect(() => {
     console.log('TranslationInterface mounted')
+
+    // Test if navigation is blocked by checking for any global event listeners
+    const testNavigation = () => {
+      console.log('Testing navigation capability...')
+      console.log('Current URL:', window.location.href)
+      console.log('Router available:', !!router)
+      console.log('Document event listeners:', document.eventListeners || 'Not available')
+      console.log('Window event listeners:', Object.keys(window).filter(key => key.startsWith('on')))
+    }
+
+    testNavigation()
+
+    // Check for browser extension interference
+    const checkExtensions = () => {
+      console.log('Checking for browser extensions...')
+      if (window.chrome && window.chrome.runtime) {
+        console.log('Chrome extension detected')
+      }
+      // Check for common extension properties
+      const extensionProps = ['__REACT_DEVTOOLS_GLOBAL_HOOK__', '__REDUX_DEVTOOLS_EXTENSION__']
+      extensionProps.forEach(prop => {
+        if (window[prop]) {
+          console.log(`Extension property found: ${prop}`)
+        }
+      })
+    }
+
+    checkExtensions()
+
     return () => {
       console.log('TranslationInterface unmounted')
     }
-  }, [])
+  }, [router])
+
+  // Force navigation function for testing
+  const forceNavigate = (path: string) => {
+    console.log('Force navigating to:', path)
+    try {
+      router.push(path)
+    } catch (error) {
+      console.error('Router.push failed:', error)
+      // Fallback to window.location
+      window.location.href = path
+    }
+  }
 
   // Note: Removed beforeunload listener as it was causing navigation issues
   // Users can navigate freely, but we'll add a visual warning in the UI instead
@@ -485,6 +526,38 @@ export function TranslationInterface() {
 
   return (
     <div className="space-y-6">
+      {/* Debug Navigation Panel */}
+      <Card className="border-blue-500 bg-blue-50">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-blue-800 font-medium">Navigation Debug</span>
+            <div className="flex space-x-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => forceNavigate('/')}
+              >
+                Go to Home
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => forceNavigate('/dashboard')}
+              >
+                Go to Dashboard
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.location.reload()}
+              >
+                Reload Page
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Translation in Progress Warning */}
       {(isTranslating || translationProgress.isActive) && (
         <Card className="border-orange-500 bg-orange-50">
