@@ -197,7 +197,7 @@ export function SubtitleEditor({
   const currentEntry = getCurrentEntry()
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 flex flex-col space-y-6 min-h-0">
       {/* Video Player */}
       {videoUrl && (
         <Card>
@@ -265,7 +265,7 @@ export function SubtitleEditor({
       )}
 
       {/* Editor Controls */}
-      <Card>
+      <Card className="flex-1 flex flex-col min-h-0">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center space-x-2">
@@ -299,8 +299,8 @@ export function SubtitleEditor({
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2 max-h-96 overflow-y-auto">
+        <CardContent className="flex-1 min-h-0 overflow-hidden">
+          <div className="space-y-2 h-full overflow-y-auto pr-1">
             {entries.map((entry, index) => (
               <div
                 key={entry.index}

@@ -209,8 +209,8 @@ export default function PreviewPage() {
   }
 
   return (
-    <div className="py-8">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+    <div className="py-8 min-h-screen">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl min-h-[calc(100vh-4rem)] flex flex-col">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
