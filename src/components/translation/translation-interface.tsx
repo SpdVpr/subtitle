@@ -64,6 +64,19 @@ export function TranslationInterface() {
     return () => { /* no-op */ }
   }, [translationProgress.isActive, translationProgress.progress, translationResult?.status, translationResult?.progress, notifyOnComplete, selectedFile])
 
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (translationResult?.downloadUrl && translationResult.downloadUrl.startsWith('blob:')) {
+        try {
+          URL.revokeObjectURL(translationResult.downloadUrl)
+        } catch (error) {
+          console.warn('Failed to cleanup blob URL on unmount:', error)
+        }
+      }
+    }
+  }, [translationResult?.downloadUrl])
+
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file)
     setTranslationResult(null)
@@ -358,13 +371,38 @@ export function TranslationInterface() {
 
   const handleDownload = () => {
     if (!translationResult?.downloadUrl) return
-    
-    const link = document.createElement('a')
-    link.href = translationResult.downloadUrl
-    link.download = translationResult.translatedFileName
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+
+    try {
+      const link = document.createElement('a')
+      link.href = translationResult.downloadUrl
+      link.download = translationResult.translatedFileName || 'translated.srt'
+      link.style.display = 'none'
+
+      document.body.appendChild(link)
+      link.click()
+
+      // Cleanup with delay to ensure download starts
+      setTimeout(() => {
+        try {
+          document.body.removeChild(link)
+          // Revoke blob URL to free memory
+          if (translationResult.downloadUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(translationResult.downloadUrl)
+          }
+        } catch (cleanupError) {
+          console.warn('Download cleanup failed:', cleanupError)
+        }
+      }, 100)
+
+    } catch (error) {
+      console.error('Download failed:', error)
+      // Fallback: try to open in new tab
+      try {
+        window.open(translationResult.downloadUrl, '_blank')
+      } catch (fallbackError) {
+        console.error('Fallback download failed:', fallbackError)
+      }
+    }
   }
 
   const canTranslate = selectedFile && targetLanguage && !isTranslating && user
