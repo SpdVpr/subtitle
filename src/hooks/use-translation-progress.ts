@@ -130,6 +130,7 @@ export function useTranslationProgress() {
     errorProgress,
     resetProgress,
     getCurrentStage,
-    stages: TRANSLATION_STAGES
+    stages: TRANSLATION_STAGES,
+    setProgress
   }
 }
