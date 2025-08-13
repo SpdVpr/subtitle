@@ -6,6 +6,8 @@
 1. **Zobrazení kreditů** - nahrazeno "Loading..." skutečným zobrazením
 2. **Výpočet ceny** - přidán odhad ceny před překladem
 3. **Odečítání kreditů** - kredity se nyní správně odečítají po překladu
+4. **Chybějící API volání** - přidáno volání pro OpenAI job creation
+5. **Client-side flow** - přidáno odečítání kreditů pro Google Translate
 
 ### 🔍 Testovací kroky:
 
@@ -89,7 +91,10 @@ console.log('AI service:', aiService)
 - Kredity se zobrazují správně místo "Loading..."
 - Odhad ceny se zobrazuje při nahrání souboru
 - Cena se mění podle AI služby
-- Kredity se odečítají po dokončení překladu
+- Kredity se odečítají po dokončení překladu **pro všechny služby**:
+  * **Google Translate**: Client-side s API voláním pro odečítání
+  * **OpenAI**: Server-side job systém
+  * **Premium**: Streaming s postupným odečítáním
 - Zobrazuje se chyba při nedostatku kreditů
 
 ### 📱 Testování v produkci:
