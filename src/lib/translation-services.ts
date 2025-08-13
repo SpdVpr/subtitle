@@ -702,24 +702,10 @@ export class PremiumTranslationService implements TranslationService {
 }
 
 export class TranslationServiceFactory {
-  static create(service: 'google' | 'openai' | 'libretranslate' | 'mymemory' | 'premium'): TranslationService {
+  static create(service: 'premium'): TranslationService {
     console.log('🔧 TranslationServiceFactory.create called with service:', service)
 
     switch (service) {
-      case 'google':
-        // Use free Google Translate service (no API key required)
-        return new GoogleTranslateService('free')
-      case 'openai':
-        // Try frontend API key first (for client-side), then backend
-        const openaiApiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.OPENAI_API_KEY
-        if (!openaiApiKey || openaiApiKey.includes('your_openai_api_key') || openaiApiKey.includes('demo_key')) {
-          throw new Error('OpenAI API key not configured')
-        }
-        return new OpenAITranslateService(openaiApiKey)
-      case 'libretranslate':
-        return new LibreTranslateService()
-      case 'mymemory':
-        return new MyMemoryService()
       case 'premium':
         console.log('🎬 Creating Premium service...')
         // Try frontend API key first (for client-side), then backend
@@ -735,7 +721,7 @@ export class TranslationServiceFactory {
         console.log('✅ Premium service created successfully')
         return new PremiumTranslationService(premiumApiKey)
       default:
-        throw new Error(`Unsupported translation service: ${service}`)
+        throw new Error('Only premium translation service is supported')
     }
   }
 }

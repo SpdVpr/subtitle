@@ -63,12 +63,12 @@ export async function POST(request: NextRequest) {
                   const { UserService } = await import('@/lib/database')
                   const user = await UserService.getUser(userId)
                   const balance = (user?.creditsBalance || 0)
-                  if (balance < 0.2) {
+                  if (balance < 0.4) {
                     controller.enqueue(sse({ type: 'error', message: 'Insufficient credits. Please top up to continue.' }))
                     controller.close()
                     throw new Error('Insufficient credits')
                   }
-                  await UserService.adjustCredits(userId, -0.2, `Premium translation batch ${currentBatch}/${totalBatches}`, undefined, currentBatch)
+                  await UserService.adjustCredits(userId, -0.4, `Premium translation batch ${currentBatch}/${totalBatches}`, undefined, currentBatch)
                   chargedBatches = currentBatch
                 } catch (err) {
                   console.error('Credit charge failed:', err)
