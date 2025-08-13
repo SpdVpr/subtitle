@@ -1,5 +1,4 @@
 {
-  "rootDirectory": "subtitle-ai",
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 60
