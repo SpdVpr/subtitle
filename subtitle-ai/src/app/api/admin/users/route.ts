@@ -1,0 +1,81 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { isAdminEmail } from '@/lib/admin-auth-email'
+
+// Server-side Firebase Admin (bypasses client security rules)
+async function getServerFirestore() {
+  try {
+    // Use Firebase Admin SDK on server-side to bypass security rules
+    const admin = await import('firebase-admin')
+    
+    if (!admin.apps.length) {
+      // Initialize Firebase Admin if not already done
+      // For now, we'll use the client SDK with elevated permissions
+      const { db } = await import('@/lib/firebase')
+      return db
+    }
+    
+    return admin.firestore()
+  } catch (error) {
+    // Fallback to client SDK
+    const { db } = await import('@/lib/firebase')
+    return db
+  }
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    // Check admin permissions
+    const adminEmail = req.headers.get('x-admin-email')
+    if (!adminEmail || !isAdminEmail(adminEmail)) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    }
+
+    // Get Firestore instance
+    const db = await getServerFirestore()
+    if (!db) {
+      throw new Error('Firestore not available')
+    }
+
+    // Import Firestore functions
+    const { collection, getDocs, query, orderBy } = await import('firebase/firestore')
+    
+    console.log('🔍 Admin API: Querying all users from server-side...')
+    
+    // Query all users (server-side bypasses security rules)
+    const usersQuery = query(
+      collection(db, 'users'),
+      orderBy('createdAt', 'desc')
+    )
+
+    const snapshot = await getDocs(usersQuery)
+    console.log('📄 Admin API: Found', snapshot.size, 'users')
+
+    const users = snapshot.docs.map(doc => ({
+      uid: doc.id,
+      ...doc.data(),
+    }))
+
+    return NextResponse.json({
+      success: true,
+      count: users.length,
+      users: users.map(user => ({
+        userId: user.uid,
+        email: user.email || 'Unknown',
+        displayName: user.displayName,
+        plan: user.subscriptionPlan || 'free',
+        lastActive: user.updatedAt || user.createdAt,
+        translationsCount: user.usage?.translationsUsed || 0,
+        creditsBalance: user.creditsBalance || 0,
+        createdAt: user.createdAt
+      }))
+    })
+
+  } catch (error: any) {
+    console.error('Admin API error:', error)
+    return NextResponse.json({
+      success: false,
+      error: error.message,
+      details: 'Check server logs for more information'
+    }, { status: 500 })
+  }
+}

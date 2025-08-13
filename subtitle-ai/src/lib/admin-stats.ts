@@ -55,9 +55,36 @@ export class AdminStatsService {
 
   static async getOverallStats(): Promise<AdminStats> {
     try {
-      // Get all users
-      const users = await UserService.getAllUsers()
-      console.log('📊 Admin Stats - Found users:', users.length, users.map(u => ({ uid: u.uid, email: u.email })))
+      // Try to get users via server-side API first
+      let users: any[] = []
+
+      try {
+        const adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
+        const response = await fetch('/api/admin/users', {
+          headers: { 'x-admin-email': adminEmail }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          users = data.users || []
+          console.log('📊 Admin Stats - Got users from API:', users.length)
+        } else {
+          throw new Error('API failed, falling back to direct query')
+        }
+      } catch (apiError) {
+        console.log('⚠️ API failed, trying direct Firestore query...')
+        // Fallback to direct query
+        const directUsers = await UserService.getAllUsers()
+        users = directUsers.map(u => ({
+          userId: u.uid,
+          email: u.email,
+          plan: u.subscriptionPlan || 'free',
+          translationsCount: u.usage?.translationsUsed || 0,
+          creditsBalance: (u as any).creditsBalance || 0,
+          lastActive: u.updatedAt || u.createdAt
+        }))
+        console.log('📊 Admin Stats - Found users via direct query:', users.length)
+      }
 
       // If no users exist, create demo users for testing
       if (users.length === 0) {
@@ -66,7 +93,14 @@ export class AdminStatsService {
         // Re-fetch users after creating demo data
         const updatedUsers = await UserService.getAllUsers()
         console.log('👥 After creating demo users:', updatedUsers.length)
-        return AdminStatsService.calculateStatsFromUsers(updatedUsers)
+        return AdminStatsService.calculateStatsFromUsers(updatedUsers.map(u => ({
+          userId: u.uid,
+          email: u.email,
+          plan: u.subscriptionPlan || 'free',
+          translationsCount: u.usage?.translationsUsed || 0,
+          creditsBalance: (u as any).creditsBalance || 0,
+          lastActive: u.updatedAt || u.createdAt
+        })))
       }
       const now = new Date()
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -235,23 +269,50 @@ export class AdminStatsService {
   
   static async getUserActivity(): Promise<UserActivity[]> {
     try {
-      const users = await UserService.getAllUsers()
-      console.log('👥 User Activity - Found users:', users.length)
+      // Try to get users via server-side API first
+      try {
+        const adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
+        const response = await fetch('/api/admin/users', {
+          headers: { 'x-admin-email': adminEmail }
+        })
 
-      return users.map(user => {
-        const lastActive = (user as any).lastLoginAt || user.createdAt
-        const lastActiveDate = lastActive?.toDate ? lastActive.toDate() : lastActive || new Date()
-        const plan = user.subscriptionPlan || 'free'
+        if (response.ok) {
+          const data = await response.json()
+          const users = data.users || []
+          console.log('👥 User Activity - Got users from API:', users.length)
 
-        return {
-          userId: user.uid,
-          email: user.email || 'Unknown',
-          plan,
-          lastActive: lastActiveDate,
-          translationsCount: user.usage?.translationsUsed || 0,
-          creditsBalance: (user as any).creditsBalance || 0
+          return users.map((user: any) => ({
+            userId: user.userId,
+            email: user.email,
+            plan: user.plan,
+            lastActive: user.lastActive?.toDate ? user.lastActive.toDate() : new Date(user.lastActive || Date.now()),
+            translationsCount: user.translationsCount,
+            creditsBalance: user.creditsBalance
+          })).sort((a: any, b: any) => b.lastActive.getTime() - a.lastActive.getTime())
+        } else {
+          throw new Error('API failed, falling back to direct query')
         }
-      }).sort((a, b) => b.lastActive.getTime() - a.lastActive.getTime())
+      } catch (apiError) {
+        console.log('⚠️ User Activity API failed, trying direct query...')
+        // Fallback to direct query
+        const users = await UserService.getAllUsers()
+        console.log('👥 User Activity - Found users via direct query:', users.length)
+
+        return users.map(user => {
+          const lastActive = (user as any).lastLoginAt || user.createdAt
+          const lastActiveDate = lastActive?.toDate ? lastActive.toDate() : lastActive || new Date()
+          const plan = user.subscriptionPlan || 'free'
+
+          return {
+            userId: user.uid,
+            email: user.email || 'Unknown',
+            plan,
+            lastActive: lastActiveDate,
+            translationsCount: user.usage?.translationsUsed || 0,
+            creditsBalance: (user as any).creditsBalance || 0
+          }
+        }).sort((a, b) => b.lastActive.getTime() - a.lastActive.getTime())
+      }
     } catch (error) {
       console.error('Failed to get user activity:', error)
       throw error
