@@ -106,12 +106,14 @@ export async function POST(request: NextRequest) {
     console.log('🎬 Starting premium translation...')
     const premium = new PremiumTranslationService(apiKey)
 
-    // Simple progress callback that just logs
+    // Progress callback that logs and could be extended for real-time updates
     const progressCallback = (stage: string, progress: number, details?: string) => {
       console.log(`🔄 Progress: ${stage} (${progress}%) - ${details || ''}`)
+      // In future, we could send progress updates via WebSocket or polling
     }
 
     try {
+      console.log('🚀 Calling PremiumTranslationService.translateSubtitles...')
       const translatedEntries = await premium.translateSubtitles(
         entries,
         targetLanguage,
@@ -119,6 +121,7 @@ export async function POST(request: NextRequest) {
         file.name,
         progressCallback
       )
+      console.log('✅ PremiumTranslationService completed, got', translatedEntries.length, 'entries')
 
       const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
       const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)

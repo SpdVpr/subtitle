@@ -175,101 +175,48 @@ export function TranslationInterface() {
       if (response.status === 405) {
         console.log('🔄 Streaming failed with 405, trying simple endpoint...')
 
-        // Simulate progress for simple endpoint
-        const simulateProgress = () => {
-          const stages = [
-            { stage: 'analyzing', progress: 20, details: 'Switching to simple translation endpoint...', delay: 500 },
-            { stage: 'researching', progress: 35, details: 'Preparing translation...', delay: 1000 },
-            { stage: 'analyzing_content', progress: 50, details: 'Analyzing content...', delay: 800 },
-            { stage: 'translating', progress: 70, details: 'Processing translation...', delay: 2000 },
-            { stage: 'finalizing', progress: 90, details: 'Finalizing...', delay: 500 }
-          ]
+        response = await fetch('/api/translate-simple', {
+          method: 'POST',
+          body: formData
+        })
 
-          let currentStage = 0
-          const progressInterval = setInterval(() => {
-            if (currentStage < stages.length) {
-              const stage = stages[currentStage]
-              try {
-                setProgress({
-                  stage: stage.stage as any,
-                  progress: stage.progress,
-                  details: stage.details,
-                  isActive: true
-                })
-              } catch (e) {
-                console.warn('Progress update failed:', e)
-              }
-              currentStage++
-            } else {
-              clearInterval(progressInterval)
-            }
-          }, 800)
-
-          return progressInterval
+        if (!response.ok) {
+          const errorText = await response.text()
+          throw new Error(`Simple translation failed: ${response.status} ${errorText}`)
         }
 
-        const progressInterval = simulateProgress()
+        // Handle simple response (not streaming)
+        const simpleResult = await response.json()
 
-        try {
-          response = await fetch('/api/translate-simple', {
-            method: 'POST',
-            body: formData
-          })
+        if (simpleResult.status === 'completed') {
+          result.status = 'completed'
+          result.progress = 100
+          result.downloadUrl = URL.createObjectURL(new Blob([simpleResult.translatedContent], { type: 'text/plain' }))
+          result.translatedFileName = simpleResult.translatedFileName
+          result.processingTimeMs = simpleResult.processingTimeMs || (Date.now() - parseInt(result.id))
+          setTranslationResult({ ...result })
 
-          clearInterval(progressInterval)
+          // Persist preview data
+          try {
+            sessionStorage.setItem('previewData', JSON.stringify({
+              originalFile: selectedFile?.name,
+              translatedFileName: result.translatedFileName,
+              sourceLanguage: sourceLanguage === 'auto' || !sourceLanguage ? 'auto' : sourceLanguage,
+              targetLanguage: targetLanguage,
+              aiService: 'premium'
+            }))
+            sessionStorage.setItem('translatedContent', simpleResult.translatedContent)
+            try { sessionStorage.setItem('originalContent', subtitleFile.content) } catch {}
+          } catch {}
 
-          if (!response.ok) {
-            const errorText = await response.text()
-            throw new Error(`Simple translation failed: ${response.status} ${errorText}`)
+          completeProgress()
+          // Refresh credits display
+          if (refreshCredits) {
+            refreshCredits()
           }
-
-          // Handle simple response (not streaming)
-          const simpleResult = await response.json()
-
-          if (simpleResult.status === 'completed') {
-            result.status = 'completed'
-            result.progress = 100
-            result.downloadUrl = URL.createObjectURL(new Blob([simpleResult.translatedContent], { type: 'text/plain' }))
-            result.translatedFileName = simpleResult.translatedFileName
-            result.processingTimeMs = simpleResult.processingTimeMs || (Date.now() - parseInt(result.id))
-            setTranslationResult({ ...result })
-
-            // Persist preview data
-            try {
-              sessionStorage.setItem('previewData', JSON.stringify({
-                originalFile: selectedFile?.name,
-                translatedFileName: result.translatedFileName,
-                sourceLanguage: sourceLanguage === 'auto' || !sourceLanguage ? 'auto' : sourceLanguage,
-                targetLanguage: targetLanguage,
-                aiService: 'premium'
-              }))
-              sessionStorage.setItem('translatedContent', simpleResult.translatedContent)
-              try { sessionStorage.setItem('originalContent', subtitleFile.content) } catch {}
-            } catch {}
-
-            // Set final completed state
-            try {
-              setProgress({
-                stage: 'completed',
-                progress: 100,
-                details: 'Translation completed successfully!',
-                isActive: false
-              })
-            } catch (e) {
-              console.warn('Final progress update failed:', e)
-            }
-
-            // Refresh credits display
-            if (refreshCredits) {
-              refreshCredits()
-            }
-            return
-          } else {
-            throw new Error(simpleResult.error || 'Simple translation failed')
-          }
-        } catch (simpleError) {
-          clearInterval(progressInterval)
-          throw simpleError
+          return
+        } else {
+          throw new Error(simpleResult.error || 'Simple translation failed')
         }
       }
 

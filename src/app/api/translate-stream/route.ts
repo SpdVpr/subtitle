@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
         // Check balance and deduct credits upfront
         try {
-          const { UserService } = await import('@/lib/database')
+          const { UserService } = await import('@/lib/database-admin')
           const user = await UserService.getUser(userId)
           const balance = (user?.creditsBalance || 0)
 
