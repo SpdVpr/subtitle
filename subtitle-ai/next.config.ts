@@ -10,10 +10,6 @@ const nextConfig: NextConfig = {
   },
   // External packages that should not be bundled
   serverExternalPackages: ['openai', 'stripe'],
-  // Experimental features for better performance
-  experimental: {
-    serverComponentsExternalPackages: ['openai', 'stripe'],
-  },
 };
 
 export default nextConfig;
