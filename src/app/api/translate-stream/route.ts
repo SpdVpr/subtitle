@@ -43,40 +43,38 @@ export async function POST(request: NextRequest) {
           return
         }
 
-        const premium = new PremiumTranslationService(apiKey)
-
-        // Credit charging per batch (0.2 credits per batch of 20)
+        // Calculate and deduct credits upfront
         const batchSize = 20
         const totalBatches = Math.ceil(entries.length / batchSize)
-        let chargedBatches = 0
+        const totalCredits = totalBatches * 0.4
 
-        const progressCallback = async (stage: string, progress: number, details?: string) => {
-          // Detect new batch start from details string
-          if (stage === 'translating' && details) {
-            const m = details.match(/batch\s+(\d+)\/(\d+)/i)
-            if (m) {
-              const currentBatch = parseInt(m[1])
-              if (currentBatch > chargedBatches) {
-                // Check balance and charge 0.2 credits
-                try {
-                  // Fetch user to verify balance
-                  const { UserService } = await import('@/lib/database')
-                  const user = await UserService.getUser(userId)
-                  const balance = (user?.creditsBalance || 0)
-                  if (balance < 0.4) {
-                    controller.enqueue(sse({ type: 'error', message: 'Insufficient credits. Please top up to continue.' }))
-                    controller.close()
-                    throw new Error('Insufficient credits')
-                  }
-                  await UserService.adjustCredits(userId, -0.4, `Premium translation batch ${currentBatch}/${totalBatches}`, undefined, currentBatch)
-                  chargedBatches = currentBatch
-                } catch (err) {
-                  console.error('Credit charge failed:', err)
-                }
-              }
-            }
+        console.log(`💰 Premium translation: ${entries.length} subtitles, ${totalBatches} batches, ${totalCredits} credits`)
+
+        // Check balance and deduct credits upfront
+        try {
+          const { UserService } = await import('@/lib/database')
+          const user = await UserService.getUser(userId)
+          const balance = (user?.creditsBalance || 0)
+
+          if (balance < totalCredits) {
+            controller.enqueue(sse({ type: 'error', message: `Insufficient credits. Required: ${totalCredits.toFixed(2)}, Available: ${balance.toFixed(2)}` }))
+            controller.close()
+            return
           }
 
+          // Deduct all credits upfront
+          await UserService.adjustCredits(userId, -totalCredits, `Premium translation: ${entries.length} subtitles (${totalBatches} batches)`)
+          console.log(`✅ Deducted ${totalCredits} credits for premium translation`)
+        } catch (err) {
+          console.error('❌ Credit deduction failed:', err)
+          controller.enqueue(sse({ type: 'error', message: 'Failed to process payment. Please try again.' }))
+          controller.close()
+          return
+        }
+
+        const premium = new PremiumTranslationService(apiKey)
+
+        const progressCallback = async (stage: string, progress: number, details?: string) => {
           controller.enqueue(sse({ type: 'progress', stage, progress, details }))
         }
 

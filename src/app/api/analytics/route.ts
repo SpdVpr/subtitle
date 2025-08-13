@@ -26,13 +26,8 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    // Check if user has analytics access (Premium/Pro only)
-    if (user.subscriptionPlan === 'free') {
-      return NextResponse.json(
-        { error: 'Analytics access requires Premium or Pro subscription' },
-        { status: 403 }
-      )
-    }
+    // Allow all users to access analytics
+    // Analytics is now available for everyone
 
     // Calculate date range
     const endDateObj = endDate ? new Date(endDate) : new Date()

@@ -30,8 +30,8 @@ export default function AnalyticsPage() {
     )
   }
 
-  // For demo purposes, allow Premium and Pro users to access analytics
-  const hasAnalyticsAccess = subscription && (subscription.plan === 'premium' || subscription.plan === 'pro')
+  // Allow all logged-in users to access analytics
+  const hasAnalyticsAccess = true
 
   if (!hasAnalyticsAccess) {
     return (
