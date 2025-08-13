@@ -1,8 +1,10 @@
 {
-  "buildCommand": "cd subtitle-ai && npm run build",
-  "outputDirectory": "subtitle-ai/.next",
-  "installCommand": "cd subtitle-ai && npm install",
-  "framework": "nextjs",
+  "rootDirectory": "subtitle-ai",
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 60
+    }
+  },
   "headers": [
     {
       "source": "/api/(.*)",
