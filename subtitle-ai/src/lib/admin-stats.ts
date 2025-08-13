@@ -57,6 +57,14 @@ export class AdminStatsService {
     try {
       // Get all users
       const users = await UserService.getAllUsers()
+
+      // If no users exist, create demo users for testing
+      if (users.length === 0) {
+        await AdminStatsService.createDemoUsers()
+        // Re-fetch users after creating demo data
+        const updatedUsers = await UserService.getAllUsers()
+        return AdminStatsService.calculateStatsFromUsers(updatedUsers)
+      }
       const now = new Date()
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
       const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
@@ -105,31 +113,120 @@ export class AdminStatsService {
       const openaiUsage = Math.floor(totalTranslations * 0.25) // 25% OpenAI
       const premiumAiUsage = Math.floor(totalTranslations * 0.15) // 15% Premium
       
-      return {
-        totalUsers,
-        activeUsers,
-        newUsersToday,
-        newUsersThisWeek,
-        newUsersThisMonth,
-        freeUsers,
-        premiumUsers,
-        proUsers,
-        totalRevenue,
-        monthlyRevenue,
-        totalTranslations,
-        translationsToday,
-        translationsThisWeek,
-        translationsThisMonth,
-        googleTranslateUsage,
-        openaiUsage,
-        premiumAiUsage,
-        averageTranslationTime: 8.5, // seconds
-        successRate: 98.2, // percentage
-        errorRate: 1.8 // percentage
-      }
+      return AdminStatsService.calculateStatsFromUsers(users)
     } catch (error) {
       console.error('Failed to get admin stats:', error)
       throw error
+    }
+  }
+
+  private static calculateStatsFromUsers(users: any[]): AdminStats {
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
+
+    // Calculate user statistics
+    const totalUsers = users.length
+    const activeUsers = users.filter(user => {
+      const lastActive = (user as any).lastLoginAt || user.createdAt
+      const lastActiveDate = lastActive?.toDate ? lastActive.toDate() : lastActive
+      return lastActiveDate && (now.getTime() - lastActiveDate.getTime()) < 7 * 24 * 60 * 60 * 1000
+    }).length
+
+    const newUsersToday = users.filter(user => {
+      const createdAt = user.createdAt?.toDate ? user.createdAt.toDate() : user.createdAt
+      return createdAt && createdAt >= today
+    }).length
+
+    const newUsersThisWeek = users.filter(user => {
+      const createdAt = user.createdAt?.toDate ? user.createdAt.toDate() : user.createdAt
+      return createdAt && createdAt >= weekAgo
+    }).length
+
+    const newUsersThisMonth = users.filter(user => {
+      const createdAt = user.createdAt?.toDate ? user.createdAt.toDate() : user.createdAt
+      return createdAt && createdAt >= monthAgo
+    }).length
+
+    // Calculate subscription statistics
+    const freeUsers = users.filter(user => (user.subscriptionPlan || 'free') === 'free').length
+    const premiumUsers = users.filter(user => user.subscriptionPlan === 'premium').length
+    const proUsers = users.filter(user => user.subscriptionPlan === 'pro').length
+
+    // Calculate revenue (mock data for now)
+    const totalRevenue = premiumUsers * 9.99 + proUsers * 19.99
+    const monthlyRevenue = totalRevenue // Simplified for demo
+
+    // Calculate translation statistics
+    const totalTranslations = users.reduce((sum, user) => sum + (user.usage?.translationsUsed || 0), 0)
+    const translationsToday = Math.floor(totalTranslations * 0.1) // 10% today
+    const translationsThisWeek = Math.floor(totalTranslations * 0.3) // 30% this week
+    const translationsThisMonth = Math.floor(totalTranslations * 0.7) // 70% this month
+
+    // Service usage (mock data)
+    const googleTranslateUsage = Math.floor(totalTranslations * 0.6) // 60% Google
+    const openaiUsage = Math.floor(totalTranslations * 0.25) // 25% OpenAI
+    const premiumAiUsage = Math.floor(totalTranslations * 0.15) // 15% Premium
+
+    return {
+      totalUsers,
+      activeUsers,
+      newUsersToday,
+      newUsersThisWeek,
+      newUsersThisMonth,
+      freeUsers,
+      premiumUsers,
+      proUsers,
+      totalRevenue,
+      monthlyRevenue,
+      totalTranslations,
+      translationsToday,
+      translationsThisWeek,
+      translationsThisMonth,
+      googleTranslateUsage,
+      openaiUsage,
+      premiumAiUsage,
+      averageTranslationTime: 8.5, // seconds
+      successRate: 98.2, // percentage
+      errorRate: 1.8 // percentage
+    }
+  }
+
+  private static async createDemoUsers(): Promise<void> {
+    try {
+      const demoUsers = [
+        {
+          uid: 'premium-user-demo',
+          email: 'premium@test.com',
+          displayName: 'Premium Test User',
+          subscriptionPlan: 'premium',
+          creditsBalance: 50.0,
+          usage: { translationsUsed: 25, translationsLimit: -1, storageUsed: 1024, storageLimit: 10 * 1024 * 1024, batchJobsUsed: 5, batchJobsLimit: 10, resetDate: new Date() }
+        },
+        {
+          uid: 'pro-user-demo',
+          email: 'pro@test.com',
+          displayName: 'Pro Test User',
+          subscriptionPlan: 'pro',
+          creditsBalance: 100.0,
+          usage: { translationsUsed: 50, translationsLimit: -1, storageUsed: 2048, storageLimit: 100 * 1024 * 1024, batchJobsUsed: 10, batchJobsLimit: -1, resetDate: new Date() }
+        },
+        {
+          uid: 'free-user-demo',
+          email: 'free@test.com',
+          displayName: 'Free Test User',
+          subscriptionPlan: 'free',
+          creditsBalance: 5.0,
+          usage: { translationsUsed: 3, translationsLimit: 10, storageUsed: 512, storageLimit: 100 * 1024 * 1024, batchJobsUsed: 0, batchJobsLimit: 0, resetDate: new Date() }
+        }
+      ]
+
+      for (const user of demoUsers) {
+        await UserService.createOrUpdateUser(user.uid, user as any)
+      }
+    } catch (error) {
+      console.error('Failed to create demo users:', error)
     }
   }
   

@@ -62,11 +62,21 @@ export function useAuthProvider(): AuthContextType {
 
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
           if (firebaseUser) {
-            // Update last login time
+            // Create or update user profile in Firestore if it doesn't exist
             try {
-              await UserService.updateUser(firebaseUser.uid, {
-                updatedAt: new Date() as any
-              })
+              const existingUser = await UserService.getUser(firebaseUser.uid)
+              if (!existingUser) {
+                await UserService.createUser(
+                  firebaseUser.uid,
+                  firebaseUser.email!,
+                  firebaseUser.displayName || undefined
+                )
+              } else {
+                // Update last login time
+                await UserService.updateUser(firebaseUser.uid, {
+                  updatedAt: new Date() as any
+                })
+              }
             } catch (error) {
               console.warn('Failed to update user profile:', error)
             }

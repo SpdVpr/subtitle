@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -28,6 +29,7 @@ export function RegisterForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const { signUp, signInWithGoogle } = useAuth()
+  const router = useRouter()
 
   const {
     register,
@@ -44,6 +46,8 @@ export function RegisterForm() {
     try {
       await signUp(data.email, data.password)
       setSuccess(true)
+      // Redirect to dashboard after successful registration
+      setTimeout(() => router.push('/dashboard'), 2000)
     } catch (error: any) {
       setError(error.message || 'Failed to create account')
     } finally {
@@ -57,7 +61,8 @@ export function RegisterForm() {
 
     try {
       await signInWithGoogle()
-      setSuccess(true)
+      // Redirect immediately for Google sign-in
+      router.push('/dashboard')
     } catch (error: any) {
       setError(error.message || 'Failed to sign up with Google')
     } finally {
