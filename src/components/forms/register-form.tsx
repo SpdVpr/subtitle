@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -28,8 +28,16 @@ export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const { signUp, signInWithGoogle } = useAuth()
+  const { signUp, signInWithGoogle, user } = useAuth()
   const router = useRouter()
+
+  // Redirect to dashboard if already logged in and reset loading state
+  useEffect(() => {
+    if (user) {
+      setIsLoading(false) // Reset loading state when user is authenticated
+      router.push('/dashboard')
+    }
+  }, [user, router])
 
   const {
     register,
@@ -75,8 +83,8 @@ export function RegisterForm() {
 
     try {
       await signInWithGoogle()
-      // Safety: immediately redirect to dashboard to avoid stuck loading states
-      router.replace('/dashboard')
+      // Don't redirect immediately - let the auth state change handle the redirect
+      // The useAuth hook will properly manage the loading state and redirect
     } catch (error: any) {
       setError(error.message || 'Failed to sign up with Google')
       setIsLoading(false)

@@ -26,9 +26,10 @@ export function LoginForm() {
   const { signIn, signInWithGoogle, user } = useAuth()
   const router = useRouter()
 
-  // Redirect to dashboard if already logged in
+  // Redirect to dashboard if already logged in and reset loading state
   useEffect(() => {
     if (user) {
+      setIsLoading(false) // Reset loading state when user is authenticated
       router.push('/dashboard')
     }
   }, [user, router])
@@ -81,8 +82,8 @@ export function LoginForm() {
 
     try {
       await signInWithGoogle()
-      // Safety: immediately redirect to dashboard to avoid stuck loading states
-      router.replace('/dashboard')
+      // Don't redirect immediately - let the auth state change handle the redirect
+      // The useAuth hook will properly manage the loading state and redirect
     } catch (error: any) {
       setError(error.message || 'Failed to sign in with Google')
       setIsLoading(false)
