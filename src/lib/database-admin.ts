@@ -109,17 +109,21 @@ export class UserService {
         updatedAt: new Date()
       })
 
-      // Record transaction
-      await db.collection(COLLECTIONS.CREDIT_TRANSACTIONS).add({
+      // Record transaction (filter out undefined values)
+      const transactionData: any = {
         userId: uid,
         type: deltaCredits >= 0 ? 'topup' : 'debit',
         credits: Math.abs(deltaCredits),
-        amountUSD: amountUSD,
-        description,
-        relatedJobId,
-        batchNumber,
         createdAt: new Date()
-      })
+      }
+
+      // Only add fields that are not undefined
+      if (amountUSD !== undefined) transactionData.amountUSD = amountUSD
+      if (description !== undefined) transactionData.description = description
+      if (relatedJobId !== undefined) transactionData.relatedJobId = relatedJobId
+      if (batchNumber !== undefined) transactionData.batchNumber = batchNumber
+
+      await db.collection(COLLECTIONS.CREDIT_TRANSACTIONS).add(transactionData)
 
       console.log(`✅ Credits adjusted: ${currentBalance} → ${newBalance} (${deltaCredits >= 0 ? '+' : ''}${deltaCredits})`)
     } catch (error) {

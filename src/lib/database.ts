@@ -103,16 +103,21 @@ export class UserService {
       updatedAt: serverTimestamp()
     })
 
-    await addDoc(collection(db, COLLECTIONS.CREDIT_TRANSACTIONS), {
+    // Record transaction (filter out undefined values)
+    const transactionData: any = {
       userId: uid,
       type: deltaCredits >= 0 ? 'topup' : 'debit',
       credits: Math.abs(deltaCredits),
-      amountUSD: amountUSD,
-      description,
-      relatedJobId,
-      batchNumber,
       createdAt: serverTimestamp()
-    })
+    }
+
+    // Only add fields that are not undefined
+    if (amountUSD !== undefined) transactionData.amountUSD = amountUSD
+    if (description !== undefined) transactionData.description = description
+    if (relatedJobId !== undefined) transactionData.relatedJobId = relatedJobId
+    if (batchNumber !== undefined) transactionData.batchNumber = batchNumber
+
+    await addDoc(collection(db, COLLECTIONS.CREDIT_TRANSACTIONS), transactionData)
   }
 }
 
