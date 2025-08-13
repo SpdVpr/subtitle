@@ -80,40 +80,33 @@ export function TranslationInterface() {
     }
   }, [translationResult?.downloadUrl])
 
-  // Debug navigation issues
+  // Clear navigation blockers and debug navigation issues
   useEffect(() => {
     console.log('TranslationInterface mounted')
 
-    // Test if navigation is blocked by checking for any global event listeners
+    // Clear any potential navigation blockers
+    const clearNavigationBlockers = () => {
+      // Clear all beforeunload listeners
+      window.onbeforeunload = null
+
+      console.log('Navigation blockers cleared in TranslationInterface')
+    }
+
+    clearNavigationBlockers()
+
+    // Test navigation capability
     const testNavigation = () => {
       console.log('Testing navigation capability...')
       console.log('Current URL:', window.location.href)
       console.log('Router available:', !!router)
-      console.log('Document event listeners:', document.eventListeners || 'Not available')
-      console.log('Window event listeners:', Object.keys(window).filter(key => key.startsWith('on')))
     }
 
     testNavigation()
 
-    // Check for browser extension interference
-    const checkExtensions = () => {
-      console.log('Checking for browser extensions...')
-      if (window.chrome && window.chrome.runtime) {
-        console.log('Chrome extension detected')
-      }
-      // Check for common extension properties
-      const extensionProps = ['__REACT_DEVTOOLS_GLOBAL_HOOK__', '__REDUX_DEVTOOLS_EXTENSION__']
-      extensionProps.forEach(prop => {
-        if (window[prop]) {
-          console.log(`Extension property found: ${prop}`)
-        }
-      })
-    }
-
-    checkExtensions()
-
     return () => {
       console.log('TranslationInterface unmounted')
+      // Clear blockers on unmount too
+      window.onbeforeunload = null
     }
   }, [router])
 

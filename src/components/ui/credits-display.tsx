@@ -42,8 +42,11 @@ export function CreditsDisplay({ showBuyButton = true, className = '', onRefresh
   }
 
   useEffect(() => {
-    fetchCredits()
-  }, [user])
+    // Only fetch credits if user exists and we don't already have credits
+    if (user && credits === null) {
+      fetchCredits()
+    }
+  }, [user, credits])
 
   // Expose refresh function to parent
   useEffect(() => {
