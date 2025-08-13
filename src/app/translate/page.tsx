@@ -50,7 +50,4 @@ export default function TranslatePage() {
   )
 }
 
-export const metadata = {
-  title: 'Translate Subtitles - SubtitleAI',
-  description: 'Translate your subtitle files using AI-powered translation services',
-}
+// Note: metadata moved to layout.tsx since this is now a client component
