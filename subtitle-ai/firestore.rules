@@ -78,6 +78,22 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Credit transactions - users can read their own, admins can read all
+    match /creditTransactions/{transactionId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Allow admin users to read all transactions
+      allow read: if request.auth != null &&
+        request.auth.token.email in [
+          'premium@test.com',
+          'pro@test.com',
+          'admin@subtitle-ai.com',
+          'ceo@subtitle-ai.com',
+          'manager@subtitle-ai.com'
+        ];
+      // Only server can write transactions
+      allow write: if false;
+    }
+
     // System settings - only admins can access
     match /systemSettings/{settingId} {
       allow read, write: if false; // Only server-side access

@@ -608,18 +608,12 @@ export function TranslationInterface() {
           {/* Translate Button */}
           <Button
             onClick={handleTranslate}
-            disabled={!canTranslate || !translationCheck.allowed}
+            disabled={!canTranslate}
             className="w-full"
             size="lg"
           >
-            {isTranslating ? 'Translating...' : !translationCheck.allowed ? 'Upgrade Required' : 'Start Translation'}
+            {isTranslating ? 'Translating...' : 'Start Translation'}
           </Button>
-
-          {!translationCheck.allowed && (
-            <p className="text-sm text-orange-600 text-center">
-              {translationCheck.reason} - <a href="/pricing" className="underline">Upgrade your plan</a>
-            </p>
-          )}
         </CardContent>
       </Card>
 

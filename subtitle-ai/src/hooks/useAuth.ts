@@ -212,6 +212,9 @@ export function useAuthProvider(): AuthContextType {
         firebaseUser.email!,
         firebaseUser.displayName || undefined
       )
+
+      // Don't set loading to false here - let onAuthStateChanged handle it
+      // This ensures proper redirect flow
     } catch (error) {
       setLoading(false)
       throw error
