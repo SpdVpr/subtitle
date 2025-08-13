@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { CreditsCard } from '@/components/ui/credits-display'
+import { TranslationHistory } from '@/components/dashboard/translation-history'
 import Link from 'next/link'
 
 export default function DashboardPage() {
@@ -161,30 +162,8 @@ export default function DashboardPage() {
               </Card>
             </div>
 
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Calendar className="w-5 h-5 text-blue-600" />
-                  <span>Recent Activity</span>
-                </CardTitle>
-                <CardDescription>
-                  Your latest translation jobs and purchases
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium mb-2">No activity yet</p>
-                  <p className="text-sm">
-                    Start by translating your first subtitle file!
-                  </p>
-                  <Button asChild className="mt-4">
-                    <Link href="/translate">Get Started</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Translation History */}
+            <TranslationHistory />
 
             {/* Getting Started Guide */}
             <Card className="border-blue-200 bg-blue-50">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,10 +13,12 @@ import { useTranslationProgress } from '@/hooks/use-translation-progress'
 import { TranslationResult } from '@/types/subtitle'
 import { useAuth } from '@/hooks/useAuth'
 import { CreditsDisplay } from '@/components/ui/credits-display'
+import { TranslationJobService } from '@/lib/database'
 import { Download, Crown, AlertCircle, Eye } from 'lucide-react'
 
 export function TranslationInterface() {
   const { user } = useAuth()
+  const router = useRouter()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [sourceLanguage, setSourceLanguage] = useState<string>('')
   const [targetLanguage, setTargetLanguage] = useState<string>('')
@@ -77,6 +80,20 @@ export function TranslationInterface() {
     }
   }, [translationResult?.downloadUrl])
 
+  // Prevent navigation during translation
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isTranslating || translationProgress.isActive) {
+        e.preventDefault()
+        e.returnValue = 'Translation is in progress. Are you sure you want to leave?'
+        return 'Translation is in progress. Are you sure you want to leave?'
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isTranslating, translationProgress.isActive])
+
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file)
     setTranslationResult(null)
@@ -125,7 +142,7 @@ export function TranslationInterface() {
     // Check if user is logged in
     if (!user) {
       alert('Please log in to use translation services. You will be redirected to the login page.')
-      window.location.href = '/login'
+      router.push('/login')
       return
     }
 
@@ -236,6 +253,37 @@ export function TranslationInterface() {
             if (typeof refreshCredits === 'function') {
               try { refreshCredits() } catch (e) { console.warn('refreshCredits failed', e) }
             }
+
+            // Save translation to database for history
+            if (user) {
+              try {
+                await TranslationJobService.createJob({
+                  userId: user.uid,
+                  type: 'single',
+                  status: 'completed',
+                  originalFileName: selectedFile.name,
+                  originalFileSize: selectedFile.size,
+                  translatedFileName: simpleResult.translatedFileName,
+                  sourceLanguage: sourceLanguage === 'auto' ? undefined : sourceLanguage,
+                  targetLanguage: targetLanguage,
+                  aiService: 'openai', // Premium service
+                  startedAt: new Date(parseInt(result.id)) as any,
+                  completedAt: new Date() as any,
+                  processingTimeMs: simpleResult.processingTimeMs || (Date.now() - parseInt(result.id)),
+                  subtitleCount: subtitleFile.subtitles?.length || 0,
+                  characterCount: simpleResult.translatedContent.length,
+                  confidence: 0.95, // Assume high confidence for premium service
+                  translatedContent: simpleResult.translatedContent, // Store the actual content
+                  metadata: {
+                    userAgent: navigator.userAgent,
+                    fileFormat: 'srt'
+                  }
+                })
+                console.log('✅ Translation saved to history')
+              } catch (error) {
+                console.warn('Failed to save translation to history:', error)
+              }
+            }
           }
           return
         } else {
@@ -332,6 +380,37 @@ export function TranslationInterface() {
         // Refresh credits display
         if (typeof refreshCredits === 'function') {
           try { refreshCredits() } catch (e) { console.warn('refreshCredits failed', e) }
+        }
+
+        // Save translation to database for history
+        if (user) {
+          try {
+            await TranslationJobService.createJob({
+              userId: user.uid,
+              type: 'single',
+              status: 'completed',
+              originalFileName: selectedFile.name,
+              originalFileSize: selectedFile.size,
+              translatedFileName: finalFileName || `${selectedFile.name.replace('.srt', '')}_${targetLanguage}.srt`,
+              sourceLanguage: sourceLanguage === 'auto' ? undefined : sourceLanguage,
+              targetLanguage: targetLanguage,
+              aiService: 'openai', // Premium service
+              startedAt: new Date(parseInt(result.id)) as any,
+              completedAt: new Date() as any,
+              processingTimeMs: Date.now() - parseInt(result.id),
+              subtitleCount: subtitleFile.subtitles?.length || 0,
+              characterCount: finalContent.length,
+              confidence: 0.95, // Assume high confidence for premium service
+              translatedContent: finalContent, // Store the actual content
+              metadata: {
+                userAgent: navigator.userAgent,
+                fileFormat: 'srt'
+              }
+            })
+            console.log('✅ Translation saved to history')
+          } catch (error) {
+            console.warn('Failed to save translation to history:', error)
+          }
         }
       }
     } catch (error) {
@@ -463,7 +542,7 @@ export function TranslationInterface() {
                 Please log in to access premium AI translation services and manage your credits.
               </p>
               <Button
-                onClick={() => window.location.href = '/login'}
+                onClick={() => router.push('/login')}
                 className="w-full"
               >
                 Log In to Continue

@@ -85,6 +85,7 @@ export interface TranslationJob {
   characterCount?: number
   confidence?: number // average confidence score
   errorMessage?: string
+  translatedContent?: string // Store the actual translated SRT content for re-download
   
   // Metadata
   metadata?: {
