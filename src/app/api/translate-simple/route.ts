@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     // Check balance and deduct credits upfront
     try {
-      const { UserService } = await import('@/lib/database')
+      const { UserService } = await import('@/lib/database-admin')
 
       console.log('🔍 Getting user data...')
       const user = await UserService.getUser(userId)
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       
       // Refund credits on translation failure
       try {
-        const { UserService } = await import('@/lib/database')
+        const { UserService } = await import('@/lib/database-admin')
         await UserService.adjustCredits(userId, totalCredits, `Refund for failed translation: ${file.name}`)
         console.log(`💰 Refunded ${totalCredits} credits due to translation failure`)
       } catch (refundError) {

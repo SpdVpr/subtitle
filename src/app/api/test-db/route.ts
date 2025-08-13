@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     // Test database import
     try {
-      const { UserService } = await import('@/lib/database')
+      const { UserService } = await import('@/lib/database-admin')
       console.log('✅ Database module imported successfully')
 
       // Test getting user
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
 
     console.log('🧪 Testing credit operations for user:', userId)
 
-    const { UserService } = await import('@/lib/database')
+    const { UserService } = await import('@/lib/database-admin')
 
     // Get initial balance
     const user = await UserService.getUser(userId)
