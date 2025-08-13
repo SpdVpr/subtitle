@@ -69,24 +69,37 @@ export async function POST(request: NextRequest) {
     // Check balance and deduct credits upfront
     try {
       const { UserService } = await import('@/lib/database')
+
+      console.log('🔍 Getting user data...')
       const user = await UserService.getUser(userId)
+
+      if (!user) {
+        console.error('❌ User not found:', userId)
+        return NextResponse.json({
+          error: 'User not found. Please log in again.'
+        }, { status: 404 })
+      }
+
       const balance = (user?.creditsBalance || 0)
-      
       console.log(`💳 User balance: ${balance}, Required: ${totalCredits}`)
-      
+
       if (balance < totalCredits) {
-        return NextResponse.json({ 
-          error: `Insufficient credits. Required: ${totalCredits.toFixed(2)}, Available: ${balance.toFixed(2)}` 
+        return NextResponse.json({
+          error: `Insufficient credits. Required: ${totalCredits.toFixed(2)}, Available: ${balance.toFixed(2)}`
         }, { status: 402 })
       }
-      
+
+      console.log('💰 Deducting credits...')
       // Deduct all credits upfront
       await UserService.adjustCredits(userId, -totalCredits, `Premium translation: ${entries.length} subtitles (${totalBatches} batches)`)
       console.log(`✅ Deducted ${totalCredits} credits for premium translation`)
     } catch (err) {
       console.error('❌ Credit deduction failed:', err)
-      return NextResponse.json({ 
-        error: 'Failed to process payment. Please try again.' 
+      console.error('❌ Error details:', err instanceof Error ? err.message : String(err))
+      console.error('❌ Error stack:', err instanceof Error ? err.stack : 'No stack trace')
+
+      return NextResponse.json({
+        error: 'Failed to process payment: ' + (err instanceof Error ? err.message : 'Unknown database error')
       }, { status: 500 })
     }
 

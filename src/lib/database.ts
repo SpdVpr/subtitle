@@ -232,26 +232,6 @@ export class TranslationJobService {
     const snapshot = await getDocs(q)
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TranslationJob))
   }
-  static async adjustCredits(uid: string, deltaCredits: number, description?: string, relatedJobId?: string, batchNumber?: number): Promise<void> {
-    if (!db) throw new Error('Firestore not initialized')
-
-    const userRef = doc(db, COLLECTIONS.USERS, uid)
-    await updateDoc(userRef, {
-      creditsBalance: increment(deltaCredits),
-      updatedAt: serverTimestamp()
-    })
-
-    // Record transaction
-    await addDoc(collection(db, COLLECTIONS.CREDIT_TRANSACTIONS), {
-      userId: uid,
-      type: deltaCredits >= 0 ? 'topup' : 'debit',
-      credits: Math.abs(deltaCredits),
-      description,
-      relatedJobId,
-      batchNumber,
-      createdAt: serverTimestamp()
-    })
-  }
 }
 
 // Batch Job Operations
