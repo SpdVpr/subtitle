@@ -11,13 +11,28 @@ export default function TranslatePage() {
       // Clear all beforeunload listeners
       window.onbeforeunload = null
 
+      // Force override any extension interference
+      if (window.addEventListener) {
+        const originalAddEventListener = window.addEventListener
+        window.addEventListener = function(type, listener, options) {
+          if (type === 'beforeunload' || type === 'unload') {
+            console.log('Blocked beforeunload/unload listener from being added')
+            return
+          }
+          return originalAddEventListener.call(this, type, listener, options)
+        }
+      }
+
       console.log('Navigation blockers cleared on translate page')
     }
 
     clearNavigationBlockers()
 
     // Also clear on component unmount
-    return clearNavigationBlockers
+    return () => {
+      console.log('Translate page unmounting - clearing blockers')
+      window.onbeforeunload = null
+    }
   }, [])
   return (
     <div className="py-8">
