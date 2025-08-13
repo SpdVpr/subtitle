@@ -61,8 +61,8 @@ export function RegisterForm() {
 
     try {
       await signInWithGoogle()
-      // Don't manually redirect - let the auth state change handle it
-      // The useAuth hook will trigger and redirect to dashboard
+      // Safety: immediately redirect to dashboard to avoid stuck loading states
+      router.replace('/dashboard')
     } catch (error: any) {
       setError(error.message || 'Failed to sign up with Google')
       setIsLoading(false)

@@ -72,10 +72,23 @@ export function useAuthProvider(): AuthContextType {
                   firebaseUser.displayName || undefined
                 )
               } else {
-                // Update last login time
-                await UserService.updateUser(firebaseUser.uid, {
-                  updatedAt: new Date() as any
-                })
+                // Ensure welcome credits for legacy accounts without creditsBalance
+                if ((existingUser as any).creditsBalance == null) {
+                  try {
+                    await UserService.updateUser(firebaseUser.uid, {
+                      creditsBalance: 200,
+                      creditsTotalPurchased: ((existingUser as any).creditsTotalPurchased || 0) + 200,
+                      updatedAt: new Date() as any
+                    } as any)
+                  } catch (e) {
+                    console.warn('Failed to set welcome credits for legacy user:', e)
+                  }
+                } else {
+                  // Update last login time
+                  await UserService.updateUser(firebaseUser.uid, {
+                    updatedAt: new Date() as any
+                  })
+                }
               }
             } catch (error) {
               console.warn('Failed to update user profile:', error)
@@ -86,6 +99,9 @@ export function useAuthProvider(): AuthContextType {
           }
           setLoading(false)
         })
+
+        // Safety timeout: prevent stuck loading states if onAuthStateChanged is delayed
+        setTimeout(() => setLoading(false), 4000)
 
         return unsubscribe
       } catch (error) {
