@@ -20,8 +20,8 @@ export function LanguageSelector({
   excludeLanguage,
   includeAutoDetect = false
 }: LanguageSelectorProps) {
-  const availableLanguages = SUPPORTED_LANGUAGES.filter(
-    lang => lang.code !== excludeLanguage
+  const availableLanguages = (SUPPORTED_LANGUAGES || []).filter(
+    lang => lang?.code && lang.code !== excludeLanguage
   )
 
   return (
@@ -39,10 +39,10 @@ export function LanguageSelector({
           </SelectItem>
         )}
         {availableLanguages.map((language) => (
-          <SelectItem key={language.code} value={language.code}>
+          <SelectItem key={String(language?.code || '')} value={String(language?.code || '')}>
             <div className="flex items-center space-x-2">
-              <span>{language.name}</span>
-              <span className="text-gray-500 text-sm">({language.nativeName})</span>
+              <span>{String(language?.name || '')}</span>
+              <span className="text-gray-500 text-sm">({String(language?.nativeName || '')})</span>
             </div>
           </SelectItem>
         ))}

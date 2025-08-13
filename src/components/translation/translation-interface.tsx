@@ -559,10 +559,10 @@ export function TranslationInterface() {
               <>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="font-medium">Original:</span> {translationResult.originalFileName}
+                    <span className="font-medium">Original:</span> {String(translationResult.originalFileName || '')}
                   </div>
                   <div>
-                    <span className="font-medium">Translated:</span> {translationResult.translatedFileName}
+                    <span className="font-medium">Translated:</span> {String(translationResult.translatedFileName || '')}
                   </div>
                   <div>
                     <span className="font-medium">Subtitles:</span> {translationResult.subtitleCount || 0}
@@ -600,7 +600,7 @@ export function TranslationInterface() {
               </>
             ) : (
               <div className="text-red-600">
-                <p>{translationResult.error || 'An unknown error occurred'}</p>
+                <p>{String(translationResult.error || 'An unknown error occurred')}</p>
               </div>
             )}
           </CardContent>
