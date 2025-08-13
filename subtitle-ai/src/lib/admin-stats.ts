@@ -57,12 +57,15 @@ export class AdminStatsService {
     try {
       // Get all users
       const users = await UserService.getAllUsers()
+      console.log('📊 Admin Stats - Found users:', users.length, users.map(u => ({ uid: u.uid, email: u.email })))
 
       // If no users exist, create demo users for testing
       if (users.length === 0) {
+        console.log('👥 No users found, creating demo users...')
         await AdminStatsService.createDemoUsers()
         // Re-fetch users after creating demo data
         const updatedUsers = await UserService.getAllUsers()
+        console.log('👥 After creating demo users:', updatedUsers.length)
         return AdminStatsService.calculateStatsFromUsers(updatedUsers)
       }
       const now = new Date()
@@ -233,6 +236,7 @@ export class AdminStatsService {
   static async getUserActivity(): Promise<UserActivity[]> {
     try {
       const users = await UserService.getAllUsers()
+      console.log('👥 User Activity - Found users:', users.length)
 
       return users.map(user => {
         const lastActive = (user as any).lastLoginAt || user.createdAt

@@ -232,26 +232,29 @@ export function useAuthProvider(): AuthContextType {
 
       // Create or update user profile in Firestore
       if (result.user && firebaseServices.db) {
-        const userProfile: Partial<UserProfile> = {
-          email: result.user.email || '',
-          displayName: result.user.displayName || '',
-          photoURL: result.user.photoURL || '',
-          emailVerified: result.user.emailVerified,
-          subscriptionPlan: 'free',
-          subscriptionStatus: 'active',
-          createdAt: new Date() as any,
-          usage: {
-            translationsUsed: 0,
-            translationsLimit: 10,
-            storageUsed: 0,
-            storageLimit: 100 * 1024 * 1024, // 100MB
-            batchJobsUsed: 0,
-            batchJobsLimit: 0,
-            resetDate: new Date() as any
-          }
-        }
+        console.log('🔥 Creating/updating Google user profile:', result.user.uid, result.user.email)
 
-        await UserService.createOrUpdateUser(result.user.uid, userProfile)
+        // Check if user already exists
+        const existingUser = await UserService.getUser(result.user.uid)
+
+        if (!existingUser) {
+          // Create new user with full profile
+          console.log('👤 Creating new Google user in Firestore')
+          await UserService.createUser(
+            result.user.uid,
+            result.user.email!,
+            result.user.displayName || undefined
+          )
+        } else {
+          // Update existing user
+          console.log('🔄 Updating existing Google user')
+          await UserService.updateUser(result.user.uid, {
+            displayName: result.user.displayName || existingUser.displayName,
+            photoURL: result.user.photoURL || existingUser.photoURL,
+            emailVerified: result.user.emailVerified,
+            updatedAt: new Date() as any
+          })
+        }
       }
 
       // Don't set loading to false here - let onAuthStateChanged handle it

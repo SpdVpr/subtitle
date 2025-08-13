@@ -43,6 +43,8 @@ export class UserService {
   static async createUser(uid: string, email: string, displayName?: string): Promise<void> {
     if (!db) throw new Error('Firestore not initialized')
 
+    console.log('👤 Creating new user in Firestore:', uid, email)
+
     const userProfile: UserProfile = {
       uid,
       email,
@@ -69,6 +71,7 @@ export class UserService {
     }
 
     await setDoc(doc(db, COLLECTIONS.USERS, uid), userProfile)
+    console.log('✅ User created successfully in Firestore')
   }
 
   static async getUser(uid: string): Promise<UserProfile | null> {
@@ -110,17 +113,22 @@ export class UserService {
     if (!db) throw new Error('Firestore not initialized')
 
     try {
+      console.log('🔍 Querying all users from Firestore...')
       const usersQuery = query(
         collection(db, COLLECTIONS.USERS),
         orderBy('createdAt', 'desc')
       )
 
       const snapshot = await getDocs(usersQuery)
+      console.log('📄 Firestore query result:', snapshot.size, 'documents')
 
-      return snapshot.docs.map(doc => ({
+      const users = snapshot.docs.map(doc => ({
         ...doc.data(),
         uid: doc.id
       } as UserProfile))
+
+      console.log('👥 Mapped users:', users.map(u => ({ uid: u.uid, email: u.email, createdAt: u.createdAt })))
+      return users
     } catch (error) {
       console.error('Failed to get all users:', error)
       // Do not return mock data in admin; propagate error to show proper message
@@ -132,14 +140,27 @@ export class UserService {
   static async createOrUpdateUser(uid: string, data: Partial<UserProfile>): Promise<void> {
     if (!db) throw new Error('Firestore not initialized')
 
-    // Always set uid and updatedAt; merge to avoid overwriting existing fields
-    await setDoc(doc(db, COLLECTIONS.USERS, uid), {
+    console.log('🔄 CreateOrUpdate user:', uid, data.email)
+
+    // Check if user exists to decide whether to set createdAt
+    const existingUser = await UserService.getUser(uid)
+
+    const updateData: any = {
       uid,
       creditsBalance: 0,
       creditsTotalPurchased: 0,
       ...data,
       updatedAt: serverTimestamp()
-    } as any, { merge: true })
+    }
+
+    // Only set createdAt for new users
+    if (!existingUser) {
+      updateData.createdAt = serverTimestamp()
+      console.log('👤 Setting createdAt for new user')
+    }
+
+    await setDoc(doc(db, COLLECTIONS.USERS, uid), updateData, { merge: true })
+    console.log('✅ User createOrUpdate completed')
   }
 
   static async adjustCredits(uid: string, deltaCredits: number, description?: string, relatedJobId?: string, batchNumber?: number, amountUSD?: number): Promise<void> {
