@@ -1,6 +1,15 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { PremiumTranslationService } from '@/lib/premium-translation-service'
+
+// GET method for debugging
+export async function GET() {
+  return NextResponse.json({
+    message: 'Translate-stream endpoint is working',
+    methods: ['GET', 'POST'],
+    timestamp: new Date().toISOString()
+  })
+}
 
 export async function POST(request: NextRequest) {
   try {

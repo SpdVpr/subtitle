@@ -163,10 +163,54 @@ export function TranslationInterface() {
       formData.append('userId', user.uid)
 
       console.log('📤 Starting streamed translation via /api/translate-stream')
-      const response = await fetch('/api/translate-stream', {
+      let response = await fetch('/api/translate-stream', {
         method: 'POST',
         body: formData
       })
+
+      // If streaming fails with 405, try simple endpoint
+      if (response.status === 405) {
+        console.log('🔄 Streaming failed with 405, trying simple endpoint...')
+        response = await fetch('/api/translate-simple', {
+          method: 'POST',
+          body: formData
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          throw new Error(`Simple translation failed: ${response.status} ${errorText}`)
+        }
+
+        // Handle simple response (not streaming)
+        const simpleResult = await response.json()
+
+        if (simpleResult.status === 'completed') {
+          result.status = 'completed'
+          result.progress = 100
+          result.downloadUrl = URL.createObjectURL(new Blob([simpleResult.translatedContent], { type: 'text/plain' }))
+          result.translatedFileName = simpleResult.translatedFileName
+          result.processingTimeMs = simpleResult.processingTimeMs || (Date.now() - parseInt(result.id))
+          setTranslationResult({ ...result })
+
+          // Persist preview data
+          try {
+            sessionStorage.setItem('previewData', JSON.stringify({
+              originalFile: selectedFile?.name,
+              translatedFileName: result.translatedFileName,
+              sourceLanguage: sourceLanguage === 'auto' || !sourceLanguage ? 'auto' : sourceLanguage,
+              targetLanguage: targetLanguage,
+              aiService: 'premium'
+            }))
+            sessionStorage.setItem('translatedContent', simpleResult.translatedContent)
+            try { sessionStorage.setItem('originalContent', subtitleFile.content) } catch {}
+          } catch {}
+
+          completeProgress()
+          return
+        } else {
+          throw new Error(simpleResult.error || 'Simple translation failed')
+        }
+      }
 
       if (!response.ok || !response.body) {
         const t = await response.text()
