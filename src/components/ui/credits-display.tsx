@@ -61,14 +61,14 @@ export function CreditsDisplay({ showBuyButton = true, className = '', onRefresh
     )
   }
 
-  const creditsValue = credits || 0
+  const creditsValue = Number(credits) || 0
   const isLowCredits = creditsValue < 5
 
   return (
     <div className={`flex items-center space-x-2 ${className}`}>
       <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-sm font-medium ${
-        isLowCredits 
-          ? 'bg-red-100 text-red-700' 
+        isLowCredits
+          ? 'bg-red-100 text-red-700'
           : 'bg-blue-100 text-blue-700'
       }`}>
         <Coins className="w-4 h-4" />

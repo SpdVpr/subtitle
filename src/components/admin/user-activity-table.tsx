@@ -182,29 +182,29 @@ export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) 
         </div>
         {/* Mobile view */}
         <div className="block sm:hidden space-y-4">
-          {users.slice(0, 10).map((user, index) => (
-            <div key={user.userId} className="p-4 border rounded-lg bg-gray-50">
+          {(users || []).slice(0, 10).map((user, index) => (
+            <div key={String(user?.userId || index)} className="p-4 border rounded-lg bg-gray-50">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-medium text-sm text-gray-900">
-                  {user.email}
+                  {String(user?.email || 'Unknown')}
                 </div>
                 <Badge
                   variant="secondary"
-                  className={getPlanBadgeColor(user.plan)}
+                  className={getPlanBadgeColor(user?.plan || 'free')}
                 >
-                  {user.plan.toUpperCase()}
+                  {String(user?.plan || 'free').toUpperCase()}
                 </Badge>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
                 <div>
                   <span className="font-medium">Translations:</span>
-                  <span className="ml-1">📄 {user.translationsCount.toLocaleString()}</span>
+                  <span className="ml-1">📄 {Number(user?.translationsCount || 0).toLocaleString()}</span>
                 </div>
                 <div>
-                  <span className="font-medium">Credits:</span> {(user.creditsBalance || 0).toFixed(2)}
+                  <span className="font-medium">Credits:</span> {Number(user?.creditsBalance || 0).toFixed(2)}
                 </div>
                 <div className="col-span-2">
-                  <span className="font-medium">Last Active:</span> {formatDistanceToNow(user.lastActive, { addSuffix: true })}
+                  <span className="font-medium">Last Active:</span> {user?.lastActive ? formatDistanceToNow(new Date(user.lastActive), { addSuffix: true }) : 'Never'}
                 </div>
               </div>
             </div>
@@ -225,47 +225,47 @@ export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) 
               </tr>
             </thead>
             <tbody>
-              {users.slice(0, 10).map((user, index) => (
-                <tr key={user.userId} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+              {(users || []).slice(0, 10).map((user, index) => (
+                <tr key={String(user?.userId || index)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="py-3 px-4">
                     <div>
                       <div className="font-medium text-sm text-gray-900">
-                        {user.email}
-                        {(user as any).isBlocked && (
+                        {String(user?.email || 'Unknown')}
+                        {(user as any)?.isBlocked && (
                           <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-700 rounded">
                             BLOCKED
                           </span>
                         )}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {user.userId.substring(0, 8)}...
+                        {String(user?.userId || '').substring(0, 8)}...
                       </div>
                     </div>
                   </td>
                   <td className="py-3 px-4">
                     <Badge
                       variant="secondary"
-                      className={getPlanBadgeColor(user.plan)}
+                      className={getPlanBadgeColor(user?.plan || 'free')}
                     >
-                      {user.plan.toUpperCase()}
+                      {String(user?.plan || 'free').toUpperCase()}
                     </Badge>
                   </td>
                   <td className="py-3 px-4">
                     <div className="text-sm font-medium text-gray-900">
                       <div className="flex items-center space-x-2">
                         <span className="inline-flex items-center">
-                          📄 {user.translationsCount.toLocaleString()}
+                          📄 {Number(user?.translationsCount || 0).toLocaleString()}
                         </span>
-                        {user.translationsCount > 0 && (
+                        {Number(user?.translationsCount || 0) > 0 && (
                           <Info
                             className="h-3 w-3 text-gray-400 cursor-help"
                             title={`Total subtitle files translated by this user`}
                           />
                         )}
                       </div>
-                      {user.translationsCount > 0 && (
+                      {Number(user?.translationsCount || 0) > 0 && (
                         <div className="text-xs text-gray-500 mt-1">
-                          {user.translationsCount === 1 ? '1 file' : `${user.translationsCount} files`} translated
+                          {Number(user?.translationsCount || 0) === 1 ? '1 file' : `${Number(user?.translationsCount || 0)} files`} translated
                         </div>
                       )}
                     </div>
