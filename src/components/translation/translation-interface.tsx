@@ -23,6 +23,7 @@ export function TranslationInterface() {
   const [notifyOnComplete, setNotifyOnComplete] = useState<boolean>(false)
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null)
   const [subtitleCount, setSubtitleCount] = useState<number | null>(null)
+  const [refreshCredits, setRefreshCredits] = useState<(() => void) | null>(null)
   const {
     progress: translationProgress,
     startProgress,
@@ -113,7 +114,8 @@ export function TranslationInterface() {
     }
 
     setIsTranslating(true)
-    
+    startProgress()
+
     const result: TranslationResult = {
       id: Date.now().toString(),
       originalFileName: selectedFile.name,
@@ -171,6 +173,8 @@ export function TranslationInterface() {
       // If streaming fails with 405, try simple endpoint
       if (response.status === 405) {
         console.log('🔄 Streaming failed with 405, trying simple endpoint...')
+        updateProgress('preparing', 20, 'Switching to simple translation endpoint...')
+
         response = await fetch('/api/translate-simple', {
           method: 'POST',
           body: formData
@@ -181,10 +185,14 @@ export function TranslationInterface() {
           throw new Error(`Simple translation failed: ${response.status} ${errorText}`)
         }
 
+        updateProgress('translating', 50, 'Processing translation...')
+
         // Handle simple response (not streaming)
         const simpleResult = await response.json()
 
         if (simpleResult.status === 'completed') {
+          updateProgress('finalizing', 90, 'Preparing download...')
+
           result.status = 'completed'
           result.progress = 100
           result.downloadUrl = URL.createObjectURL(new Blob([simpleResult.translatedContent], { type: 'text/plain' }))
@@ -206,6 +214,10 @@ export function TranslationInterface() {
           } catch {}
 
           completeProgress()
+          // Refresh credits display
+          if (refreshCredits) {
+            refreshCredits()
+          }
           return
         } else {
           throw new Error(simpleResult.error || 'Simple translation failed')
@@ -280,6 +292,10 @@ export function TranslationInterface() {
 
       // Translation completed successfully
       completeProgress()
+      // Refresh credits display
+      if (refreshCredits) {
+        refreshCredits()
+      }
     } catch (error) {
       console.error('Translation error:', error)
       result.status = 'failed'
@@ -321,7 +337,11 @@ export function TranslationInterface() {
         <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
           <span>Pay-as-you-go translation system</span>
           <div className="text-right">
-            <CreditsDisplay showBuyButton={false} className="text-lg" />
+            <CreditsDisplay
+              showBuyButton={false}
+              className="text-lg"
+              onRefresh={setRefreshCredits}
+            />
           </div>
         </div>
       </div>
@@ -468,7 +488,6 @@ export function TranslationInterface() {
           <CardContent>
             <ContextualTranslationProgress
               progress={translationProgress}
-              result={translationResult}
             />
           </CardContent>
         </Card>

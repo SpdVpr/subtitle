@@ -10,39 +10,47 @@ import Link from 'next/link'
 interface CreditsDisplayProps {
   showBuyButton?: boolean
   className?: string
+  onRefresh?: (refreshFn: () => void) => void
 }
 
-export function CreditsDisplay({ showBuyButton = true, className = '' }: CreditsDisplayProps) {
+export function CreditsDisplay({ showBuyButton = true, className = '', onRefresh }: CreditsDisplayProps) {
   const { user } = useAuth()
   const [credits, setCredits] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchCredits = async () => {
-      if (!user) {
-        setLoading(false)
-        return
-      }
-
-      try {
-        const response = await fetch(`/api/user/credits?userId=${user.uid}`)
-        if (response.ok) {
-          const data = await response.json()
-          setCredits(data.credits || 0)
-        } else {
-          console.error('Failed to fetch credits:', response.status)
-          setCredits(0)
-        }
-      } catch (error) {
-        console.error('Failed to fetch credits:', error)
-        setCredits(0)
-      } finally {
-        setLoading(false)
-      }
+  const fetchCredits = async () => {
+    if (!user) {
+      setLoading(false)
+      return
     }
 
+    try {
+      const response = await fetch(`/api/user/credits?userId=${user.uid}`)
+      if (response.ok) {
+        const data = await response.json()
+        setCredits(data.credits || 0)
+      } else {
+        console.error('Failed to fetch credits:', response.status)
+        setCredits(0)
+      }
+    } catch (error) {
+      console.error('Failed to fetch credits:', error)
+      setCredits(0)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
     fetchCredits()
   }, [user])
+
+  // Expose refresh function to parent
+  useEffect(() => {
+    if (onRefresh) {
+      onRefresh(fetchCredits)
+    }
+  }, [onRefresh])
 
   if (!user || loading) {
     return (
