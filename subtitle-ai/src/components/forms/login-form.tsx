@@ -51,7 +51,25 @@ export function LoginForm() {
       // Redirect to dashboard after successful login
       router.push('/dashboard')
     } catch (error: any) {
-      setError(error.message || 'Failed to sign in')
+      console.error('Login error:', error)
+
+      // Handle specific Firebase auth errors
+      let errorMessage = 'Failed to sign in'
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email. Please register first.'
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password. Please try again.'
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Please enter a valid email address.'
+      } else if (error.code === 'auth/user-disabled') {
+        errorMessage = 'This account has been disabled. Please contact support.'
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later.'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }

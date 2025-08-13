@@ -49,7 +49,21 @@ export function RegisterForm() {
       // Redirect to dashboard after successful registration
       setTimeout(() => router.push('/dashboard'), 2000)
     } catch (error: any) {
-      setError(error.message || 'Failed to create account')
+      console.error('Registration error:', error)
+
+      // Handle specific Firebase auth errors
+      let errorMessage = 'Failed to create account'
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already registered. Please sign in instead or use a different email.'
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak. Please use at least 6 characters.'
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Please enter a valid email address.'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -125,7 +139,16 @@ export function RegisterForm() {
         {error && (
           <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-md">
             <AlertCircle className="h-4 w-4" />
-            <span className="text-sm">{error}</span>
+            <div className="text-sm">
+              {error}
+              {error.includes('already registered') && (
+                <div className="mt-2">
+                  <Link href="/login" className="text-blue-600 hover:underline font-medium">
+                    Go to Sign In →
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
