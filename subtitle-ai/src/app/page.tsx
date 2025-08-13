@@ -159,53 +159,82 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing Preview */}
+      {/* Credits System */}
       <section className="bg-muted/50 py-16">
         <div className="container px-4 mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Simple, Transparent Pricing</h2>
+          <h2 className="text-3xl font-bold mb-4">💰 Pay-as-you-go Credits</h2>
           <p className="text-muted-foreground mb-8">
-            Start free, upgrade when you need more
+            No monthly subscriptions. Only pay for what you use.
           </p>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             <Card>
               <CardHeader>
-                <CardTitle>Free</CardTitle>
-                <CardDescription>Perfect for trying out</CardDescription>
+                <CardTitle className="flex items-center justify-center space-x-2">
+                  <span>🎁</span>
+                  <span>Welcome Bonus</span>
+                </CardTitle>
+                <CardDescription>Get started for free</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-3xl font-bold">$0</div>
+                <div className="text-3xl font-bold text-green-600">200 Credits</div>
+                <div className="text-sm text-muted-foreground">Free on signup</div>
               </CardContent>
               <CardContent className="space-y-2">
-                <p>✓ 5 translations/month</p>
-                <p>✓ Google Translate AI</p>
-                <p>✓ Basic SRT export</p>
-                <p>✓ 1MB file limit</p>
+                <p>✓ ~1000 lines of translation</p>
+                <p>✓ All AI services available</p>
+                <p>✓ No time limit</p>
+                <p>✓ Full feature access</p>
               </CardContent>
             </Card>
 
             <Card className="border-primary">
               <CardHeader>
-                <CardTitle>Premium</CardTitle>
-                <CardDescription>For professionals</CardDescription>
+                <CardTitle className="flex items-center justify-center space-x-2">
+                  <span>⚡</span>
+                  <span>Standard Translation</span>
+                </CardTitle>
+                <CardDescription>Google Translate AI</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-3xl font-bold">$9.99<span className="text-sm font-normal">/month</span></div>
+                <div className="text-3xl font-bold">~0.1</div>
+                <div className="text-sm text-muted-foreground">credits per 20 lines</div>
               </CardContent>
               <CardContent className="space-y-2">
-                <p>✓ Unlimited translations</p>
-                <p>✓ OpenAI GPT-4 AI</p>
-                <p>✓ Advanced export options</p>
-                <p>✓ 10MB file limit</p>
-                <p>✓ Batch processing</p>
-                <p>✓ Priority support</p>
+                <p>✓ Fast and reliable</p>
+                <p>✓ 50+ languages</p>
+                <p>✓ Good for basic content</p>
+                <p>✓ Instant results</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-purple-500">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-center space-x-2">
+                  <span>🎬</span>
+                  <span>Premium Translation</span>
+                </CardTitle>
+                <CardDescription>OpenAI GPT-4 with context</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="text-3xl font-bold">~0.2</div>
+                <div className="text-sm text-muted-foreground">credits per 20 lines</div>
+              </CardContent>
+              <CardContent className="space-y-2">
+                <p>✓ Context-aware translation</p>
+                <p>✓ Natural dialogue</p>
+                <p>✓ Cultural adaptation</p>
+                <p>✓ Professional quality</p>
               </CardContent>
             </Card>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-8 space-y-4">
+            <div className="text-sm text-muted-foreground">
+              💡 <strong>1 USD = 100 credits</strong> • Buy credits as needed • No expiration
+            </div>
             <Button size="lg" asChild>
-              <Link href="/translate">Get Started Free</Link>
+              <Link href="/register">Get 200 Free Credits</Link>
             </Button>
           </div>
         </div>

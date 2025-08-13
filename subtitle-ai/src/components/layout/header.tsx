@@ -3,14 +3,13 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
-import { useSubscription } from "@/hooks/useSubscription"
 import { isAdmin } from "@/lib/admin-auth"
 import { Badge } from "@/components/ui/badge"
 import { Shield } from "lucide-react"
+import { CreditsDisplay } from "@/components/ui/credits-display"
 
 export function Header() {
   const { user, signOut, loading } = useAuth()
-  const { subscription } = useSubscription()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -43,7 +42,7 @@ export function Header() {
             >
               Find Subtitles
             </Link>
-            {user && subscription && subscription.plan !== 'free' && (
+            {user && (
               <Link
                 href="/batch"
                 className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
@@ -61,10 +60,10 @@ export function Header() {
               </Link>
             )}
             <Link
-              href="/pricing"
+              href="/buy-credits"
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
             >
-              Pricing
+              Buy Credits
             </Link>
           </nav>
 
@@ -74,14 +73,7 @@ export function Header() {
               <div className="h-8 w-20 bg-gray-200 animate-pulse rounded" />
             ) : user ? (
               <div className="flex items-center space-x-3">
-                {subscription && (
-                  <Badge
-                    variant={subscription.plan === 'pro' ? 'default' : subscription.plan === 'premium' ? 'secondary' : 'outline'}
-                    className="capitalize hidden sm:inline-flex"
-                  >
-                    {subscription.plan}
-                  </Badge>
-                )}
+                <CreditsDisplay showBuyButton={false} className="hidden sm:flex" />
                 <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>

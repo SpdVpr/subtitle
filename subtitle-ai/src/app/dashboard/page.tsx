@@ -4,34 +4,31 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   FileText,
   Zap,
   Calendar,
-  CreditCard,
   TrendingUp,
   CheckCircle,
-  X
+  X,
+  Coins,
+  ArrowRight
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { useSubscription } from '@/hooks/useSubscription'
-import { SUBSCRIPTION_PLANS, formatPrice } from '@/lib/stripe'
+import { CreditsCard } from '@/components/ui/credits-display'
+import Link from 'next/link'
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  const { subscription, usage, createPortalSession } = useSubscription()
-  const [loading, setLoading] = useState(false)
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
   const searchParams = useSearchParams()
 
   useEffect(() => {
     const success = searchParams.get('success')
-    const plan = searchParams.get('plan')
+    const credits = searchParams.get('credits')
 
-    if (success && plan) {
+    if (success && credits) {
       setShowSuccessAlert(true)
       // Auto-hide after 10 seconds
       const timer = setTimeout(() => {
@@ -42,286 +39,194 @@ export default function DashboardPage() {
     }
   }, [searchParams])
 
-  const handleManageSubscription = async () => {
-    try {
-      setLoading(true)
-      const { url } = await createPortalSession()
-      window.location.href = url
-    } catch (error) {
-      console.error('Portal error:', error)
-      alert('Failed to open billing portal. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   if (!user) {
     return (
-      <div className="container py-8">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Please log in to access your dashboard</h1>
-          <Button onClick={() => window.location.href = '/login'}>
-            Log In
-          </Button>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your dashboard...</p>
         </div>
       </div>
     )
   }
 
-  const currentPlan = subscription ? SUBSCRIPTION_PLANS[subscription.plan] : SUBSCRIPTION_PLANS.free
-  const usagePercentage = currentPlan.limits.translationsPerMonth === -1 
-    ? 0 
-    : ((usage?.translationsUsed || 0) / currentPlan.limits.translationsPerMonth) * 100
-
   return (
-    <div className="py-8">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Success Alert */}
         {showSuccessAlert && (
           <Alert className="mb-6 border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="flex items-center justify-between">
-              <span className="text-green-800">
-                🎉 Subscription activated successfully! You now have access to {searchParams.get('plan')} features.
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSuccessAlert(false)}
-                className="h-auto p-1 text-green-600 hover:text-green-800"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            <AlertDescription className="text-green-800">
+              <div className="flex items-center justify-between">
+                <span>
+                  🎉 Credits purchased successfully! You can now use premium translation features.
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSuccessAlert(false)}
+                  className="text-green-600 hover:text-green-700"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
         )}
 
         {/* Header */}
-        <div className="mb-8 text-center sm:text-left">
-          <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome back, {user.displayName || user.email}!
+          </h1>
           <p className="text-gray-600">
-            Welcome back, {user.email}! Here&apos;s your account overview.
+            Here's your account overview and translation activity.
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Translations Used</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{usage?.translationsUsed || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                {currentPlan.limits.translationsPerMonth === -1 
-                  ? 'Unlimited' 
-                  : `of ${currentPlan.limits.translationsPerMonth} this month`
-                }
-              </p>
-            </CardContent>
-          </Card>
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Left Column - Credits & Quick Actions */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Credits Card */}
+            <CreditsCard />
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Plan</CardTitle>
-              <Zap className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{currentPlan.name}</div>
-              <p className="text-xs text-muted-foreground">
-                {currentPlan.price === 0 ? 'Free' : `${formatPrice(currentPlan.price)}/month`}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Storage Used</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {((usage?.storageUsed || 0) / 1024 / 1024).toFixed(1)} MB
-              </div>
-              <p className="text-xs text-muted-foreground">
-                of {(currentPlan.limits.maxFileSize / 1024 / 1024).toFixed(0)} MB limit
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Next Billing</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {subscription?.currentPeriodEnd 
-                  ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
-                  : 'N/A'
-                }
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {subscription?.cancelAtPeriodEnd ? 'Canceling' : 'Renewing'}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Usage Progress */}
-        {currentPlan.limits.translationsPerMonth !== -1 && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Monthly Usage</CardTitle>
-              <CardDescription>
-                Your translation usage for this month
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Translations</span>
-                  <span>{usage?.translationsUsed || 0} / {currentPlan.limits.translationsPerMonth}</span>
-                </div>
-                <Progress value={usagePercentage} className="h-2" />
-                {usagePercentage > 80 && (
-                  <p className="text-sm text-orange-600">
-                    You&apos;re approaching your monthly limit. Consider upgrading to continue using our service.
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>
-                Common tasks and shortcuts
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                className="w-full justify-start"
-                variant="outline"
-                onClick={() => window.location.href = '/translate'}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Translate New Subtitle
-              </Button>
-
-              {subscription && subscription.plan !== 'free' && (
-                <Button
-                  className="w-full justify-start"
-                  variant="outline"
-                  onClick={() => window.location.href = '/batch'}
-                >
-                  <Zap className="h-4 w-4 mr-2" />
-                  Batch Processing
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Zap className="w-5 h-5 text-blue-600" />
+                  <span>Quick Actions</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button asChild className="w-full justify-between">
+                  <Link href="/translate">
+                    <span>Translate Subtitles</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
                 </Button>
-              )}
-
-              {subscription && (subscription.plan === 'premium' || subscription.plan === 'pro') && (
-                <Button
-                  className="w-full justify-start"
-                  variant="outline"
-                  onClick={() => window.location.href = '/analytics'}
-                >
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  View Analytics
+                <Button variant="outline" asChild className="w-full justify-between">
+                  <Link href="/subtitles-search">
+                    <span>Find Subtitles</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
                 </Button>
-              )}
+                <Button variant="outline" asChild className="w-full justify-between">
+                  <Link href="/batch">
+                    <span>Batch Processing</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
 
-              <Button
-                className="w-full justify-start"
-                variant="outline"
-                onClick={() => window.location.href = '/pricing'}
-              >
-                <Zap className="h-4 w-4 mr-2" />
-                Upgrade Plan
-              </Button>
-              
-              <Button 
-                className="w-full justify-start" 
-                variant="outline"
-                onClick={handleManageSubscription}
-                disabled={loading}
-              >
-                <CreditCard className="h-4 w-4 mr-2" />
-                {loading ? 'Loading...' : 'Manage Billing'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Plan Features</CardTitle>
-              <CardDescription>
-                What&apos;s included in your {currentPlan.name} plan
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {currentPlan.features.slice(0, 4).map((feature, index) => (
-                  <li key={index} className="flex items-center text-sm">
-                    <div className="h-2 w-2 bg-green-500 rounded-full mr-2" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              {currentPlan.features.length > 4 && (
-                <p className="text-sm text-gray-500 mt-2">
-                  +{currentPlan.features.length - 4} more features
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Subscription Status */}
-        {subscription && subscription.plan !== 'free' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Subscription Status</CardTitle>
-              <CardDescription>
-                Manage your subscription and billing
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant={subscription.status === 'active' ? 'default' : 'destructive'}>
-                      {subscription.status}
-                    </Badge>
-                    <span className="font-medium">{currentPlan.name} Plan</span>
+          {/* Right Column - Stats & Activity */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Usage Stats */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="w-5 h-5 text-green-600" />
+                    <span>Translations</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-600 mb-2">
+                    0
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {subscription.cancelAtPeriodEnd 
-                      ? `Cancels on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`
-                      : `Renews on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`
-                    }
+                  <p className="text-sm text-gray-600">
+                    Files translated this month
                   </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5 text-purple-600" />
+                    <span>Credits Used</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-purple-600 mb-2">
+                    0.0
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Credits spent this month
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Activity */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                  <span>Recent Activity</span>
+                </CardTitle>
+                <CardDescription>
+                  Your latest translation jobs and purchases
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-gray-500">
+                  <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p className="text-lg font-medium mb-2">No activity yet</p>
+                  <p className="text-sm">
+                    Start by translating your first subtitle file!
+                  </p>
+                  <Button asChild className="mt-4">
+                    <Link href="/translate">Get Started</Link>
+                  </Button>
                 </div>
-                <Button 
-                  variant="outline" 
-                  onClick={handleManageSubscription}
-                  disabled={loading}
-                >
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Manage
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
+
+            {/* Getting Started Guide */}
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader>
+                <CardTitle className="text-blue-900">🚀 Getting Started</CardTitle>
+                <CardDescription className="text-blue-700">
+                  Make the most of your credits with these tips
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-blue-600">1</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-blue-900">Upload your SRT file</p>
+                    <p className="text-sm text-blue-700">Support for various subtitle formats</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-blue-600">2</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-blue-900">Choose your AI service</p>
+                    <p className="text-sm text-blue-700">Standard (~0.1 credits) or Premium (~0.2 credits) per 20 lines</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-blue-600">3</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-blue-900">Download your translation</p>
+                    <p className="text-sm text-blue-700">Get professional-quality results in seconds</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
-
-

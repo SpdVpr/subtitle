@@ -186,14 +186,14 @@ export class AdminStatsService {
       return createdAt && createdAt >= monthAgo
     }).length
 
-    // Calculate subscription statistics
-    const freeUsers = users.filter(user => (user.subscriptionPlan || 'free') === 'free').length
-    const premiumUsers = users.filter(user => user.subscriptionPlan === 'premium').length
-    const proUsers = users.filter(user => user.subscriptionPlan === 'pro').length
+    // Calculate user statistics by credits
+    const usersWithCredits = users.filter(user => (user as any).creditsBalance > 0).length
+    const usersWithoutCredits = users.filter(user => ((user as any).creditsBalance || 0) === 0).length
+    const totalCreditsInSystem = users.reduce((sum, user) => sum + ((user as any).creditsBalance || 0), 0)
 
-    // Calculate revenue (mock data for now)
-    const totalRevenue = premiumUsers * 9.99 + proUsers * 19.99
-    const monthlyRevenue = totalRevenue // Simplified for demo
+    // Calculate revenue from credit purchases (simplified)
+    const totalRevenue = users.reduce((sum, user) => sum + (((user as any).creditsTotalPurchased || 0) / 100), 0)
+    const monthlyRevenue = totalRevenue * 0.3 // Assume 30% was this month
 
     // Calculate translation statistics
     const totalTranslations = users.reduce((sum, user) => sum + (user.usage?.translationsUsed || 0), 0)
@@ -212,9 +212,9 @@ export class AdminStatsService {
       newUsersToday,
       newUsersThisWeek,
       newUsersThisMonth,
-      freeUsers,
-      premiumUsers,
-      proUsers,
+      freeUsers: usersWithoutCredits,
+      premiumUsers: usersWithCredits,
+      proUsers: Math.floor(usersWithCredits * 0.3), // Estimate heavy users
       totalRevenue,
       monthlyRevenue,
       totalTranslations,
@@ -234,28 +234,28 @@ export class AdminStatsService {
     try {
       const demoUsers = [
         {
-          uid: 'premium-user-demo',
-          email: 'premium@test.com',
-          displayName: 'Premium Test User',
-          subscriptionPlan: 'premium',
-          creditsBalance: 50.0,
-          usage: { translationsUsed: 25, translationsLimit: -1, storageUsed: 1024, storageLimit: 10 * 1024 * 1024, batchJobsUsed: 5, batchJobsLimit: 10, resetDate: new Date() }
+          uid: 'active-user-demo',
+          email: 'active@test.com',
+          displayName: 'Active User',
+          creditsBalance: 150.0,
+          creditsTotalPurchased: 500.0,
+          usage: { translationsUsed: 25, translationsLimit: -1, storageUsed: 1024, storageLimit: 100 * 1024 * 1024, batchJobsUsed: 5, batchJobsLimit: -1, resetDate: new Date() }
         },
         {
-          uid: 'pro-user-demo',
-          email: 'pro@test.com',
-          displayName: 'Pro Test User',
-          subscriptionPlan: 'pro',
-          creditsBalance: 100.0,
+          uid: 'power-user-demo',
+          email: 'power@test.com',
+          displayName: 'Power User',
+          creditsBalance: 75.0,
+          creditsTotalPurchased: 1000.0,
           usage: { translationsUsed: 50, translationsLimit: -1, storageUsed: 2048, storageLimit: 100 * 1024 * 1024, batchJobsUsed: 10, batchJobsLimit: -1, resetDate: new Date() }
         },
         {
-          uid: 'free-user-demo',
-          email: 'free@test.com',
-          displayName: 'Free Test User',
-          subscriptionPlan: 'free',
-          creditsBalance: 5.0,
-          usage: { translationsUsed: 3, translationsLimit: 10, storageUsed: 512, storageLimit: 100 * 1024 * 1024, batchJobsUsed: 0, batchJobsLimit: 0, resetDate: new Date() }
+          uid: 'new-user-demo',
+          email: 'newbie@test.com',
+          displayName: 'New User',
+          creditsBalance: 200.0,
+          creditsTotalPurchased: 200.0,
+          usage: { translationsUsed: 3, translationsLimit: -1, storageUsed: 512, storageLimit: 100 * 1024 * 1024, batchJobsUsed: 0, batchJobsLimit: -1, resetDate: new Date() }
         }
       ]
 

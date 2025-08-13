@@ -238,8 +238,8 @@ export function useAuthProvider(): AuthContextType {
         const existingUser = await UserService.getUser(result.user.uid)
 
         if (!existingUser) {
-          // Create new user with full profile
-          console.log('👤 Creating new Google user in Firestore')
+          // Create new user with full profile and welcome credits
+          console.log('👤 Creating new Google user in Firestore with 200 welcome credits')
           await UserService.createUser(
             result.user.uid,
             result.user.email!,

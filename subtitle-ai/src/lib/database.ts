@@ -54,15 +54,15 @@ export class UserService {
       emailVerified: false,
       usage: {
         translationsUsed: 0,
-        translationsLimit: 10, // Free plan limit
+        translationsLimit: -1, // Unlimited with credits
         storageUsed: 0,
         storageLimit: 100 * 1024 * 1024, // 100MB
         batchJobsUsed: 0,
-        batchJobsLimit: 0, // No batch for free
+        batchJobsLimit: -1, // Unlimited with credits
         resetDate: serverTimestamp() as Timestamp
       },
-      creditsBalance: 0,
-      creditsTotalPurchased: 0,
+      creditsBalance: 200, // Welcome credits for new users
+      creditsTotalPurchased: 200,
       preferences: {
         defaultAiService: 'google',
         emailNotifications: true,
@@ -153,10 +153,12 @@ export class UserService {
       updatedAt: serverTimestamp()
     }
 
-    // Only set createdAt for new users
+    // Only set createdAt and welcome credits for new users
     if (!existingUser) {
       updateData.createdAt = serverTimestamp()
-      console.log('👤 Setting createdAt for new user')
+      updateData.creditsBalance = 200 // Welcome credits
+      updateData.creditsTotalPurchased = 200
+      console.log('👤 Setting createdAt and 200 welcome credits for new user')
     }
 
     await setDoc(doc(db, COLLECTIONS.USERS, uid), updateData, { merge: true })

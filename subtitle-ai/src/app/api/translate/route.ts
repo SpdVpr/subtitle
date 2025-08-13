@@ -37,17 +37,18 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Check user limits (skip for demo user)
+    // Check user credits
     let user = null
     if (userId && userId.endsWith('-user-demo')) {
-      // Create mock user for any demo account (free/pro/premium)
+      // Create mock user for any demo account
       user = {
         uid: userId,
-        email: userId.includes('premium') ? 'premium@test.com' : userId.includes('pro') ? 'pro@test.com' : 'free@test.com',
-        displayName: userId.includes('premium') ? 'Premium Test User' : userId.includes('pro') ? 'Pro Test User' : 'Free Test User',
+        email: userId.includes('active') ? 'active@test.com' : userId.includes('power') ? 'power@test.com' : 'newbie@test.com',
+        displayName: userId.includes('active') ? 'Active User' : userId.includes('power') ? 'Power User' : 'New User',
+        creditsBalance: userId.includes('active') ? 150 : userId.includes('power') ? 75 : 200,
         usage: {
           translationsUsed: 0,
-          translationsLimit: userId.includes('premium') ? 1000 : userId.includes('pro') ? 200 : 10,
+          translationsLimit: -1, // Unlimited with credits
           batchJobsUsed: 0,
           batchJobsLimit: userId.includes('premium') ? 10 : userId.includes('pro') ? 5 : 0
         }
@@ -61,9 +62,13 @@ export async function POST(req: NextRequest) {
         )
       }
 
-      if (user.usage.translationsUsed >= user.usage.translationsLimit) {
+      // Check credits instead of translation limits
+      const creditsBalance = (user as any).creditsBalance || 0
+      const requiredCredits = aiServiceRaw === 'premium' ? 0.2 : 0.1 // Estimate per batch
+
+      if (creditsBalance < requiredCredits) {
         return NextResponse.json(
-          { error: 'Translation limit exceeded' },
+          { error: 'Insufficient credits. Please buy more credits to continue.' },
           { status: 429 }
         )
       }
@@ -97,7 +102,35 @@ export async function POST(req: NextRequest) {
           }
 
           const translatedChunks: string[][] = []
+          let totalCreditsUsed = 0
+
           for (const chunk of textChunks) {
+            // Charge 0.1 credits per chunk (approximately 20 lines)
+            const chunkCredits = 0.1
+
+            // Check credits before processing each chunk
+            if (!userId.endsWith('-user-demo')) {
+              const currentUser = await UserService.getUser(userId)
+              const currentBalance = (currentUser as any)?.creditsBalance || 0
+
+              if (currentBalance < chunkCredits) {
+                return NextResponse.json(
+                  { error: 'Insufficient credits during translation. Please buy more credits.' },
+                  { status: 429 }
+                )
+              }
+
+              // Deduct credits
+              await UserService.adjustCredits(
+                userId,
+                -chunkCredits,
+                `Standard translation chunk ${translatedChunks.length + 1}/${textChunks.length}`,
+                undefined,
+                translatedChunks.length + 1
+              )
+              totalCreditsUsed += chunkCredits
+            }
+
             const translatedChunk = await translationService.translate(
               chunk,
               targetLanguage,
@@ -122,6 +155,7 @@ export async function POST(req: NextRequest) {
             translatedFileName,
             subtitleCount: subtitleEntries.length,
             characterCount: translatedContent.length,
+            creditsUsed: totalCreditsUsed,
           })
         }
       } catch (inlineErr) {
