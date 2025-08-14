@@ -1,4 +1,4 @@
-import { TranslationInterface } from '@/components/translation/translation-interface'
+// import { TranslationInterface } from '@/components/translation/translation-interface'
 
 export default function TranslatePage() {
   return (
@@ -11,7 +11,15 @@ export default function TranslatePage() {
           </p>
         </div>
 
-        <TranslationInterface />
+        <div className="p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
+          <h2 className="text-xl font-semibold mb-4">Translation Interface Temporarily Disabled</h2>
+          <p className="text-gray-600 mb-4">Testing navigation without TranslationInterface component</p>
+          <p className="text-sm text-gray-500">
+            If navigation works now, the problem is in TranslationInterface component
+          </p>
+        </div>
+
+        {/* <TranslationInterface /> */}
       </div>
     </div>
   )
