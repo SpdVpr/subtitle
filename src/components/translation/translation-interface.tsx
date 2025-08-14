@@ -17,7 +17,8 @@ import { TranslationJobService } from '@/lib/database'
 import { Download, Crown, AlertCircle, Eye } from 'lucide-react'
 
 export function TranslationInterface() {
-  const { user } = useAuth()
+  // const { user } = useAuth()
+  const user = null // Mock user as null for testing
   const router = useRouter()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [sourceLanguage, setSourceLanguage] = useState<string>('')
@@ -29,74 +30,74 @@ export function TranslationInterface() {
   const [subtitleCount, setSubtitleCount] = useState<number | null>(null)
   const [refreshCredits, setRefreshCredits] = useState<(() => void) | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
-  const {
-    progress: translationProgress,
-    startProgress,
-    updateProgress,
-    completeProgress,
-    errorProgress,
-    resetProgress,
-    setProgress
-  } = useTranslationProgress()
+  // const {
+  //   progress: translationProgress,
+  //   startProgress,
+  //   updateProgress,
+  //   completeProgress,
+  //   errorProgress,
+  //   resetProgress,
+  //   setProgress
+  // } = useTranslationProgress()
 
-  // Show progress in browser tab title when translating - SIMPLIFIED to avoid navigation blocking
+  // Mock translation progress for testing
+  const translationProgress = { isActive: false, progress: 0, stage: 'initializing' as const }
+  const startProgress = () => {}
+  const updateProgress = () => {}
+  const completeProgress = () => {}
+  const errorProgress = () => {}
+  const resetProgress = () => {}
+  const setProgress = () => {}
+
+  // ALL useEffect hooks temporarily disabled for navigation testing
   const originalTitleRef = useRef<string>('')
-  useEffect(() => {
-    if (!originalTitleRef.current) originalTitleRef.current = document.title
-  }, [])
 
-  // Separate effect for title updates to avoid frequent re-renders
-  useEffect(() => {
-    if (translationProgress.isActive) {
-      const pct = translationProgress.progress || 0
-      document.title = `${Math.max(0, Math.min(100, Math.round(pct)))}% • SubtitleAI`
-    } else if (translationResult?.status === 'completed') {
-      document.title = '✅ Done • SubtitleAI'
-      // Restore original title after delay
-      const timer = setTimeout(() => {
-        document.title = originalTitleRef.current || 'SubtitleAI'
-      }, 3000)
-      return () => clearTimeout(timer)
-    } else {
-      document.title = originalTitleRef.current || 'SubtitleAI'
-    }
-  }, [translationProgress.isActive, translationProgress.progress, translationResult?.status])
+  // useEffect(() => {
+  //   if (!originalTitleRef.current) originalTitleRef.current = document.title
+  // }, [])
 
-  // Separate effect for notifications to avoid blocking
-  useEffect(() => {
-    if (translationResult?.status === 'completed' && notifyOnComplete && selectedFile) {
-      if ('Notification' in window) {
-        Notification.requestPermission().then((perm) => {
-          if (perm === 'granted') {
-            new Notification('Překlad dokončen', {
-              body: `${selectedFile.name} je připraven`,
-            })
-          }
-        })
-      }
-    }
-  }, [translationResult?.status, notifyOnComplete, selectedFile])
+  // useEffect(() => {
+  //   if (translationProgress.isActive) {
+  //     const pct = translationProgress.progress || 0
+  //     document.title = `${Math.max(0, Math.min(100, Math.round(pct)))}% • SubtitleAI`
+  //   } else if (translationResult?.status === 'completed') {
+  //     document.title = '✅ Done • SubtitleAI'
+  //     const timer = setTimeout(() => {
+  //       document.title = originalTitleRef.current || 'SubtitleAI'
+  //     }, 3000)
+  //     return () => clearTimeout(timer)
+  //   } else {
+  //     document.title = originalTitleRef.current || 'SubtitleAI'
+  //   }
+  // }, [translationProgress.isActive, translationProgress.progress, translationResult?.status])
 
-  // Cleanup blob URLs on unmount
-  useEffect(() => {
-    return () => {
-      if (translationResult?.downloadUrl && translationResult.downloadUrl.startsWith('blob:')) {
-        try {
-          URL.revokeObjectURL(translationResult.downloadUrl)
-        } catch (error) {
-          console.warn('Failed to cleanup blob URL on unmount:', error)
-        }
-      }
-    }
-  }, [translationResult?.downloadUrl])
+  // useEffect(() => {
+  //   if (translationResult?.status === 'completed' && notifyOnComplete && selectedFile) {
+  //     if ('Notification' in window) {
+  //       Notification.requestPermission().then((perm) => {
+  //         if (perm === 'granted') {
+  //           new Notification('Překlad dokončen', {
+  //             body: `${selectedFile.name} je připraven`,
+  //           })
+  //         }
+  //       })
+  //     }
+  //   }
+  // }, [translationResult?.status, notifyOnComplete, selectedFile])
 
-  // Simple mount/unmount logging
-  useEffect(() => {
-    console.log('TranslationInterface mounted')
-    return () => {
-      console.log('TranslationInterface unmounted')
-    }
-  }, [])
+  // useEffect(() => {
+  //   return () => {
+  //     if (translationResult?.downloadUrl && translationResult.downloadUrl.startsWith('blob:')) {
+  //       try {
+  //         URL.revokeObjectURL(translationResult.downloadUrl)
+  //       } catch (error) {
+  //         console.warn('Failed to cleanup blob URL on unmount:', error)
+  //       }
+  //     }
+  //   }
+  // }, [translationResult?.downloadUrl])
+
+  console.log('TranslationInterface mounted - useEffect disabled for testing')
 
 
 
@@ -135,15 +136,15 @@ export function TranslationInterface() {
     resetProgress()
   }
 
-  // Recalculate cost when subtitle count changes (premium service only)
-  useEffect(() => {
-    if (selectedFile && subtitleCount) {
-      const chunksNeeded = Math.ceil(subtitleCount / 20)
-      const costPerChunk = 0.4 // Premium AI service rate
-      const estimated = chunksNeeded * costPerChunk
-      setEstimatedCost(estimated)
-    }
-  }, [subtitleCount])
+  // Recalculate cost when subtitle count changes (premium service only) - DISABLED FOR TESTING
+  // useEffect(() => {
+  //   if (selectedFile && subtitleCount) {
+  //     const chunksNeeded = Math.ceil(subtitleCount / 20)
+  //     const costPerChunk = 0.4 // Premium AI service rate
+  //     const estimated = chunksNeeded * costPerChunk
+  //     setEstimatedCost(estimated)
+  //   }
+  // }, [subtitleCount])
 
   const handleTranslate = async () => {
     if (!selectedFile || !targetLanguage) return
