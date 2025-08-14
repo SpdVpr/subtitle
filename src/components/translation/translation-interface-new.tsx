@@ -1,7 +1,10 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
+
 export function TranslationInterface() {
-  console.log('TranslationInterface rendering - MINIMAL VERSION FOR TESTING')
+  const router = useRouter()
+  console.log('TranslationInterface rendering - TESTING WITH useRouter')
   
   return (
     <div className="p-8 border-2 border-blue-500 rounded-lg">
