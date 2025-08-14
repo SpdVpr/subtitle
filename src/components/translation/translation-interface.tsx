@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileUpload } from './file-upload'
+// import { FileUpload } from './file-upload'
 import { LanguageSelector } from './language-selector'
 import { ContextualTranslationProgress } from './contextual-translation-progress'
 import { ErrorBoundary } from '../common/ErrorBoundary'
@@ -540,11 +540,20 @@ export function TranslationInterface() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <FileUpload
-            onFileSelect={handleFileSelect}
-            onFileRemove={handleFileRemove}
-            selectedFile={selectedFile}
-          />
+          <div className="p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
+            <h3 className="text-lg font-semibold mb-2">FileUpload Temporarily Disabled</h3>
+            <p className="text-gray-600 text-sm">Testing if FileUpload component blocks navigation</p>
+            <Button
+              onClick={() => {
+                // Simulate file selection for testing
+                const mockFile = new File(['test content'], 'test.srt', { type: 'text/plain' })
+                handleFileSelect(mockFile)
+              }}
+              className="mt-4"
+            >
+              Simulate File Selection (for testing)
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
