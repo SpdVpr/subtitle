@@ -13,6 +13,30 @@ export function Header() {
   const { user, signOut, loading } = useAuth()
   const router = useRouter()
 
+  // Enhanced navigation function with fallback
+  const navigateTo = (path: string, linkName: string) => {
+    console.log(`${linkName} clicked - attempting navigation to:`, path)
+    console.log('Current URL before navigation:', window.location.href)
+
+    try {
+      router.push(path)
+      console.log('router.push() called successfully')
+
+      // Check if navigation worked after a short delay
+      setTimeout(() => {
+        console.log('URL after router.push():', window.location.href)
+        if (window.location.pathname !== path) {
+          console.log('router.push() failed, using window.location.href as fallback')
+          window.location.href = path
+        }
+      }, 100)
+    } catch (error) {
+      console.error('router.push() failed with error:', error)
+      console.log('Using window.location.href as fallback')
+      window.location.href = path
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
@@ -31,8 +55,7 @@ export function Header() {
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
               onClick={(e) => {
                 e.preventDefault()
-                console.log('Home link clicked - using router.push')
-                router.push('/')
+                navigateTo('/', 'Home link')
               }}
             >
               Home
@@ -42,8 +65,7 @@ export function Header() {
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
               onClick={(e) => {
                 e.preventDefault()
-                console.log('Translate link clicked - using router.push')
-                router.push('/translate')
+                navigateTo('/translate', 'Translate link')
               }}
             >
               Translate
@@ -53,8 +75,7 @@ export function Header() {
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
               onClick={(e) => {
                 e.preventDefault()
-                console.log('Find Subtitles link clicked - using router.push')
-                router.push('/subtitles-search')
+                navigateTo('/subtitles-search', 'Find Subtitles link')
               }}
             >
               Find Subtitles
@@ -65,8 +86,7 @@ export function Header() {
                 className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
                 onClick={(e) => {
                   e.preventDefault()
-                  console.log('Batch link clicked - using router.push')
-                  router.push('/batch')
+                  navigateTo('/batch', 'Batch link')
                 }}
               >
                 Batch
@@ -101,8 +121,7 @@ export function Header() {
                   size="sm"
                   className="hidden sm:inline-flex"
                   onClick={(e) => {
-                    console.log('Dashboard button clicked - using router.push')
-                    router.push('/dashboard')
+                    navigateTo('/dashboard', 'Dashboard button')
                   }}
                 >
                   Dashboard
@@ -113,8 +132,7 @@ export function Header() {
                     size="sm"
                     className="hidden lg:inline-flex"
                     onClick={(e) => {
-                      console.log('Analytics button clicked - using router.push')
-                      router.push('/analytics')
+                      navigateTo('/analytics', 'Analytics button')
                     }}
                   >
                     Analytics
@@ -130,8 +148,7 @@ export function Header() {
                   variant="ghost"
                   size="sm"
                   onClick={(e) => {
-                    console.log('Sign In button clicked - using router.push')
-                    router.push('/login')
+                    navigateTo('/login', 'Sign In button')
                   }}
                 >
                   Sign In
@@ -139,8 +156,7 @@ export function Header() {
                 <Button
                   size="sm"
                   onClick={(e) => {
-                    console.log('Get Started button clicked - using router.push')
-                    router.push('/register')
+                    navigateTo('/register', 'Get Started button')
                   }}
                 >
                   Get Started
