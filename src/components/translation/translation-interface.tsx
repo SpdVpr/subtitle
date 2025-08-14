@@ -39,33 +39,43 @@ export function TranslationInterface() {
     setProgress
   } = useTranslationProgress()
 
-  // Show progress in browser tab title when translating
+  // Show progress in browser tab title when translating - SIMPLIFIED to avoid navigation blocking
   const originalTitleRef = useRef<string>('')
   useEffect(() => {
     if (!originalTitleRef.current) originalTitleRef.current = document.title
-    const isActive = translationProgress.isActive || (translationResult?.status === 'processing')
-    if (isActive) {
-      const pct = translationProgress.progress || translationResult?.progress || 0
+  }, [])
+
+  // Separate effect for title updates to avoid frequent re-renders
+  useEffect(() => {
+    if (translationProgress.isActive) {
+      const pct = translationProgress.progress || 0
       document.title = `${Math.max(0, Math.min(100, Math.round(pct)))}% • SubtitleAI`
     } else if (translationResult?.status === 'completed') {
       document.title = '✅ Done • SubtitleAI'
-      if (notifyOnComplete && 'Notification' in window) {
+      // Restore original title after delay
+      const timer = setTimeout(() => {
+        document.title = originalTitleRef.current || 'SubtitleAI'
+      }, 3000)
+      return () => clearTimeout(timer)
+    } else {
+      document.title = originalTitleRef.current || 'SubtitleAI'
+    }
+  }, [translationProgress.isActive, translationProgress.progress, translationResult?.status])
+
+  // Separate effect for notifications to avoid blocking
+  useEffect(() => {
+    if (translationResult?.status === 'completed' && notifyOnComplete && selectedFile) {
+      if ('Notification' in window) {
         Notification.requestPermission().then((perm) => {
           if (perm === 'granted') {
             new Notification('Překlad dokončen', {
-              body: selectedFile ? `${selectedFile.name} je připraven` : 'Soubor je připraven',
+              body: `${selectedFile.name} je připraven`,
             })
           }
         })
       }
-      // Small delay then restore
-      const t = setTimeout(() => { document.title = originalTitleRef.current }, 2000)
-      return () => clearTimeout(t)
-    } else {
-      document.title = originalTitleRef.current
     }
-    return () => { /* no-op */ }
-  }, [translationProgress.isActive, translationProgress.progress, translationResult?.status, translationResult?.progress, notifyOnComplete, selectedFile])
+  }, [translationResult?.status, notifyOnComplete, selectedFile])
 
   // Cleanup blob URLs on unmount
   useEffect(() => {
@@ -80,47 +90,15 @@ export function TranslationInterface() {
     }
   }, [translationResult?.downloadUrl])
 
-  // Clear navigation blockers and debug navigation issues
+  // Simple mount/unmount logging
   useEffect(() => {
     console.log('TranslationInterface mounted')
-
-    // Clear any potential navigation blockers
-    const clearNavigationBlockers = () => {
-      // Clear all beforeunload listeners
-      window.onbeforeunload = null
-
-      console.log('Navigation blockers cleared in TranslationInterface')
-    }
-
-    clearNavigationBlockers()
-
-    // Test navigation capability
-    const testNavigation = () => {
-      console.log('Testing navigation capability...')
-      console.log('Current URL:', window.location.href)
-      console.log('Router available:', !!router)
-    }
-
-    testNavigation()
-
     return () => {
       console.log('TranslationInterface unmounted')
-      // Clear blockers on unmount too
-      window.onbeforeunload = null
     }
-  }, [router])
+  }, [])
 
-  // Force navigation function for testing
-  const forceNavigate = (path: string) => {
-    console.log('Force navigating to:', path)
-    try {
-      router.push(path)
-    } catch (error) {
-      console.error('Router.push failed:', error)
-      // Fallback to window.location
-      window.location.href = path
-    }
-  }
+
 
   // Note: Removed beforeunload listener as it was causing navigation issues
   // Users can navigate freely, but we'll add a visual warning in the UI instead
@@ -519,57 +497,7 @@ export function TranslationInterface() {
 
   return (
     <div className="space-y-6">
-      {/* Debug Navigation Panel */}
-      <Card className="border-blue-500 bg-blue-50">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-blue-800 font-medium">Navigation Debug</span>
-            <div className="flex space-x-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => forceNavigate('/')}
-              >
-                Router Home
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => forceNavigate('/dashboard')}
-              >
-                Router Dashboard
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  console.log('Direct window.location to home')
-                  window.location.href = '/'
-                }}
-              >
-                Direct Home
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  console.log('Window.location.replace to dashboard')
-                  window.location.replace('/dashboard')
-                }}
-              >
-                Replace Dashboard
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => window.location.reload()}
-              >
-                Reload Page
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Translation in Progress Warning */}
       {(isTranslating || translationProgress.isActive) && (
