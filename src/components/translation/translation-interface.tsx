@@ -1,110 +1,20 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { SubtitleProcessor } from '@/lib/subtitle-processor'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-// import { FileUpload } from './file-upload'
-import { LanguageSelector } from './language-selector'
-import { ContextualTranslationProgress } from './contextual-translation-progress'
-import { ErrorBoundary } from '../common/ErrorBoundary'
-import { useTranslationProgress } from '@/hooks/use-translation-progress'
-import { TranslationResult } from '@/types/subtitle'
-import { useAuth } from '@/hooks/useAuth'
-import { CreditsDisplay } from '@/components/ui/credits-display'
-import { TranslationJobService } from '@/lib/database'
-import { Download, Crown, AlertCircle, Eye } from 'lucide-react'
-
 export function TranslationInterface() {
-  // const { user } = useAuth()
-  const user = null // Mock user as null for testing
-  const router = useRouter()
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [sourceLanguage, setSourceLanguage] = useState<string>('')
-  const [targetLanguage, setTargetLanguage] = useState<string>('')
-  const [isTranslating, setIsTranslating] = useState(false)
-  const [translationResult, setTranslationResult] = useState<TranslationResult | null>(null)
-  const [notifyOnComplete, setNotifyOnComplete] = useState<boolean>(false)
-  const [estimatedCost, setEstimatedCost] = useState<number | null>(null)
-  const [subtitleCount, setSubtitleCount] = useState<number | null>(null)
-  const [refreshCredits, setRefreshCredits] = useState<(() => void) | null>(null)
-  const [isCompleted, setIsCompleted] = useState(false)
-  // const {
-  //   progress: translationProgress,
-  //   startProgress,
-  //   updateProgress,
-  //   completeProgress,
-  //   errorProgress,
-  //   resetProgress,
-  //   setProgress
-  // } = useTranslationProgress()
+  console.log('TranslationInterface rendering - MINIMAL VERSION FOR TESTING')
 
-  // Mock translation progress for testing
-  const translationProgress = { isActive: false, progress: 0, stage: 'initializing' as const }
-  const startProgress = () => {}
-  const updateProgress = () => {}
-  const completeProgress = () => {}
-  const errorProgress = () => {}
-  const resetProgress = () => {}
-  const setProgress = () => {}
-
-  // ALL useEffect hooks temporarily disabled for navigation testing
-  const originalTitleRef = useRef<string>('')
-
-  // useEffect(() => {
-  //   if (!originalTitleRef.current) originalTitleRef.current = document.title
-  // }, [])
-
-  // useEffect(() => {
-  //   if (translationProgress.isActive) {
-  //     const pct = translationProgress.progress || 0
-  //     document.title = `${Math.max(0, Math.min(100, Math.round(pct)))}% • SubtitleAI`
-  //   } else if (translationResult?.status === 'completed') {
-  //     document.title = '✅ Done • SubtitleAI'
-  //     const timer = setTimeout(() => {
-  //       document.title = originalTitleRef.current || 'SubtitleAI'
-  //     }, 3000)
-  //     return () => clearTimeout(timer)
-  //   } else {
-  //     document.title = originalTitleRef.current || 'SubtitleAI'
-  //   }
-  // }, [translationProgress.isActive, translationProgress.progress, translationResult?.status])
-
-  // useEffect(() => {
-  //   if (translationResult?.status === 'completed' && notifyOnComplete && selectedFile) {
-  //     if ('Notification' in window) {
-  //       Notification.requestPermission().then((perm) => {
-  //         if (perm === 'granted') {
-  //           new Notification('Překlad dokončen', {
-  //             body: `${selectedFile.name} je připraven`,
-  //           })
-  //         }
-  //       })
-  //     }
-  //   }
-  // }, [translationResult?.status, notifyOnComplete, selectedFile])
-
-  // useEffect(() => {
-  //   return () => {
-  //     if (translationResult?.downloadUrl && translationResult.downloadUrl.startsWith('blob:')) {
-  //       try {
-  //         URL.revokeObjectURL(translationResult.downloadUrl)
-  //       } catch (error) {
-  //         console.warn('Failed to cleanup blob URL on unmount:', error)
-  //       }
-  //     }
-  //   }
-  // }, [translationResult?.downloadUrl])
-
-  console.log('TranslationInterface mounted - useEffect disabled for testing')
-
-
-
-  // Note: Removed beforeunload listener as it was causing navigation issues
-  // Users can navigate freely, but we'll add a visual warning in the UI instead
-
-  const handleFileSelect = async (file: File) => {
+  return (
+    <div className="p-8 border-2 border-blue-500 rounded-lg">
+      <h2 className="text-xl font-bold mb-4">Minimal TranslationInterface</h2>
+      <p className="text-gray-600 mb-4">
+        Testing navigation with absolutely minimal component
+      </p>
+      <p className="text-sm text-gray-500">
+        If navigation works now, the problem is in the component logic/state/imports
+      </p>
+    </div>
+  )
+}
     setSelectedFile(file)
     setTranslationResult(null)
     resetProgress()
