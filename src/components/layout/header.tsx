@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import { isAdmin } from "@/lib/admin-auth"
@@ -11,31 +10,6 @@ import { CreditsDisplay } from "@/components/ui/credits-display"
 
 export function Header() {
   const { user, signOut, loading } = useAuth()
-  const router = useRouter()
-
-  // Enhanced navigation function with fallback
-  const navigateTo = (path: string, linkName: string) => {
-    console.log(`${linkName} clicked - attempting navigation to:`, path)
-    console.log('Current URL before navigation:', window.location.href)
-
-    try {
-      router.push(path)
-      console.log('router.push() called successfully')
-
-      // Check if navigation worked after a short delay
-      setTimeout(() => {
-        console.log('URL after router.push():', window.location.href)
-        if (window.location.pathname !== path) {
-          console.log('router.push() failed, using window.location.href as fallback')
-          window.location.href = path
-        }
-      }, 100)
-    } catch (error) {
-      console.error('router.push() failed with error:', error)
-      console.log('Using window.location.href as fallback')
-      window.location.href = path
-    }
-  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -53,30 +27,18 @@ export function Header() {
             <Link
               href="/"
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              onClick={(e) => {
-                e.preventDefault()
-                navigateTo('/', 'Home link')
-              }}
             >
               Home
             </Link>
             <Link
               href="/translate"
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              onClick={(e) => {
-                e.preventDefault()
-                navigateTo('/translate', 'Translate link')
-              }}
             >
               Translate
             </Link>
             <Link
               href="/subtitles-search"
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              onClick={(e) => {
-                e.preventDefault()
-                navigateTo('/subtitles-search', 'Find Subtitles link')
-              }}
             >
               Find Subtitles
             </Link>
@@ -84,10 +46,6 @@ export function Header() {
               <Link
                 href="/batch"
                 className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-                onClick={(e) => {
-                  e.preventDefault()
-                  navigateTo('/batch', 'Batch link')
-                }}
               >
                 Batch
               </Link>
@@ -116,26 +74,12 @@ export function Header() {
             ) : user ? (
               <div className="flex items-center space-x-3">
                 <CreditsDisplay showBuyButton={false} className="hidden sm:flex" />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hidden sm:inline-flex"
-                  onClick={(e) => {
-                    navigateTo('/dashboard', 'Dashboard button')
-                  }}
-                >
-                  Dashboard
+                <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+                  <Link href="/dashboard">Dashboard</Link>
                 </Button>
                 {user && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="hidden lg:inline-flex"
-                    onClick={(e) => {
-                      navigateTo('/analytics', 'Analytics button')
-                    }}
-                  >
-                    Analytics
+                  <Button variant="ghost" size="sm" asChild className="hidden lg:inline-flex">
+                    <Link href="/analytics">Analytics</Link>
                   </Button>
                 )}
                 <Button variant="outline" size="sm" onClick={() => signOut()}>
@@ -144,22 +88,11 @@ export function Header() {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    navigateTo('/login', 'Sign In button')
-                  }}
-                >
-                  Sign In
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/login">Sign In</Link>
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={(e) => {
-                    navigateTo('/register', 'Get Started button')
-                  }}
-                >
-                  Get Started
+                <Button size="sm" asChild>
+                  <Link href="/register">Get Started</Link>
                 </Button>
               </div>
             )}
