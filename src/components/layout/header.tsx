@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import { isAdmin } from "@/lib/admin-auth"
@@ -10,6 +11,7 @@ import { CreditsDisplay } from "@/components/ui/credits-display"
 
 export function Header() {
   const { user, signOut, loading } = useAuth()
+  const router = useRouter()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -28,8 +30,9 @@ export function Header() {
               href="/"
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
               onClick={(e) => {
-                console.log('Home link clicked')
-                // Don't prevent default - let Next.js handle it
+                e.preventDefault()
+                console.log('Home link clicked - using router.push')
+                router.push('/')
               }}
             >
               Home
@@ -38,8 +41,9 @@ export function Header() {
               href="/translate"
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
               onClick={(e) => {
-                console.log('Translate link clicked')
-                // Don't prevent default - let Next.js handle it
+                e.preventDefault()
+                console.log('Translate link clicked - using router.push')
+                router.push('/translate')
               }}
             >
               Translate
@@ -48,8 +52,9 @@ export function Header() {
               href="/subtitles-search"
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
               onClick={(e) => {
-                console.log('Find Subtitles link clicked')
-                // Don't prevent default - let Next.js handle it
+                e.preventDefault()
+                console.log('Find Subtitles link clicked - using router.push')
+                router.push('/subtitles-search')
               }}
             >
               Find Subtitles
@@ -59,8 +64,9 @@ export function Header() {
                 href="/batch"
                 className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
                 onClick={(e) => {
-                  console.log('Batch link clicked')
-                  // Don't prevent default - let Next.js handle it
+                  e.preventDefault()
+                  console.log('Batch link clicked - using router.push')
+                  router.push('/batch')
                 }}
               >
                 Batch
@@ -90,12 +96,28 @@ export function Header() {
             ) : user ? (
               <div className="flex items-center space-x-3">
                 <CreditsDisplay showBuyButton={false} className="hidden sm:flex" />
-                <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
-                  <Link href="/dashboard">Dashboard</Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hidden sm:inline-flex"
+                  onClick={(e) => {
+                    console.log('Dashboard button clicked - using router.push')
+                    router.push('/dashboard')
+                  }}
+                >
+                  Dashboard
                 </Button>
                 {user && (
-                  <Button variant="ghost" size="sm" asChild className="hidden lg:inline-flex">
-                    <Link href="/analytics">Analytics</Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hidden lg:inline-flex"
+                    onClick={(e) => {
+                      console.log('Analytics button clicked - using router.push')
+                      router.push('/analytics')
+                    }}
+                  >
+                    Analytics
                   </Button>
                 )}
                 <Button variant="outline" size="sm" onClick={() => signOut()}>
@@ -104,11 +126,24 @@ export function Header() {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/login">Sign In</Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    console.log('Sign In button clicked - using router.push')
+                    router.push('/login')
+                  }}
+                >
+                  Sign In
                 </Button>
-                <Button size="sm" asChild>
-                  <Link href="/register">Get Started</Link>
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    console.log('Get Started button clicked - using router.push')
+                    router.push('/register')
+                  }}
+                >
+                  Get Started
                 </Button>
               </div>
             )}
