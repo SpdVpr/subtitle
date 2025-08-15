@@ -79,80 +79,34 @@ export async function GET(req: NextRequest) {
 
     console.log('📅 Date range:', { startDateStr, endDateStr })
 
-    // Get analytics data
-    let analyticsEntries = []
+    // Get real data from translation jobs instead of analytics collection
+    let translationJobs = []
     try {
-      analyticsEntries = await AnalyticsService.getUserAnalytics(
-        userId,
-        startDateStr,
-        endDateStr
-      )
-      console.log('📊 Analytics entries found:', analyticsEntries.length)
+      const { TranslationJobService } = await import('@/lib/database-admin')
+      translationJobs = await TranslationJobService.getUserJobs(userId, 100)
+      console.log('📊 Translation jobs found:', translationJobs.length)
+
+      // Filter jobs by date range
+      const startTime = startDateObj.getTime()
+      const endTime = endDateObj.getTime()
+
+      translationJobs = translationJobs.filter(job => {
+        const jobDate = job.createdAt instanceof Date ? job.createdAt : new Date(job.createdAt)
+        const jobTime = jobDate.getTime()
+        return jobTime >= startTime && jobTime <= endTime
+      })
+
+      console.log('📊 Jobs in date range:', translationJobs.length)
     } catch (error) {
-      console.error('❌ Error fetching analytics:', error)
+      console.error('❌ Error fetching translation jobs:', error)
       // Continue with empty array for graceful fallback
     }
 
-    // If no analytics data and it's a demo user, provide sample data
-    if (analyticsEntries.length === 0 && (userId.includes('demo') || userId === 'premium-user-demo')) {
-      console.log('🧪 Providing demo analytics data')
-      return NextResponse.json({
-        period,
-        startDate: startDateStr,
-        endDate: endDateStr,
-        data: {
-          totalTranslations: 5,
-          totalFiles: 5,
-          totalSubtitles: 150,
-          averageProcessingTime: 2.5,
-          storageUsed: 1024 * 1024, // 1MB
-          successRate: 100,
-
-          translationsByLanguage: {
-            'Spanish': 2,
-            'French': 2,
-            'German': 1
-          },
-          translationsByService: {
-            'Premium AI': 5
-          },
-          dailyUsage: [
-            { date: new Date().toISOString().split('T')[0], translations: 2, files: 2, processingTime: 2.5 },
-            { date: new Date(Date.now() - 24*60*60*1000).toISOString().split('T')[0], translations: 1, files: 1, processingTime: 2.0 },
-            { date: new Date(Date.now() - 2*24*60*60*1000).toISOString().split('T')[0], translations: 2, files: 2, processingTime: 3.0 }
-          ],
-
-          topLanguages: [
-            { language: 'Spanish', count: 2, percentage: 40 },
-            { language: 'French', count: 2, percentage: 40 },
-            { language: 'German', count: 1, percentage: 20 }
-          ],
-
-          recentActivity: [
-            {
-              id: '1',
-              type: 'translation' as const,
-              description: 'Translated "demo_subtitles.srt" to Spanish',
-              timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-              status: 'success' as const
-            },
-            {
-              id: '2',
-              type: 'translation' as const,
-              description: 'Translated "sample.srt" to French',
-              timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-              status: 'success' as const
-            }
-          ]
-        }
-      })
-    }
-
-    // Aggregate data
+    // Aggregate data from translation jobs
     const aggregatedData = {
-      totalTranslations: 0,
-      totalFiles: 0,
-      totalSubtitles: 0,
+      totalTranslations: translationJobs.length,
+      totalFiles: translationJobs.length,
+      totalSubtitles: translationJobs.reduce((sum, job) => sum + (job.subtitleCount || 0), 0),
       averageProcessingTime: 0,
       storageUsed: user?.usage?.storageUsed || 0,
       successRate: 0,
@@ -183,38 +137,44 @@ export async function GET(req: NextRequest) {
 
     let totalProcessingTime = 0
     let totalErrors = 0
-    let totalOperations = 0
+    let totalOperations = translationJobs.length
+    const dailyUsageMap = new Map<string, { translations: number, files: number, processingTime: number }>()
 
-    // Process analytics entries
-    analyticsEntries.forEach(entry => {
-      aggregatedData.totalTranslations += entry.translationsCount
-      aggregatedData.totalFiles += entry.filesProcessed
-      aggregatedData.totalSubtitles += entry.charactersTranslated // Approximate
-      totalProcessingTime += entry.processingTimeMs
-      totalErrors += entry.errorCount
-      totalOperations += entry.translationsCount
+    // Process translation jobs
+    translationJobs.forEach(job => {
+      totalProcessingTime += job.processingTimeMs || 0
 
-      // Aggregate language pairs
-      Object.entries(entry.languagePairs).forEach(([pair, count]) => {
-        const targetLang = pair.split('-')[1]
-        aggregatedData.translationsByLanguage[targetLang] = 
-          (aggregatedData.translationsByLanguage[targetLang] || 0) + count
-      })
+      if (job.status === 'failed') {
+        totalErrors += 1
+      }
 
-      // Aggregate service usage
-      Object.entries(entry.serviceUsage).forEach(([service, count]) => {
-        aggregatedData.translationsByService[service] = 
-          (aggregatedData.translationsByService[service] || 0) + count
-      })
+      // Aggregate by target language
+      if (job.targetLanguage) {
+        aggregatedData.translationsByLanguage[job.targetLanguage] =
+          (aggregatedData.translationsByLanguage[job.targetLanguage] || 0) + 1
+      }
 
-      // Add to daily usage
-      aggregatedData.dailyUsage.push({
-        date: entry.date,
-        translations: entry.translationsCount,
-        files: entry.filesProcessed,
-        processingTime: entry.processingTimeMs
-      })
+      // Aggregate by service
+      const service = job.aiService === 'premium' ? 'Premium AI' : 'Google Translate'
+      aggregatedData.translationsByService[service] =
+        (aggregatedData.translationsByService[service] || 0) + 1
+
+      // Daily usage
+      const jobDate = job.createdAt instanceof Date ? job.createdAt : new Date(job.createdAt)
+      const dateStr = jobDate.toISOString().split('T')[0]
+
+      const existing = dailyUsageMap.get(dateStr) || { translations: 0, files: 0, processingTime: 0 }
+      existing.translations += 1
+      existing.files += 1
+      existing.processingTime += (job.processingTimeMs || 0) / 1000
+      dailyUsageMap.set(dateStr, existing)
     })
+
+    // Convert daily usage map to array
+    aggregatedData.dailyUsage = Array.from(dailyUsageMap.entries()).map(([date, data]) => ({
+      date,
+      ...data
+    }))
 
     // Calculate averages and percentages
     if (aggregatedData.totalTranslations > 0) {
@@ -239,23 +199,17 @@ export async function GET(req: NextRequest) {
     // Sort daily usage by date
     aggregatedData.dailyUsage.sort((a, b) => a.date.localeCompare(b.date))
 
-    // Mock recent activity (in a real app, this would come from a separate activity log)
-    aggregatedData.recentActivity = [
-      {
-        id: '1',
-        type: 'translation',
-        description: 'Translated "movie_subtitles.srt" to Spanish',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        status: 'success'
-      },
-      {
-        id: '2',
-        type: 'batch',
-        description: `Batch job completed (${Math.min(aggregatedData.totalFiles, 12)} files)`,
-        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-        status: 'success'
-      }
-    ]
+    // Recent activity from translation jobs
+    aggregatedData.recentActivity = translationJobs
+      .slice(0, 10) // Get latest 10 jobs
+      .map(job => ({
+        id: job.id || 'unknown',
+        type: 'translation' as const,
+        description: `Translated "${job.originalFileName}" to ${job.targetLanguage}`,
+        timestamp: job.createdAt instanceof Date ? job.createdAt : new Date(job.createdAt),
+        status: job.status === 'completed' ? 'success' as const :
+                job.status === 'failed' ? 'failed' as const : 'processing' as const
+      }))
 
     return NextResponse.json({
       period,
