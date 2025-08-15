@@ -90,30 +90,86 @@ interface Show {
   total_subtitles?: number
 }
 
-// TMDB image helper functions
-const getTMDBImageUrl = (tmdbId: number, type: 'movie' | 'tv', size: 'w300' | 'w500' = 'w300') => {
-  if (!tmdbId) return null
-  const baseUrl = 'https://image.tmdb.org/t/p/'
-  // For now, we'll use a placeholder approach since we don't have TMDB API key
-  // In production, you'd fetch the actual poster_path from TMDB API
-  return `${baseUrl}${size}/placeholder.jpg` // This would be the actual poster_path
-}
-
-// Fallback image component
-const TMDBImage = ({ tmdbId, type, title, className }: {
+// Enhanced TMDB image component with real API integration
+const TMDBImage = ({ tmdbId, type, title, year, className }: {
   tmdbId: number,
   type: 'movie' | 'tv',
   title: string,
+  year?: number,
   className?: string
 }) => {
-  // For demo purposes, we'll show a placeholder
-  // In production, you'd implement proper TMDB API integration
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    const fetchTMDBImage = async () => {
+      if (!tmdbId) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        // Use TMDB API to get poster image
+        const response = await fetch(`/api/tmdb/${type}/${tmdbId}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.poster_path) {
+            setImageUrl(`https://image.tmdb.org/t/p/w300${data.poster_path}`)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch TMDB image:', err)
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTMDBImage()
+  }, [tmdbId, type])
+
+  if (loading) {
+    return (
+      <div className={`bg-gray-200 rounded-lg flex items-center justify-center animate-pulse ${className}`}>
+        <div className="text-center p-2">
+          <div className="h-8 w-8 bg-gray-300 rounded mx-auto mb-1"></div>
+          <div className="h-2 w-12 bg-gray-300 rounded mb-1"></div>
+          <div className="h-2 w-16 bg-gray-300 rounded"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (imageUrl && !error) {
+    return (
+      <div className={`rounded-lg overflow-hidden shadow-md ${className}`}>
+        <img
+          src={imageUrl}
+          alt={`${title} poster`}
+          className="w-full h-full object-cover"
+          onError={() => setError(true)}
+        />
+      </div>
+    )
+  }
+
+  // Fallback placeholder with better design
   return (
-    <div className={`bg-gray-200 rounded-lg flex items-center justify-center ${className}`}>
+    <div className={`bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 ${className}`}>
       <div className="text-center p-2">
-        <Image className="h-8 w-8 text-gray-400 mx-auto mb-1" />
-        <div className="text-xs text-gray-500 font-medium">{type === 'movie' ? 'Movie' : 'TV'}</div>
-        <div className="text-xs text-gray-400 truncate max-w-[80px]">{title}</div>
+        {type === 'movie' ? (
+          <Film className="h-8 w-8 text-blue-500 mx-auto mb-1" />
+        ) : (
+          <Tv className="h-8 w-8 text-purple-500 mx-auto mb-1" />
+        )}
+        <div className="text-xs text-gray-600 font-medium">{type === 'movie' ? 'Movie' : 'TV Series'}</div>
+        <div className="text-xs text-gray-500 truncate max-w-[80px]" title={title}>
+          {title}
+        </div>
+        {year && (
+          <div className="text-xs text-gray-400">({year})</div>
+        )}
       </div>
     </div>
   )
@@ -150,6 +206,10 @@ export function HierarchicalSubtitleSearch() {
   const [expandedShows, setExpandedShows] = useState<Set<string>>(new Set())
   const [expandedSeasons, setExpandedSeasons] = useState<Set<string>>(new Set())
   const [showEpisodes, setShowEpisodes] = useState<Map<string, Show>>(new Map()) // Store detailed episode data
+  const [includeAI, setIncludeAI] = useState(false)
+  const [trustedOnly, setTrustedOnly] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
 
   console.log('🔧 Component state:', { query, loading, shows: shows.length, totalCount })
 
@@ -330,17 +390,30 @@ export function HierarchicalSubtitleSearch() {
 
     console.log('🔍 HierarchicalSubtitleSearch: Starting search for:', query)
     setLoading(true)
+    setCurrentPage(1)
+
     try {
       const params = new URLSearchParams({
         query: query.trim(),
         languages: language,
-        per_page: '100', // Get more results for better grouping
-        type: 'episode' // Default to episode to get TV series
+        per_page: '200', // Get more results for better coverage
       })
 
-      // Override type if specifically requested
-      if (type && type !== 'all') params.set('type', type)
+      // Add type filter only if specifically requested (not 'all')
+      if (type && type !== 'all') {
+        params.set('type', type)
+      }
+
+      // Add additional filters
       if (year) params.set('year', year)
+      if (trustedOnly) params.set('trusted_sources', 'only')
+      if (!includeAI) {
+        params.set('ai_translated', 'exclude')
+        params.set('machine_translated', 'exclude')
+      }
+
+      // Add page parameter
+      params.set('page', currentPage.toString())
 
       const response = await fetch(`/api/opensubtitles/search?${params}`)
 
@@ -465,13 +538,42 @@ export function HierarchicalSubtitleSearch() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex space-x-4">
+
+          {/* Advanced Search Options */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Input
               placeholder="Year (optional)"
               value={year}
               onChange={(e) => setYear(e.target.value)}
               className="max-w-32"
             />
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="includeAI"
+                checked={includeAI}
+                onChange={(e) => setIncludeAI(e.target.checked)}
+                className="rounded"
+              />
+              <label htmlFor="includeAI" className="text-sm text-gray-700">
+                Include AI/Machine translated
+              </label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="trustedOnly"
+                checked={trustedOnly}
+                onChange={(e) => setTrustedOnly(e.target.checked)}
+                className="rounded"
+              />
+              <label htmlFor="trustedOnly" className="text-sm text-gray-700">
+                Trusted sources only
+              </label>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center">
             <Button onClick={() => {
               console.log('🔘 Search button clicked')
               handleSearch()
@@ -500,35 +602,78 @@ export function HierarchicalSubtitleSearch() {
               const isExpanded = expandedShows.has(showKey)
 
               return (
-                <Card key={showKey} className="overflow-hidden">
+                <Card key={showKey} className="overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-l-blue-500">
                   <Collapsible open={isExpanded} onOpenChange={() => toggleShow(showKey, show)}>
                     <CollapsibleTrigger asChild>
-                      <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            {/* TMDB Thumbnail */}
-                            <TMDBImage
-                              tmdbId={show.tmdb_id}
-                              type={show.feature_type === 'Movie' ? 'movie' : 'tv'}
-                              title={show.title}
-                              className="w-16 h-24 flex-shrink-0"
-                            />
-                            <div className="flex items-center space-x-2">
-                              {show.feature_type === 'Movie' ? (
-                                <Film className="h-5 w-5 text-blue-600" />
-                              ) : (
-                                <Tv className="h-5 w-5 text-green-600" />
-                              )}
-                              <div>
-                                <CardTitle className="text-left">{show.title}</CardTitle>
-                                <CardDescription>
-                                  {show.feature_type} ({show.year})
+                      <CardHeader className="cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-300 p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start space-x-4">
+                            {/* Enhanced TMDB Thumbnail */}
+                            <div className="relative">
+                              <TMDBImage
+                                tmdbId={show.tmdb_id}
+                                type={show.feature_type === 'Movie' ? 'movie' : 'tv'}
+                                title={show.title}
+                                year={show.year}
+                                className="w-20 h-30 flex-shrink-0 shadow-md"
+                              />
+                              {/* Media type badge */}
+                              <div className="absolute -top-2 -right-2">
+                                {show.feature_type === 'Movie' ? (
+                                  <div className="bg-blue-500 text-white p-1 rounded-full shadow-lg">
+                                    <Film className="h-3 w-3" />
+                                  </div>
+                                ) : (
+                                  <div className="bg-green-500 text-white p-1 rounded-full shadow-lg">
+                                    <Tv className="h-3 w-3" />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <CardTitle className="text-xl font-bold text-gray-900 truncate">
+                                  {show.title}
+                                </CardTitle>
+                                <Badge variant="secondary" className="text-xs">
+                                  {show.year}
+                                </Badge>
+                              </div>
+
+                              <CardDescription className="text-sm text-gray-600 mb-3">
+                                <div className="flex items-center space-x-4">
+                                  <span className="font-medium">
+                                    {show.feature_type === 'Movie' ? '🎬 Movie' : '📺 TV Series'}
+                                  </span>
                                   {show.tmdb_id && (
-                                    <span className="ml-2 text-xs text-gray-400">
+                                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">
                                       TMDB: {show.tmdb_id}
                                     </span>
                                   )}
-                                </CardDescription>
+                                  {show.imdb_id && (
+                                    <span className="text-xs bg-yellow-100 px-2 py-1 rounded">
+                                      IMDb: {show.imdb_id}
+                                    </span>
+                                  )}
+                                </div>
+                              </CardDescription>
+
+                              {/* Subtitle count and quality indicators */}
+                              <div className="flex items-center space-x-3 text-sm">
+                                <Badge variant="outline" className="bg-blue-50">
+                                  {show.subtitles.length} subtitle{show.subtitles.length !== 1 ? 's' : ''}
+                                </Badge>
+                                {show.subtitles.some(s => s.from_trusted) && (
+                                  <Badge variant="outline" className="bg-green-50 text-green-700">
+                                    ✓ Trusted
+                                  </Badge>
+                                )}
+                                {show.subtitles.some(s => s.hd) && (
+                                  <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                                    HD
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                           </div>
