@@ -354,7 +354,7 @@ export function BatchTranslationInterface() {
           <CardContent>
             <LanguageSelector
               value={targetLanguage}
-              onChange={setTargetLanguage}
+              onValueChange={setTargetLanguage}
               placeholder="Select target language"
             />
           </CardContent>
