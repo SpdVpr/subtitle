@@ -72,7 +72,7 @@ export function AnalyticsDashboard() {
 
     try {
       // Fetch real analytics data from API
-      const response = await fetch(`/api/analytics-simple?userId=${user.uid}&period=${period}`)
+      const response = await fetch(`/api/analytics?userId=${user.uid}&period=${period}`)
       if (!response.ok) {
         throw new Error('Failed to fetch analytics data')
       }

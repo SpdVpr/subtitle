@@ -37,8 +37,8 @@ export default function DashboardPage() {
       if (!user) return
 
       try {
-        // Fetch analytics data for current month (using simple endpoint for testing)
-        const response = await fetch(`/api/analytics-simple?userId=${user.uid}&period=month`)
+        // Fetch analytics data for current month
+        const response = await fetch(`/api/analytics?userId=${user.uid}&period=month`)
         if (response.ok) {
           const result = await response.json()
           setDashboardStats({
