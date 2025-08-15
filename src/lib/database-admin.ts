@@ -28,9 +28,70 @@ export class UserService {
     try {
       const db = getAdminDb()
       const userDoc = await db.collection(COLLECTIONS.USERS).doc(uid).get()
-      return userDoc.exists ? userDoc.data() as UserProfile : null
+
+      if (!userDoc.exists) {
+        // For demo users in development, create a mock user
+        if (process.env.NODE_ENV === 'development' && (uid.includes('demo') || uid === 'premium-user-demo')) {
+          console.log('🧪 Creating mock user for development:', uid)
+          return {
+            uid: uid,
+            email: uid.includes('premium') ? 'premium@test.com' : 'demo@test.com',
+            displayName: uid.includes('premium') ? 'Premium Demo User' : 'Demo User',
+            creditsBalance: 1000,
+            creditsTotalPurchased: 1000,
+            usage: {
+              translationsUsed: 0,
+              translationsLimit: -1,
+              storageUsed: 0,
+              storageLimit: 100 * 1024 * 1024,
+              batchJobsUsed: 0,
+              batchJobsLimit: -1,
+              resetDate: new Date()
+            },
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            emailVerified: true,
+            preferences: {
+              defaultAiService: 'premium',
+              emailNotifications: false
+            }
+          } as UserProfile
+        }
+        return null
+      }
+
+      return userDoc.data() as UserProfile
     } catch (error) {
       console.error('❌ Error getting user:', error)
+
+      // For demo users in development, return mock user even on error
+      if (process.env.NODE_ENV === 'development' && (uid.includes('demo') || uid === 'premium-user-demo')) {
+        console.log('🧪 Returning mock user due to database error:', uid)
+        return {
+          uid: uid,
+          email: uid.includes('premium') ? 'premium@test.com' : 'demo@test.com',
+          displayName: uid.includes('premium') ? 'Premium Demo User' : 'Demo User',
+          creditsBalance: 1000,
+          creditsTotalPurchased: 1000,
+          usage: {
+            translationsUsed: 0,
+            translationsLimit: -1,
+            storageUsed: 0,
+            storageLimit: 100 * 1024 * 1024,
+            batchJobsUsed: 0,
+            batchJobsLimit: -1,
+            resetDate: new Date()
+          },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          emailVerified: true,
+          preferences: {
+            defaultAiService: 'premium',
+            emailNotifications: false
+          }
+        } as UserProfile
+      }
+
       throw error
     }
   }

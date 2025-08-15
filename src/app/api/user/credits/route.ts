@@ -17,11 +17,14 @@ export async function GET(request: NextRequest) {
     const user = await UserService.getUser(userId)
     
     if (!user) {
-      // Graceful fallback for demo/unknown users
+      // Graceful fallback for demo/unknown users - give them credits for testing
+      const isDemo = userId.includes('demo') || userId === 'premium-user-demo'
+      const demoCredits = isDemo ? 1000 : 0 // Give demo users 1000 credits
+
       return NextResponse.json({
         success: true,
-        credits: 0,
-        totalPurchased: 0,
+        credits: demoCredits,
+        totalPurchased: demoCredits,
         user: { uid: userId, email: null, displayName: null }
       })
     }

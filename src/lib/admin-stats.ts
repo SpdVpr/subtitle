@@ -56,7 +56,15 @@ export class AdminStatsService {
   static async getOverallStats(): Promise<AdminStats> {
     try {
       // Get users via server-side API only - no fallbacks to mock data
-      const adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
+      let adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
+
+      // For local development, set default admin email
+      if (!adminEmail && process.env.NODE_ENV === 'development') {
+        adminEmail = 'premium@test.com'
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('adminEmail', adminEmail)
+        }
+      }
 
       if (!adminEmail) {
         throw new Error('Admin email not configured. Please set admin email in localStorage.')
@@ -265,7 +273,15 @@ export class AdminStatsService {
   static async getUserActivity(): Promise<UserActivity[]> {
     try {
       // Get users via server-side API only - no fallbacks to mock data
-      const adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
+      let adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
+
+      // For local development, set default admin email
+      if (!adminEmail && process.env.NODE_ENV === 'development') {
+        adminEmail = 'premium@test.com'
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('adminEmail', adminEmail)
+        }
+      }
 
       if (!adminEmail) {
         throw new Error('Admin email not configured. Please set admin email in localStorage.')
