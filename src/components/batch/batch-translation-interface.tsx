@@ -148,43 +148,68 @@ export function BatchTranslationInterface() {
   const canStartTranslation = files.length > 0 && targetLanguage && !isProcessing && user
 
   const startBatchTranslation = async () => {
-    if (!canStartTranslation || !userCredits) return
+    console.log('🚀 Starting batch translation...')
+    console.log('canStartTranslation:', canStartTranslation)
+    console.log('userCredits:', userCredits)
+    console.log('totalEstimatedCost:', totalEstimatedCost)
+    console.log('files:', files)
+    console.log('targetLanguage:', targetLanguage)
+    console.log('user:', user)
+
+    if (!canStartTranslation || !userCredits) {
+      console.log('❌ Cannot start translation - missing requirements')
+      return
+    }
 
     if (totalEstimatedCost > userCredits) {
+      console.log('❌ Insufficient credits')
       alert(`Insufficient credits. You need ${totalEstimatedCost.toFixed(1)} credits but only have ${userCredits}.`)
       return
     }
 
+    console.log('✅ Starting batch processing...')
     setIsProcessing(true)
 
     try {
+      console.log(`📁 Processing ${files.length} files...`)
+
       // Process files one by one
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
-        
+        console.log(`🔄 Processing file ${i + 1}/${files.length}: ${file.file.name}`)
+
         // Update file status to processing
-        setFiles(prev => prev.map(f => 
+        setFiles(prev => prev.map(f =>
           f.id === file.id ? { ...f, status: 'processing' as const } : f
         ))
 
         try {
           // Create translation job (similar to single file translation)
+          console.log('📤 Creating FormData...')
           const formData = new FormData()
           formData.append('file', file.file)
           formData.append('targetLanguage', targetLanguage)
           formData.append('sourceLanguage', 'auto')
+          formData.append('aiService', 'premium')
           formData.append('userId', user.uid)
+
+          console.log('📤 Sending request to /api/translate...')
 
           const response = await fetch('/api/translate', {
             method: 'POST',
             body: formData
           })
 
+          console.log('📥 Response status:', response.status, response.statusText)
+
           if (!response.ok) {
-            throw new Error(`Translation failed: ${response.statusText}`)
+            const errorText = await response.text()
+            console.error('❌ API Error:', errorText)
+            throw new Error(`Translation failed: ${response.statusText} - ${errorText}`)
           }
 
           const result = await response.json()
+          console.log('✅ Translation result:', result)
 
           // Update file status to completed
           setFiles(prev => prev.map(f => 
@@ -216,9 +241,10 @@ export function BatchTranslationInterface() {
       }
 
     } catch (error) {
-      console.error('Batch translation error:', error)
-      alert('Batch translation failed. Please try again.')
+      console.error('❌ Batch translation error:', error)
+      alert(`Batch translation failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`)
     } finally {
+      console.log('🏁 Batch processing finished')
       setIsProcessing(false)
     }
   }
