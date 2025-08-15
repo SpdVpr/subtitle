@@ -45,6 +45,33 @@ export function BatchTranslationInterface() {
   const [userCredits, setUserCredits] = useState<number | null>(null)
   const [refreshCredits, setRefreshCredits] = useState<(() => void) | null>(null)
 
+  // Fetch user credits
+  const fetchUserCredits = async () => {
+    if (!user) return
+
+    try {
+      const response = await fetch(`/api/user/credits?userId=${user.uid}`)
+      if (response.ok) {
+        const data = await response.json()
+        setUserCredits(data.credits || 0)
+        console.log('💰 User credits loaded:', data.credits)
+      } else {
+        console.error('Failed to fetch credits:', response.status)
+        setUserCredits(0)
+      }
+    } catch (error) {
+      console.error('Failed to fetch credits:', error)
+      setUserCredits(0)
+    }
+  }
+
+  // Load credits when user changes
+  useEffect(() => {
+    if (user) {
+      fetchUserCredits()
+    }
+  }, [user])
+
   // File processing functions
   const processZipFile = async (zipFile: File): Promise<File[]> => {
     // Import JSZip dynamically
@@ -156,12 +183,13 @@ export function BatchTranslationInterface() {
     console.log('targetLanguage:', targetLanguage)
     console.log('user:', user)
 
-    if (!canStartTranslation || !userCredits) {
+    if (!canStartTranslation) {
       console.log('❌ Cannot start translation - missing requirements')
       return
     }
 
-    if (totalEstimatedCost > userCredits) {
+    // Check credits only if we have the credit info loaded
+    if (userCredits !== null && totalEstimatedCost > userCredits) {
       console.log('❌ Insufficient credits')
       alert(`Insufficient credits. You need ${totalEstimatedCost.toFixed(1)} credits but only have ${userCredits}.`)
       return
@@ -222,6 +250,7 @@ export function BatchTranslationInterface() {
           ))
 
           // Refresh credits after each successful translation
+          await fetchUserCredits()
           if (refreshCredits) {
             refreshCredits()
           }
@@ -311,9 +340,8 @@ export function BatchTranslationInterface() {
   return (
     <div className="space-y-6">
       {/* Credits Display */}
-      <CreditsDisplay 
-        onCreditsUpdate={setUserCredits}
-        onRefreshFunction={setRefreshCredits}
+      <CreditsDisplay
+        onRefresh={setRefreshCredits}
       />
 
       {/* File Upload Area */}
@@ -518,7 +546,7 @@ export function BatchTranslationInterface() {
             <div className="flex gap-3 mt-6">
               <Button
                 onClick={startBatchTranslation}
-                disabled={!canStartTranslation || (userCredits !== null && totalEstimatedCost > userCredits)}
+                disabled={!canStartTranslation}
                 className="flex-1"
               >
                 {isProcessing ? (
