@@ -26,13 +26,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Generate unique job ID
-    const jobId = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     const translatedFileName = `${originalFileName.replace('.srt', '')}_${targetLanguage}.srt`
 
-    // Create translation job in database
-    await TranslationJobService.createJob({
-      id: jobId,
+    // Create translation job in database (let Firestore generate the ID)
+    const jobId = await TranslationJobService.createJob({
       userId,
       originalFileName,
       translatedFileName,
@@ -40,7 +37,6 @@ export async function POST(req: NextRequest) {
       targetLanguage,
       aiService: 'openai',
       status: 'completed',
-      createdAt: new Date() as any,
       completedAt: new Date() as any,
       subtitleCount: subtitleCount || 0,
       characterCount: characterCount || 0,
