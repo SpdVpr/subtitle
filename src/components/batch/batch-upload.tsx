@@ -51,7 +51,7 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
       'text/plain': ['.srt'],
       'application/x-subrip': ['.srt']
     },
-    disabled: !batchCheck.allowed || isCreating
+    disabled: isCreating
   })
 
   const removeFile = (index: number) => {
@@ -122,7 +122,7 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
               className={`
                 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                 ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
-                ${!batchCheck.allowed || isCreating ? 'opacity-50 cursor-not-allowed' : ''}
+                ${isCreating ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
               <input {...getInputProps()} />

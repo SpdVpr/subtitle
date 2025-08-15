@@ -5,7 +5,20 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  Sparkles,
+  Zap,
+  Brain,
+  Globe,
+  FileText,
+  BarChart3,
+  Gift,
+  CheckCircle,
+  ArrowRight,
+  Star
+} from "lucide-react";
 
 export default function Home() {
   const { user, loading } = useAuth()
@@ -37,82 +50,237 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="container px-4 py-24 mx-auto text-center">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl mb-6">
-            AI-Powered Subtitle
-            <span className="text-blue-600"> Translation</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Translate your subtitles with premium AI. Pay only for what you use with our simple credit system.
-            Support for 100+ language pairs with context-aware translation.
-          </p>
-          <div className="bg-blue-50 rounded-lg p-4 mb-8 max-w-md mx-auto">
-            <p className="text-sm text-blue-800">
-              <strong>Simple Pricing:</strong> 0.4 credits per 20 subtitles • No subscriptions • Credits never expire
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        <div className="container px-4 py-24 mx-auto text-center relative">
+          <div className="max-w-5xl mx-auto">
+            {/* Free Credits Badge */}
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-full mb-8 shadow-lg">
+              <Gift className="h-5 w-5" />
+              <span className="font-semibold">🎉 New users get 200 FREE credits to start!</span>
+              <Sparkles className="h-5 w-5" />
+            </div>
+
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+              AI-Powered Subtitle Translation
+            </h1>
+
+            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+              Translate your subtitles with our <span className="font-semibold text-blue-600">proprietary AI engine</span> that combines
+              <span className="font-semibold text-purple-600"> OpenAI + Context Research</span> for maximum translation quality.
+            </p>
+
+            {/* Key Features Pills */}
+            <div className="flex flex-wrap justify-center gap-3 mb-10">
+              <Badge variant="secondary" className="px-4 py-2 text-sm">
+                <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                100+ Language Pairs
+              </Badge>
+              <Badge variant="secondary" className="px-4 py-2 text-sm">
+                <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                Context-Aware AI
+              </Badge>
+              <Badge variant="secondary" className="px-4 py-2 text-sm">
+                <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                No Subscriptions
+              </Badge>
+              <Badge variant="secondary" className="px-4 py-2 text-sm">
+                <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                Credits Never Expire
+              </Badge>
+            </div>
+
+            {/* Pricing Info Card */}
+            <div className="bg-white/80 backdrop-blur-sm border border-blue-200 rounded-2xl p-6 mb-10 max-w-lg mx-auto shadow-xl">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Zap className="h-5 w-5 text-blue-600" />
+                <span className="font-semibold text-gray-800">Simple Pricing</span>
+              </div>
+              <p className="text-2xl font-bold text-blue-600 mb-2">0.4 credits per 20 subtitles</p>
+              <p className="text-sm text-gray-600">
+                Example: 100 subtitles = 2 credits • No hidden fees • Pay only for what you use
+              </p>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg" asChild>
+                <Link href="/translate" className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  Start Translating FREE
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50" asChild>
+                <Link href="/pricing" className="flex items-center gap-2">
+                  <Gift className="h-5 w-5" />
+                  View Credit Packages
+                </Link>
+              </Button>
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="mt-12 flex flex-wrap justify-center items-center gap-8 text-gray-500">
+              <div className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-yellow-500" />
+                <span className="text-sm">Premium AI Quality</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span className="text-sm">Instant Processing</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-blue-500" />
+                <span className="text-sm">Global Language Support</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Engine Section */}
+      <section className="py-20 bg-gradient-to-r from-gray-50 to-blue-50">
+        <div className="container px-4 mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-purple-100 text-purple-800 border-purple-200">
+              <Brain className="h-4 w-4 mr-2" />
+              Proprietary AI Technology
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Advanced Translation Engine
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Our custom-built AI combines the power of OpenAI with specialized context research
+              to deliver translations that understand nuance, emotion, and cultural context.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
-              <Link href="/translate">Start Translating</Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link href="/pricing">Buy Credits</Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link href="/batch">Batch Processing</Link>
-            </Button>
+
+          <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto items-center">
+            <div className="space-y-8">
+              <div className="flex items-start gap-4">
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <Brain className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2">OpenAI Integration</h3>
+                  <p className="text-gray-600">
+                    Leverages GPT models for natural, human-like translations that capture the original meaning and tone.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="bg-purple-100 p-3 rounded-lg">
+                  <FileText className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2">Context Research</h3>
+                  <p className="text-gray-600">
+                    Analyzes subtitle context, character relationships, and scene dynamics for more accurate translations.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="bg-green-100 p-3 rounded-lg">
+                  <Zap className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2">Real-time Processing</h3>
+                  <p className="text-gray-600">
+                    Lightning-fast translation with intelligent timing adjustment for perfect subtitle synchronization.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 shadow-2xl border border-gray-100">
+              <div className="text-center mb-6">
+                <div className="bg-gradient-to-r from-blue-500 to-purple-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Translation Quality</h3>
+                <p className="text-gray-600">See the difference our AI makes</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-red-800 font-medium mb-1">Basic Translation:</p>
+                  <p className="text-sm text-gray-700">"I am very happy to see you"</p>
+                </div>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="text-sm text-green-800 font-medium mb-1">Our AI Translation:</p>
+                  <p className="text-sm text-gray-700">"I'm absolutely thrilled to see you!"</p>
+                </div>
+              </div>
+
+              <div className="mt-6 text-center">
+                <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                  <Star className="h-4 w-4 mr-1" />
+                  95% Accuracy Rate
+                </Badge>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="container px-4 py-16 mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Why Choose SubtitleAI?</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Our AI-powered platform makes subtitle translation faster and more accurate than ever before.
+      <section className="container px-4 py-20 mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold mb-4">Why Choose SubtitleAI?</h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Everything you need for professional subtitle translation, powered by cutting-edge AI technology.
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle>🚀 Lightning Fast</CardTitle>
-              <CardDescription>
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader className="text-center pb-4">
+              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="h-8 w-8 text-blue-600" />
+              </div>
+              <CardTitle className="text-xl">Lightning Fast</CardTitle>
+              <CardDescription className="text-base">
                 Translate entire subtitle files in under 30 seconds
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-gray-600 text-center">
                 Our optimized AI processes your subtitles quickly while maintaining perfect timing and context.
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>🎯 Context-Aware</CardTitle>
-              <CardDescription>
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader className="text-center pb-4">
+              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Brain className="h-8 w-8 text-purple-600" />
+              </div>
+              <CardTitle className="text-xl">Context-Aware AI</CardTitle>
+              <CardDescription className="text-base">
                 AI understands movie context for better translations
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-gray-600 text-center">
                 Advanced AI models consider dialogue flow, character emotions, and cultural nuances.
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>💰 Pay Per Use</CardTitle>
-              <CardDescription>
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader className="text-center pb-4">
+              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Gift className="h-8 w-8 text-green-600" />
+              </div>
+              <CardTitle className="text-xl">Pay Per Use</CardTitle>
+              <CardDescription className="text-base">
                 Simple credit system - no subscriptions needed
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-gray-600 text-center">
                 Buy credits once, use them forever. Only pay for what you translate with transparent pricing.
               </p>
             </CardContent>
