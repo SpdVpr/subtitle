@@ -162,6 +162,7 @@ export async function POST(request: NextRequest) {
             processingTimeMs: processingTime,
             translatedFileName,
             translatedFileUrl,
+            translatedContent, // Add the translated content for download
             subtitleCount: translated.length,
             characterCount: translatedContent.length,
             confidence: 0.95 // Premium AI confidence

@@ -67,81 +67,40 @@ export function AnalyticsDashboard() {
 
   const loadAnalytics = async () => {
     if (!user) return
-    
+
     setLoading(true)
-    
-    // Mock analytics data
-    const mockData: AnalyticsData = {
-      totalTranslations: subscription?.plan === 'pro' ? 247 : subscription?.plan === 'premium' ? 89 : 12,
-      totalFiles: subscription?.plan === 'pro' ? 156 : subscription?.plan === 'premium' ? 67 : 8,
-      totalSubtitles: subscription?.plan === 'pro' ? 12450 : subscription?.plan === 'premium' ? 4230 : 456,
-      averageProcessingTime: 2.3,
-      storageUsed: subscription?.plan === 'pro' ? 45.2 : subscription?.plan === 'premium' ? 12.8 : 2.1,
-      successRate: 98.5,
+
+    try {
+      // Fetch real analytics data from API
+      const response = await fetch(`/api/analytics?userId=${user.uid}&period=${period}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics data')
+      }
+
+      const result = await response.json()
+      setData(result.data)
+    } catch (error) {
+      console.error('Failed to load analytics:', error)
+
+      // Fallback to mock data if API fails
+      const mockData: AnalyticsData = {
+        totalTranslations: 0,
+        totalFiles: 0,
+        totalSubtitles: 0,
+        averageProcessingTime: 0,
+        storageUsed: 0,
+        successRate: 0,
       
-      translationsByLanguage: {
-        'Spanish': subscription?.plan === 'pro' ? 67 : subscription?.plan === 'premium' ? 23 : 4,
-        'French': subscription?.plan === 'pro' ? 45 : subscription?.plan === 'premium' ? 18 : 3,
-        'German': subscription?.plan === 'pro' ? 38 : subscription?.plan === 'premium' ? 15 : 2,
-        'Italian': subscription?.plan === 'pro' ? 32 : subscription?.plan === 'premium' ? 12 : 2,
-        'Portuguese': subscription?.plan === 'pro' ? 28 : subscription?.plan === 'premium' ? 10 : 1,
-        'Japanese': subscription?.plan === 'pro' ? 22 : subscription?.plan === 'premium' ? 8 : 0,
-        'Chinese': subscription?.plan === 'pro' ? 15 : subscription?.plan === 'premium' ? 3 : 0,
-      },
-      
-      translationsByService: {
-        'Google Translate': subscription?.plan === 'pro' ? 145 : subscription?.plan === 'premium' ? 45 : 12,
-        'OpenAI GPT': subscription?.plan === 'pro' ? 102 : subscription?.plan === 'premium' ? 44 : 0,
-      },
-      
-      dailyUsage: Array.from({ length: 30 }, (_, i) => ({
-        date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        translations: Math.floor(Math.random() * 10) + 1,
-        files: Math.floor(Math.random() * 5) + 1,
-        processingTime: Math.random() * 5 + 1
-      })).reverse(),
-      
-      topLanguages: [
-        { language: 'Spanish', count: subscription?.plan === 'pro' ? 67 : 23, percentage: 27 },
-        { language: 'French', count: subscription?.plan === 'pro' ? 45 : 18, percentage: 18 },
-        { language: 'German', count: subscription?.plan === 'pro' ? 38 : 15, percentage: 15 },
-        { language: 'Italian', count: subscription?.plan === 'pro' ? 32 : 12, percentage: 13 },
-        { language: 'Portuguese', count: subscription?.plan === 'pro' ? 28 : 10, percentage: 11 },
-      ],
-      
-      recentActivity: [
-        {
-          id: '1',
-          type: 'translation',
-          description: 'Translated "movie_subtitles.srt" to Spanish',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-          status: 'success'
-        },
-        {
-          id: '2',
-          type: 'batch',
-          description: 'Batch job "TV Series S01" completed (12 files)',
-          timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-          status: 'success'
-        },
-        {
-          id: '3',
-          type: 'edit',
-          description: 'Edited subtitles for "documentary.srt"',
-          timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
-          status: 'success'
-        },
-        {
-          id: '4',
-          type: 'translation',
-          description: 'Translated "interview.srt" to French',
-          timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000),
-          status: 'success'
-        },
-      ]
+      translationsByLanguage: {},
+      translationsByService: {},
+      dailyUsage: [],
+      topLanguages: [],
+      recentActivity: []
     }
-    
+
     setData(mockData)
+    }
+
     setLoading(false)
   }
 

@@ -13,7 +13,8 @@ import {
   CheckCircle,
   X,
   Coins,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { CreditsCard } from '@/components/ui/credits-display'
@@ -23,7 +24,47 @@ import Link from 'next/link'
 export default function DashboardPage() {
   const { user } = useAuth()
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
+  const [dashboardStats, setDashboardStats] = useState({
+    totalTranslations: 0,
+    creditsUsed: 0,
+    loading: true
+  })
   const searchParams = useSearchParams()
+
+  // Load dashboard statistics
+  useEffect(() => {
+    const loadDashboardStats = async () => {
+      if (!user) return
+
+      try {
+        // Fetch analytics data for current month
+        const response = await fetch(`/api/analytics?userId=${user.uid}&period=month`)
+        if (response.ok) {
+          const result = await response.json()
+          setDashboardStats({
+            totalTranslations: result.data.totalTranslations || 0,
+            creditsUsed: result.data.totalFiles * 0.4 || 0, // Approximate credits used
+            loading: false
+          })
+        } else {
+          setDashboardStats({
+            totalTranslations: 0,
+            creditsUsed: 0,
+            loading: false
+          })
+        }
+      } catch (error) {
+        console.error('Failed to load dashboard stats:', error)
+        setDashboardStats({
+          totalTranslations: 0,
+          creditsUsed: 0,
+          loading: false
+        })
+      }
+    }
+
+    loadDashboardStats()
+  }, [user])
 
   useEffect(() => {
     const success = searchParams.get('success')
@@ -136,7 +177,11 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-green-600 mb-2">
-                    0
+                    {dashboardStats.loading ? (
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    ) : (
+                      dashboardStats.totalTranslations
+                    )}
                   </div>
                   <p className="text-sm text-gray-600">
                     Files translated this month
@@ -153,7 +198,11 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-purple-600 mb-2">
-                    0.0
+                    {dashboardStats.loading ? (
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    ) : (
+                      dashboardStats.creditsUsed.toFixed(1)
+                    )}
                   </div>
                   <p className="text-sm text-gray-600">
                     Credits spent this month
