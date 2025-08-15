@@ -6,10 +6,10 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY || 'demo_key'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { type: string; id: string } }
+  { params }: { params: Promise<{ type: string; id: string }> }
 ) {
   try {
-    const { type, id } = params
+    const { type, id } = await params
 
     if (!['movie', 'tv'].includes(type)) {
       return NextResponse.json(
@@ -23,6 +23,18 @@ export async function GET(
         { error: 'Invalid ID. Must be a number' },
         { status: 400 }
       )
+    }
+
+    // Check if TMDB API key is available and valid
+    if (!TMDB_API_KEY || TMDB_API_KEY === 'demo_key' || TMDB_API_KEY.includes('demo_key_for_development')) {
+      console.log(`⚠️ TMDB API key not available, returning empty response for ${type} ID: ${id}`)
+      return NextResponse.json({
+        id: Number(id),
+        title: 'Unknown',
+        poster_path: null,
+        overview: null,
+        release_date: null
+      })
     }
 
     console.log(`🎬 Fetching TMDB data for ${type} ID: ${id}`)

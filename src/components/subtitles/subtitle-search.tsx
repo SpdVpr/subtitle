@@ -103,7 +103,7 @@ export function SubtitleSearch() {
         query: query.trim(),
         languages: language,
         page: page.toString(),
-        per_page: '20'
+        per_page: '200' // Increased from 20 to match hierarchical search
       })
 
       if (type && type !== 'all') params.set('type', type)

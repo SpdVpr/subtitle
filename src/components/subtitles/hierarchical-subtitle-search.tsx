@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -51,6 +51,11 @@ interface SubtitleResult {
     }
     url: string
     download_url: string
+    related_links?: Array<{
+      label: string
+      url: string
+      img_url: string
+    }>
     files: SubtitleFile[]
   }
 }
@@ -91,21 +96,32 @@ interface Show {
 }
 
 // Enhanced TMDB image component with real API integration
-const TMDBImage = ({ tmdbId, type, title, year, className }: {
+const TMDBImage = ({ tmdbId, type, title, year, className, openSubtitlesImageUrl }: {
   tmdbId: number,
   type: 'movie' | 'tv',
   title: string,
   year?: number,
-  className?: string
+  className?: string,
+  openSubtitlesImageUrl?: string
 }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    const fetchTMDBImage = async () => {
+    const loadImage = async () => {
+      // First, try to use OpenSubtitles image if available
+      if (openSubtitlesImageUrl) {
+        console.log('Using OpenSubtitles image:', openSubtitlesImageUrl)
+        setImageUrl(openSubtitlesImageUrl)
+        setLoading(false)
+        return
+      }
+
+      // Fallback to TMDB if no OpenSubtitles image and tmdbId is available
       if (!tmdbId) {
         setLoading(false)
+        setError(true)
         return
       }
 
@@ -116,18 +132,23 @@ const TMDBImage = ({ tmdbId, type, title, year, className }: {
           const data = await response.json()
           if (data.poster_path) {
             setImageUrl(`https://image.tmdb.org/t/p/w300${data.poster_path}`)
+          } else {
+            setError(true)
           }
+        } else {
+          console.warn('TMDB API failed:', response.status, response.statusText)
+          setError(true)
         }
       } catch (err) {
-        console.error('Failed to fetch TMDB image:', err)
+        console.warn('Failed to fetch TMDB image:', err)
         setError(true)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchTMDBImage()
-  }, [tmdbId, type])
+    loadImage()
+  }, [tmdbId, type, openSubtitlesImageUrl])
 
   if (loading) {
     return (
@@ -156,19 +177,19 @@ const TMDBImage = ({ tmdbId, type, title, year, className }: {
 
   // Fallback placeholder with better design
   return (
-    <div className={`bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 ${className}`}>
+    <div className={`bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center border border-slate-300 ${className}`}>
       <div className="text-center p-2">
         {type === 'movie' ? (
-          <Film className="h-8 w-8 text-blue-500 mx-auto mb-1" />
+          <Film className="h-6 w-6 text-slate-500 mx-auto mb-1" />
         ) : (
-          <Tv className="h-8 w-8 text-purple-500 mx-auto mb-1" />
+          <Tv className="h-6 w-6 text-slate-500 mx-auto mb-1" />
         )}
-        <div className="text-xs text-gray-600 font-medium">{type === 'movie' ? 'Movie' : 'TV Series'}</div>
-        <div className="text-xs text-gray-500 truncate max-w-[80px]" title={title}>
+        <div className="text-xs text-slate-600 font-medium">{type === 'movie' ? 'Movie' : 'TV Series'}</div>
+        <div className="text-xs text-slate-500 truncate max-w-[70px] leading-tight" title={title}>
           {title}
         </div>
         {year && (
-          <div className="text-xs text-gray-400">({year})</div>
+          <div className="text-xs text-slate-400">({year})</div>
         )}
       </div>
     </div>
@@ -177,20 +198,20 @@ const TMDBImage = ({ tmdbId, type, title, year, className }: {
 
 const LANGUAGE_OPTIONS = [
   { value: 'en', label: 'English' },
-  { value: 'cs', label: 'Čeština' },
-  { value: 'sk', label: 'Slovenčina' },
-  { value: 'de', label: 'Deutsch' },
-  { value: 'fr', label: 'Français' },
-  { value: 'es', label: 'Español' },
-  { value: 'it', label: 'Italiano' },
-  { value: 'pt', label: 'Português' },
-  { value: 'ru', label: 'Русский' },
-  { value: 'pl', label: 'Polski' },
-  { value: 'nl', label: 'Nederlands' },
-  { value: 'sv', label: 'Svenska' },
-  { value: 'da', label: 'Dansk' },
-  { value: 'no', label: 'Norsk' },
-  { value: 'fi', label: 'Suomi' },
+  { value: 'cs', label: 'Czech' },
+  { value: 'sk', label: 'Slovak' },
+  { value: 'de', label: 'German' },
+  { value: 'fr', label: 'French' },
+  { value: 'es', label: 'Spanish' },
+  { value: 'it', label: 'Italian' },
+  { value: 'pt', label: 'Portuguese' },
+  { value: 'ru', label: 'Russian' },
+  { value: 'pl', label: 'Polish' },
+  { value: 'nl', label: 'Dutch' },
+  { value: 'sv', label: 'Swedish' },
+  { value: 'da', label: 'Danish' },
+  { value: 'no', label: 'Norwegian' },
+  { value: 'fi', label: 'Finnish' },
 ]
 
 export function HierarchicalSubtitleSearch() {
@@ -234,37 +255,88 @@ export function HierarchicalSubtitleSearch() {
     return {}
   }
 
+  // Helper function to detect if a subtitle is actually a TV series episode
+  const isActuallyTVSeries = (subtitle: SubtitleResult): boolean => {
+    const release = subtitle.attributes.release
+    const title = subtitle.attributes.feature_details.title
+    const movieName = subtitle.attributes.feature_details.movie_name
+
+    // Check for season/episode patterns in release name
+    const hasSeasonEpisode = /S\d+E\d+/i.test(release) || /Season\s+\d+/i.test(release) || /Episode\s+\d+/i.test(release)
+
+    // Check for TV series indicators in title or movie_name
+    const hasTVIndicators = /\s(S\d+E\d+|\d+x\d+)\s/i.test(title) ||
+                           /\s(S\d+E\d+|\d+x\d+)\s/i.test(movieName) ||
+                           title.includes('"') || movieName.includes('"') // Quotes often indicate TV episodes
+
+    const result = hasSeasonEpisode || hasTVIndicators
+
+    // Debug logging
+    if (result) {
+      console.log('🔍 TV Series detected:', {
+        title,
+        movieName,
+        release,
+        hasSeasonEpisode,
+        hasTVIndicators,
+        result
+      })
+    }
+
+    return result
+  }
+
   // Extract base series name (remove episode info)
-  const extractSeriesName = (title: string): string => {
-    // Remove common episode patterns
-    return title
+  const extractSeriesName = (title: string, movieName: string): string => {
+    console.log('🔍 Extracting series name from:', { title, movieName })
+
+    // Try to extract series name from movie_name first (often more accurate)
+    if (movieName.includes('"')) {
+      // Pattern: "2025 - \"Dexter: Original Sin\" Blood Drive"
+      const match = movieName.match(/^(\d+\s*-\s*)?[""]([^"""]+)[""]/)
+      if (match && match[2]) {
+        const seriesName = match[2].trim()
+        console.log('✅ Extracted from movie_name:', seriesName)
+        return seriesName
+      }
+    }
+
+    // Fallback to title processing
+    const processed = title
+      .replace(/^"([^"]+)".*/, '$1') // Remove quotes and episode title
       .replace(/\s+S\d+E\d+.*$/i, '') // Remove "S01E01" and everything after
       .replace(/\s+Season\s+\d+.*$/i, '') // Remove "Season 1" and everything after
       .replace(/\s+Episode\s+\d+.*$/i, '') // Remove "Episode 1" and everything after
       .replace(/\s+\d+x\d+.*$/i, '') // Remove "1x01" and everything after
       .replace(/\s+\(\d{4}\)$/, '') // Remove year in parentheses at the end
       .trim()
+
+    console.log('⚠️ Fallback to title processing:', processed)
+    return processed
   }
 
   // Group subtitles by show only (don't group by episodes yet)
-  const groupSubtitles = (subtitles: SubtitleResult[]): Show[] => {
+  const groupSubtitles = (subtitles: SubtitleResult[], searchQuery: string = ''): Show[] => {
     console.log('🔍 Grouping subtitles:', subtitles.length, 'items')
     const showsMap = new Map<string, Show>()
 
     subtitles.forEach(subtitle => {
       const { feature_details } = subtitle.attributes
 
+      // Determine if this is actually a TV series episode despite being marked as "Movie"
+      const isActuallyTV = feature_details.feature_type === 'Episode' || isActuallyTVSeries(subtitle)
+
       // For TV series, extract base series name
       let displayTitle = feature_details.title
       let showKey = `${feature_details.imdb_id}-${feature_details.title}-${feature_details.year}`
 
-      if (feature_details.feature_type === 'Episode') {
+      if (isActuallyTV) {
         // Use parent_title if available (for proper series grouping), otherwise extract from title
-        displayTitle = (feature_details as any).parent_title || extractSeriesName(feature_details.title)
+        displayTitle = (feature_details as any).parent_title || extractSeriesName(feature_details.title, feature_details.movie_name)
         // Use parent_imdb_id if available for better grouping
         const parentId = (feature_details as any).parent_imdb_id || feature_details.imdb_id
         showKey = `series-${parentId}-${displayTitle}`
-        console.log('📺 Episode:', feature_details.title, '→', displayTitle, 'key:', showKey)
+        console.log('📺 TV Series detected:', feature_details.title, '→', displayTitle, 'key:', showKey)
       }
 
       if (!showsMap.has(showKey)) {
@@ -275,11 +347,11 @@ export function HierarchicalSubtitleSearch() {
         showsMap.set(showKey, {
           title: displayTitle,
           year: feature_details.year,
-          imdb_id: feature_details.feature_type === 'Episode' ? seriesImdbId : String(feature_details.imdb_id),
-          tmdb_id: feature_details.feature_type === 'Episode' ? seriesTmdbId : feature_details.tmdb_id,
-          feature_type: feature_details.feature_type,
+          imdb_id: isActuallyTV ? seriesImdbId : String(feature_details.imdb_id),
+          tmdb_id: isActuallyTV ? seriesTmdbId : feature_details.tmdb_id,
+          feature_type: isActuallyTV ? 'Episode' : feature_details.feature_type,
           seasons: [],
-          movie_subtitles: feature_details.feature_type === 'Movie' ? [] : undefined,
+          movie_subtitles: !isActuallyTV ? [] : undefined,
           total_subtitles: 0 // Add counter for total subtitles
         })
       }
@@ -287,14 +359,41 @@ export function HierarchicalSubtitleSearch() {
       const show = showsMap.get(showKey)!
       show.total_subtitles = (show.total_subtitles || 0) + 1
 
-      if (feature_details.feature_type === 'Movie') {
-        // For movies, just count the subtitles, don't store them yet
+      if (!isActuallyTV) {
+        // For movies, store the subtitles
         if (!show.movie_subtitles) show.movie_subtitles = []
+        show.movie_subtitles.push(subtitle as GroupedSubtitle)
       }
       // For TV series, we'll load episodes on demand when user clicks on the show
     })
 
-    return Array.from(showsMap.values())
+    // Sort shows by relevance and popularity
+    const shows = Array.from(showsMap.values())
+    console.log('📊 Before sorting:', shows.map(s => `${s.title} (${s.feature_type}, ${s.total_subtitles} subs)`))
+
+    const sorted = shows.sort((a, b) => {
+      // 1. Prioritize exact title matches (case insensitive)
+      const queryLower = searchQuery.toLowerCase()
+      const aExactMatch = a.title.toLowerCase().includes(queryLower)
+      const bExactMatch = b.title.toLowerCase().includes(queryLower)
+
+      if (aExactMatch && !bExactMatch) return -1
+      if (!aExactMatch && bExactMatch) return 1
+
+      // 2. Prioritize TV series over movies when searching for series
+      if (a.feature_type === 'Episode' && b.feature_type === 'Movie') return -1
+      if (a.feature_type === 'Movie' && b.feature_type === 'Episode') return 1
+
+      // 3. Sort by total number of subtitles (more popular shows first)
+      const subtitleDiff = (b.total_subtitles || 0) - (a.total_subtitles || 0)
+      if (subtitleDiff !== 0) return subtitleDiff
+
+      // 4. Sort by year (newer first)
+      return (b.year || 0) - (a.year || 0)
+    })
+
+    console.log('📊 After sorting:', sorted.map(s => `${s.title} (${s.feature_type}, ${s.total_subtitles} subs)`))
+    return sorted
   }
 
   // Load detailed episodes for a specific show
@@ -384,11 +483,12 @@ export function HierarchicalSubtitleSearch() {
 
   const handleSearch = async () => {
     if (!query.trim()) {
-      toast.error('Zadejte název filmu nebo seriálu')
+      toast.error('Please enter a movie or TV series name')
       return
     }
 
     console.log('🔍 HierarchicalSubtitleSearch: Starting search for:', query)
+    console.log('🎯 Current type value:', type)
     setLoading(true)
     setCurrentPage(1)
 
@@ -401,7 +501,10 @@ export function HierarchicalSubtitleSearch() {
 
       // Add type filter only if specifically requested (not 'all')
       if (type && type !== 'all') {
+        console.log('🎯 Adding type filter:', type)
         params.set('type', type)
+      } else {
+        console.log('🎯 Skipping type filter (type is "all" or empty)')
       }
 
       // Add additional filters
@@ -425,8 +528,50 @@ export function HierarchicalSubtitleSearch() {
 
       const data: SearchResponse = await response.json()
       console.log('📊 Raw API data:', data.data.length, 'subtitles')
-      const groupedShows = groupSubtitles(data.data)
+      let groupedShows = groupSubtitles(data.data, query.trim())
       console.log('🎭 Grouped shows:', groupedShows.length, 'shows')
+
+      // If no TV series found and we're searching for "all", try specific episode search
+      const hasEpisodes = groupedShows.some(show => show.feature_type === 'Episode')
+      if (!hasEpisodes && type === 'all' && groupedShows.length < 5) {
+        console.log('🔄 No TV series found, trying episode-specific search...')
+
+        try {
+          const episodeParams = new URLSearchParams({
+            query: query.trim(),
+            languages: language,
+            per_page: '100',
+            type: 'episode'
+          })
+
+          if (year) episodeParams.set('year', year)
+          if (trustedOnly) episodeParams.set('trusted_sources', 'only')
+          if (!includeAI) {
+            episodeParams.set('ai_translated', 'exclude')
+            episodeParams.set('machine_translated', 'exclude')
+          }
+
+          const episodeResponse = await fetch(`/api/opensubtitles/search?${episodeParams}`)
+          if (episodeResponse.ok) {
+            const episodeData: SearchResponse = await episodeResponse.json()
+            console.log('📺 Episode search data:', episodeData.data.length, 'episodes')
+
+            if (episodeData.data.length > 0) {
+              const episodeShows = groupSubtitles(episodeData.data, query.trim())
+              console.log('📺 Episode shows:', episodeShows.length, 'shows')
+
+              // Merge with existing results, prioritizing TV series
+              const allShows = [...episodeShows, ...groupedShows]
+              groupedShows = allShows.filter((show, index, self) =>
+                index === self.findIndex(s => s.imdb_id === show.imdb_id && s.title === show.title)
+              )
+            }
+          }
+        } catch (error) {
+          console.error('Episode search failed:', error)
+        }
+      }
+
       setShows(groupedShows)
       setTotalCount(data.total_count)
 
@@ -449,7 +594,7 @@ export function HierarchicalSubtitleSearch() {
       }
     } catch (error) {
       console.error('Search error:', error)
-      toast.error(error instanceof Error ? error.message : 'Chyba při vyhledávání')
+      toast.error(error instanceof Error ? error.message : 'Search error')
     } finally {
       setLoading(false)
     }
@@ -481,8 +626,10 @@ export function HierarchicalSubtitleSearch() {
 
   const handleDownload = (subtitle: GroupedSubtitle) => {
     window.open(subtitle.attributes.download_url, '_blank')
-    toast.info('Přesměrováváme vás na OpenSubtitles pro stažení titulků')
+    toast.info('Redirecting to OpenSubtitles for subtitle download')
   }
+
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('cs-CZ')
@@ -490,6 +637,19 @@ export function HierarchicalSubtitleSearch() {
 
   const getLanguageLabel = (code: string) => {
     return LANGUAGE_OPTIONS.find(lang => lang.value === code)?.label || code.toUpperCase()
+  }
+
+  // Helper function to get OpenSubtitles image URL from a group of subtitles
+  const getOpenSubtitlesImageUrl = (subtitles: GroupedSubtitle[]): string | undefined => {
+    for (const subtitle of subtitles) {
+      if (subtitle.attributes.related_links && subtitle.attributes.related_links.length > 0) {
+        const imgUrl = subtitle.attributes.related_links[0].img_url
+        if (imgUrl) {
+          return imgUrl
+        }
+      }
+    }
+    return undefined
   }
 
   return (
@@ -509,7 +669,7 @@ export function HierarchicalSubtitleSearch() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="lg:col-span-2">
               <Input
-                placeholder="Název filmu nebo seriálu..."
+                placeholder="Movie or TV series name..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -529,12 +689,12 @@ export function HierarchicalSubtitleSearch() {
             </Select>
             <Select value={type} onValueChange={(value) => setType(value as 'movie' | 'episode' | 'all')}>
               <SelectTrigger>
-                <SelectValue placeholder="Typ" />
+                <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Vše</SelectItem>
-                <SelectItem value="movie">Film</SelectItem>
-                <SelectItem value="episode">Seriál</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="movie">Movie</SelectItem>
+                <SelectItem value="episode">TV Series</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -616,6 +776,11 @@ export function HierarchicalSubtitleSearch() {
                                 title={show.title}
                                 year={show.year}
                                 className="w-20 h-30 flex-shrink-0 shadow-md"
+                                openSubtitlesImageUrl={
+                                  show.feature_type === 'Movie'
+                                    ? getOpenSubtitlesImageUrl(show.movie_subtitles || [])
+                                    : getOpenSubtitlesImageUrl(show.subtitles || [])
+                                }
                               />
                               {/* Media type badge */}
                               <div className="absolute -top-2 -right-2">
@@ -641,7 +806,7 @@ export function HierarchicalSubtitleSearch() {
                                 </Badge>
                               </div>
 
-                              <CardDescription className="text-sm text-gray-600 mb-3">
+                              <div className="text-sm text-gray-600 mb-3">
                                 <div className="flex items-center space-x-4">
                                   <span className="font-medium">
                                     {show.feature_type === 'Movie' ? '🎬 Movie' : '📺 TV Series'}
@@ -657,19 +822,24 @@ export function HierarchicalSubtitleSearch() {
                                     </span>
                                   )}
                                 </div>
-                              </CardDescription>
+                              </div>
 
                               {/* Subtitle count and quality indicators */}
                               <div className="flex items-center space-x-3 text-sm">
                                 <Badge variant="outline" className="bg-blue-50">
-                                  {show.subtitles?.length || 0} subtitle{(show.subtitles?.length || 0) !== 1 ? 's' : ''}
+                                  {show.feature_type === 'Movie'
+                                    ? (show.movie_subtitles?.length || 0)
+                                    : (show.total_subtitles || 0)
+                                  } subtitle{((show.feature_type === 'Movie'
+                                    ? (show.movie_subtitles?.length || 0)
+                                    : (show.total_subtitles || 0)) !== 1) ? 's' : ''}
                                 </Badge>
-                                {show.subtitles?.some(s => s.from_trusted) && (
+                                {((show.feature_type === 'Movie' ? show.movie_subtitles : show.subtitles) || []).some(s => s.from_trusted) && (
                                   <Badge variant="outline" className="bg-green-50 text-green-700">
                                     ✓ Trusted
                                   </Badge>
                                 )}
-                                {show.subtitles?.some(s => s.hd) && (
+                                {((show.feature_type === 'Movie' ? show.movie_subtitles : show.subtitles) || []).some(s => s.hd) && (
                                   <Badge variant="outline" className="bg-purple-50 text-purple-700">
                                     HD
                                   </Badge>
@@ -708,13 +878,13 @@ export function HierarchicalSubtitleSearch() {
                                         <Badge variant="outline" className="text-green-600">HD</Badge>
                                       )}
                                       {subtitle.attributes.hearing_impaired && (
-                                        <Badge variant="outline" className="text-blue-600">Pro neslyšící</Badge>
+                                        <Badge variant="outline" className="text-blue-600">Hearing Impaired</Badge>
                                       )}
                                       {subtitle.attributes.from_trusted && (
-                                        <Badge variant="outline" className="text-purple-600">Ověřený</Badge>
+                                        <Badge variant="outline" className="text-purple-600">Trusted</Badge>
                                       )}
                                       {subtitle.attributes.ai_translated && (
-                                        <Badge variant="outline" className="text-orange-600">AI překlad</Badge>
+                                        <Badge variant="outline" className="text-orange-600">AI Translation</Badge>
                                       )}
                                     </div>
 
@@ -759,14 +929,7 @@ export function HierarchicalSubtitleSearch() {
                                       <ExternalLink className="h-4 w-4" />
                                       <span>Download</span>
                                     </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => window.open(`/translate`, '_blank')}
-                                      className="text-xs"
-                                    >
-                                      Přeložit
-                                    </Button>
+
                                   </div>
                                 </div>
                               </div>
@@ -843,7 +1006,7 @@ export function HierarchicalSubtitleSearch() {
                                                       {subtitle.attributes.release}
                                                     </p>
                                                     <div className="flex items-center space-x-3 text-xs text-muted-foreground mt-1">
-                                                      <span>{subtitle.attributes.download_count.toLocaleString()} stažení</span>
+                                                      <span>{subtitle.attributes.download_count.toLocaleString()} downloads</span>
                                                       {subtitle.attributes.votes > 0 && (
                                                         <span>⭐ {subtitle.attributes.ratings}/10</span>
                                                       )}
@@ -855,9 +1018,11 @@ export function HierarchicalSubtitleSearch() {
                                                       size="sm"
                                                       variant="outline"
                                                       className="text-xs px-2 py-1"
+                                                      title="Download"
                                                     >
                                                       <ExternalLink className="h-3 w-3" />
                                                     </Button>
+
                                                   </div>
                                                 </div>
                                               ))}
