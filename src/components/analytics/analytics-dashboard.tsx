@@ -351,7 +351,12 @@ export function AnalyticsDashboard() {
                       <div>
                         <p className="font-medium text-sm">{activity.description}</p>
                         <p className="text-xs text-gray-600">
-                          {activity.timestamp.toLocaleDateString()} at {activity.timestamp.toLocaleTimeString()}
+                          {(() => {
+                            const date = typeof activity.timestamp === 'string'
+                              ? new Date(activity.timestamp)
+                              : activity.timestamp
+                            return `${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`
+                          })()}
                         </p>
                       </div>
                     </div>
