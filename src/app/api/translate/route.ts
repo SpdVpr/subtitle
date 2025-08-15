@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { TranslationJobService, UserService, AnalyticsService } from '@/lib/database'
+import { TranslationJobService, UserService, AnalyticsService } from '@/lib/database-admin'
 import { StorageService } from '@/lib/storage'
 import { ErrorTracker } from '@/lib/error-tracking'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
@@ -10,6 +10,7 @@ import { updateTranslationProgress } from '../translate-progress/route'
 
 export async function POST(req: NextRequest) {
   try {
+    console.log('🔄 Translation API called')
     const formData = await req.formData()
     const file = formData.get('file') as File
     const targetLanguage = formData.get('targetLanguage') as string
@@ -19,6 +20,16 @@ export async function POST(req: NextRequest) {
     const aiService: 'google' | 'openai' = aiServiceRaw === 'premium' ? 'openai' : aiServiceRaw as 'google' | 'openai'
     const userId = formData.get('userId') as string
     const sessionId = formData.get('sessionId') as string || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+    console.log('📋 Request params:', {
+      fileName: file?.name,
+      targetLanguage,
+      sourceLanguage,
+      aiServiceRaw,
+      aiService,
+      userId,
+      sessionId
+    })
 
     // Basic validation (security handled in middleware)
     if (!file || !targetLanguage) {
@@ -294,6 +305,10 @@ export async function POST(req: NextRequest) {
     }
 
   } catch (error) {
+    console.error('❌ Translation API Error:', error)
+    console.error('❌ Error details:', error instanceof Error ? error.message : String(error))
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+
     await ErrorTracker.logApiError(
       error instanceof Error ? error : new Error(String(error)),
       '/api/translate',
@@ -301,7 +316,10 @@ export async function POST(req: NextRequest) {
     )
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     )
   }
