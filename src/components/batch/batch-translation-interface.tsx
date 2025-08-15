@@ -44,6 +44,8 @@ export function BatchTranslationInterface() {
   const [totalSubtitles, setTotalSubtitles] = useState<number>(0)
   const [userCredits, setUserCredits] = useState<number | null>(null)
   const [refreshCredits, setRefreshCredits] = useState<(() => void) | null>(null)
+  const [overallProgress, setOverallProgress] = useState<number>(0)
+  const [currentFileIndex, setCurrentFileIndex] = useState<number>(0)
 
   // Fetch user credits
   const fetchUserCredits = async () => {
@@ -197,6 +199,8 @@ export function BatchTranslationInterface() {
 
     console.log('✅ Starting batch processing...')
     setIsProcessing(true)
+    setOverallProgress(0)
+    setCurrentFileIndex(0)
 
     try {
       console.log(`📁 Processing ${files.length} files...`)
@@ -206,9 +210,15 @@ export function BatchTranslationInterface() {
         const file = files[i]
         console.log(`🔄 Processing file ${i + 1}/${files.length}: ${file.file.name}`)
 
+        // Update current file index and progress
+        setCurrentFileIndex(i + 1)
+        const progressPerFile = 100 / files.length
+        const currentProgress = (i / files.length) * 100
+        setOverallProgress(currentProgress)
+
         // Update file status to processing
         setFiles(prev => prev.map(f =>
-          f.id === file.id ? { ...f, status: 'processing' as const } : f
+          f.id === file.id ? { ...f, status: 'processing' as const, progress: 0 } : f
         ))
 
         try {
@@ -240,19 +250,27 @@ export function BatchTranslationInterface() {
           console.log('✅ Translation result:', result)
 
           // Update file status to completed
-          setFiles(prev => prev.map(f => 
-            f.id === file.id ? { 
-              ...f, 
-              status: 'completed' as const, 
+          setFiles(prev => prev.map(f =>
+            f.id === file.id ? {
+              ...f,
+              status: 'completed' as const,
               progress: 100,
-              result 
+              result
             } : f
           ))
 
+          // Update overall progress
+          const completedProgress = ((i + 1) / files.length) * 100
+          setOverallProgress(completedProgress)
+
           // Refresh credits after each successful translation
           await fetchUserCredits()
-          if (refreshCredits) {
-            refreshCredits()
+          if (refreshCredits && typeof refreshCredits === 'function') {
+            try {
+              refreshCredits()
+            } catch (error) {
+              console.warn('Failed to refresh credits display:', error)
+            }
           }
 
         } catch (error) {
@@ -275,6 +293,8 @@ export function BatchTranslationInterface() {
     } finally {
       console.log('🏁 Batch processing finished')
       setIsProcessing(false)
+      setOverallProgress(100)
+      setCurrentFileIndex(files.length)
     }
   }
 
@@ -456,6 +476,36 @@ export function BatchTranslationInterface() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Overall Progress */}
+      {isProcessing && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 animate-pulse text-blue-600" />
+              Batch Translation Progress
+            </CardTitle>
+            <CardDescription>
+              Processing file {currentFileIndex} of {files.length}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span>Overall Progress</span>
+                <span>{Math.round(overallProgress)}%</span>
+              </div>
+              <Progress value={overallProgress} className="h-3" />
+              <div className="text-center text-sm text-gray-600">
+                {Math.round(overallProgress) === 100 ?
+                  'All files processed!' :
+                  `${files.filter(f => f.status === 'completed').length} completed, ${files.filter(f => f.status === 'error').length} failed`
+                }
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
