@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { TranslationJobService } from '@/lib/database'
 import { TranslationJob } from '@/types/database'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,8 +26,18 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
     try {
       setLoading(true)
       setError(null)
-      const userJobs = await TranslationJobService.getUserJobs(user.uid, 20)
-      setJobs(userJobs)
+
+      console.log('📋 Loading translation history...')
+      const response = await fetch(`/api/translation-history?userId=${user.uid}&limit=20`)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `HTTP ${response.status}`)
+      }
+
+      const data = await response.json()
+      setJobs(data.jobs || [])
+      console.log('✅ Loaded', data.jobs?.length || 0, 'translation jobs')
     } catch (err) {
       console.error('Failed to load translation history:', err)
       setError('Failed to load translation history')
@@ -47,23 +56,29 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
     setDownloadingJobs(prev => new Set(prev).add(job.id))
 
     try {
-      // Get the job data directly from Firestore (client-side)
-      const jobData = await TranslationJobService.getJob(job.id)
+      console.log('🔽 Starting download for job:', job.id)
 
-      if (!jobData) {
-        throw new Error('Translation job not found')
+      // Use the download API endpoint
+      const response = await fetch('/api/translation-history/download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobId: job.id,
+          userId: user.uid
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `HTTP ${response.status}`)
       }
 
-      if (jobData.userId !== user.uid) {
-        throw new Error('Unauthorized access')
-      }
+      // Get the file content as blob
+      const blob = await response.blob()
 
-      if (!jobData.translatedContent) {
-        throw new Error('Translated content not available')
-      }
-
-      // Create and download the file directly
-      const blob = new Blob([jobData.translatedContent], { type: 'text/plain; charset=utf-8' })
+      // Create download link
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
