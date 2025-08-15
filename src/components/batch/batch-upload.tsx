@@ -9,14 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { LanguageSelector } from '@/components/translation/language-selector'
 import { Badge } from '@/components/ui/badge'
 import { useBatch } from '@/hooks/useBatch'
-import { useSubscription } from '@/hooks/useSubscription'
-import { 
-  Upload, 
-  X, 
-  FileText, 
-  AlertCircle, 
-  Zap,
-  Crown
+import {
+  Upload,
+  X,
+  FileText,
+  AlertCircle,
+  Zap
 } from 'lucide-react'
 
 interface BatchUploadProps {
@@ -25,7 +23,6 @@ interface BatchUploadProps {
 
 export function BatchUpload({ onJobCreated }: BatchUploadProps) {
   const { createBatchJob } = useBatch()
-  const { canPerformAction } = useSubscription()
   const [files, setFiles] = useState<File[]>([])
   const [jobName, setJobName] = useState('')
   const [sourceLanguage, setSourceLanguage] = useState<string>('')
@@ -33,9 +30,6 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
   const [aiService, setAiService] = useState<'google' | 'openai'>('google')
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  // Check if user can use batch processing
-  const batchCheck = canPerformAction('batch')
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const srtFiles = acceptedFiles.filter(file => 
@@ -93,32 +87,7 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
     }
   }
 
-  const canCreate = files.length > 0 && targetLanguage && jobName.trim() && !isCreating && batchCheck.allowed
-
-  if (!batchCheck.allowed) {
-    return (
-      <Card className="border-orange-500 bg-orange-50">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Crown className="h-5 w-5 text-orange-600" />
-            <span>Batch Processing - Premium Feature</span>
-          </CardTitle>
-          <CardDescription>
-            Batch processing is available for Premium and Pro subscribers only.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2 text-orange-600 mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <span className="text-sm">{batchCheck.reason}</span>
-          </div>
-          <Button onClick={() => window.location.href = '/pricing'}>
-            Upgrade to Premium
-          </Button>
-        </CardContent>
-      </Card>
-    )
-  }
+  const canCreate = files.length > 0 && targetLanguage && jobName.trim() && !isCreating
 
   return (
     <div className="space-y-6">

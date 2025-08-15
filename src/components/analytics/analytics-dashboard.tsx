@@ -72,7 +72,7 @@ export function AnalyticsDashboard() {
 
     try {
       // Fetch real analytics data from API
-      const response = await fetch(`/api/analytics-working?userId=${user.uid}&period=${period}`)
+      const response = await fetch(`/api/analytics?userId=${user.uid}&period=${period}`)
       if (!response.ok) {
         throw new Error('Failed to fetch analytics data')
       }
@@ -237,7 +237,7 @@ export function AnalyticsDashboard() {
               <Clock className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{data.averageProcessingTime}s</div>
+              <div className="text-3xl font-bold text-gray-900">{data.averageProcessingTime.toFixed(2)}s</div>
               <p className="text-xs text-green-600 mt-1">
                 -0.3s from last {period}
               </p>
