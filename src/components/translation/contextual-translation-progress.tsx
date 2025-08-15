@@ -228,16 +228,6 @@ function StageInfoDisplay({ stage, isActive, isCompleted, progress, selectedFile
                   </div>
                 </div>
               )}
-              {data.charactersDetected && Array.isArray(data.charactersDetected) && data.charactersDetected.length > 0 && (
-                <div className="bg-white p-3 rounded border border-purple-100">
-                  <h4 className="font-semibold text-pink-900 mb-2">🎭 Characters Detected</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {data.charactersDetected.slice(0, 10).map((char: string, i: number) => (
-                      <span key={i} className="bg-pink-200 text-pink-800 px-2 py-1 rounded text-xs">{char}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
               {data.culturalElementsFound && Array.isArray(data.culturalElementsFound) && data.culturalElementsFound.length > 0 && (
                 <div className="bg-white p-3 rounded border border-purple-100">
                   <h4 className="font-semibold text-teal-900 mb-2">🌸 Cultural Elements</h4>
