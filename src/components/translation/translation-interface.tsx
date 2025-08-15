@@ -295,16 +295,16 @@ export function TranslationInterface() {
     }
 
     // If we reach here without completing, check if we got stuck at high progress
-    if (translationProgress.progress > 80 && translationProgress.stage === 'translating') {
+    if (translationProgress.progress > 70 && translationProgress.stage === 'translating') {
       console.warn('⚠️ Stream ended without completion at high progress, attempting fallback')
 
       // Wait a bit and try to complete with fallback
       setTimeout(() => {
-        if (translationProgress.progress > 80 && translationProgress.stage === 'translating') {
+        if (translationProgress.progress > 70 && translationProgress.stage === 'translating') {
           console.log('🔄 Attempting fallback completion')
-          errorProgress('Translation completed but result was not received. Please try downloading again or contact support.')
+          errorProgress('Translation was interrupted. This may be due to a server timeout. Please try again or contact support if the issue persists.')
         }
-      }, 2000)
+      }, 3000) // Increased timeout to 3 seconds
     }
   }
 
