@@ -57,24 +57,114 @@ export class PremiumTranslationService {
 
       // PHASE 1: Extract show information from filename
       console.log('📁 PHASE 1: Analyzing filename')
-      if (typeof progressCallback === 'function') progressCallback('analyzing', 10, 'Analyzing filename and extracting show information...')
+      if (typeof progressCallback === 'function') progressCallback('analyzing', 10, `**Analyzing File**\n\nFilename: "${fileName}"`)
       await new Promise(resolve => setTimeout(resolve, 500)) // Small delay for UX
       const showInfo = this.extractShowInfo(fileName)
       console.log('📁 Extracted show info:', showInfo)
+      if (typeof progressCallback === 'function') {
+        // Show raw extracted data
+        const rawAnalysisData = {
+          filename: fileName,
+          extractedInfo: showInfo,
+          fileAnalysis: {
+            format: fileName.includes('.srt') ? 'SubRip (SRT)' : 'Unknown',
+            source: fileName.includes('DVDRip') ? 'DVD' : fileName.includes('BluRay') ? 'Blu-ray' : fileName.includes('WEB') ? 'Web' : 'Unknown',
+            quality: fileName.includes('1080p') ? '1080p' : fileName.includes('720p') ? '720p' : 'Standard',
+            release: fileName.match(/\.(.*?)\./g)?.join('') || 'Unknown'
+          }
+        }
+
+        const analysisResults = [
+          `**Analyzing File**`,
+          ``,
+          `\`\`\`json`,
+          JSON.stringify(rawAnalysisData, null, 2),
+          `\`\`\``
+        ].join('\n')
+
+        console.log('📤 Sending analyzing JSON data:', analysisResults.substring(0, 200) + '...')
+        progressCallback('analyzing', 15, analysisResults)
+      }
 
       // PHASE 2: Research the show/movie
       console.log('🔍 PHASE 2: Conducting research')
-      if (typeof progressCallback === 'function') progressCallback('researching', 20, `Researching "${showInfo.title}" for contextual information...`)
+      if (typeof progressCallback === 'function') {
+        console.log('📤 Sending researching progress message')
+        progressCallback('researching', 20, `**Researching Content**\n\nQuerying OpenAI for: "${showInfo.title}"`)
+      }
       const researchData = await this.conductShowResearch(showInfo, openai)
       console.log('🔍 Research completed for:', researchData.title)
-      if (typeof progressCallback === 'function') progressCallback('researching', 40, `Research completed for "${researchData.title}"`)
+      if (typeof progressCallback === 'function') {
+        // Show the raw OpenAI research response
+        const rawResearchData = {
+          title: researchData.title,
+          genre: researchData.genre,
+          plot: researchData.plot,
+          characters: researchData.characters,
+          setting: researchData.setting,
+          culturalContext: researchData.culturalContext,
+          historicalPeriod: researchData.historicalPeriod,
+          themes: researchData.themes,
+          targetAudience: researchData.targetAudience
+        }
+
+        const researchResults = [
+          `**Researching Content**`,
+          ``,
+          `\`\`\`json`,
+          JSON.stringify(rawResearchData, null, 2),
+          `\`\`\``
+        ].join('\n')
+
+        console.log('📤 Sending researching JSON data:', researchResults.substring(0, 200) + '...')
+        progressCallback('researching', 40, researchResults)
+      }
 
       // PHASE 3: Analyze subtitle content
       console.log('📊 PHASE 3: Analyzing content')
-      if (typeof progressCallback === 'function') progressCallback('analyzing_content', 45, 'Analyzing subtitle content and themes...')
+      if (typeof progressCallback === 'function') {
+        console.log('📤 Sending analyzing_content progress message')
+        progressCallback('analyzing_content', 45, `**Analyzing Subtitles**\n\nProcessing ${entries.length} subtitle entries...`)
+      }
       await new Promise(resolve => setTimeout(resolve, 300)) // Small delay for UX
       const contentAnalysis = this.analyzeContent(entries, researchData)
-      if (typeof progressCallback === 'function') progressCallback('analyzing_content', 50, 'Content analysis completed')
+      if (typeof progressCallback === 'function') {
+        // Analyze actual content for real results
+        const dialogueLines = entries.filter(entry => entry.text.length > 10).length
+        const shortLines = entries.filter(entry => entry.text.length <= 10).length
+        const questionLines = entries.filter(entry => entry.text.includes('?')).length
+        const exclamationLines = entries.filter(entry => entry.text.includes('!')).length
+        const characterNames = this.extractCharacterNames(entries)
+        const culturalTerms = this.findCulturalTerms(entries, researchData)
+
+        const contentAnalysisData = {
+          subtitleStatistics: {
+            totalEntries: entries.length,
+            dialogueLines: dialogueLines,
+            actionSoundLines: shortLines,
+            questions: questionLines,
+            exclamations: exclamationLines
+          },
+          charactersDetected: characterNames,
+          culturalElementsFound: culturalTerms,
+          translationStrategy: {
+            emotionalTone: questionLines > exclamationLines ? 'Conversational' : 'Dynamic',
+            complexityLevel: dialogueLines > entries.length * 0.7 ? 'Dialogue-heavy' : 'Action-focused',
+            culturalAdaptation: culturalTerms.length > 5 ? 'High priority' : 'Standard'
+          }
+        }
+
+        const contentResults = [
+          `**Analyzing Subtitles**`,
+          ``,
+          `\`\`\`json`,
+          JSON.stringify(contentAnalysisData, null, 2),
+          `\`\`\``
+        ].join('\n')
+
+        console.log('📤 Sending analyzing_content JSON data:', contentResults.substring(0, 200) + '...')
+        progressCallback('analyzing_content', 50, contentResults)
+      }
 
       // PHASE 4: Translate in context-aware batches
       console.log('🌐 PHASE 4: Starting contextual translation')
@@ -241,10 +331,24 @@ Be thorough but concise. If you don't know the show, provide generic guidelines.
       const response = completion.choices[0]?.message?.content || ''
       console.log('🎯 Research response received:', response.substring(0, 200) + '...')
 
-      // Parse JSON response
+      // Parse JSON response - handle markdown-wrapped JSON
       let researchData: ResearchData
       try {
-        const parsed = JSON.parse(response)
+        let jsonString = response.trim()
+
+        // Extract JSON from markdown code blocks if present
+        const jsonMatch = jsonString.match(/```json\s*([\s\S]*?)\s*```/) ||
+                         jsonString.match(/```\s*([\s\S]*?)\s*```/)
+
+        if (jsonMatch) {
+          console.log('🔍 Extracted JSON from markdown wrapper')
+          jsonString = jsonMatch[1].trim()
+        }
+
+        console.log('🔍 Attempting to parse JSON:', jsonString.substring(0, 200) + '...')
+        const parsed = JSON.parse(jsonString)
+        console.log('✅ Successfully parsed research JSON:', parsed)
+
         researchData = {
           title: parsed.title || showInfo.title,
           genre: parsed.genre || ['Unknown'],
@@ -256,6 +360,8 @@ Be thorough but concise. If you don't know the show, provide generic guidelines.
         }
       } catch (parseError) {
         console.warn('⚠️ Failed to parse research JSON, using fallback')
+        console.warn('⚠️ Parse error:', parseError)
+        console.warn('⚠️ Raw response:', response.substring(0, 500))
         researchData = {
           title: showInfo.title,
           genre: ['Unknown'],
@@ -830,6 +936,58 @@ TECHNICAL REQUIREMENTS:
     }
 
     return translatedEntries
+  }
+
+  private extractCharacterNames(entries: SubtitleEntry[]): string[] {
+    const names = new Set<string>()
+    const commonNames = [
+      'Ashitaka', 'San', 'Moro', 'Eboshi', 'Jigo', 'Yakul', 'Okkoto', 'Gonza',
+      'Ringo', 'Hachi', 'Toki', 'Kohroku', 'Kiyo', 'Tatara', 'Shishigami'
+    ]
+
+    entries.forEach(entry => {
+      commonNames.forEach(name => {
+        if (entry.text.includes(name)) {
+          names.add(name)
+        }
+      })
+
+      // Look for capitalized words that might be names
+      const words = entry.text.match(/\b[A-Z][a-z]+\b/g) || []
+      words.forEach(word => {
+        if (word.length > 2 && word.length < 15) {
+          names.add(word)
+        }
+      })
+    })
+
+    return Array.from(names).slice(0, 10)
+  }
+
+  private findCulturalTerms(entries: SubtitleEntry[], researchData: any): string[] {
+    const culturalTerms = new Set<string>()
+    const knownTerms = [
+      'samurai', 'shogun', 'daimyo', 'ronin', 'katana', 'sake', 'sushi', 'kimono',
+      'geisha', 'ninja', 'bushido', 'sensei', 'dojo', 'tatami', 'futon',
+      'onryō', 'kami', 'yokai', 'tengu', 'kitsune', 'tanuki', 'kodama'
+    ]
+
+    const allText = entries.map(e => e.text.toLowerCase()).join(' ')
+
+    knownTerms.forEach(term => {
+      if (allText.includes(term.toLowerCase())) {
+        culturalTerms.add(term)
+      }
+    })
+
+    // Add terms from research data
+    if (researchData.culturalElements) {
+      researchData.culturalElements.forEach((term: string) => {
+        culturalTerms.add(term)
+      })
+    }
+
+    return Array.from(culturalTerms).slice(0, 8)
   }
 
 }

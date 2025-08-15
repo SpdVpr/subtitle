@@ -75,6 +75,19 @@ export function useTranslationProgress() {
   })
 
   const startProgress = useCallback(() => {
+    console.log('🚀 useTranslationProgress.startProgress called - CLEARING ALL DATA')
+
+    // Clear all stored reasoning data from localStorage IMMEDIATELY
+    const stages = ['analyzing', 'researching', 'analyzing_content', 'translating', 'finalizing']
+    stages.forEach(stage => {
+      try {
+        localStorage.removeItem(`translation-reasoning-${stage}`)
+        console.log(`🗑️ STARTUP: Cleared localStorage data for stage: ${stage}`)
+      } catch (error) {
+        console.error(`Failed to clear localStorage for ${stage}:`, error)
+      }
+    })
+
     setProgress({
       stage: 'initializing',
       progress: 0,
@@ -84,6 +97,34 @@ export function useTranslationProgress() {
   }, [])
 
   const updateProgress = useCallback((stage: TranslationProgress['stage'], progressValue: number, details?: string) => {
+    console.log('🎯 useTranslationProgress.updateProgress called:', { stage, progressValue, details: details?.substring(0, 100) + '...' })
+
+    // Store JSON data in localStorage for persistence
+    if (details) {
+      const hasJsonData = details.includes('```json') || details.includes('```\n{') || details.includes('```\n  {')
+      if (hasJsonData) {
+        console.log('💎 Storing JSON data in localStorage for stage:', stage)
+        try {
+          localStorage.setItem(`translation-reasoning-${stage}`, details)
+        } catch (error) {
+          console.error('Failed to store JSON data:', error)
+        }
+      } else {
+        // Store non-JSON data only if we don't already have JSON data
+        const existingJsonData = localStorage.getItem(`translation-reasoning-${stage}`)
+        if (!existingJsonData || !existingJsonData.includes('```json')) {
+          console.log('📝 Storing progress data in localStorage for stage:', stage)
+          try {
+            localStorage.setItem(`translation-reasoning-${stage}`, details)
+          } catch (error) {
+            console.error('Failed to store progress data:', error)
+          }
+        } else {
+          console.log('⏭️ Keeping existing JSON data for stage:', stage)
+        }
+      }
+    }
+
     setProgress({
       stage,
       progress: progressValue,
@@ -115,6 +156,17 @@ export function useTranslationProgress() {
   }, [])
 
   const resetProgress = useCallback(() => {
+    // Clear all stored reasoning data from localStorage
+    const stages = ['analyzing', 'researching', 'analyzing_content', 'translating', 'finalizing']
+    stages.forEach(stage => {
+      try {
+        localStorage.removeItem(`translation-reasoning-${stage}`)
+        console.log(`🗑️ Cleared localStorage data for stage: ${stage}`)
+      } catch (error) {
+        console.error(`Failed to clear localStorage for ${stage}:`, error)
+      }
+    })
+
     setProgress({
       stage: 'initializing',
       progress: 0,

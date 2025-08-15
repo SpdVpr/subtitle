@@ -50,6 +50,9 @@ export async function POST(request: NextRequest) {
         controller.enqueue(sse({ type: 'connected' }))
         controller.enqueue(sse({ type: 'progress', stage: 'initializing', progress: 0, details: 'Starting translation process...' }))
 
+        // Add small delay to ensure progress is visible
+        await new Promise(resolve => setTimeout(resolve, 500))
+
         if (!userId) {
           controller.enqueue(sse({ type: 'error', message: 'User not identified' }))
           controller.close()
@@ -64,39 +67,49 @@ export async function POST(request: NextRequest) {
           return
         }
 
-        // Calculate and deduct credits upfront
+        // Calculate credits (for display only in development)
         const batchSize = 20
         const totalBatches = Math.ceil(entries.length / batchSize)
         const totalCredits = totalBatches * 0.4
 
         console.log(`💰 Premium translation: ${entries.length} subtitles, ${totalBatches} batches, ${totalCredits} credits`)
 
-        // Check balance and deduct credits upfront
-        try {
-          const { UserService } = await import('@/lib/database-admin')
-          const user = await UserService.getUser(userId)
-          const balance = (user?.creditsBalance || 0)
+        // Skip credit deduction in development mode
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🚧 Development mode: Skipping credit deduction')
+          controller.enqueue(sse({ type: 'progress', stage: 'payment', progress: 5, details: 'Development mode: Credits skipped' }))
+          await new Promise(resolve => setTimeout(resolve, 300))
+        } else {
+          // Production credit handling
+          try {
+            const { UserService } = await import('@/lib/database-admin')
+            const user = await UserService.getUser(userId)
+            const balance = (user?.creditsBalance || 0)
 
-          if (balance < totalCredits) {
-            controller.enqueue(sse({ type: 'error', message: `Insufficient credits. Required: ${totalCredits.toFixed(2)}, Available: ${balance.toFixed(2)}` }))
+            if (balance < totalCredits) {
+              controller.enqueue(sse({ type: 'error', message: `Insufficient credits. Required: ${totalCredits.toFixed(2)}, Available: ${balance.toFixed(2)}` }))
+              controller.close()
+              return
+            }
+
+            // Deduct all credits upfront
+            await UserService.adjustCredits(userId, -totalCredits, `Premium translation: ${entries.length} subtitles (${totalBatches} batches)`)
+            console.log(`✅ Deducted ${totalCredits} credits for premium translation`)
+          } catch (err) {
+            console.error('❌ Credit deduction failed:', err)
+            controller.enqueue(sse({ type: 'error', message: 'Failed to process payment. Please try again.' }))
             controller.close()
             return
           }
-
-          // Deduct all credits upfront
-          await UserService.adjustCredits(userId, -totalCredits, `Premium translation: ${entries.length} subtitles (${totalBatches} batches)`)
-          console.log(`✅ Deducted ${totalCredits} credits for premium translation`)
-        } catch (err) {
-          console.error('❌ Credit deduction failed:', err)
-          controller.enqueue(sse({ type: 'error', message: 'Failed to process payment. Please try again.' }))
-          controller.close()
-          return
         }
 
         const premium = new PremiumTranslationService(apiKey)
 
         const progressCallback = async (stage: string, progress: number, details?: string) => {
+          console.log(`📊 Progress: ${stage} - ${progress}% - ${details}`)
           controller.enqueue(sse({ type: 'progress', stage, progress, details }))
+          // Add small delay to ensure progress updates are visible
+          await new Promise(resolve => setTimeout(resolve, 100))
         }
 
         const translated = await premium.translateSubtitles(

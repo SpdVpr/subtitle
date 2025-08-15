@@ -1,4 +1,4 @@
-import { TranslationInterface } from '@/components/translation/translation-interface-new'
+import { TranslationInterface } from '@/components/translation/translation-interface'
 
 export default function TranslatePage() {
   return (
