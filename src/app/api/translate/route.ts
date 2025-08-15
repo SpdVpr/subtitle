@@ -509,11 +509,10 @@ async function processTranslationJob(
       console.log('💰 Skipping credit deduction for demo user:', userId)
     }
 
-      // Update user usage
-      await UserService.updateUsage(userId, {
-        translationsUsed: 1
-      })
-    }
+    // Update user usage
+    await UserService.updateUsage(userId, {
+      translationsUsed: 1
+    })
 
     // Record analytics
     const today = new Date().toISOString().split('T')[0]

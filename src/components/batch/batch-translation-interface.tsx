@@ -295,6 +295,16 @@ export function BatchTranslationInterface() {
             const finalResult = await pollJobStatus(result.jobId, user.uid)
 
             if (finalResult && finalResult.status === 'completed') {
+              // Download translated content if available
+              let translatedContent = 'Translation completed - download from history'
+              if (finalResult.translatedFileUrl) {
+                try {
+                  translatedContent = await downloadTranslatedFile(finalResult.translatedFileUrl)
+                } catch (error) {
+                  console.warn('Failed to download translated content:', error)
+                }
+              }
+
               // Update file status to completed with job result
               setFiles(prev => prev.map(f =>
                 f.id === file.id ? {
@@ -303,9 +313,7 @@ export function BatchTranslationInterface() {
                   progress: 100,
                   result: {
                     ...finalResult,
-                    translatedContent: finalResult.translatedFileUrl ?
-                      await downloadTranslatedFile(finalResult.translatedFileUrl) :
-                      'Translation completed - download from history',
+                    translatedContent,
                     translatedFileName: finalResult.translatedFileName
                   }
                 } : f
