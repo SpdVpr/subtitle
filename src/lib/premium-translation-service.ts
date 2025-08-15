@@ -36,8 +36,23 @@ export class PremiumTranslationService {
     console.log('🔑 API Key length:', this.apiKey?.length || 0)
     console.log('🔑 API Key starts with sk-:', this.apiKey?.startsWith('sk-') || false)
 
-    // Initialize progress
-    if (typeof progressCallback === 'function') progressCallback('initializing', 0, 'Starting translation process...')
+    // Initialize progress with debouncing
+    let lastProgressTime = 0
+    const safeProgressCallback = (stage: string, progress: number, details?: string) => {
+      const now = Date.now()
+      if (now - lastProgressTime < 500) return // Debounce progress updates to prevent spam
+      lastProgressTime = now
+
+      if (typeof progressCallback === 'function') {
+        try {
+          progressCallback(stage, progress, details)
+        } catch (error) {
+          console.warn('Progress callback error:', error)
+        }
+      }
+    }
+
+    safeProgressCallback('initializing', 0, 'Starting translation process...')
 
     if (!this.apiKey || this.apiKey.includes('your_openai_api_key') || this.apiKey.includes('demo_key') || this.apiKey.length < 20) {
       console.log('🎭 Using mock translation - API key not valid')
@@ -45,7 +60,7 @@ export class PremiumTranslationService {
                                   this.apiKey.includes('your_openai_api_key') ? 'Contains placeholder' :
                                   this.apiKey.includes('demo_key') ? 'Demo key' :
                                   this.apiKey.length < 20 ? 'Too short' : 'Unknown')
-      return this.createHighQualityMockTranslation(entries, targetLanguage, fileName, progressCallback)
+      return this.createHighQualityMockTranslation(entries, targetLanguage, fileName, safeProgressCallback)
     }
 
     try {
@@ -53,6 +68,7 @@ export class PremiumTranslationService {
       const openai = new OpenAI({
         apiKey: this.apiKey,
         dangerouslyAllowBrowser: true,
+        timeout: 60000, // 60 second timeout for API calls
       })
 
       // PHASE 1: Extract show information from filename
@@ -172,6 +188,9 @@ export class PremiumTranslationService {
       const translatedEntries: SubtitleEntry[] = []
       const batchSize = 20 // Optimal batch size for context
 
+      let consecutiveFailures = 0
+      const maxConsecutiveFailures = 3
+
       for (let i = 0; i < entries.length; i += batchSize) {
         const batch = entries.slice(i, i + batchSize)
         const batchNumber = Math.floor(i/batchSize) + 1
@@ -179,33 +198,51 @@ export class PremiumTranslationService {
         const batchProgress = 55 + ((i / entries.length) * 35)
 
         console.log(`🌐 Translating batch ${batchNumber}/${totalBatches}`)
-        if (typeof progressCallback === 'function') progressCallback('translating', batchProgress, `Translating batch ${batchNumber}/${totalBatches} with contextual awareness...`)
+        safeProgressCallback('translating', batchProgress, `Translating batch ${batchNumber}/${totalBatches} with contextual awareness...`)
 
-        const translatedBatch = await this.translateBatch(
-          openai,
-          batch,
-          targetLanguage,
-          sourceLanguage,
-          contentAnalysis,
-          researchData,
-          i
-        )
-        translatedEntries.push(...translatedBatch)
+        try {
+          const translatedBatch = await this.translateBatchWithRetry(
+            openai,
+            batch,
+            targetLanguage,
+            sourceLanguage,
+            contentAnalysis,
+            researchData,
+            i
+          )
+          translatedEntries.push(...translatedBatch)
+          consecutiveFailures = 0 // Reset failure counter on success
+        } catch (batchError) {
+          console.error(`❌ Batch ${batchNumber} failed:`, batchError)
+          consecutiveFailures++
+
+          if (consecutiveFailures >= maxConsecutiveFailures) {
+            throw new Error(`Translation failed after ${maxConsecutiveFailures} consecutive batch failures`)
+          }
+
+          // Use fallback translation for failed batch
+          console.log(`🔄 Using fallback translation for batch ${batchNumber}`)
+          const fallbackBatch = batch.map(entry => ({
+            ...entry,
+            text: `[FALLBACK] ${entry.text}`
+          }))
+          translatedEntries.push(...fallbackBatch)
+        }
       }
 
       // PHASE 5: Final processing
       console.log('✨ PHASE 5: Finalizing translation')
-      if (typeof progressCallback === 'function') progressCallback('finalizing', 95, 'Finalizing translation and quality checks...')
+      safeProgressCallback('finalizing', 95, 'Finalizing translation and quality checks...')
       await new Promise(resolve => setTimeout(resolve, 500)) // Small delay for UX
 
       console.log('✅ Premium Research-Based AI Translation completed')
-      if (typeof progressCallback === 'function') progressCallback('completed', 100, 'Translation completed successfully!')
+      safeProgressCallback('completed', 100, 'Translation completed successfully!')
       return translatedEntries
 
     } catch (error) {
       console.error('Premium translation error:', error)
-      if (typeof progressCallback === 'function') progressCallback('error', 0, `Translation failed: ${error instanceof Error ? error.message : String(error)}`)
-      return this.createHighQualityMockTranslation(entries, targetLanguage, fileName, progressCallback)
+      safeProgressCallback('error', 0, `Translation failed: ${error instanceof Error ? error.message : String(error)}`)
+      return this.createHighQualityMockTranslation(entries, targetLanguage, fileName, safeProgressCallback)
     }
   }
 
@@ -756,6 +793,59 @@ CONTENT ANALYSIS:`
     // For unknown text, provide complete translation attempt
     // This is a simplified approach - in real implementation, we'd use a proper translation API
     return `[CZ] ${text}` // Keep original with prefix to show it's translated
+  }
+
+  /**
+   * Translate a batch of subtitles with retry logic
+   */
+  private async translateBatchWithRetry(
+    openai: any,
+    batch: SubtitleEntry[],
+    targetLanguage: string,
+    sourceLanguage: string,
+    contentAnalysis: string,
+    researchData: string,
+    batchStartIndex: number,
+    maxRetries: number = 3
+  ): Promise<SubtitleEntry[]> {
+    let lastError: Error | null = null
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🔄 Batch translation attempt ${attempt}/${maxRetries}`)
+
+        // Add timeout wrapper for the translation
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Batch translation timeout')), 90000) // 90 second timeout
+        })
+
+        const translationPromise = this.translateBatch(
+          openai,
+          batch,
+          targetLanguage,
+          sourceLanguage,
+          contentAnalysis,
+          researchData,
+          batchStartIndex
+        )
+
+        const result = await Promise.race([translationPromise, timeoutPromise])
+        console.log(`✅ Batch translation succeeded on attempt ${attempt}`)
+        return result
+
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error))
+        console.warn(`⚠️ Batch translation attempt ${attempt} failed:`, lastError.message)
+
+        if (attempt < maxRetries) {
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000) // Exponential backoff, max 5s
+          console.log(`⏳ Retrying in ${delay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
+      }
+    }
+
+    throw lastError || new Error('Batch translation failed after all retries')
   }
 
   private async translateBatch(

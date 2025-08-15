@@ -97,30 +97,28 @@ export function useTranslationProgress() {
   }, [])
 
   const updateProgress = useCallback((stage: TranslationProgress['stage'], progressValue: number, details?: string) => {
-    console.log('🎯 useTranslationProgress.updateProgress called:', { stage, progressValue, details: details?.substring(0, 100) + '...' })
+    // Debounce progress updates to prevent spam
+    const now = Date.now()
+    if (now - (updateProgress._lastUpdate || 0) < 200) {
+      return // Skip updates that are too frequent
+    }
+    updateProgress._lastUpdate = now
 
-    // Store JSON data in localStorage for persistence
-    if (details) {
+    // Only log significant progress changes
+    if (!updateProgress._lastStage || updateProgress._lastStage !== stage || Math.abs(progressValue - (updateProgress._lastProgress || 0)) > 5) {
+      console.log('🎯 useTranslationProgress.updateProgress called:', { stage, progressValue })
+      updateProgress._lastStage = stage
+      updateProgress._lastProgress = progressValue
+    }
+
+    // Store JSON data in localStorage for persistence (but only for important stages)
+    if (details && (stage === 'analyzing' || stage === 'researching' || stage === 'analyzing_content')) {
       const hasJsonData = details.includes('```json') || details.includes('```\n{') || details.includes('```\n  {')
       if (hasJsonData) {
-        console.log('💎 Storing JSON data in localStorage for stage:', stage)
         try {
           localStorage.setItem(`translation-reasoning-${stage}`, details)
         } catch (error) {
           console.error('Failed to store JSON data:', error)
-        }
-      } else {
-        // Store non-JSON data only if we don't already have JSON data
-        const existingJsonData = localStorage.getItem(`translation-reasoning-${stage}`)
-        if (!existingJsonData || !existingJsonData.includes('```json')) {
-          console.log('📝 Storing progress data in localStorage for stage:', stage)
-          try {
-            localStorage.setItem(`translation-reasoning-${stage}`, details)
-          } catch (error) {
-            console.error('Failed to store progress data:', error)
-          }
-        } else {
-          console.log('⏭️ Keeping existing JSON data for stage:', stage)
         }
       }
     }
@@ -128,7 +126,7 @@ export function useTranslationProgress() {
     setProgress({
       stage,
       progress: progressValue,
-      details,
+      details: stage === 'translating' ? undefined : details, // Don't store details for translating stage
       isActive: stage !== 'completed' && stage !== 'error'
     })
   }, [])

@@ -107,11 +107,45 @@ export async function POST(request: NextRequest) {
 
         const premium = new PremiumTranslationService(apiKey)
 
+        let lastProgressTime = Date.now()
+        let progressTimeoutId: NodeJS.Timeout | null = null
+        let controllerClosed = false
+
         const progressCallback = async (stage: string, progress: number, details?: string) => {
+          // Check if controller is still open
+          if (controllerClosed) {
+            console.warn('⚠️ Skipping progress update - controller already closed')
+            return
+          }
+
           console.log(`📊 Progress: ${stage} - ${progress}% - ${details}`)
-          controller.enqueue(sse({ type: 'progress', stage, progress, details }))
-          // Add small delay to ensure progress updates are visible
-          await new Promise(resolve => setTimeout(resolve, 100))
+
+          // Reset progress timeout
+          if (progressTimeoutId) {
+            clearTimeout(progressTimeoutId)
+          }
+
+          // Set new timeout to detect stuck progress (longer timeout for translation)
+          const timeoutDuration = stage === 'translating' ? 300000 : 120000 // 5 minutes for translating, 2 minutes for others
+          progressTimeoutId = setTimeout(() => {
+            if (!controllerClosed) {
+              console.error('❌ Progress timeout - translation appears stuck')
+              controllerClosed = true
+              controller.enqueue(sse({ type: 'error', message: 'Translation timeout - please try again' }))
+              controller.close()
+            }
+          }, timeoutDuration)
+
+          lastProgressTime = Date.now()
+
+          try {
+            controller.enqueue(sse({ type: 'progress', stage, progress, details }))
+            // Add small delay to ensure progress updates are visible
+            await new Promise(resolve => setTimeout(resolve, 100))
+          } catch (error) {
+            console.warn('⚠️ Failed to send progress update - controller may be closed:', error.message)
+            controllerClosed = true
+          }
         }
 
         const translated = await premium.translateSubtitles(
@@ -121,6 +155,11 @@ export async function POST(request: NextRequest) {
           file.name,
           progressCallback
         )
+
+        // Clear progress timeout on successful completion
+        if (progressTimeoutId) {
+          clearTimeout(progressTimeoutId)
+        }
 
         const translatedContent = SubtitleProcessor.generateSRT(translated)
         const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
@@ -197,17 +236,35 @@ export async function POST(request: NextRequest) {
           // Continue anyway - user still gets the translation
         }
 
-        controller.enqueue(sse({
-          type: 'result',
-          status: 'completed',
-          translatedContent,
-          translatedFileName,
-          subtitleCount: translated.length,
-          characterCount: translatedContent.length,
-          jobId
-        }))
+        // Check if controller is still open before sending result
+        if (controllerClosed) {
+          console.warn('⚠️ Translation completed but controller already closed')
+          return
+        }
+
+        console.log('🎉 Translation completed successfully')
+
+        try {
+          controller.enqueue(sse({
+            type: 'result',
+            status: 'completed',
+            translatedContent,
+            translatedFileName,
+            subtitleCount: translated.length,
+            characterCount: translatedContent.length,
+            jobId
+          }))
+        } catch (error) {
+          console.error('❌ Failed to send result - controller closed:', error.message)
+          controllerClosed = true
+        }
       } catch (err: any) {
         console.error('❌ Translation failed:', err)
+
+        // Clear progress timeout on error
+        if (progressTimeoutId) {
+          clearTimeout(progressTimeoutId)
+        }
 
         // Refund credits on translation failure (only in production)
         if (process.env.NODE_ENV !== 'development') {
@@ -224,9 +281,22 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        controller.enqueue(sse({ type: 'error', message: err?.message || 'Translation failed' }))
+        if (!controllerClosed) {
+          try {
+            controller.enqueue(sse({ type: 'error', message: err?.message || 'Translation failed' }))
+          } catch (closeError) {
+            console.warn('⚠️ Failed to send error - controller already closed')
+          }
+        }
       } finally {
-        controller.close()
+        // Ensure timeout is cleared
+        if (progressTimeoutId) {
+          clearTimeout(progressTimeoutId)
+        }
+        if (!controllerClosed) {
+          controllerClosed = true
+          controller.close()
+        }
       }
     }
   })

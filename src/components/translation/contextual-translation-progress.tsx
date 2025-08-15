@@ -79,77 +79,62 @@ interface StageInfoDisplayProps {
 }
 
 function StageInfoDisplay({ stage, isActive, isCompleted, progress, selectedFile, storedReasoningData, setStoredReasoningData, jsonData }: StageInfoDisplayProps & { jsonData: Record<string, any> }) {
-  // Data storage is now handled in the main component
+  // Cache parsed data to prevent re-parsing on every render
+  const [parsedDataCache, setParsedDataCache] = React.useState<Record<string, any>>({})
 
-  // Parse JSON data from stored details
-  const parseStageData = (stageKey: string) => {
-    // First try to use JSON data if available
+  // Parse data only when input data changes
+  React.useEffect(() => {
+    const stageKey = stage.key
+
+    // Skip if already cached
+    if (parsedDataCache[stageKey]) return
+
     const jsonDataForStage = jsonData[stageKey]
     const regularData = storedReasoningData[stageKey]
     const data = jsonDataForStage || regularData
-    console.log(`🔍 parseStageData for ${stageKey}:`, {
-      hasJsonData: !!jsonDataForStage,
-      hasRegularData: !!regularData,
-      usingJsonData: !!jsonDataForStage,
-      dataType: typeof data,
-      dataPreview: data ? data.substring(0, 100) + '...' : 'none',
-      allStoredKeys: Object.keys(storedReasoningData),
-      allJsonKeys: Object.keys(jsonData)
-    })
 
-    // If we have real data, use it
-    if (data) {
-      // If data is already an object, return it directly
-      if (typeof data === 'object') {
-        console.log(`✅ Using object data for ${stageKey}:`, data)
-        return data
+    if (!data) return
+
+    // If data is already an object, cache it directly
+    if (typeof data === 'object') {
+      setParsedDataCache(prev => ({ ...prev, [stageKey]: data }))
+      return
+    }
+
+    // If data is a string, try to parse JSON from it
+    if (typeof data === 'string') {
+      // Try multiple JSON extraction patterns
+      let jsonMatch = data.match(/```json\s*([\s\S]*?)\s*```/)
+
+      if (!jsonMatch) {
+        // Try without the json language specifier
+        jsonMatch = data.match(/```\s*([\s\S]*?)\s*```/)
+      }
+      if (!jsonMatch) {
+        // Try to find JSON object directly in the string
+        jsonMatch = data.match(/(\{[\s\S]*\})/)
       }
 
-      // If data is a string, try to parse JSON from it
-      if (typeof data === 'string') {
-        console.log(`🔍 Parsing string data for ${stageKey}:`)
-        console.log(`📝 Full data content:`, data)
+      if (jsonMatch) {
+        try {
+          const parsedData = JSON.parse(jsonMatch[1])
 
-        // Try multiple JSON extraction patterns
-        let jsonMatch = data.match(/```json\s*([\s\S]*?)\s*```/)
-        console.log('🔍 Pattern 1 (```json):', !!jsonMatch)
-
-        if (!jsonMatch) {
-          // Try without the json language specifier
-          jsonMatch = data.match(/```\s*([\s\S]*?)\s*```/)
-          console.log('🔍 Pattern 2 (```):', !!jsonMatch)
-        }
-        if (!jsonMatch) {
-          // Try to find JSON object directly in the string
-          jsonMatch = data.match(/(\{[\s\S]*\})/)
-          console.log('🔍 Pattern 3 (direct JSON):', !!jsonMatch)
-        }
-
-        if (jsonMatch) {
-          console.log(`🔍 Found JSON match:`, jsonMatch[1])
-          try {
-            const parsedData = JSON.parse(jsonMatch[1])
-            console.log(`✅ Successfully parsed JSON for ${stageKey}:`, parsedData)
-            return parsedData
-          } catch (e) {
-            console.error(`❌ Failed to parse JSON for ${stageKey}:`, e)
-            console.error(`❌ Raw JSON string:`, jsonMatch[1])
-            return null
-          }
-        } else {
-          console.warn(`⚠️ No JSON pattern found in data for ${stageKey}`)
-          console.warn(`⚠️ Data content:`, data)
+          // Cache the parsed data
+          setParsedDataCache(prev => ({ ...prev, [stageKey]: parsedData }))
+        } catch (e) {
+          console.error(`❌ Failed to parse JSON for ${stageKey}:`, e)
         }
       }
     }
+  }, [stage.key, jsonData, storedReasoningData, parsedDataCache])
 
-    // No fallback data - only show real data when available
-
-    return null
+  // Simple getter for cached data
+  const getStageData = (stageKey: string) => {
+    return parsedDataCache[stageKey] || null
   }
 
   const renderStageInfo = () => {
-    const data = parseStageData(stage.key)
+    const data = getStageData(stage.key)
 
     switch (stage.key) {
       case 'analyzing':
@@ -279,6 +264,10 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
   const [storedReasoningData, setStoredReasoningData] = React.useState<Record<string, any>>({})
   // Separate storage for JSON data to prevent overwriting
   const [jsonData, setJsonData] = React.useState<Record<string, any>>({})
+  // Track last update to prevent infinite loops
+  const [lastUpdateKey, setLastUpdateKey] = React.useState<string>('')
+  // Track if data loading is in progress
+  const [isLoadingData, setIsLoadingData] = React.useState(false)
 
   // Clear data immediately when translation starts
   React.useEffect(() => {
@@ -286,6 +275,7 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
       console.log(`🗑️ NEW TRANSLATION STARTED - Clearing all stored data immediately`)
       setStoredReasoningData({})
       setJsonData({})
+      setLastUpdateKey('')
 
       // Also clear localStorage to prevent any race conditions
       const stages = ['analyzing', 'researching', 'analyzing_content', 'translating', 'finalizing']
@@ -301,56 +291,72 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
     }
   }, [progress.stage, progress.progress])
 
-  // Load data from localStorage when stage changes (but not during initialization)
+  // Load data from localStorage only when stage changes (not on every progress update)
   React.useEffect(() => {
     // Skip loading during initialization to prevent showing old data
     if (progress.stage === 'initializing') {
       return
     }
 
+    // Skip if already loading to prevent race conditions
+    if (isLoadingData) {
+      return
+    }
+
+    // Only load data when stage actually changes (not on progress updates)
+    if (lastUpdateKey.startsWith(progress.stage + '-')) {
+      return
+    }
+
+    // Only load data for stages that have meaningful details (not translating progress)
+    if (progress.stage === 'translating' && !progress.details?.includes('```json')) {
+      return
+    }
+
+    setIsLoadingData(true)
     console.log(`🔄 Loading data from localStorage for stage: ${progress.stage}`)
 
-    const stages = ['analyzing', 'researching', 'analyzing_content', 'translating', 'finalizing']
+    const stages = ['analyzing', 'researching', 'analyzing_content']
     const newStoredData: Record<string, string> = {}
     const newJsonData: Record<string, string> = {}
 
     stages.forEach(stage => {
       const data = localStorage.getItem(`translation-reasoning-${stage}`)
       if (data) {
-        console.log(`📂 Found data for ${stage}:`, data.substring(0, 100) + '...')
         newStoredData[stage] = data
 
         // Check if it's JSON data
         const hasJsonData = data.includes('```json') || data.includes('```\n{') || data.includes('```\n  {')
         if (hasJsonData) {
-          console.log(`💎 Found JSON data for ${stage}`)
           newJsonData[stage] = data
         }
       }
     })
 
-    setStoredReasoningData(newStoredData)
-    setJsonData(newJsonData)
+    // Only update state if data actually changed to prevent re-renders
+    const currentDataKeys = Object.keys(storedReasoningData).sort().join(',')
+    const newDataKeys = Object.keys(newStoredData).sort().join(',')
 
-    console.log(`📂 Loaded data for stages:`, Object.keys(newStoredData))
-    console.log(`💎 Loaded JSON data for stages:`, Object.keys(newJsonData))
-  }, [progress.stage]) // Reload when stage changes to pick up new data
+    if (currentDataKeys !== newDataKeys) {
+      setStoredReasoningData(newStoredData)
+      setJsonData(newJsonData)
+      setLastUpdateKey(progress.stage + '-loaded')
+      console.log(`📂 Updated data for stages:`, Object.keys(newStoredData))
+    }
 
-  console.log('🎨 ContextualTranslationProgress render:', {
-    isActive: progress.isActive,
-    stage: progress.stage,
-    progress: progress.progress,
-    selectedFile: !!selectedFile,
-    hasStoredData: Object.keys(storedReasoningData).length > 0,
-    hasJsonData: Object.keys(jsonData).length > 0,
-    storedDataKeys: Object.keys(storedReasoningData),
-    jsonDataKeys: Object.keys(jsonData),
-    currentDetails: progress.details ? progress.details.substring(0, 100) + '...' : 'none',
-    jsonDataPreview: Object.keys(jsonData).reduce((acc, key) => {
-      acc[key] = jsonData[key] ? jsonData[key].substring(0, 50) + '...' : 'none'
-      return acc
-    }, {} as Record<string, string>)
-  })
+    setIsLoadingData(false)
+  }, [progress.stage]) // Only depend on stage, not details or progress
+
+  // Only log significant render changes
+  const renderKey = `${progress.stage}-${Math.floor(progress.progress / 10)}`
+  if (!ContextualTranslationProgress._lastRenderKey || ContextualTranslationProgress._lastRenderKey !== renderKey) {
+    ContextualTranslationProgress._lastRenderKey = renderKey
+    console.log('🎨 ContextualTranslationProgress render:', {
+      stage: progress.stage,
+      progress: Math.round(progress.progress),
+      hasStoredData: Object.keys(storedReasoningData).length > 0
+    })
+  }
 
   // Show component if there's a selected file or if translation is active/has progress
   const shouldShow = selectedFile || progress.isActive || progress.progress > 0 || progress.stage !== 'initializing'

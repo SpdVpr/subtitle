@@ -30,6 +30,8 @@ export function TranslationInterface() {
   const [refreshCredits, setRefreshCredits] = useState<(() => void) | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
   const [userCredits, setUserCredits] = useState<number | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
+  const [maxRetries] = useState(2)
   const {
     progress: translationProgress,
     startProgress,
@@ -58,7 +60,6 @@ export function TranslationInterface() {
       const pct = translationProgress.progress || 0
       const roundedPct = Math.max(0, Math.min(100, Math.round(pct)))
       document.title = `${roundedPct}% • SubtitleAI`
-      console.log('Title useEffect - updating title to:', document.title, 'from progress:', pct)
     } else if (translationResult?.status === 'completed') {
       document.title = '✅ Done • SubtitleAI'
       // Restore original title after delay
@@ -68,7 +69,6 @@ export function TranslationInterface() {
       return () => clearTimeout(timer)
     } else {
       document.title = originalTitleRef.current || 'SubtitleAI'
-      console.log('Title useEffect - restoring title to:', document.title)
     }
   }, [translationProgress.isActive, translationProgress.progress, translationResult?.status])
 
@@ -215,6 +215,23 @@ export function TranslationInterface() {
 
     } catch (error) {
       console.error('Translation failed:', error)
+
+      // Automatic retry logic
+      if (retryCount < maxRetries && error instanceof Error &&
+          (error.message.includes('timeout') || error.message.includes('stuck') || error.message.includes('network'))) {
+        console.log(`🔄 Attempting retry ${retryCount + 1}/${maxRetries}`)
+        setRetryCount(prev => prev + 1)
+
+        // Wait a bit before retrying
+        setTimeout(() => {
+          handleTranslation()
+        }, 3000)
+        return
+      }
+
+      // Reset retry count on final failure
+      setRetryCount(0)
+
       errorProgress(error instanceof Error ? error.message : 'Translation failed')
       setTranslationResult({
         status: 'error',
@@ -236,12 +253,30 @@ export function TranslationInterface() {
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
+    let lastProgressTime = Date.now()
+    let progressStuckCount = 0
 
-    // Add timeout to prevent hanging
+    // Longer timeout for translation phase
     const timeoutId = setTimeout(() => {
       console.warn('⏰ Streaming timeout - completing translation')
       reader.cancel()
-    }, 300000) // 5 minutes timeout
+    }, 360000) // 6 minutes timeout (longer than backend 5 minutes)
+
+    // Progress monitoring to detect stuck translation (more lenient for translation phase)
+    const progressMonitor = setInterval(() => {
+      const now = Date.now()
+      if (now - lastProgressTime > 60000) { // No progress for 60 seconds (longer for translation)
+        progressStuckCount++
+        console.warn(`⚠️ No progress for 60s (count: ${progressStuckCount})`)
+
+        if (progressStuckCount >= 5) { // 5 minutes total
+          console.error('❌ Translation appears stuck, cancelling...')
+          reader.cancel()
+          clearInterval(progressMonitor)
+          throw new Error('Translation timeout - progress stuck')
+        }
+      }
+    }, 15000) // Check every 15 seconds
 
     try {
       while (true) {
@@ -252,7 +287,6 @@ export function TranslationInterface() {
         }
 
         buffer += decoder.decode(value, { stream: true })
-        console.log('📦 Received chunk, buffer length:', buffer.length)
 
         // Process complete lines
         const lines = buffer.split('\n')
@@ -266,12 +300,15 @@ export function TranslationInterface() {
               if (!cleanLine.trim()) continue
 
               const data = JSON.parse(cleanLine)
-              console.log('🌊 Streaming data parsed:', data)
 
               if (data.type === 'progress') {
-                console.log('🔄 Frontend received progress:', data.stage, data.progress)
-                console.log('📝 Progress details length:', data.details?.length || 0)
-                console.log('📝 Progress details preview:', data.details?.substring(0, 200) || 'No details')
+                // Only log significant progress changes
+                if (!handleStreamingResponse._lastProgress || Math.abs(data.progress - handleStreamingResponse._lastProgress) > 5) {
+                  console.log('🔄 Frontend received progress:', data.stage, Math.round(data.progress))
+                  handleStreamingResponse._lastProgress = data.progress
+                }
+                lastProgressTime = Date.now() // Reset progress timer
+                progressStuckCount = 0 // Reset stuck counter
                 updateProgress(data.stage, data.progress, data.details)
               } else if (data.type === 'connected') {
                 console.log('🔗 Frontend connected to stream')
@@ -294,10 +331,10 @@ export function TranslationInterface() {
           const cleanLine = buffer.startsWith('data: ') ? buffer.substring(6) : buffer
           if (cleanLine.trim()) {
             const data = JSON.parse(cleanLine)
-            console.log('🌊 Final streaming data parsed:', data)
 
             if (data.type === 'progress') {
-              console.log('🔄 Frontend received final progress:', data.stage, data.progress, data.details)
+              lastProgressTime = Date.now() // Reset progress timer
+              progressStuckCount = 0 // Reset stuck counter
               updateProgress(data.stage, data.progress, data.details)
             } else if (data.type === 'result' || data.type === 'complete') {
               await handleTranslationComplete(data)
@@ -312,6 +349,7 @@ export function TranslationInterface() {
       }
     } finally {
       clearTimeout(timeoutId)
+      clearInterval(progressMonitor)
       reader.releaseLock()
     }
   }
@@ -445,7 +483,7 @@ export function TranslationInterface() {
     }
   }
 
-  console.log('TranslationInterface rendering - WITH FULL TRANSLATION LOGIC')
+  // Reduced console logging for performance
 
   return (
     <ErrorBoundary>
