@@ -14,7 +14,7 @@ import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { TranslationResult } from '@/types/subtitle'
 import { CreditsDisplay } from '@/components/ui/credits-display'
 import { TranslationJobService } from '@/lib/database'
-import { Download, Crown, AlertCircle, Eye } from 'lucide-react'
+import { Download, Crown, AlertCircle, Eye, Calculator } from 'lucide-react'
 
 export function TranslationInterface() {
   const router = useRouter()
@@ -29,6 +29,7 @@ export function TranslationInterface() {
   const [subtitleCount, setSubtitleCount] = useState<number | null>(null)
   const [refreshCredits, setRefreshCredits] = useState<(() => void) | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
+  const [userCredits, setUserCredits] = useState<number | null>(null)
   const {
     progress: translationProgress,
     startProgress,
@@ -98,6 +99,26 @@ export function TranslationInterface() {
       }
     }
   }, [translationResult?.downloadUrl])
+
+  // Fetch user credits
+  useEffect(() => {
+    const fetchCredits = async () => {
+      if (!user) return
+
+      try {
+        const response = await fetch(`/api/user/credits?userId=${user.uid}`)
+        if (response.ok) {
+          const data = await response.json()
+          setUserCredits(data.credits || 0)
+        }
+      } catch (error) {
+        console.error('Failed to fetch credits:', error)
+        setUserCredits(0)
+      }
+    }
+
+    fetchCredits()
+  }, [user])
 
   // Recalculate cost when subtitle count changes (premium service only)
   useEffect(() => {
@@ -492,6 +513,83 @@ export function TranslationInterface() {
             </div>
           </div>
 
+          {/* Cost Calculator */}
+          {selectedFile && subtitleCount && estimatedCost && (
+            <div className={`p-4 border rounded-lg ${
+              userCredits !== null && userCredits < estimatedCost
+                ? 'bg-red-50 border-red-200'
+                : 'bg-blue-50 border-blue-200'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calculator className={`h-5 w-5 ${
+                    userCredits !== null && userCredits < estimatedCost
+                      ? 'text-red-600'
+                      : 'text-blue-600'
+                  }`} />
+                  <div>
+                    <h4 className={`font-medium ${
+                      userCredits !== null && userCredits < estimatedCost
+                        ? 'text-red-900'
+                        : 'text-blue-900'
+                    }`}>Translation Cost</h4>
+                    <p className={`text-sm mt-1 ${
+                      userCredits !== null && userCredits < estimatedCost
+                        ? 'text-red-700'
+                        : 'text-blue-700'
+                    }`}>
+                      {subtitleCount} subtitles • {Math.ceil(subtitleCount / 20)} batches
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className={`text-2xl font-bold ${
+                    userCredits !== null && userCredits < estimatedCost
+                      ? 'text-red-900'
+                      : 'text-blue-900'
+                  }`}>
+                    {estimatedCost.toFixed(1)} credits
+                  </div>
+                  <p className={`text-xs ${
+                    userCredits !== null && userCredits < estimatedCost
+                      ? 'text-red-600'
+                      : 'text-blue-600'
+                  }`}>
+                    ~${(estimatedCost / 100).toFixed(2)} USD
+                  </p>
+                </div>
+              </div>
+
+              {userCredits !== null && userCredits < estimatedCost && (
+                <div className="mt-3 p-2 bg-red-100 border border-red-300 rounded">
+                  <div className="flex items-center gap-2 text-red-800">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="font-medium text-sm">Insufficient Credits</span>
+                  </div>
+                  <p className="text-red-700 text-xs mt-1">
+                    You have {userCredits.toFixed(1)} credits but need {estimatedCost.toFixed(1)} credits.
+                    <a href="/buy-credits" className="underline ml-1">Buy more credits</a>
+                  </p>
+                </div>
+              )}
+
+              <div className={`mt-3 pt-3 border-t ${
+                userCredits !== null && userCredits < estimatedCost
+                  ? 'border-red-200'
+                  : 'border-blue-200'
+              }`}>
+                <div className={`flex justify-between items-center text-xs ${
+                  userCredits !== null && userCredits < estimatedCost
+                    ? 'text-red-600'
+                    : 'text-blue-600'
+                }`}>
+                  <span>✨ Premium AI with context research</span>
+                  <span>Rate: 0.4 credits per 20 subtitles</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <ContextualTranslationProgress
             progress={translationProgress}
             selectedFile={selectedFile}
@@ -563,11 +661,19 @@ export function TranslationInterface() {
             // Before/during translation
             <Button
               onClick={handleTranslate}
-              disabled={!selectedFile || !targetLanguage || isTranslating || !user}
+              disabled={
+                !selectedFile ||
+                !targetLanguage ||
+                isTranslating ||
+                !user ||
+                (userCredits !== null && estimatedCost !== null && userCredits < estimatedCost)
+              }
               className="w-full"
               size="lg"
             >
-              {isTranslating ? 'Translating...' : 'Start Translation'}
+              {isTranslating ? 'Translating...' :
+               (userCredits !== null && estimatedCost !== null && userCredits < estimatedCost) ?
+               'Insufficient Credits' : 'Start Translation'}
             </Button>
           )}
 
