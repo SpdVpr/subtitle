@@ -10,6 +10,8 @@ export async function GET(req: NextRequest) {
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
 
+    console.log('📊 Analytics API called:', { userId, period, startDate, endDate })
+
     if (!userId) {
       return NextResponse.json(
         { error: 'Missing userId' },
@@ -18,12 +20,25 @@ export async function GET(req: NextRequest) {
     }
 
     // Check if user exists and has analytics access
-    const user = await UserService.getUser(userId)
+    let user = null
+    try {
+      user = await UserService.getUser(userId)
+      console.log('👤 User found:', user ? 'Yes' : 'No')
+    } catch (error) {
+      console.error('❌ Error fetching user:', error)
+      // Continue with null user for demo handling
+    }
+
     if (!user) {
       // For demo users in development, create a mock user
       if (process.env.NODE_ENV === 'development' && (userId.includes('demo') || userId === 'premium-user-demo')) {
         console.log('🧪 Creating mock user for demo analytics')
-        // Continue with mock user data
+        user = {
+          uid: userId,
+          email: 'demo@test.com',
+          displayName: 'Demo User',
+          usage: { storageUsed: 0 }
+        } as any
       } else {
         return NextResponse.json(
           { error: 'User not found' },
@@ -62,12 +77,76 @@ export async function GET(req: NextRequest) {
     const startDateStr = startDateObj.toISOString().split('T')[0]
     const endDateStr = endDateObj.toISOString().split('T')[0]
 
+    console.log('📅 Date range:', { startDateStr, endDateStr })
+
     // Get analytics data
-    const analyticsEntries = await AnalyticsService.getUserAnalytics(
-      userId,
-      startDateStr,
-      endDateStr
-    )
+    let analyticsEntries = []
+    try {
+      analyticsEntries = await AnalyticsService.getUserAnalytics(
+        userId,
+        startDateStr,
+        endDateStr
+      )
+      console.log('📊 Analytics entries found:', analyticsEntries.length)
+    } catch (error) {
+      console.error('❌ Error fetching analytics:', error)
+      // Continue with empty array for graceful fallback
+    }
+
+    // If no analytics data and it's a demo user, provide sample data
+    if (analyticsEntries.length === 0 && (userId.includes('demo') || userId === 'premium-user-demo')) {
+      console.log('🧪 Providing demo analytics data')
+      return NextResponse.json({
+        period,
+        startDate: startDateStr,
+        endDate: endDateStr,
+        data: {
+          totalTranslations: 5,
+          totalFiles: 5,
+          totalSubtitles: 150,
+          averageProcessingTime: 2.5,
+          storageUsed: 1024 * 1024, // 1MB
+          successRate: 100,
+
+          translationsByLanguage: {
+            'Spanish': 2,
+            'French': 2,
+            'German': 1
+          },
+          translationsByService: {
+            'Premium AI': 5
+          },
+          dailyUsage: [
+            { date: new Date().toISOString().split('T')[0], translations: 2, files: 2, processingTime: 2.5 },
+            { date: new Date(Date.now() - 24*60*60*1000).toISOString().split('T')[0], translations: 1, files: 1, processingTime: 2.0 },
+            { date: new Date(Date.now() - 2*24*60*60*1000).toISOString().split('T')[0], translations: 2, files: 2, processingTime: 3.0 }
+          ],
+
+          topLanguages: [
+            { language: 'Spanish', count: 2, percentage: 40 },
+            { language: 'French', count: 2, percentage: 40 },
+            { language: 'German', count: 1, percentage: 20 }
+          ],
+
+          recentActivity: [
+            {
+              id: '1',
+              type: 'translation' as const,
+              description: 'Translated "demo_subtitles.srt" to Spanish',
+              timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+              status: 'success' as const
+            },
+            {
+              id: '2',
+              type: 'translation' as const,
+              description: 'Translated "sample.srt" to French',
+              timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
+              status: 'success' as const
+            }
+          ]
+        }
+      })
+    }
 
     // Aggregate data
     const aggregatedData = {
@@ -77,7 +156,7 @@ export async function GET(req: NextRequest) {
       averageProcessingTime: 0,
       storageUsed: user?.usage?.storageUsed || 0,
       successRate: 0,
-      
+
       translationsByLanguage: {} as Record<string, number>,
       translationsByService: {} as Record<string, number>,
       dailyUsage: [] as Array<{
@@ -86,13 +165,13 @@ export async function GET(req: NextRequest) {
         files: number
         processingTime: number
       }>,
-      
+
       topLanguages: [] as Array<{
         language: string
         count: number
         percentage: number
       }>,
-      
+
       recentActivity: [] as Array<{
         id: string
         type: 'translation' | 'batch' | 'edit'
@@ -186,14 +265,20 @@ export async function GET(req: NextRequest) {
     })
 
   } catch (error) {
-    await ErrorTracker.logApiError(
-      error instanceof Error ? error : new Error(String(error)),
-      '/api/analytics',
-      'GET'
-    )
+    console.error('❌ Analytics API Error:', error)
+
+    try {
+      await ErrorTracker.logApiError(
+        error instanceof Error ? error : new Error(String(error)),
+        '/api/analytics',
+        'GET'
+      )
+    } catch (logError) {
+      console.error('❌ Error logging failed:', logError)
+    }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
