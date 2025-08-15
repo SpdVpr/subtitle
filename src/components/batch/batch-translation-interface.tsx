@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { LanguageSelector } from '../translation/language-selector'
 import { CreditsDisplay } from '@/components/ui/credits-display'
+import { TranslationJobService, UserService } from '@/lib/database-admin'
 import { 
   Upload, 
   X, 
@@ -174,43 +175,7 @@ export function BatchTranslationInterface() {
     setFiles(prev => prev.filter(file => file.id !== id))
   }
 
-  // Helper function to poll job status
-  const pollJobStatus = async (jobId: string, userId: string, maxAttempts = 30): Promise<any> => {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      try {
-        const response = await fetch(`/api/translate?jobId=${jobId}&userId=${userId}`)
-        if (response.ok) {
-          const jobData = await response.json()
-          console.log(`📊 Job ${jobId} status:`, jobData.status)
 
-          if (jobData.status === 'completed' || jobData.status === 'failed') {
-            return jobData
-          }
-        }
-
-        // Wait 2 seconds before next poll
-        await new Promise(resolve => setTimeout(resolve, 2000))
-      } catch (error) {
-        console.error('Error polling job status:', error)
-      }
-    }
-
-    throw new Error('Job polling timed out')
-  }
-
-  // Helper function to download translated file content
-  const downloadTranslatedFile = async (fileUrl: string): Promise<string> => {
-    try {
-      const response = await fetch(fileUrl)
-      if (response.ok) {
-        return await response.text()
-      }
-      throw new Error('Failed to download translated file')
-    } catch (error) {
-      console.error('Error downloading translated file:', error)
-      return 'Translation completed - download from history'
-    }
-  }
 
   const canStartTranslation = files.length > 0 && targetLanguage && !isProcessing && user
 
@@ -269,9 +234,9 @@ export function BatchTranslationInterface() {
           formData.append('aiService', 'premium')
           formData.append('userId', user.uid)
 
-          console.log('📤 Sending request to /api/translate...')
+          console.log('📤 Sending request to /api/translate-simple...')
 
-          const response = await fetch('/api/translate', {
+          const response = await fetch('/api/translate-simple', {
             method: 'POST',
             body: formData
           })
@@ -287,52 +252,75 @@ export function BatchTranslationInterface() {
           const result = await response.json()
           console.log('✅ Translation result:', result)
 
-          // Check if this is a job-based response (background processing)
-          if (result.status === 'pending' && result.jobId) {
-            console.log('🔄 Job-based translation, polling for completion...')
+          // translate-simple returns direct response with translated content
+          if (result.translatedContent) {
+            console.log('💾 Saving translation to database...')
 
-            // Poll job status until completed
-            const finalResult = await pollJobStatus(result.jobId, user.uid)
+            // Save translation job to database
+            const jobId = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+            const translatedFileName = `${file.file.name.replace('.srt', '')}_${targetLanguage}.srt`
 
-            if (finalResult && finalResult.status === 'completed') {
-              // Download translated content if available
-              let translatedContent = 'Translation completed - download from history'
-              if (finalResult.translatedFileUrl) {
-                try {
-                  translatedContent = await downloadTranslatedFile(finalResult.translatedFileUrl)
-                } catch (error) {
-                  console.warn('Failed to download translated content:', error)
-                }
-              }
+            try {
+              // Create translation job in database
+              await TranslationJobService.createJob({
+                id: jobId,
+                userId: user.uid,
+                originalFileName: file.file.name,
+                translatedFileName,
+                sourceLanguage: 'auto',
+                targetLanguage,
+                aiService: 'openai',
+                status: 'completed',
+                createdAt: new Date() as any,
+                completedAt: new Date() as any,
+                subtitleCount: result.subtitleCount || file.subtitleCount || 0,
+                characterCount: result.characterCount || 0,
+                processingTimeMs: 2000, // Estimate
+                translatedContent: result.translatedContent,
+                confidence: 0.85
+              })
 
-              // Update file status to completed with job result
+              // Deduct credits
+              const chunksNeeded = Math.ceil((result.subtitleCount || file.subtitleCount || 20) / 20)
+              const creditsUsed = chunksNeeded * 0.4
+
+              await UserService.adjustCredits(
+                user.uid,
+                -creditsUsed,
+                `Batch translation: ${file.file.name}`,
+                jobId
+              )
+
+              console.log('✅ Translation saved to database and credits deducted')
+
+              // Update file status to completed
               setFiles(prev => prev.map(f =>
                 f.id === file.id ? {
                   ...f,
                   status: 'completed' as const,
                   progress: 100,
                   result: {
-                    ...finalResult,
-                    translatedContent,
-                    translatedFileName: finalResult.translatedFileName
+                    ...result,
+                    jobId,
+                    translatedFileName
                   }
                 } : f
               ))
-            } else {
-              throw new Error('Job failed or timed out')
+
+            } catch (dbError) {
+              console.error('❌ Failed to save to database:', dbError)
+              // Still show as completed in UI, but log the error
+              setFiles(prev => prev.map(f =>
+                f.id === file.id ? {
+                  ...f,
+                  status: 'completed' as const,
+                  progress: 100,
+                  result
+                } : f
+              ))
             }
-          } else if (result.status === 'completed') {
-            // Direct response with translated content (inline processing)
-            setFiles(prev => prev.map(f =>
-              f.id === file.id ? {
-                ...f,
-                status: 'completed' as const,
-                progress: 100,
-                result
-              } : f
-            ))
           } else {
-            throw new Error(`Unexpected response status: ${result.status}`)
+            throw new Error('No translated content in response')
           }
 
           // Update overall progress
