@@ -18,12 +18,20 @@ export async function GET(req: NextRequest) {
 
     // Get user's translation jobs
     const jobs = await TranslationJobService.getUserJobs(userId, limit)
-    
+
+    // Convert Firestore Timestamps to regular Date objects for JSON serialization
+    const serializedJobs = jobs.map(job => ({
+      ...job,
+      createdAt: job.createdAt ? new Date(job.createdAt.seconds * 1000) : null,
+      completedAt: job.completedAt ? new Date(job.completedAt.seconds * 1000) : null,
+      updatedAt: job.updatedAt ? new Date(job.updatedAt.seconds * 1000) : null
+    }))
+
     console.log('✅ Loaded', jobs.length, 'translation jobs')
 
     return NextResponse.json({
       success: true,
-      jobs
+      jobs: serializedJobs
     })
 
   } catch (error) {

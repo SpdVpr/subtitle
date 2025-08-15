@@ -229,7 +229,7 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
                       {job.subtitleCount} subtitles
                     </span>
                     <span>
-                      {job.createdAt && formatDistanceToNow(job.createdAt.toDate(), { addSuffix: true })}
+                      {job.createdAt && formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
                     </span>
                   </div>
                 </div>
