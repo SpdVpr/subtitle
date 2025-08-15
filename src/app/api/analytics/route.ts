@@ -169,17 +169,41 @@ export async function GET(req: NextRequest) {
     console.log('📊 Language distribution:', Object.fromEntries(languageMap))
     console.log('📊 Service distribution:', Object.fromEntries(serviceMap))
 
-    // Daily usage aggregation
+    // Daily usage aggregation with safe date handling
     const dailyUsageMap = new Map<string, { translations: number, files: number, processingTime: number }>()
     translationJobs.forEach(job => {
-      const jobDate = job.createdAt instanceof Date ? job.createdAt : new Date(job.createdAt)
-      const dateStr = jobDate.toISOString().split('T')[0]
+      let jobDate
+      try {
+        if (job.createdAt instanceof Date) {
+          jobDate = job.createdAt
+        } else if (job.createdAt && job.createdAt.toDate) {
+          // Firestore Timestamp
+          jobDate = job.createdAt.toDate()
+        } else if (job.createdAt) {
+          // String or other format
+          jobDate = new Date(job.createdAt)
+        } else {
+          // Fallback to current date
+          jobDate = new Date()
+        }
 
-      const existing = dailyUsageMap.get(dateStr) || { translations: 0, files: 0, processingTime: 0 }
-      existing.translations += 1
-      existing.files += 1
-      existing.processingTime += (job.processingTimeMs || 2000) / 1000 // Default 2 seconds
-      dailyUsageMap.set(dateStr, existing)
+        // Validate the date
+        if (isNaN(jobDate.getTime())) {
+          console.warn('Invalid date for job:', job.id, job.createdAt)
+          jobDate = new Date() // Use current date as fallback
+        }
+
+        const dateStr = jobDate.toISOString().split('T')[0]
+
+        const existing = dailyUsageMap.get(dateStr) || { translations: 0, files: 0, processingTime: 0 }
+        existing.translations += 1
+        existing.files += 1
+        existing.processingTime += (job.processingTimeMs || 2000) / 1000 // Default 2 seconds
+        dailyUsageMap.set(dateStr, existing)
+      } catch (error) {
+        console.error('Error processing job date:', job.id, job.createdAt, error)
+        // Skip this job's daily usage if date is completely invalid
+      }
     })
 
     // Convert to arrays and sort
@@ -196,17 +220,44 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5)
 
-    // Recent activity from latest jobs
+    // Recent activity from latest jobs with safe date handling
     const recentActivity = translationJobs
       .slice(0, 10)
-      .map(job => ({
-        id: job.id || 'unknown',
-        type: 'translation' as const,
-        description: `Translated "${job.originalFileName}" to ${job.targetLanguage}`,
-        timestamp: job.createdAt instanceof Date ? job.createdAt : new Date(job.createdAt),
-        status: job.status === 'completed' ? 'success' as const :
-                job.status === 'failed' ? 'failed' as const : 'processing' as const
-      }))
+      .map(job => {
+        let timestamp
+        try {
+          if (job.createdAt instanceof Date) {
+            timestamp = job.createdAt
+          } else if (job.createdAt && job.createdAt.toDate) {
+            // Firestore Timestamp
+            timestamp = job.createdAt.toDate()
+          } else if (job.createdAt) {
+            // String or other format
+            timestamp = new Date(job.createdAt)
+          } else {
+            // Fallback to current date
+            timestamp = new Date()
+          }
+
+          // Validate the date
+          if (isNaN(timestamp.getTime())) {
+            console.warn('Invalid timestamp for job:', job.id, job.createdAt)
+            timestamp = new Date() // Use current date as fallback
+          }
+        } catch (error) {
+          console.error('Error processing job timestamp:', job.id, job.createdAt, error)
+          timestamp = new Date() // Use current date as fallback
+        }
+
+        return {
+          id: job.id || 'unknown',
+          type: 'translation' as const,
+          description: `Translated "${job.originalFileName || 'unknown file'}" to ${job.targetLanguage || 'unknown language'}`,
+          timestamp,
+          status: job.status === 'completed' ? 'success' as const :
+                  job.status === 'failed' ? 'failed' as const : 'processing' as const
+        }
+      })
 
     console.log('📊 Final aggregated data:', {
       totalTranslations,
