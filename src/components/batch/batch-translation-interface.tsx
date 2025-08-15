@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { LanguageSelector } from '../translation/language-selector'
 import { CreditsDisplay } from '@/components/ui/credits-display'
-import { TranslationJobService, UserService } from '@/lib/database-admin'
 import { 
   Upload, 
   X, 
@@ -256,56 +255,52 @@ export function BatchTranslationInterface() {
           if (result.translatedContent) {
             console.log('💾 Saving translation to database...')
 
-            // Save translation job to database
-            const jobId = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-            const translatedFileName = `${file.file.name.replace('.srt', '')}_${targetLanguage}.srt`
-
             try {
-              // Create translation job in database
-              await TranslationJobService.createJob({
-                id: jobId,
-                userId: user.uid,
-                originalFileName: file.file.name,
-                translatedFileName,
-                sourceLanguage: 'auto',
-                targetLanguage,
-                aiService: 'openai',
-                status: 'completed',
-                createdAt: new Date() as any,
-                completedAt: new Date() as any,
-                subtitleCount: result.subtitleCount || file.subtitleCount || 0,
-                characterCount: result.characterCount || 0,
-                processingTimeMs: 2000, // Estimate
-                translatedContent: result.translatedContent,
-                confidence: 0.85
+              // Save translation to database via API
+              const saveResponse = await fetch('/api/batch/save-translation', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  userId: user.uid,
+                  originalFileName: file.file.name,
+                  targetLanguage,
+                  translatedContent: result.translatedContent,
+                  subtitleCount: result.subtitleCount || file.subtitleCount || 0,
+                  characterCount: result.characterCount || 0
+                })
               })
 
-              // Deduct credits
-              const chunksNeeded = Math.ceil((result.subtitleCount || file.subtitleCount || 20) / 20)
-              const creditsUsed = chunksNeeded * 0.4
+              if (saveResponse.ok) {
+                const saveResult = await saveResponse.json()
+                console.log('✅ Translation saved to database and credits deducted:', saveResult)
 
-              await UserService.adjustCredits(
-                user.uid,
-                -creditsUsed,
-                `Batch translation: ${file.file.name}`,
-                jobId
-              )
-
-              console.log('✅ Translation saved to database and credits deducted')
-
-              // Update file status to completed
-              setFiles(prev => prev.map(f =>
-                f.id === file.id ? {
-                  ...f,
-                  status: 'completed' as const,
-                  progress: 100,
-                  result: {
-                    ...result,
-                    jobId,
-                    translatedFileName
-                  }
-                } : f
-              ))
+                // Update file status to completed
+                setFiles(prev => prev.map(f =>
+                  f.id === file.id ? {
+                    ...f,
+                    status: 'completed' as const,
+                    progress: 100,
+                    result: {
+                      ...result,
+                      jobId: saveResult.jobId,
+                      translatedFileName: saveResult.translatedFileName
+                    }
+                  } : f
+                ))
+              } else {
+                console.error('❌ Failed to save to database:', await saveResponse.text())
+                // Still show as completed in UI, but log the error
+                setFiles(prev => prev.map(f =>
+                  f.id === file.id ? {
+                    ...f,
+                    status: 'completed' as const,
+                    progress: 100,
+                    result
+                  } : f
+                ))
+              }
 
             } catch (dbError) {
               console.error('❌ Failed to save to database:', dbError)
