@@ -74,6 +74,8 @@ export async function POST(request: NextRequest) {
 
         console.log(`💰 Premium translation: ${entries.length} subtitles, ${totalBatches} batches, ${totalCredits} credits`)
 
+        const startTime = Date.now()
+
         // Skip credit deduction in development mode
         if (process.env.NODE_ENV === 'development') {
           console.log('🚧 Development mode: Skipping credit deduction')
@@ -123,15 +125,102 @@ export async function POST(request: NextRequest) {
         const translatedContent = SubtitleProcessor.generateSRT(translated)
         const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
 
+        // Create and save translation job for history
+        let jobId: string | undefined
+        try {
+          const { TranslationJobService } = await import('@/lib/database-admin')
+
+          // Create job record
+          jobId = await TranslationJobService.createJob({
+            userId,
+            type: 'single',
+            status: 'pending',
+            originalFileName: file.name,
+            originalFileSize: file.size,
+            sourceLanguage: sourceLanguage || undefined,
+            targetLanguage,
+            aiService: 'premium'
+          })
+          console.log(`📝 Created translation job: ${jobId}`)
+
+          // Upload translated file to storage
+          const { StorageService } = await import('@/lib/storage')
+          const { url: translatedFileUrl } = await StorageService.uploadTranslatedFile(
+            translatedContent,
+            file.name,
+            userId,
+            jobId,
+            targetLanguage
+          )
+          console.log(`📤 Uploaded translated file: ${translatedFileUrl}`)
+
+          // Update job as completed
+          const processingTime = Date.now() - startTime
+          await TranslationJobService.updateJob(jobId, {
+            status: 'completed',
+            completedAt: new Date() as any,
+            processingTimeMs: processingTime,
+            translatedFileName,
+            translatedFileUrl,
+            subtitleCount: translated.length,
+            characterCount: translatedContent.length,
+            confidence: 0.95 // Premium AI confidence
+          })
+          console.log(`✅ Updated job ${jobId} as completed`)
+
+          // Update user usage statistics
+          const { UserService } = await import('@/lib/database-admin')
+          await UserService.updateUsage(userId, {
+            translationsUsed: 1
+          })
+          console.log(`📊 Updated user usage statistics`)
+
+          // Record analytics
+          const { AnalyticsService } = await import('@/lib/database-admin')
+          const today = new Date().toISOString().split('T')[0]
+          await AnalyticsService.recordDailyUsage(userId, today, {
+            translationsCount: 1,
+            filesProcessed: 1,
+            charactersTranslated: translatedContent.length,
+            processingTimeMs: processingTime,
+            languagePairs: { [`${sourceLanguage || 'auto'}-${targetLanguage}`]: 1 },
+            serviceUsage: { 'premium': 1 },
+            averageConfidence: 0.95
+          })
+          console.log(`📈 Recorded analytics for user ${userId}`)
+
+        } catch (storageError) {
+          console.error('❌ Failed to save translation job:', storageError)
+          // Continue anyway - user still gets the translation
+        }
+
         controller.enqueue(sse({
           type: 'result',
           status: 'completed',
           translatedContent,
           translatedFileName,
           subtitleCount: translated.length,
-          characterCount: translatedContent.length
+          characterCount: translatedContent.length,
+          jobId
         }))
       } catch (err: any) {
+        console.error('❌ Translation failed:', err)
+
+        // Refund credits on translation failure (only in production)
+        if (process.env.NODE_ENV !== 'development') {
+          try {
+            const { UserService } = await import('@/lib/database-admin')
+            const batchSize = 20
+            const totalBatches = Math.ceil(entries.length / batchSize)
+            const totalCredits = totalBatches * 0.4
+
+            await UserService.adjustCredits(userId, totalCredits, `Refund for failed translation: ${file.name}`)
+            console.log(`💰 Refunded ${totalCredits} credits due to translation failure`)
+          } catch (refundError) {
+            console.error('❌ Failed to refund credits:', refundError)
+          }
+        }
+
         controller.enqueue(sse({ type: 'error', message: err?.message || 'Translation failed' }))
       } finally {
         controller.close()
