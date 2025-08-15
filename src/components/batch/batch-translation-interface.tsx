@@ -174,6 +174,44 @@ export function BatchTranslationInterface() {
     setFiles(prev => prev.filter(file => file.id !== id))
   }
 
+  // Helper function to poll job status
+  const pollJobStatus = async (jobId: string, userId: string, maxAttempts = 30): Promise<any> => {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const response = await fetch(`/api/translate?jobId=${jobId}&userId=${userId}`)
+        if (response.ok) {
+          const jobData = await response.json()
+          console.log(`📊 Job ${jobId} status:`, jobData.status)
+
+          if (jobData.status === 'completed' || jobData.status === 'failed') {
+            return jobData
+          }
+        }
+
+        // Wait 2 seconds before next poll
+        await new Promise(resolve => setTimeout(resolve, 2000))
+      } catch (error) {
+        console.error('Error polling job status:', error)
+      }
+    }
+
+    throw new Error('Job polling timed out')
+  }
+
+  // Helper function to download translated file content
+  const downloadTranslatedFile = async (fileUrl: string): Promise<string> => {
+    try {
+      const response = await fetch(fileUrl)
+      if (response.ok) {
+        return await response.text()
+      }
+      throw new Error('Failed to download translated file')
+    } catch (error) {
+      console.error('Error downloading translated file:', error)
+      return 'Translation completed - download from history'
+    }
+  }
+
   const canStartTranslation = files.length > 0 && targetLanguage && !isProcessing && user
 
   const startBatchTranslation = async () => {
@@ -249,15 +287,45 @@ export function BatchTranslationInterface() {
           const result = await response.json()
           console.log('✅ Translation result:', result)
 
-          // Update file status to completed
-          setFiles(prev => prev.map(f =>
-            f.id === file.id ? {
-              ...f,
-              status: 'completed' as const,
-              progress: 100,
-              result
-            } : f
-          ))
+          // Check if this is a job-based response (background processing)
+          if (result.status === 'pending' && result.jobId) {
+            console.log('🔄 Job-based translation, polling for completion...')
+
+            // Poll job status until completed
+            const finalResult = await pollJobStatus(result.jobId, user.uid)
+
+            if (finalResult && finalResult.status === 'completed') {
+              // Update file status to completed with job result
+              setFiles(prev => prev.map(f =>
+                f.id === file.id ? {
+                  ...f,
+                  status: 'completed' as const,
+                  progress: 100,
+                  result: {
+                    ...finalResult,
+                    translatedContent: finalResult.translatedFileUrl ?
+                      await downloadTranslatedFile(finalResult.translatedFileUrl) :
+                      'Translation completed - download from history',
+                    translatedFileName: finalResult.translatedFileName
+                  }
+                } : f
+              ))
+            } else {
+              throw new Error('Job failed or timed out')
+            }
+          } else if (result.status === 'completed') {
+            // Direct response with translated content (inline processing)
+            setFiles(prev => prev.map(f =>
+              f.id === file.id ? {
+                ...f,
+                status: 'completed' as const,
+                progress: 100,
+                result
+              } : f
+            ))
+          } else {
+            throw new Error(`Unexpected response status: ${result.status}`)
+          }
 
           // Update overall progress
           const completedProgress = ((i + 1) / files.length) * 100

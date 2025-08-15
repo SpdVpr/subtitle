@@ -460,6 +460,15 @@ async function processTranslationJob(
     const processingTime = Date.now() - startTime
 
     // Update job as completed
+    console.log('📊 Updating job as completed with data:', {
+      jobId,
+      status: 'completed',
+      translatedFileName,
+      translatedFileUrl,
+      subtitleCount: subtitleEntries.length,
+      characterCount: fileContent.length
+    })
+
     await TranslationJobService.updateJob(jobId, {
       status: 'completed',
       completedAt: new Date() as any,
@@ -471,8 +480,11 @@ async function processTranslationJob(
       confidence: 0.85 // Mock confidence score
     })
 
+    console.log('✅ Job successfully updated as completed')
+
     // Calculate and deduct credits (skip for demo user)
-    if (userId !== 'premium-user-demo') {
+    console.log('💰 Checking if credits should be deducted for user:', userId)
+    if (userId !== 'premium-user-demo' && !userId.endsWith('-user-demo')) {
       // Calculate credits based on subtitle count and service
       const chunksNeeded = Math.ceil(subtitleEntries.length / 20)
       const creditsPerChunk = 0.4 // Premium service only
@@ -480,13 +492,22 @@ async function processTranslationJob(
 
       console.log(`💰 Deducting ${totalCredits} credits for ${subtitleEntries.length} subtitles (${chunksNeeded} chunks, ${creditsPerChunk} per chunk)`)
 
-      // Deduct credits
-      await UserService.adjustCredits(
-        userId,
-        -totalCredits,
-        `${aiServiceRaw === 'premium' ? 'Premium' : 'Standard'} translation: ${subtitleEntries.length} subtitles`,
-        jobId
-      )
+      try {
+        // Deduct credits
+        await UserService.adjustCredits(
+          userId,
+          -totalCredits,
+          `${aiServiceRaw === 'premium' ? 'Premium' : 'Standard'} translation: ${subtitleEntries.length} subtitles`,
+          jobId
+        )
+        console.log('✅ Credits successfully deducted')
+      } catch (error) {
+        console.error('❌ Failed to deduct credits:', error)
+        // Don't fail the translation if credit deduction fails
+      }
+    } else {
+      console.log('💰 Skipping credit deduction for demo user:', userId)
+    }
 
       // Update user usage
       await UserService.updateUsage(userId, {
