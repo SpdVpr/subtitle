@@ -1,17 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { BatchTranslationInterface } from '@/components/batch/batch-translation-interface'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BatchUpload } from '@/components/batch/batch-upload'
-import { BatchJobList } from '@/components/batch/batch-job-list'
 import { useAuth } from '@/hooks/useAuth'
-import { useSubscription } from '@/hooks/useSubscription'
-import { 
-  Zap, 
-  FileText, 
-  Crown, 
+import {
+  Zap,
+  FileText,
+  Archive,
   CheckCircle,
   Clock,
   Download
@@ -19,29 +14,6 @@ import {
 
 export default function BatchPage() {
   const { user } = useAuth()
-  const { subscription } = useSubscription()
-  const [activeTab, setActiveTab] = useState('upload')
-
-  const handleJobCreated = (jobId: string) => {
-    // Switch to jobs tab when a new job is created
-    setActiveTab('jobs')
-  }
-
-  if (!user) {
-    return (
-      <div className="container py-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl font-bold mb-4">Batch Translation</h1>
-          <p className="text-gray-600 mb-8">
-            Please log in to access batch translation features
-          </p>
-          <Button onClick={() => window.location.href = '/login'}>
-            Log In
-          </Button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="py-8">
@@ -51,87 +23,47 @@ export default function BatchPage() {
           <div className="flex items-center justify-center space-x-3 mb-4">
             <Zap className="h-8 w-8 text-blue-600" />
             <h1 className="text-3xl font-bold">Batch Translation</h1>
-            {subscription && subscription.plan !== 'free' && (
-              <Crown className="h-6 w-6 text-yellow-500" />
-            )}
           </div>
           <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-            Process multiple subtitle files simultaneously with AI-powered translation
+            Upload multiple subtitle files or ZIP archives and translate them all at once with AI
           </p>
         </div>
 
         {/* Features Overview */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <FileText className="h-8 w-8 text-blue-500" />
-                <h3 className="font-semibold">Multiple Files</h3>
-              </div>
-              <p className="text-sm text-gray-600">
-                Upload and process dozens of SRT files in a single batch job
-              </p>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+            <div className="flex items-center space-x-3 mb-3">
+              <FileText className="h-8 w-8 text-blue-500" />
+              <h3 className="font-semibold">Multiple Files & ZIP</h3>
+            </div>
+            <p className="text-sm text-gray-600">
+              Upload individual SRT files or ZIP archives containing multiple subtitle files
+            </p>
+          </div>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <Clock className="h-8 w-8 text-green-500" />
-                <h3 className="font-semibold">Time Saving</h3>
-              </div>
-              <p className="text-sm text-gray-600">
-                Automated processing with real-time progress tracking
-              </p>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+            <div className="flex items-center space-x-3 mb-3">
+              <Archive className="h-8 w-8 text-green-500" />
+              <h3 className="font-semibold">Smart Processing</h3>
+            </div>
+            <p className="text-sm text-gray-600">
+              Automatic file extraction from ZIP and intelligent cost estimation
+            </p>
+          </div>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <Download className="h-8 w-8 text-purple-500" />
-                <h3 className="font-semibold">ZIP Download</h3>
-              </div>
-              <p className="text-sm text-gray-600">
-                Get all translated files in a convenient ZIP archive
-              </p>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+            <div className="flex items-center space-x-3 mb-3">
+              <Download className="h-8 w-8 text-purple-500" />
+              <h3 className="font-semibold">Batch Download</h3>
+            </div>
+            <p className="text-sm text-gray-600">
+              Download individual files or get all translations in a single ZIP
+            </p>
+          </div>
         </div>
 
         {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="upload" className="flex items-center space-x-2">
-              <Zap className="h-4 w-4" />
-              <span>New Batch Job</span>
-            </TabsTrigger>
-            <TabsTrigger value="jobs" className="flex items-center space-x-2">
-              <FileText className="h-4 w-4" />
-              <span>My Jobs</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="upload" className="mt-6">
-            <BatchUpload onJobCreated={handleJobCreated} />
-          </TabsContent>
-
-          <TabsContent value="jobs" className="mt-6">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Batch Jobs</h2>
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveTab('upload')}
-                >
-                  <Zap className="h-4 w-4 mr-2" />
-                  New Batch Job
-                </Button>
-              </div>
-              <BatchJobList />
-            </div>
-          </TabsContent>
-        </Tabs>
+        <BatchTranslationInterface />
 
         {/* Help Section */}
         <Card className="mt-8">
@@ -149,7 +81,7 @@ export default function BatchPage() {
                 </div>
                 <h4 className="font-medium mb-2">Upload Files</h4>
                 <p className="text-sm text-gray-600">
-                  Select multiple SRT files using drag & drop or file picker
+                  Upload SRT files individually or as ZIP archives
                 </p>
               </div>
 
@@ -159,7 +91,7 @@ export default function BatchPage() {
                 </div>
                 <h4 className="font-medium mb-2">Configure</h4>
                 <p className="text-sm text-gray-600">
-                  Choose target language and AI service for translation
+                  Choose target language and review cost estimation
                 </p>
               </div>
 
