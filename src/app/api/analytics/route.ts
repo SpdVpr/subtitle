@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AnalyticsService, UserService } from '@/lib/database'
+import { AnalyticsService, UserService } from '@/lib/database-admin'
 import { ErrorTracker } from '@/lib/error-tracking'
 
 export async function GET(req: NextRequest) {
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
       totalFiles: 0,
       totalSubtitles: 0,
       averageProcessingTime: 0,
-      storageUsed: user.usage.storageUsed,
+      storageUsed: user.usage?.storageUsed || 0,
       successRate: 0,
       
       translationsByLanguage: {} as Record<string, number>,

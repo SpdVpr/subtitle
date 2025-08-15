@@ -130,44 +130,46 @@ export async function POST(request: NextRequest) {
         try {
           const { TranslationJobService } = await import('@/lib/database-admin')
 
-          // Create job record
+          // Create job record as completed (since translation is already done)
           jobId = await TranslationJobService.createJob({
             userId,
             type: 'single',
-            status: 'pending',
+            status: 'completed',
             originalFileName: file.name,
             originalFileSize: file.size,
             sourceLanguage: sourceLanguage || undefined,
             targetLanguage,
-            aiService: 'premium'
-          })
-          console.log(`📝 Created translation job: ${jobId}`)
-
-          // Upload translated file to storage
-          const { StorageService } = await import('@/lib/storage')
-          const { url: translatedFileUrl } = await StorageService.uploadTranslatedFile(
-            translatedContent,
-            file.name,
-            userId,
-            jobId,
-            targetLanguage
-          )
-          console.log(`📤 Uploaded translated file: ${translatedFileUrl}`)
-
-          // Update job as completed
-          const processingTime = Date.now() - startTime
-          await TranslationJobService.updateJob(jobId, {
-            status: 'completed',
-            completedAt: new Date() as any,
-            processingTimeMs: processingTime,
+            aiService: 'premium',
             translatedFileName,
-            translatedFileUrl,
-            translatedContent, // Add the translated content for download
+            translatedContent, // Store content directly in job
             subtitleCount: translated.length,
             characterCount: translatedContent.length,
-            confidence: 0.95 // Premium AI confidence
+            confidence: 0.95,
+            processingTimeMs: Date.now() - startTime,
+            completedAt: new Date() as any
           })
-          console.log(`✅ Updated job ${jobId} as completed`)
+          console.log(`📝 Created completed translation job: ${jobId}`)
+
+          // Try to upload to storage (optional - if it fails, we still have the content in the job)
+          try {
+            const { StorageService } = await import('@/lib/storage')
+            const { url: translatedFileUrl } = await StorageService.uploadTranslatedFile(
+              translatedContent,
+              file.name,
+              userId,
+              jobId,
+              targetLanguage
+            )
+            console.log(`📤 Uploaded translated file: ${translatedFileUrl}`)
+
+            // Update job with storage URL
+            await TranslationJobService.updateJob(jobId, {
+              translatedFileUrl
+            })
+          } catch (storageError) {
+            console.warn('⚠️ Storage upload failed, but job content is saved:', storageError)
+            // Continue - we have the content in the job record
+          }
 
           // Update user usage statistics
           const { UserService } = await import('@/lib/database-admin')

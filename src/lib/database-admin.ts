@@ -212,6 +212,53 @@ export class AnalyticsService {
     }
   }
 
+  static async recordDailyUsage(userId: string, date: string, metrics: Partial<AnalyticsEntry>): Promise<void> {
+    try {
+      const db = getAdminDb()
+      const entryId = `${userId}_${date}`
+      const entryRef = db.collection(COLLECTIONS.ANALYTICS).doc(entryId)
+
+      // Get existing entry or create new one
+      const existingEntry = await entryRef.get()
+
+      if (existingEntry.exists) {
+        // Update existing entry
+        const currentData = existingEntry.data() as AnalyticsEntry
+        await entryRef.update({
+          translationsCount: (currentData.translationsCount || 0) + (metrics.translationsCount || 0),
+          filesProcessed: (currentData.filesProcessed || 0) + (metrics.filesProcessed || 0),
+          charactersTranslated: (currentData.charactersTranslated || 0) + (metrics.charactersTranslated || 0),
+          processingTimeMs: (currentData.processingTimeMs || 0) + (metrics.processingTimeMs || 0),
+          languagePairs: { ...currentData.languagePairs, ...metrics.languagePairs },
+          serviceUsage: { ...currentData.serviceUsage, ...metrics.serviceUsage },
+          averageConfidence: metrics.averageConfidence || currentData.averageConfidence || 0,
+          errorCount: (currentData.errorCount || 0) + (metrics.errorCount || 0),
+          updatedAt: new Date()
+        })
+      } else {
+        // Create new entry
+        await entryRef.set({
+          id: entryId,
+          userId,
+          date,
+          translationsCount: metrics.translationsCount || 0,
+          filesProcessed: metrics.filesProcessed || 0,
+          charactersTranslated: metrics.charactersTranslated || 0,
+          processingTimeMs: metrics.processingTimeMs || 0,
+          languagePairs: metrics.languagePairs || {},
+          serviceUsage: metrics.serviceUsage || {},
+          averageConfidence: metrics.averageConfidence || 0,
+          errorCount: metrics.errorCount || 0,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+      }
+    } catch (error) {
+      console.error('❌ Error recording daily usage:', error)
+      // Don't throw - analytics shouldn't break the main flow
+    }
+  }
+
   static async getUserAnalytics(userId: string, startDate: string, endDate: string): Promise<AnalyticsEntry[]> {
     try {
       const db = getAdminDb()
