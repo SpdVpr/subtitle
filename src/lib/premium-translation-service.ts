@@ -178,25 +178,19 @@ export class PremiumTranslationService {
         const totalBatches = Math.ceil(entries.length/batchSize)
         const batchProgress = 55 + ((i / entries.length) * 35)
 
-        console.log(`🌐 Translating batch ${batchNumber}/${totalBatches} (entries ${i+1}-${Math.min(i+batchSize, entries.length)})`)
+        console.log(`🌐 Translating batch ${batchNumber}/${totalBatches}`)
         if (typeof progressCallback === 'function') progressCallback('translating', batchProgress, `Translating batch ${batchNumber}/${totalBatches} with contextual awareness...`)
 
-        try {
-          const translatedBatch = await this.translateBatch(
-            openai,
-            batch,
-            targetLanguage,
-            sourceLanguage,
-            contentAnalysis,
-            researchData,
-            i
-          )
-          translatedEntries.push(...translatedBatch)
-          console.log(`✅ Batch ${batchNumber}/${totalBatches} completed successfully`)
-        } catch (batchError) {
-          console.error(`❌ Batch ${batchNumber}/${totalBatches} failed:`, batchError)
-          throw new Error(`Translation failed at batch ${batchNumber}/${totalBatches}: ${batchError.message}`)
-        }
+        const translatedBatch = await this.translateBatch(
+          openai,
+          batch,
+          targetLanguage,
+          sourceLanguage,
+          contentAnalysis,
+          researchData,
+          i
+        )
+        translatedEntries.push(...translatedBatch)
       }
 
       // PHASE 5: Final processing
@@ -788,17 +782,12 @@ CONTENT ANALYSIS:`
       return `${batchStartIndex + index + 1}. ${entry.text}`
     }).join('\n')
 
-    console.log(`🚀 Starting OpenAI translation for batch of ${batch.length} entries`)
-    const startTime = Date.now()
-
-    try {
-      const completion = await Promise.race([
-        openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `You are an expert subtitle translator specializing in ${targetLangName}. You create professional-quality translations that capture the essence of the original content.
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert subtitle translator specializing in ${targetLangName}. You create professional-quality translations that capture the essence of the original content.
 
 ${contentAnalysis}
 
@@ -825,29 +814,15 @@ TECHNICAL REQUIREMENTS:
 - Never skip, merge, or split subtitle entries
 - Maintain exact line breaks within multi-line subtitles
 - Preserve timing-critical elements like pauses (...) and emphasis`
-            },
-            {
-              role: "user",
-              content: `Translate these ${batch.length} subtitle entries with perfect accuracy:\n\n${structuredInput}`
-            }
-          ],
-          temperature: 0.1,
-          max_tokens: Math.min(4000, batch.length * 200),
-        }),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('OpenAI API timeout after 60 seconds')), 60000)
-        )
-      ]) as any
-
-      const duration = Date.now() - startTime
-      console.log(`✅ OpenAI translation completed in ${duration}ms`)
-
-      return completion
-    } catch (error) {
-      const duration = Date.now() - startTime
-      console.error(`❌ OpenAI translation failed after ${duration}ms:`, error)
-      throw error
-    }
+        },
+        {
+          role: "user",
+          content: `Translate these ${batch.length} subtitle entries with perfect accuracy:\n\n${structuredInput}`
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: Math.min(4000, batch.length * 200),
+    })
 
     const response = completion.choices[0]?.message?.content || ''
     console.log('🤖 OpenAI raw response:', response.substring(0, 500) + '...')

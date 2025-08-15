@@ -203,10 +203,6 @@ export async function POST(request: NextRequest) {
           characterCount: translatedContent.length,
           jobId
         }))
-
-        // Add delay to ensure the result message is sent before closing
-        await new Promise(resolve => setTimeout(resolve, 500))
-        console.log('📤 Result message sent, closing stream')
       } catch (err: any) {
         console.error('❌ Translation failed:', err)
 
@@ -226,10 +222,6 @@ export async function POST(request: NextRequest) {
         }
 
         controller.enqueue(sse({ type: 'error', message: err?.message || 'Translation failed' }))
-
-        // Add delay to ensure the error message is sent before closing
-        await new Promise(resolve => setTimeout(resolve, 500))
-        console.log('❌ Error message sent, closing stream')
       } finally {
         controller.close()
       }
