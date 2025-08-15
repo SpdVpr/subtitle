@@ -662,14 +662,14 @@ export function HierarchicalSubtitleSearch() {
                               {/* Subtitle count and quality indicators */}
                               <div className="flex items-center space-x-3 text-sm">
                                 <Badge variant="outline" className="bg-blue-50">
-                                  {show.subtitles.length} subtitle{show.subtitles.length !== 1 ? 's' : ''}
+                                  {show.subtitles?.length || 0} subtitle{(show.subtitles?.length || 0) !== 1 ? 's' : ''}
                                 </Badge>
-                                {show.subtitles.some(s => s.from_trusted) && (
+                                {show.subtitles?.some(s => s.from_trusted) && (
                                   <Badge variant="outline" className="bg-green-50 text-green-700">
                                     ✓ Trusted
                                   </Badge>
                                 )}
-                                {show.subtitles.some(s => s.hd) && (
+                                {show.subtitles?.some(s => s.hd) && (
                                   <Badge variant="outline" className="bg-purple-50 text-purple-700">
                                     HD
                                   </Badge>
@@ -696,7 +696,7 @@ export function HierarchicalSubtitleSearch() {
                         {show.feature_type === 'Movie' && show.movie_subtitles ? (
                           // Movie subtitles
                           <div className="space-y-3">
-                            {show.movie_subtitles.map((subtitle) => (
+                            {(show.movie_subtitles || []).map((subtitle) => (
                               <div key={subtitle.id} className="border rounded-lg p-4 bg-gray-50">
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1 space-y-2">
@@ -777,7 +777,7 @@ export function HierarchicalSubtitleSearch() {
                           <div className="space-y-4">
                             {(() => {
                               const detailedShow = showEpisodes.get(showKey)
-                              if (!detailedShow || !detailedShow.seasons.length) {
+                              if (!detailedShow || !detailedShow.seasons?.length) {
                                 return (
                                   <div className="p-4 text-center text-muted-foreground">
                                     Načítání epizod...
@@ -785,7 +785,7 @@ export function HierarchicalSubtitleSearch() {
                                 )
                               }
 
-                              return detailedShow.seasons.map((season) => {
+                              return (detailedShow.seasons || []).map((season) => {
                               const seasonKey = `${showKey}-season-${season.season_number}`
                               const isSeasonExpanded = expandedSeasons.has(seasonKey)
 
@@ -797,7 +797,7 @@ export function HierarchicalSubtitleSearch() {
                                         <div className="flex items-center space-x-2">
                                           <h4 className="font-semibold">Série {season.season_number}</h4>
                                           <Badge variant="outline">
-                                            {season.episodes.length} {season.episodes.length === 1 ? 'díl' : 'dílů'}
+                                            {season.episodes?.length || 0} {(season.episodes?.length || 0) === 1 ? 'díl' : 'dílů'}
                                           </Badge>
                                         </div>
                                         {isSeasonExpanded ? (
@@ -810,19 +810,19 @@ export function HierarchicalSubtitleSearch() {
 
                                     <CollapsibleContent>
                                       <div className="px-4 pb-4 space-y-3">
-                                        {season.episodes.map((episode) => (
+                                        {(season.episodes || []).map((episode) => (
                                           <div key={`${seasonKey}-episode-${episode.episode_number}`} className="border rounded-lg p-3 bg-gray-50">
                                             <div className="mb-3">
                                               <h5 className="font-medium">
                                                 Díl {episode.episode_number}
                                                 <Badge variant="outline" className="ml-2">
-                                                  {episode.subtitles.length} {episode.subtitles.length === 1 ? 'titulek' : 'titulků'}
+                                                  {episode.subtitles?.length || 0} {(episode.subtitles?.length || 0) === 1 ? 'titulek' : 'titulků'}
                                                 </Badge>
                                               </h5>
                                             </div>
 
                                             <div className="space-y-2">
-                                              {episode.subtitles.map((subtitle) => (
+                                              {(episode.subtitles || []).map((subtitle) => (
                                                 <div key={subtitle.id} className="flex items-center justify-between p-2 bg-white rounded border">
                                                   <div className="flex-1">
                                                     <div className="flex flex-wrap gap-1 mb-1">
