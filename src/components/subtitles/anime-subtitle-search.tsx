@@ -239,11 +239,15 @@ export function AnimeSubtitleSearch() {
                           </Badge>
                         )}
                       </div>
-                      {entry.notes && (
-                        <p className="text-sm text-muted-foreground mt-2">
-                          {entry.notes}
-                        </p>
-                      )}
+                        {entry.notes && (
+                          <p className="text-sm text-muted-foreground mt-2">
+                            {entry.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      {/* Right side content if needed */}
                     </div>
                   </div>
                 </CardHeader>
