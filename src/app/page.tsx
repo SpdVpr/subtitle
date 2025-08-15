@@ -44,18 +44,23 @@ export default function Home() {
             <span className="text-blue-600"> Translation</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Translate and retime your subtitles with AI. Fast, accurate, and easy to use.
-            Support for 50+ languages with premium quality translation.
+            Translate your subtitles with premium AI. Pay only for what you use with our simple credit system.
+            Support for 100+ language pairs with context-aware translation.
           </p>
+          <div className="bg-blue-50 rounded-lg p-4 mb-8 max-w-md mx-auto">
+            <p className="text-sm text-blue-800">
+              <strong>Simple Pricing:</strong> 0.4 credits per 20 subtitles • No subscriptions • Credits never expire
+            </p>
+          </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild>
               <Link href="/translate">Start Translating</Link>
             </Button>
             <Button variant="outline" size="lg" asChild>
-              <Link href="/subtitles-search">Find Subtitles</Link>
+              <Link href="/pricing">Buy Credits</Link>
             </Button>
             <Button variant="outline" size="lg" asChild>
-              <Link href="/pricing">View Pricing</Link>
+              <Link href="/batch">Batch Processing</Link>
             </Button>
           </div>
         </div>
@@ -101,54 +106,63 @@ export default function Home() {
 
           <Card>
             <CardHeader>
-              <CardTitle>🌍 50+ Languages</CardTitle>
+              <CardTitle>💰 Pay Per Use</CardTitle>
               <CardDescription>
-                Support for major world languages and dialects
+                Simple credit system - no subscriptions needed
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                From English to Japanese, Spanish to Arabic - we&apos;ve got you covered.
+                Buy credits once, use them forever. Only pay for what you translate with transparent pricing.
               </p>
             </CardContent>
           </Card>
         </div>
       </section>
 
-      {/* New Feature Section */}
+      {/* Features Section */}
       <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
         <div className="container px-4 mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">🎬 New: Find Subtitles</h2>
+          <h2 className="text-3xl font-bold mb-4">🚀 Powerful Features</h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Don&apos;t have subtitles yet? Search our database of millions of subtitles from OpenSubtitles.com
+            Everything you need for professional subtitle translation
           </p>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-8">
+          <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto mb-8">
             <div className="text-center">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🔍</span>
+                <span className="text-2xl">📁</span>
               </div>
-              <h3 className="font-semibold mb-2">Search</h3>
+              <h3 className="font-semibold mb-2">Batch Processing</h3>
               <p className="text-sm text-muted-foreground">
-                Find subtitles for any movie or TV show
+                Upload multiple files and translate them all at once
               </p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">⬇️</span>
+                <span className="text-2xl">📊</span>
               </div>
-              <h3 className="font-semibold mb-2">Download</h3>
+              <h3 className="font-semibold mb-2">Analytics Dashboard</h3>
               <p className="text-sm text-muted-foreground">
-                Get subtitles from OpenSubtitles.com
+                Track your usage, credits, and translation history
               </p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🤖</span>
+                <span className="text-2xl">🌐</span>
               </div>
-              <h3 className="font-semibold mb-2">Translate</h3>
+              <h3 className="font-semibold mb-2">100+ Languages</h3>
               <p className="text-sm text-muted-foreground">
-                Use our AI to translate to any language
+                Support for all major world languages and dialects
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">⚡</span>
+              </div>
+              <h3 className="font-semibold mb-2">Instant Translation</h3>
+              <p className="text-sm text-muted-foreground">
+                Fast AI-powered translation with context awareness
               </p>
             </div>
           </div>
