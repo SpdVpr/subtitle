@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Download, ExternalLink, Calendar, Hash, Film, BookOpen } from 'lucide-react'
+import { Download, ExternalLink, Calendar, Hash, Film, BookOpen, Image } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface JimakuEntry {
@@ -30,6 +30,29 @@ interface JimakuEntry {
 
 
 interface JimakuSearchResponse extends Array<JimakuEntry> {}
+
+// AniList image placeholder component
+const AniListImage = ({ anilistId, title, isMovie, className }: {
+  anilistId?: number,
+  title: string,
+  isMovie: boolean,
+  className?: string
+}) => {
+  // For demo purposes, we'll show a placeholder
+  // In production, you'd implement proper AniList API integration
+  return (
+    <div className={`bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center ${className}`}>
+      <div className="text-center p-2">
+        <Image className="h-8 w-8 text-purple-400 mx-auto mb-1" />
+        <div className="text-xs text-purple-600 font-medium">{isMovie ? 'Movie' : 'Anime'}</div>
+        <div className="text-xs text-purple-500 truncate max-w-[80px]">{title}</div>
+        {anilistId && (
+          <div className="text-xs text-purple-400">ID: {anilistId}</div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 const LANGUAGE_OPTIONS = [
   { value: 'en', label: 'English' },
@@ -166,15 +189,23 @@ export function AnimeSubtitleSearch() {
               <Card key={entry.id}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        {entry.flags.movie ? (
-                          <Film className="h-4 w-4 text-blue-500" />
-                        ) : (
-                          <BookOpen className="h-4 w-4 text-green-500" />
-                        )}
-                        <h4 className="font-semibold text-lg">{entry.name}</h4>
-                      </div>
+                    <div className="flex items-start space-x-3">
+                      {/* AniList Thumbnail */}
+                      <AniListImage
+                        anilistId={entry.anilist_id}
+                        title={entry.name}
+                        isMovie={entry.flags.movie}
+                        className="w-16 h-24 flex-shrink-0"
+                      />
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          {entry.flags.movie ? (
+                            <Film className="h-4 w-4 text-blue-500" />
+                          ) : (
+                            <BookOpen className="h-4 w-4 text-green-500" />
+                          )}
+                          <h4 className="font-semibold text-lg">{entry.name}</h4>
+                        </div>
                       {entry.english_name && entry.english_name !== entry.name && (
                         <p className="text-sm text-muted-foreground">
                           {entry.english_name}

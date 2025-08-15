@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, Download, ExternalLink, Calendar, Star, Users, Clock, ChevronRight, ChevronDown, Film, Tv } from 'lucide-react'
+import { Search, Download, ExternalLink, Calendar, Star, Users, Clock, ChevronRight, ChevronDown, Film, Tv, Image } from 'lucide-react'
 import { toast } from 'sonner'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 
@@ -88,6 +88,35 @@ interface Show {
   seasons: Season[]
   movie_subtitles?: GroupedSubtitle[] // For movies
   total_subtitles?: number
+}
+
+// TMDB image helper functions
+const getTMDBImageUrl = (tmdbId: number, type: 'movie' | 'tv', size: 'w300' | 'w500' = 'w300') => {
+  if (!tmdbId) return null
+  const baseUrl = 'https://image.tmdb.org/t/p/'
+  // For now, we'll use a placeholder approach since we don't have TMDB API key
+  // In production, you'd fetch the actual poster_path from TMDB API
+  return `${baseUrl}${size}/placeholder.jpg` // This would be the actual poster_path
+}
+
+// Fallback image component
+const TMDBImage = ({ tmdbId, type, title, className }: {
+  tmdbId: number,
+  type: 'movie' | 'tv',
+  title: string,
+  className?: string
+}) => {
+  // For demo purposes, we'll show a placeholder
+  // In production, you'd implement proper TMDB API integration
+  return (
+    <div className={`bg-gray-200 rounded-lg flex items-center justify-center ${className}`}>
+      <div className="text-center p-2">
+        <Image className="h-8 w-8 text-gray-400 mx-auto mb-1" />
+        <div className="text-xs text-gray-500 font-medium">{type === 'movie' ? 'Movie' : 'TV'}</div>
+        <div className="text-xs text-gray-400 truncate max-w-[80px]">{title}</div>
+      </div>
+    </div>
+  )
 }
 
 const LANGUAGE_OPTIONS = [
@@ -477,6 +506,13 @@ export function HierarchicalSubtitleSearch() {
                       <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
+                            {/* TMDB Thumbnail */}
+                            <TMDBImage
+                              tmdbId={show.tmdb_id}
+                              type={show.feature_type === 'Movie' ? 'movie' : 'tv'}
+                              title={show.title}
+                              className="w-16 h-24 flex-shrink-0"
+                            />
                             <div className="flex items-center space-x-2">
                               {show.feature_type === 'Movie' ? (
                                 <Film className="h-5 w-5 text-blue-600" />
@@ -487,6 +523,11 @@ export function HierarchicalSubtitleSearch() {
                                 <CardTitle className="text-left">{show.title}</CardTitle>
                                 <CardDescription>
                                   {show.feature_type} ({show.year})
+                                  {show.tmdb_id && (
+                                    <span className="ml-2 text-xs text-gray-400">
+                                      TMDB: {show.tmdb_id}
+                                    </span>
+                                  )}
                                 </CardDescription>
                               </div>
                             </div>
