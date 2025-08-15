@@ -167,7 +167,7 @@ export default function Home() {
             No monthly subscriptions. Only pay for what you use.
           </p>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-center space-x-2">
@@ -181,30 +181,10 @@ export default function Home() {
                 <div className="text-sm text-muted-foreground">Free on signup</div>
               </CardContent>
               <CardContent className="space-y-2">
-                <p>✓ ~1000 lines of translation</p>
-                <p>✓ All AI services available</p>
+                <p>✓ ~500 lines of translation</p>
+                <p>✓ Premium AI translation</p>
                 <p>✓ No time limit</p>
                 <p>✓ Full feature access</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-primary">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-center space-x-2">
-                  <span>⚡</span>
-                  <span>Standard Translation</span>
-                </CardTitle>
-                <CardDescription>Google Translate AI</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="text-3xl font-bold">~0.1</div>
-                <div className="text-sm text-muted-foreground">credits per 20 lines</div>
-              </CardContent>
-              <CardContent className="space-y-2">
-                <p>✓ Fast and reliable</p>
-                <p>✓ 50+ languages</p>
-                <p>✓ Good for basic content</p>
-                <p>✓ Instant results</p>
               </CardContent>
             </Card>
 
@@ -214,15 +194,15 @@ export default function Home() {
                   <span>🎬</span>
                   <span>Premium Translation</span>
                 </CardTitle>
-                <CardDescription>OpenAI GPT-4 with context</CardDescription>
+                <CardDescription>OpenAI GPT-4 with context research</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-3xl font-bold">~0.2</div>
+                <div className="text-3xl font-bold">~0.4</div>
                 <div className="text-sm text-muted-foreground">credits per 20 lines</div>
               </CardContent>
               <CardContent className="space-y-2">
                 <p>✓ Context-aware translation</p>
-                <p>✓ Natural dialogue</p>
+                <p>✓ Show/movie research</p>
                 <p>✓ Cultural adaptation</p>
                 <p>✓ Professional quality</p>
               </CardContent>

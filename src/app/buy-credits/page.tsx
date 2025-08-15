@@ -21,7 +21,7 @@ const CREDIT_PACKAGES = [
     features: [
       '~2,500 lines of translation',
       '25 premium translation jobs',
-      'All AI services included',
+      'Context research included',
       'No expiration'
     ]
   },
@@ -36,7 +36,7 @@ const CREDIT_PACKAGES = [
     features: [
       '~6,000 lines of translation',
       '60 premium translation jobs',
-      'All AI services included',
+      'Context research included',
       'No expiration',
       '20% bonus credits'
     ]
@@ -52,7 +52,7 @@ const CREDIT_PACKAGES = [
     features: [
       '~12,500 lines of translation',
       '125 premium translation jobs',
-      'All AI services included',
+      'Context research included',
       'No expiration',
       '25% bonus credits'
     ]
@@ -207,39 +207,26 @@ export default function BuyCreditsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="text-center">
               <div className="space-y-3">
-                <h4 className="font-semibold flex items-center space-x-2">
-                  <Zap className="w-4 h-4 text-green-600" />
-                  <span>Standard Translation (Google AI)</span>
-                </h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• ~0.1 credits per 20 lines</li>
-                  <li>• Fast and reliable</li>
-                  <li>• Good for basic content</li>
-                  <li>• 50+ languages supported</li>
-                </ul>
-              </div>
-              
-              <div className="space-y-3">
-                <h4 className="font-semibold flex items-center space-x-2">
+                <h4 className="font-semibold flex items-center justify-center space-x-2">
                   <Crown className="w-4 h-4 text-purple-600" />
                   <span>Premium Translation (OpenAI GPT-4)</span>
                 </h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• ~0.2 credits per 20 lines</li>
-                  <li>• Context-aware translation</li>
+                <ul className="text-sm text-gray-600 space-y-1 text-left max-w-md mx-auto">
+                  <li>• ~0.4 credits per 20 lines</li>
+                  <li>• Context-aware translation with show research</li>
                   <li>• Natural dialogue adaptation</li>
+                  <li>• Cultural context understanding</li>
                   <li>• Professional quality results</li>
                 </ul>
               </div>
             </div>
-            
+
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>Example:</strong> A 100-line subtitle file costs ~0.5 credits with Standard AI 
-                or ~1.0 credits with Premium AI. Your 200 welcome credits can translate 
-                200-400 files depending on the service used!
+                <strong>Example:</strong> A 100-line subtitle file costs ~2.0 credits with Premium AI.
+                Your 200 welcome credits can translate ~100 files with full context research!
               </p>
             </div>
           </CardContent>

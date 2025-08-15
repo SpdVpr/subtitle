@@ -114,37 +114,14 @@ export function useAuthProvider(): AuthContextType {
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    // Demo login for testing - check for special test accounts
-    if (email === 'pro@test.com' && password === 'test123') {
-      setLoading(true)
-      // Create mock Pro user
-      const mockProUser = {
-        uid: 'pro-user-demo',
-        email: 'pro@test.com',
-        displayName: 'Pro Test User',
-        emailVerified: true,
-        photoURL: null,
-        phoneNumber: null,
-        providerId: 'password',
-        metadata: {
-          creationTime: new Date().toISOString(),
-          lastSignInTime: new Date().toISOString(),
-        }
-      } as any
-
-      setUser(mockProUser)
-      localStorage.setItem('demoUser', JSON.stringify(mockProUser))
-      setLoading(false)
-      return
-    }
-
+    // Demo login for testing - Admin account only
     if (email === 'premium@test.com' && password === 'test123') {
       setLoading(true)
-      // Create mock Premium user
-      const mockPremiumUser = {
+      // Create mock Admin user (Premium account with admin privileges)
+      const mockAdminUser = {
         uid: 'premium-user-demo',
         email: 'premium@test.com',
-        displayName: 'Premium Test User',
+        displayName: 'Admin Test User',
         emailVerified: true,
         photoURL: null,
         phoneNumber: null,
@@ -155,31 +132,8 @@ export function useAuthProvider(): AuthContextType {
         }
       } as any
 
-      setUser(mockPremiumUser)
-      localStorage.setItem('demoUser', JSON.stringify(mockPremiumUser))
-      setLoading(false)
-      return
-    }
-
-    if (email === 'free@test.com' && password === 'test123') {
-      setLoading(true)
-      // Create mock Free user
-      const mockFreeUser = {
-        uid: 'free-user-demo',
-        email: 'free@test.com',
-        displayName: 'Free Test User',
-        emailVerified: true,
-        photoURL: null,
-        phoneNumber: null,
-        providerId: 'password',
-        metadata: {
-          creationTime: new Date().toISOString(),
-          lastSignInTime: new Date().toISOString(),
-        }
-      } as any
-
-      setUser(mockFreeUser)
-      localStorage.setItem('demoUser', JSON.stringify(mockFreeUser))
+      setUser(mockAdminUser)
+      localStorage.setItem('demoUser', JSON.stringify(mockAdminUser))
       setLoading(false)
       return
     }

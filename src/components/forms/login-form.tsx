@@ -198,52 +198,20 @@ export function LoginForm() {
         </form>
       </CardContent>
 
-      {/* Demo Accounts - Below main form */}
+      {/* Demo Test Account - Below main form */}
       <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
-        <h4 className="font-medium text-gray-900 mb-3 text-center">Demo Test Accounts</h4>
+        <h4 className="font-medium text-gray-900 mb-3 text-center">Demo Test Account</h4>
         <div className="grid gap-2 text-sm">
           <div className="flex items-center justify-between p-2 bg-white rounded border">
             <div>
-              <strong>Premium:</strong> premium@test.com / test123
+              <strong>Admin:</strong> premium@test.com / test123
               <br />
-              <span className="text-xs text-gray-500">🎬 Premium Context AI, Unlimited</span>
+              <span className="text-xs text-gray-500">🔧 Admin access, Premium AI, Unlimited credits</span>
             </div>
             <Button
               size="sm"
               variant="outline"
               onClick={() => quickLogin('premium@test.com', 'test123')}
-              disabled={isLoading}
-              className="ml-2"
-            >
-              Login
-            </Button>
-          </div>
-          <div className="flex items-center justify-between p-2 bg-white rounded border">
-            <div>
-              <strong>Pro:</strong> pro@test.com / test123
-              <br />
-              <span className="text-xs text-gray-500">⚡ All features, Unlimited</span>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => quickLogin('pro@test.com', 'test123')}
-              disabled={isLoading}
-              className="ml-2"
-            >
-              Login
-            </Button>
-          </div>
-          <div className="flex items-center justify-between p-2 bg-white rounded border">
-            <div>
-              <strong>Free:</strong> free@test.com / test123
-              <br />
-              <span className="text-xs text-gray-500">🆓 5 translations/month</span>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => quickLogin('free@test.com', 'test123')}
               disabled={isLoading}
               className="ml-2"
             >
