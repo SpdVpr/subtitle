@@ -101,7 +101,10 @@ export function useAuthProvider(): AuthContextType {
         })
 
         // Safety timeout: prevent stuck loading states if onAuthStateChanged is delayed
-        setTimeout(() => setLoading(false), 4000)
+        setTimeout(() => {
+          console.log('⏰ Auth safety timeout triggered - forcing loading to false')
+          setLoading(false)
+        }, 3000) // Reduced from 4s to 3s
 
         return unsubscribe
       } catch (error) {
@@ -116,7 +119,9 @@ export function useAuthProvider(): AuthContextType {
   const signIn = async (email: string, password: string) => {
     // Demo login for testing - Admin account only
     if (email === 'premium@test.com' && password === 'test123') {
+      console.log('🔑 Demo login initiated for admin user')
       setLoading(true)
+
       // Create mock Admin user (Premium account with admin privileges)
       const mockAdminUser = {
         uid: 'premium-user-demo',
@@ -132,9 +137,13 @@ export function useAuthProvider(): AuthContextType {
         }
       } as any
 
-      setUser(mockAdminUser)
-      localStorage.setItem('demoUser', JSON.stringify(mockAdminUser))
-      setLoading(false)
+      // Small delay to show loading state, then set user
+      setTimeout(() => {
+        console.log('✅ Demo admin user authenticated')
+        setUser(mockAdminUser)
+        localStorage.setItem('demoUser', JSON.stringify(mockAdminUser))
+        setLoading(false)
+      }, 500) // 500ms delay for better UX
       return
     }
 

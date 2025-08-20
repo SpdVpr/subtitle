@@ -7,12 +7,13 @@ import { isAdmin } from "@/lib/admin-auth"
 import { Badge } from "@/components/ui/badge"
 import { Shield } from "lucide-react"
 import { CreditsDisplay } from "@/components/ui/credits-display"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 export function Header() {
   const { user, signOut, loading } = useAuth()
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -69,6 +70,9 @@ export function Header() {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle - always visible */}
+            <ThemeToggle />
+
             {loading ? (
               <div className="h-8 w-20 bg-gray-200 animate-pulse rounded" />
             ) : user ? (
