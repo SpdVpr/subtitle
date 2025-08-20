@@ -413,7 +413,10 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
               <CardDescription>
                 Advanced contextual translation with comprehensive show research
               </CardDescription>
-
+              {/* Debug info */}
+              <div className="text-xs text-gray-500 mt-1">
+                Component rendered - Stage: {progress.stage}, Progress: {progress.progress}%, File: {selectedFile?.name || 'none'}
+              </div>
             </div>
           <Badge variant={progress.stage === 'error' ? 'destructive' : progress.stage === 'completed' ? 'default' : 'secondary'}>
             {progress.stage === 'error' ? 'Failed' : progress.stage === 'completed' ? 'Completed' : 'Processing'}
@@ -431,7 +434,7 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
             value={Number(progress.progress) || 0}
             className="h-2"
           />
-          {progress.details && !String(progress.details).includes('```json') && !String(progress.details).includes('**Analyzing') && (
+          {progress.details && (
             <p className="text-sm text-muted-foreground">{String(progress.details)}</p>
           )}
         </div>
