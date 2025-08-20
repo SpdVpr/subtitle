@@ -182,18 +182,11 @@ export class PremiumTranslationService {
         progressCallback('analyzing_content', 50, contentResults)
       }
 
-      // PHASE 4: Translate in context-aware batches
-      console.log('🌐 PHASE 4: Starting contextual translation')
-      if (typeof progressCallback === 'function') progressCallback('translating', 55, 'Starting contextual translation with research data...')
-      const translatedEntries: SubtitleEntry[] = []
-      const batchSize = 20 // Optimal batch size for context
-
-      let consecutiveFailures = 0
-      const maxConsecutiveFailures = 3
-
       // PHASE 4: Sequential batch translation (REVERTED TO WORKING VERSION)
       console.log('🔄 PHASE 4: Translating batches sequentially for quality')
+      if (typeof progressCallback === 'function') progressCallback('translating', 55, 'Starting sequential translation for quality...')
       const translatedEntries: SubtitleEntry[] = []
+      const batchSize = 20 // Optimal batch size for context
       let consecutiveFailures = 0
       const maxConsecutiveFailures = 3
 
