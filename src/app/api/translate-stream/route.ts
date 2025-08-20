@@ -7,7 +7,8 @@ export async function GET() {
   return NextResponse.json({
     message: 'Translate-stream endpoint is working',
     methods: ['GET', 'POST'],
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    version: '2.0.0-timeout-fix'
   })
 }
 
