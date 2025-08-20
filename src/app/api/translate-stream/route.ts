@@ -128,11 +128,24 @@ export async function POST(request: NextRequest) {
             clearTimeout(progressTimeoutId)
           }
 
-          // Set new timeout to detect stuck progress (adjusted for Vercel Free plan limits)
-          const timeoutDuration = stage === 'translating' ? 240000 : 120000 // 4 minutes for translating, 2 minutes for others
+          // Set new timeout to detect stuck progress (adaptive based on file size)
+          const subtitleCount = entries.length
+          const baseTimeout = stage === 'translating' ? 180000 : 120000 // 3 minutes for translating, 2 minutes for others
+          const timeoutPerSubtitle = stage === 'translating' ? 150 : 50 // Extra time per subtitle
+          const adaptiveTimeout = Math.min(
+            baseTimeout + (subtitleCount * timeoutPerSubtitle),
+            280000 // Max 4.67 minutes (under Vercel 5 minute limit)
+          )
+          const timeoutDuration = adaptiveTimeout
+
+          // Log adaptive timeout info
+          if (subtitleCount > 500) {
+            console.log(`🕐 Adaptive timeout: ${Math.round(timeoutDuration/1000)}s for ${subtitleCount} subtitles in ${stage} stage`)
+          }
+
           progressTimeoutId = setTimeout(() => {
             if (!controllerClosed) {
-              console.error(`❌ [${new Date().toISOString()}] Progress timeout - translation appears stuck at ${stage} ${Math.round(progress)}%`)
+              console.error(`❌ [${new Date().toISOString()}] Progress timeout after ${Math.round(timeoutDuration/1000)}s - translation appears stuck at ${stage} ${Math.round(progress)}%`)
               controllerClosed = true
               try {
                 controller.enqueue(sse({ type: 'error', message: 'Translation timeout - please try again' }))

@@ -140,6 +140,14 @@ export function TranslationInterface() {
       const parsed = SubtitleProcessor.parseSRT(text)
       setSubtitleCount(parsed.length)
       console.log('Subtitle count:', parsed.length)
+
+      // Set global variable for adaptive timeout
+      ;(window as any).subtitleCount = parsed.length
+
+      // Warn about very long files on Vercel Free plan
+      if (parsed.length > 500) {
+        console.warn(`⚠️ Large file detected: ${parsed.length} subtitles. May approach Vercel timeout limits.`)
+      }
     } catch (error) {
       console.error('Error parsing subtitle file:', error)
       setSubtitleCount(null)
@@ -256,11 +264,21 @@ export function TranslationInterface() {
     let lastProgressTime = Date.now()
     let progressStuckCount = 0
 
-    // Timeout adjusted for Vercel Free plan limits
+    // Adaptive timeout based on subtitle count
+    const subtitleCount = window.subtitleCount || 500 // Get from global or default
+    const baseTimeout = 180000 // 3 minutes base
+    const timeoutPerSubtitle = 200 // 200ms per subtitle
+    const adaptiveTimeout = Math.min(
+      baseTimeout + (subtitleCount * timeoutPerSubtitle),
+      290000 // Max 4.83 minutes (under Vercel 5 minute limit)
+    )
+
+    console.log(`🕐 Adaptive timeout set: ${Math.round(adaptiveTimeout/1000)}s for ${subtitleCount} subtitles`)
+
     const timeoutId = setTimeout(() => {
-      console.warn('⏰ Streaming timeout - completing translation')
+      console.warn(`⏰ Streaming timeout after ${Math.round(adaptiveTimeout/1000)}s - completing translation`)
       reader.cancel()
-    }, 280000) // 4.67 minutes timeout (slightly less than Vercel 5 minute limit)
+    }, adaptiveTimeout)
 
     // Progress monitoring to detect stuck translation (more lenient for translation phase)
     const progressMonitor = setInterval(() => {
