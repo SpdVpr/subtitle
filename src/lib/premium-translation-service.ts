@@ -193,10 +193,22 @@ export class PremiumTranslationService {
 
       // Determine optimal concurrency for speed vs quality balance
       const totalBatches = Math.ceil(entries.length / batchSize)
-      const maxConcurrency = Math.min(
-        Math.max(2, Math.floor(totalBatches / 3)), // At least 2, max 1/3 of batches
-        4 // Never more than 4 concurrent requests to maintain quality
-      )
+
+      // Aggressive concurrency for large files (movies with 70-100+ batches)
+      let maxConcurrency
+      if (totalBatches >= 80) {
+        // Very large files (movies): 12-15 concurrent requests
+        maxConcurrency = Math.min(15, Math.floor(totalBatches / 6))
+      } else if (totalBatches >= 50) {
+        // Large files: 8-12 concurrent requests
+        maxConcurrency = Math.min(12, Math.floor(totalBatches / 5))
+      } else if (totalBatches >= 20) {
+        // Medium files: 6-8 concurrent requests
+        maxConcurrency = Math.min(8, Math.floor(totalBatches / 3))
+      } else {
+        // Small files: 3-4 concurrent requests
+        maxConcurrency = Math.min(4, Math.max(2, Math.floor(totalBatches / 2)))
+      }
 
       console.log(`🚀 Using ${maxConcurrency} concurrent translations for ${totalBatches} batches (${entries.length} subtitles)`)
 
@@ -258,9 +270,14 @@ export class PremiumTranslationService {
         const batchProgress = 55 + ((completedBatches / totalBatches) * 35)
         safeProgressCallback('translating', batchProgress, `Completed ${completedBatches}/${totalBatches} batches (${maxConcurrency} parallel)`)
 
-        // Small delay between parallel chunks to avoid overwhelming API
+        // Adaptive delay between parallel chunks based on file size
         if (i + batchSize * maxConcurrency < entries.length) {
-          await new Promise(resolve => setTimeout(resolve, 300))
+          // Shorter delays for large files to maximize speed
+          const delay = totalBatches >= 80 ? 150 : // Very large files: 150ms
+                       totalBatches >= 50 ? 200 : // Large files: 200ms
+                       totalBatches >= 20 ? 250 : // Medium files: 250ms
+                       300 // Small files: 300ms
+          await new Promise(resolve => setTimeout(resolve, delay))
         }
       }
 
@@ -856,9 +873,12 @@ CONTENT ANALYSIS:`
       try {
         console.log(`🔄 Batch translation attempt ${attempt}/${maxRetries}`)
 
-        // Add timeout wrapper for the translation (optimized for speed)
+        // Add timeout wrapper for the translation (adaptive timeout based on concurrency)
+        const adaptiveTimeout = maxConcurrency >= 10 ? 45000 : // High concurrency: 45s
+                               maxConcurrency >= 6 ? 50000 :   // Medium concurrency: 50s
+                               60000                            // Low concurrency: 60s
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Batch translation timeout')), 60000) // 60 second timeout (faster)
+          setTimeout(() => reject(new Error('Batch translation timeout')), adaptiveTimeout)
         })
 
         const translationPromise = this.translateBatch(
