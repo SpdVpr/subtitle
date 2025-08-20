@@ -194,19 +194,19 @@ export class PremiumTranslationService {
       // Determine optimal concurrency for speed vs quality balance
       const totalBatches = Math.ceil(entries.length / batchSize)
 
-      // Aggressive concurrency for large files (movies with 70-100+ batches)
+      // Balanced concurrency for speed vs quality (reduced from aggressive settings)
       let maxConcurrency
       if (totalBatches >= 80) {
-        // Very large files (movies): 12-15 concurrent requests
-        maxConcurrency = Math.min(15, Math.floor(totalBatches / 6))
+        // Very large files (movies): 8-10 concurrent requests (reduced from 15)
+        maxConcurrency = Math.min(10, Math.floor(totalBatches / 8))
       } else if (totalBatches >= 50) {
-        // Large files: 8-12 concurrent requests
-        maxConcurrency = Math.min(12, Math.floor(totalBatches / 5))
+        // Large files: 6-8 concurrent requests (reduced from 12)
+        maxConcurrency = Math.min(8, Math.floor(totalBatches / 6))
       } else if (totalBatches >= 20) {
-        // Medium files: 6-8 concurrent requests
-        maxConcurrency = Math.min(8, Math.floor(totalBatches / 3))
+        // Medium files: 4-6 concurrent requests (reduced from 8)
+        maxConcurrency = Math.min(6, Math.floor(totalBatches / 4))
       } else {
-        // Small files: 3-4 concurrent requests
+        // Small files: 3-4 concurrent requests (unchanged)
         maxConcurrency = Math.min(4, Math.max(2, Math.floor(totalBatches / 2)))
       }
 
@@ -238,6 +238,14 @@ export class PremiumTranslationService {
                 researchData,
                 batchStartIndex
               )
+
+              // Quality validation for translated batch
+              const qualityIssues = this.validateBatchQuality(batch, translatedBatch, targetLanguage)
+              if (qualityIssues.length > 0) {
+                console.warn(`⚠️ Quality issues in batch ${batchNumber}:`, qualityIssues)
+                // Don't fail the batch, but log for monitoring
+              }
+
               consecutiveFailures = 0 // Reset failure counter on success
               return { index: batchIndex, entries: translatedBatch }
             } catch (batchError) {
@@ -270,13 +278,13 @@ export class PremiumTranslationService {
         const batchProgress = 55 + ((completedBatches / totalBatches) * 35)
         safeProgressCallback('translating', batchProgress, `Completed ${completedBatches}/${totalBatches} batches (${maxConcurrency} parallel)`)
 
-        // Adaptive delay between parallel chunks based on file size
+        // Adaptive delay between parallel chunks (increased for better quality)
         if (i + batchSize * maxConcurrency < entries.length) {
-          // Shorter delays for large files to maximize speed
-          const delay = totalBatches >= 80 ? 150 : // Very large files: 150ms
-                       totalBatches >= 50 ? 200 : // Large files: 200ms
-                       totalBatches >= 20 ? 250 : // Medium files: 250ms
-                       300 // Small files: 300ms
+          // Longer delays for better quality and API stability
+          const delay = totalBatches >= 80 ? 400 : // Very large files: 400ms (increased from 150ms)
+                       totalBatches >= 50 ? 350 : // Large files: 350ms (increased from 200ms)
+                       totalBatches >= 20 ? 300 : // Medium files: 300ms (increased from 250ms)
+                       250 // Small files: 250ms (decreased from 300ms)
           await new Promise(resolve => setTimeout(resolve, delay))
         }
       }
@@ -1140,6 +1148,77 @@ TECHNICAL REQUIREMENTS:
     }
 
     return Array.from(culturalTerms).slice(0, 8)
+  }
+
+  private validateBatchQuality(originalBatch: SubtitleEntry[], translatedBatch: SubtitleEntry[], targetLanguage: string): string[] {
+    const issues: string[] = []
+
+    // Check if batch sizes match
+    if (originalBatch.length !== translatedBatch.length) {
+      issues.push(`Batch size mismatch: ${originalBatch.length} vs ${translatedBatch.length}`)
+      return issues
+    }
+
+    // Check for quality issues in each entry
+    for (let i = 0; i < translatedBatch.length; i++) {
+      const original = originalBatch[i]
+      const translated = translatedBatch[i]
+
+      // Check for untranslated content (still in English)
+      if (this.isLikelyUntranslated(original.text, translated.text, targetLanguage)) {
+        issues.push(`Entry ${i + 1}: Appears untranslated - "${translated.text.substring(0, 50)}..."`)
+      }
+
+      // Check for incomplete translations (contains [CZ] prefix without translation)
+      if (translated.text.includes('[CZ]') && translated.text.length < original.text.length + 10) {
+        issues.push(`Entry ${i + 1}: Incomplete translation with [CZ] prefix`)
+      }
+
+      // Check for mixed language content
+      if (this.containsMixedLanguages(translated.text, targetLanguage)) {
+        issues.push(`Entry ${i + 1}: Contains mixed languages`)
+      }
+    }
+
+    return issues
+  }
+
+  private isLikelyUntranslated(original: string, translated: string, targetLanguage: string): boolean {
+    // If translation is identical to original (except for music/sound effects)
+    if (original === translated && !original.match(/\[.*\]/)) {
+      return true
+    }
+
+    // Check for common English words that should be translated to Czech
+    if (targetLanguage === 'cs') {
+      const englishWords = ['the', 'and', 'you', 'are', 'have', 'will', 'can', 'not', 'what', 'how']
+      const translatedLower = translated.toLowerCase()
+      const englishWordCount = englishWords.filter(word =>
+        translatedLower.includes(` ${word} `) ||
+        translatedLower.startsWith(`${word} `) ||
+        translatedLower.endsWith(` ${word}`)
+      ).length
+
+      return englishWordCount >= 2 // If contains 2+ common English words, likely untranslated
+    }
+
+    return false
+  }
+
+  private containsMixedLanguages(text: string, targetLanguage: string): boolean {
+    if (targetLanguage === 'cs') {
+      // Check for English words mixed with Czech
+      const englishPattern = /\b(the|and|you|are|have|will|can|not|what|how|this|that|with|from)\b/gi
+      const czechPattern = /\b(je|jsou|má|mám|bude|může|není|co|jak|tento|tato|s|z|do|na)\b/gi
+
+      const englishMatches = text.match(englishPattern) || []
+      const czechMatches = text.match(czechPattern) || []
+
+      // If both English and Czech words are present, it's mixed
+      return englishMatches.length > 0 && czechMatches.length > 0
+    }
+
+    return false
   }
 
 }
