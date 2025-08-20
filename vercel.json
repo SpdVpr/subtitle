@@ -4,8 +4,7 @@
       "maxDuration": 300
     },
     "src/app/api/translate-stream/route.ts": {
-      "maxDuration": 900,
-      "memory": 1024
+      "maxDuration": 300
     }
   },
   "headers": [

@@ -256,11 +256,11 @@ export function TranslationInterface() {
     let lastProgressTime = Date.now()
     let progressStuckCount = 0
 
-    // Longer timeout for translation phase
+    // Timeout adjusted for Vercel Free plan limits
     const timeoutId = setTimeout(() => {
       console.warn('⏰ Streaming timeout - completing translation')
       reader.cancel()
-    }, 360000) // 6 minutes timeout (longer than backend 5 minutes)
+    }, 280000) // 4.67 minutes timeout (slightly less than Vercel 5 minute limit)
 
     // Progress monitoring to detect stuck translation (more lenient for translation phase)
     const progressMonitor = setInterval(() => {
