@@ -1,7 +1,11 @@
 {
   "functions": {
     "src/app/api/**/*.ts": {
-      "maxDuration": 60
+      "maxDuration": 300
+    },
+    "src/app/api/translate-stream/route.ts": {
+      "maxDuration": 900,
+      "memory": 1024
     }
   },
   "headers": [
