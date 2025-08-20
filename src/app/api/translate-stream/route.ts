@@ -248,79 +248,77 @@ export async function POST(request: NextRequest) {
         // Now do database operations asynchronously (after client has the result)
         console.log('📝 Starting background database operations...')
 
-        // Don't await these operations - do them in background
-        setImmediate(async () => {
+        // Save to database immediately (don't use setImmediate for critical operations)
+        try {
+          const { TranslationJobService } = await import('@/lib/database-admin')
+
+          // Create job record as completed (since translation is already done)
+          jobId = await TranslationJobService.createJob({
+            userId,
+            type: 'single',
+            status: 'completed',
+            originalFileName: file.name,
+            originalFileSize: file.size,
+            sourceLanguage: sourceLanguage || undefined,
+            targetLanguage,
+            aiService: 'premium',
+            translatedFileName,
+            translatedContent, // Store content directly in job
+            subtitleCount: translated.length,
+            characterCount: translatedContent.length,
+            confidence: 0.95,
+            processingTimeMs: Date.now() - startTime,
+            completedAt: new Date() as any
+          })
+          console.log(`📝 Created completed translation job: ${jobId}`)
+
+          // Try to upload to storage (optional - if it fails, we still have the content in the job)
           try {
-            const { TranslationJobService } = await import('@/lib/database-admin')
-
-            // Create job record as completed (since translation is already done)
-            jobId = await TranslationJobService.createJob({
+            const { StorageService } = await import('@/lib/storage')
+            const { url: translatedFileUrl } = await StorageService.uploadTranslatedFile(
+              translatedContent,
+              file.name,
               userId,
-              type: 'single',
-              status: 'completed',
-              originalFileName: file.name,
-              originalFileSize: file.size,
-              sourceLanguage: sourceLanguage || undefined,
-              targetLanguage,
-              aiService: 'premium',
-              translatedFileName,
-              translatedContent, // Store content directly in job
-              subtitleCount: translated.length,
-              characterCount: translatedContent.length,
-              confidence: 0.95,
-              processingTimeMs: Date.now() - startTime,
-              completedAt: new Date() as any
+              jobId,
+              targetLanguage
+            )
+            console.log(`📤 Uploaded translated file: ${translatedFileUrl}`)
+
+            // Update job with storage URL
+            await TranslationJobService.updateJob(jobId, {
+              translatedFileUrl
             })
-            console.log(`📝 Created completed translation job: ${jobId}`)
-
-            // Try to upload to storage (optional - if it fails, we still have the content in the job)
-            try {
-              const { StorageService } = await import('@/lib/storage')
-              const { url: translatedFileUrl } = await StorageService.uploadTranslatedFile(
-                translatedContent,
-                file.name,
-                userId,
-                jobId,
-                targetLanguage
-              )
-              console.log(`📤 Uploaded translated file: ${translatedFileUrl}`)
-
-              // Update job with storage URL
-              await TranslationJobService.updateJob(jobId, {
-                translatedFileUrl
-              })
-            } catch (storageError) {
-              console.warn('⚠️ Storage upload failed, but job content is saved:', storageError)
-              // Continue - we have the content in the job record
-            }
-
-            // Update user usage statistics
-            const { UserService } = await import('@/lib/database-admin')
-            await UserService.updateUsage(userId, {
-              translationsUsed: 1
-            })
-            console.log(`📊 Updated user usage statistics`)
-
-            // Record analytics
-            const { AnalyticsService } = await import('@/lib/database-admin')
-            const today = new Date().toISOString().split('T')[0]
-            await AnalyticsService.recordDailyUsage(userId, today, {
-              translationsCount: 1,
-              filesProcessed: 1,
-              charactersTranslated: translatedContent.length,
-              processingTimeMs: Date.now() - startTime,
-              languagePairs: { [`${sourceLanguage || 'auto'}-${targetLanguage}`]: 1 },
-              serviceUsage: { 'premium': 1 },
-              averageConfidence: 0.95
-            })
-            console.log(`📈 Recorded analytics for user ${userId}`)
-            console.log('✅ All background operations completed successfully')
-
-          } catch (backgroundError) {
-            console.error('❌ Background database operations failed:', backgroundError)
-            // Don't affect the user experience - they already have their translation
+          } catch (storageError) {
+            console.warn('⚠️ Storage upload failed, but job content is saved:', storageError)
+            // Continue - we have the content in the job record
           }
-        })
+
+          // Update user usage statistics
+          const { UserService } = await import('@/lib/database-admin')
+          await UserService.updateUsage(userId, {
+            translationsUsed: 1
+          })
+          console.log(`📊 Updated user usage statistics`)
+
+          // Record analytics
+          const { AnalyticsService } = await import('@/lib/database-admin')
+          const today = new Date().toISOString().split('T')[0]
+          await AnalyticsService.recordDailyUsage(userId, today, {
+            translationsCount: 1,
+            filesProcessed: 1,
+            charactersTranslated: translatedContent.length,
+            processingTimeMs: Date.now() - startTime,
+            languagePairs: { [`${sourceLanguage || 'auto'}-${targetLanguage}`]: 1 },
+            serviceUsage: { 'premium': 1 },
+            averageConfidence: 0.95
+          })
+          console.log(`📈 Recorded analytics for user ${userId}`)
+          console.log('✅ All database operations completed successfully')
+
+        } catch (backgroundError) {
+          console.error('❌ Database operations failed:', backgroundError)
+          // Don't affect the user experience - they already have their translation
+        }
       } catch (err: any) {
         console.error('❌ Translation failed:', err)
 

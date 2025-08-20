@@ -479,6 +479,10 @@ export function TranslationInterface() {
       if (refreshCredits) {
         refreshCredits()
       }
+
+      // Trigger global credits refresh for header
+      console.log('🔄 Triggering global credits refresh after translation completion')
+      window.dispatchEvent(new CustomEvent('refreshCredits'))
     }
   }
 

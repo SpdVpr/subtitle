@@ -55,6 +55,20 @@ export function CreditsDisplay({ showBuyButton = true, className = '', onRefresh
     }
   }, [onRefresh])
 
+  // Listen for global credit refresh events
+  useEffect(() => {
+    const handleRefreshCredits = () => {
+      console.log('🔄 Credits refresh triggered in CreditsDisplay')
+      fetchCredits()
+    }
+
+    window.addEventListener('refreshCredits', handleRefreshCredits)
+
+    return () => {
+      window.removeEventListener('refreshCredits', handleRefreshCredits)
+    }
+  }, [])
+
   if (!user || loading) {
     return (
       <div className={`flex items-center space-x-2 ${className}`}>
