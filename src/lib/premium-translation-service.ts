@@ -191,108 +191,49 @@ export class PremiumTranslationService {
       let consecutiveFailures = 0
       const maxConsecutiveFailures = 3
 
-      // Determine optimal concurrency for speed vs quality balance
-      const totalBatches = Math.ceil(entries.length / batchSize)
+      // PHASE 4: Sequential batch translation (REVERTED TO WORKING VERSION)
+      console.log('🔄 PHASE 4: Translating batches sequentially for quality')
+      const translatedEntries: SubtitleEntry[] = []
+      let consecutiveFailures = 0
+      const maxConsecutiveFailures = 3
 
-      // Balanced concurrency for speed vs quality (reduced from aggressive settings)
-      let maxConcurrency
-      if (totalBatches >= 80) {
-        // Very large files (movies): 8-10 concurrent requests (reduced from 15)
-        maxConcurrency = Math.min(10, Math.floor(totalBatches / 8))
-      } else if (totalBatches >= 50) {
-        // Large files: 6-8 concurrent requests (reduced from 12)
-        maxConcurrency = Math.min(8, Math.floor(totalBatches / 6))
-      } else if (totalBatches >= 20) {
-        // Medium files: 4-6 concurrent requests (reduced from 8)
-        maxConcurrency = Math.min(6, Math.floor(totalBatches / 4))
-      } else {
-        // Small files: 3-4 concurrent requests (unchanged)
-        maxConcurrency = Math.min(4, Math.max(2, Math.floor(totalBatches / 2)))
-      }
+      for (let i = 0; i < entries.length; i += batchSize) {
+        const batch = entries.slice(i, i + batchSize)
+        const batchNumber = Math.floor(i/batchSize) + 1
+        const totalBatches = Math.ceil(entries.length/batchSize)
+        const batchProgress = 55 + ((i / entries.length) * 35)
 
-      console.log(`🚀 Using ${maxConcurrency} concurrent translations for ${totalBatches} batches (${entries.length} subtitles)`)
+        console.log(`🌐 Translating batch ${batchNumber}/${totalBatches}`)
+        safeProgressCallback('translating', batchProgress, `Translating batch ${batchNumber}/${totalBatches} with contextual awareness...`)
 
-      // Process batches in parallel chunks for speed
-      let completedBatches = 0
-      const translatedBatchResults: { index: number; entries: SubtitleEntry[] }[] = []
+        try {
+          const translatedBatch = await this.translateBatchWithRetry(
+            openai,
+            batch,
+            targetLanguage,
+            sourceLanguage,
+            contentAnalysis,
+            researchData,
+            i
+          )
+          translatedEntries.push(...translatedBatch)
+          consecutiveFailures = 0 // Reset failure counter on success
+        } catch (batchError) {
+          console.error(`❌ Batch ${batchNumber} failed:`, batchError)
+          consecutiveFailures++
 
-      for (let i = 0; i < entries.length; i += batchSize * maxConcurrency) {
-        const batchPromises: Promise<{ index: number; entries: SubtitleEntry[] }>[] = []
+          if (consecutiveFailures >= maxConsecutiveFailures) {
+            throw new Error(`Translation failed after ${maxConsecutiveFailures} consecutive batch failures`)
+          }
 
-        // Create concurrent batch promises
-        for (let j = 0; j < maxConcurrency && i + j * batchSize < entries.length; j++) {
-          const batchStartIndex = i + j * batchSize
-          const batch = entries.slice(batchStartIndex, batchStartIndex + batchSize)
-          const batchIndex = Math.floor(batchStartIndex / batchSize)
-          const batchNumber = batchIndex + 1
-
-          const batchPromise = (async () => {
-            try {
-              console.log(`🌐 Starting parallel batch ${batchNumber}/${totalBatches}`)
-              const translatedBatch = await this.translateBatchWithRetry(
-                openai,
-                batch,
-                targetLanguage,
-                sourceLanguage,
-                contentAnalysis,
-                researchData,
-                batchStartIndex
-              )
-
-              // Quality validation for translated batch
-              const qualityIssues = this.validateBatchQuality(batch, translatedBatch, targetLanguage)
-              if (qualityIssues.length > 0) {
-                console.warn(`⚠️ Quality issues in batch ${batchNumber}:`, qualityIssues)
-                // Don't fail the batch, but log for monitoring
-              }
-
-              consecutiveFailures = 0 // Reset failure counter on success
-              return { index: batchIndex, entries: translatedBatch }
-            } catch (batchError) {
-              console.error(`❌ Parallel batch ${batchNumber} failed:`, batchError)
-              consecutiveFailures++
-
-              if (consecutiveFailures >= maxConsecutiveFailures) {
-                throw new Error(`Translation failed after ${maxConsecutiveFailures} consecutive batch failures`)
-              }
-
-              // Use fallback translation for failed batch
-              console.log(`🔄 Using fallback translation for parallel batch ${batchNumber}`)
-              const fallbackBatch = batch.map(entry => ({
-                ...entry,
-                text: `[FALLBACK] ${entry.text}`
-              }))
-              return { index: batchIndex, entries: fallbackBatch }
-            }
-          })()
-
-          batchPromises.push(batchPromise)
+          // Use fallback translation for failed batch
+          console.log(`🔄 Using fallback translation for batch ${batchNumber}`)
+          const fallbackBatch = batch.map(entry => ({
+            ...entry,
+            text: `[FALLBACK] ${entry.text}`
+          }))
+          translatedEntries.push(...fallbackBatch)
         }
-
-        // Wait for current parallel chunk to complete
-        const chunkResults = await Promise.all(batchPromises)
-        translatedBatchResults.push(...chunkResults)
-        completedBatches += chunkResults.length
-
-        // Update progress
-        const batchProgress = 55 + ((completedBatches / totalBatches) * 35)
-        safeProgressCallback('translating', batchProgress, `Completed ${completedBatches}/${totalBatches} batches (${maxConcurrency} parallel)`)
-
-        // Adaptive delay between parallel chunks (increased for better quality)
-        if (i + batchSize * maxConcurrency < entries.length) {
-          // Longer delays for better quality and API stability
-          const delay = totalBatches >= 80 ? 400 : // Very large files: 400ms (increased from 150ms)
-                       totalBatches >= 50 ? 350 : // Large files: 350ms (increased from 200ms)
-                       totalBatches >= 20 ? 300 : // Medium files: 300ms (increased from 250ms)
-                       250 // Small files: 250ms (decreased from 300ms)
-          await new Promise(resolve => setTimeout(resolve, delay))
-        }
-      }
-
-      // Sort results by batch index and combine
-      translatedBatchResults.sort((a, b) => a.index - b.index)
-      for (const result of translatedBatchResults) {
-        translatedEntries.push(...result.entries)
       }
 
       // PHASE 5: Final processing
@@ -881,12 +822,9 @@ CONTENT ANALYSIS:`
       try {
         console.log(`🔄 Batch translation attempt ${attempt}/${maxRetries}`)
 
-        // Add timeout wrapper for the translation (adaptive timeout based on concurrency)
-        const adaptiveTimeout = maxConcurrency >= 10 ? 45000 : // High concurrency: 45s
-                               maxConcurrency >= 6 ? 50000 :   // Medium concurrency: 50s
-                               60000                            // Low concurrency: 60s
+        // Add timeout wrapper for the translation
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Batch translation timeout')), adaptiveTimeout)
+          setTimeout(() => reject(new Error('Batch translation timeout')), 90000) // 90 second timeout
         })
 
         const translationPromise = this.translateBatch(
@@ -973,7 +911,14 @@ TECHNICAL REQUIREMENTS:
 - Format: "N. translated_text" (where N is the line number)
 - Never skip, merge, or split subtitle entries
 - Maintain exact line breaks within multi-line subtitles
-- Preserve timing-critical elements like pauses (...) and emphasis`
+- Preserve timing-critical elements like pauses (...) and emphasis
+
+CRITICAL: DO NOT USE LANGUAGE PREFIXES:
+- NEVER add [CZ], [CS], [CZECH] or any language prefixes to translations
+- NEVER add [EN], [ENG], [ENGLISH] prefixes to untranslated content
+- Translate directly without any language markers
+- Example: "[CZ] Hello" is WRONG → "Ahoj" is CORRECT
+- Example: "[CZ] You're trespassing" is WRONG → "Narušujete cizí pozemek" is CORRECT`
         },
         {
           role: "user",
@@ -1150,75 +1095,6 @@ TECHNICAL REQUIREMENTS:
     return Array.from(culturalTerms).slice(0, 8)
   }
 
-  private validateBatchQuality(originalBatch: SubtitleEntry[], translatedBatch: SubtitleEntry[], targetLanguage: string): string[] {
-    const issues: string[] = []
 
-    // Check if batch sizes match
-    if (originalBatch.length !== translatedBatch.length) {
-      issues.push(`Batch size mismatch: ${originalBatch.length} vs ${translatedBatch.length}`)
-      return issues
-    }
-
-    // Check for quality issues in each entry
-    for (let i = 0; i < translatedBatch.length; i++) {
-      const original = originalBatch[i]
-      const translated = translatedBatch[i]
-
-      // Check for untranslated content (still in English)
-      if (this.isLikelyUntranslated(original.text, translated.text, targetLanguage)) {
-        issues.push(`Entry ${i + 1}: Appears untranslated - "${translated.text.substring(0, 50)}..."`)
-      }
-
-      // Check for incomplete translations (contains [CZ] prefix without translation)
-      if (translated.text.includes('[CZ]') && translated.text.length < original.text.length + 10) {
-        issues.push(`Entry ${i + 1}: Incomplete translation with [CZ] prefix`)
-      }
-
-      // Check for mixed language content
-      if (this.containsMixedLanguages(translated.text, targetLanguage)) {
-        issues.push(`Entry ${i + 1}: Contains mixed languages`)
-      }
-    }
-
-    return issues
-  }
-
-  private isLikelyUntranslated(original: string, translated: string, targetLanguage: string): boolean {
-    // If translation is identical to original (except for music/sound effects)
-    if (original === translated && !original.match(/\[.*\]/)) {
-      return true
-    }
-
-    // Check for common English words that should be translated to Czech
-    if (targetLanguage === 'cs') {
-      const englishWords = ['the', 'and', 'you', 'are', 'have', 'will', 'can', 'not', 'what', 'how']
-      const translatedLower = translated.toLowerCase()
-      const englishWordCount = englishWords.filter(word =>
-        translatedLower.includes(` ${word} `) ||
-        translatedLower.startsWith(`${word} `) ||
-        translatedLower.endsWith(` ${word}`)
-      ).length
-
-      return englishWordCount >= 2 // If contains 2+ common English words, likely untranslated
-    }
-
-    return false
-  }
-
-  private containsMixedLanguages(text: string, targetLanguage: string): boolean {
-    if (targetLanguage === 'cs') {
-      // Check for English words mixed with Czech
-      const englishPattern = /\b(the|and|you|are|have|will|can|not|what|how|this|that|with|from)\b/gi
-      const czechPattern = /\b(je|jsou|má|mám|bude|může|není|co|jak|tento|tato|s|z|do|na)\b/gi
-
-      const englishMatches = text.match(englishPattern) || []
-      const czechMatches = text.match(czechPattern) || []
-
-      // If both English and Czech words are present, it's mixed
-      return englishMatches.length > 0 && czechMatches.length > 0
-    }
-
-    return false
-  }
 
 }
