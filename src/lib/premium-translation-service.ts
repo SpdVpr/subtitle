@@ -233,7 +233,9 @@ export class PremiumTranslationService {
       // PHASE 5: Final processing
       console.log('✨ PHASE 5: Finalizing translation')
       safeProgressCallback('finalizing', 95, 'Finalizing translation and quality checks...')
-      await new Promise(resolve => setTimeout(resolve, 500)) // Small delay for UX
+
+      // Shorter delay to avoid timeout in finalizing stage
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       console.log('✅ Premium Research-Based AI Translation completed')
       safeProgressCallback('completed', 100, 'Translation completed successfully!')

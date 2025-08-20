@@ -182,6 +182,9 @@ export async function POST(request: NextRequest) {
         // Send result to client FIRST (before any database operations)
         let jobId: string | undefined
         try {
+          // Add a small delay to ensure finalizing progress is visible
+          await new Promise(resolve => setTimeout(resolve, 200))
+
           controller.enqueue(sse({
             type: 'result',
             status: 'completed',

@@ -265,18 +265,28 @@ export function TranslationInterface() {
     // Progress monitoring to detect stuck translation (more lenient for translation phase)
     const progressMonitor = setInterval(() => {
       const now = Date.now()
-      if (now - lastProgressTime > 60000) { // No progress for 60 seconds (longer for translation)
-        progressStuckCount++
-        console.warn(`⚠️ No progress for 60s (count: ${progressStuckCount})`)
+      const timeSinceLastProgress = now - lastProgressTime
 
-        if (progressStuckCount >= 5) { // 5 minutes total
+      // Different timeouts for different stages
+      let timeoutThreshold = 60000 // Default 60 seconds
+      if (handleStreamingResponse._lastStage === 'finalizing') {
+        timeoutThreshold = 30000 // Only 30 seconds for finalizing
+      } else if (handleStreamingResponse._lastStage === 'translating') {
+        timeoutThreshold = 90000 // 90 seconds for translating
+      }
+
+      if (timeSinceLastProgress > timeoutThreshold) {
+        progressStuckCount++
+        console.warn(`⚠️ No progress for ${Math.round(timeSinceLastProgress/1000)}s in ${handleStreamingResponse._lastStage} stage (count: ${progressStuckCount})`)
+
+        if (progressStuckCount >= 3) { // Reduced from 5 to 3
           console.error('❌ Translation appears stuck, cancelling...')
           reader.cancel()
           clearInterval(progressMonitor)
           throw new Error('Translation timeout - progress stuck')
         }
       }
-    }, 15000) // Check every 15 seconds
+    }, 10000) // Check every 10 seconds (more frequent)
 
     try {
       while (true) {
@@ -307,6 +317,7 @@ export function TranslationInterface() {
                   console.log('🔄 Frontend received progress:', data.stage, Math.round(data.progress))
                   handleStreamingResponse._lastProgress = data.progress
                 }
+                handleStreamingResponse._lastStage = data.stage // Track current stage
                 lastProgressTime = Date.now() // Reset progress timer
                 progressStuckCount = 0 // Reset stuck counter
                 updateProgress(data.stage, data.progress, data.details)
@@ -336,6 +347,11 @@ export function TranslationInterface() {
               lastProgressTime = Date.now() // Reset progress timer
               progressStuckCount = 0 // Reset stuck counter
               updateProgress(data.stage, data.progress, data.details)
+
+              // Special handling for finalizing stage - expect result soon
+              if (data.stage === 'finalizing' && data.progress >= 95) {
+                console.log('🏁 Finalizing stage reached - expecting result soon')
+              }
             } else if (data.type === 'result' || data.type === 'complete') {
               await handleTranslationComplete(data)
               return
