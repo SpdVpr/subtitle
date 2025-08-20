@@ -118,7 +118,9 @@ export async function POST(request: NextRequest) {
             return
           }
 
-          console.log(`📊 Progress: ${stage} - ${progress}% - ${details}`)
+          // More detailed logging for production debugging
+          const timestamp = new Date().toISOString()
+          console.log(`📊 [${timestamp}] Progress: ${stage} - ${Math.round(progress)}% - ${details || 'No details'}`)
 
           // Reset progress timeout
           if (progressTimeoutId) {
@@ -129,10 +131,14 @@ export async function POST(request: NextRequest) {
           const timeoutDuration = stage === 'translating' ? 300000 : 120000 // 5 minutes for translating, 2 minutes for others
           progressTimeoutId = setTimeout(() => {
             if (!controllerClosed) {
-              console.error('❌ Progress timeout - translation appears stuck')
+              console.error(`❌ [${new Date().toISOString()}] Progress timeout - translation appears stuck at ${stage} ${Math.round(progress)}%`)
               controllerClosed = true
-              controller.enqueue(sse({ type: 'error', message: 'Translation timeout - please try again' }))
-              controller.close()
+              try {
+                controller.enqueue(sse({ type: 'error', message: 'Translation timeout - please try again' }))
+                controller.close()
+              } catch (timeoutError) {
+                console.error('❌ Failed to send timeout error:', timeoutError)
+              }
             }
           }, timeoutDuration)
 
@@ -143,7 +149,7 @@ export async function POST(request: NextRequest) {
             // Add small delay to ensure progress updates are visible
             await new Promise(resolve => setTimeout(resolve, 100))
           } catch (error) {
-            console.warn('⚠️ Failed to send progress update - controller may be closed:', error.message)
+            console.warn(`⚠️ [${timestamp}] Failed to send progress update - controller may be closed:`, error.message)
             controllerClosed = true
           }
         }
@@ -164,78 +170,6 @@ export async function POST(request: NextRequest) {
         const translatedContent = SubtitleProcessor.generateSRT(translated)
         const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
 
-        // Create and save translation job for history
-        let jobId: string | undefined
-        try {
-          const { TranslationJobService } = await import('@/lib/database-admin')
-
-          // Create job record as completed (since translation is already done)
-          jobId = await TranslationJobService.createJob({
-            userId,
-            type: 'single',
-            status: 'completed',
-            originalFileName: file.name,
-            originalFileSize: file.size,
-            sourceLanguage: sourceLanguage || undefined,
-            targetLanguage,
-            aiService: 'premium',
-            translatedFileName,
-            translatedContent, // Store content directly in job
-            subtitleCount: translated.length,
-            characterCount: translatedContent.length,
-            confidence: 0.95,
-            processingTimeMs: Date.now() - startTime,
-            completedAt: new Date() as any
-          })
-          console.log(`📝 Created completed translation job: ${jobId}`)
-
-          // Try to upload to storage (optional - if it fails, we still have the content in the job)
-          try {
-            const { StorageService } = await import('@/lib/storage')
-            const { url: translatedFileUrl } = await StorageService.uploadTranslatedFile(
-              translatedContent,
-              file.name,
-              userId,
-              jobId,
-              targetLanguage
-            )
-            console.log(`📤 Uploaded translated file: ${translatedFileUrl}`)
-
-            // Update job with storage URL
-            await TranslationJobService.updateJob(jobId, {
-              translatedFileUrl
-            })
-          } catch (storageError) {
-            console.warn('⚠️ Storage upload failed, but job content is saved:', storageError)
-            // Continue - we have the content in the job record
-          }
-
-          // Update user usage statistics
-          const { UserService } = await import('@/lib/database-admin')
-          await UserService.updateUsage(userId, {
-            translationsUsed: 1
-          })
-          console.log(`📊 Updated user usage statistics`)
-
-          // Record analytics
-          const { AnalyticsService } = await import('@/lib/database-admin')
-          const today = new Date().toISOString().split('T')[0]
-          await AnalyticsService.recordDailyUsage(userId, today, {
-            translationsCount: 1,
-            filesProcessed: 1,
-            charactersTranslated: translatedContent.length,
-            processingTimeMs: processingTime,
-            languagePairs: { [`${sourceLanguage || 'auto'}-${targetLanguage}`]: 1 },
-            serviceUsage: { 'premium': 1 },
-            averageConfidence: 0.95
-          })
-          console.log(`📈 Recorded analytics for user ${userId}`)
-
-        } catch (storageError) {
-          console.error('❌ Failed to save translation job:', storageError)
-          // Continue anyway - user still gets the translation
-        }
-
         // Check if controller is still open before sending result
         if (controllerClosed) {
           console.warn('⚠️ Translation completed but controller already closed')
@@ -244,6 +178,8 @@ export async function POST(request: NextRequest) {
 
         console.log('🎉 Translation completed successfully')
 
+        // Send result to client FIRST (before any database operations)
+        let jobId: string | undefined
         try {
           controller.enqueue(sse({
             type: 'result',
@@ -252,12 +188,91 @@ export async function POST(request: NextRequest) {
             translatedFileName,
             subtitleCount: translated.length,
             characterCount: translatedContent.length,
-            jobId
+            jobId: 'pending' // Will be updated after database operations
           }))
+          console.log('✅ Result sent to client successfully')
         } catch (error) {
           console.error('❌ Failed to send result - controller closed:', error.message)
           controllerClosed = true
+          return
         }
+
+        // Now do database operations asynchronously (after client has the result)
+        console.log('📝 Starting background database operations...')
+
+        // Don't await these operations - do them in background
+        setImmediate(async () => {
+          try {
+            const { TranslationJobService } = await import('@/lib/database-admin')
+
+            // Create job record as completed (since translation is already done)
+            jobId = await TranslationJobService.createJob({
+              userId,
+              type: 'single',
+              status: 'completed',
+              originalFileName: file.name,
+              originalFileSize: file.size,
+              sourceLanguage: sourceLanguage || undefined,
+              targetLanguage,
+              aiService: 'premium',
+              translatedFileName,
+              translatedContent, // Store content directly in job
+              subtitleCount: translated.length,
+              characterCount: translatedContent.length,
+              confidence: 0.95,
+              processingTimeMs: Date.now() - startTime,
+              completedAt: new Date() as any
+            })
+            console.log(`📝 Created completed translation job: ${jobId}`)
+
+            // Try to upload to storage (optional - if it fails, we still have the content in the job)
+            try {
+              const { StorageService } = await import('@/lib/storage')
+              const { url: translatedFileUrl } = await StorageService.uploadTranslatedFile(
+                translatedContent,
+                file.name,
+                userId,
+                jobId,
+                targetLanguage
+              )
+              console.log(`📤 Uploaded translated file: ${translatedFileUrl}`)
+
+              // Update job with storage URL
+              await TranslationJobService.updateJob(jobId, {
+                translatedFileUrl
+              })
+            } catch (storageError) {
+              console.warn('⚠️ Storage upload failed, but job content is saved:', storageError)
+              // Continue - we have the content in the job record
+            }
+
+            // Update user usage statistics
+            const { UserService } = await import('@/lib/database-admin')
+            await UserService.updateUsage(userId, {
+              translationsUsed: 1
+            })
+            console.log(`📊 Updated user usage statistics`)
+
+            // Record analytics
+            const { AnalyticsService } = await import('@/lib/database-admin')
+            const today = new Date().toISOString().split('T')[0]
+            await AnalyticsService.recordDailyUsage(userId, today, {
+              translationsCount: 1,
+              filesProcessed: 1,
+              charactersTranslated: translatedContent.length,
+              processingTimeMs: Date.now() - startTime,
+              languagePairs: { [`${sourceLanguage || 'auto'}-${targetLanguage}`]: 1 },
+              serviceUsage: { 'premium': 1 },
+              averageConfidence: 0.95
+            })
+            console.log(`📈 Recorded analytics for user ${userId}`)
+            console.log('✅ All background operations completed successfully')
+
+          } catch (backgroundError) {
+            console.error('❌ Background database operations failed:', backgroundError)
+            // Don't affect the user experience - they already have their translation
+          }
+        })
       } catch (err: any) {
         console.error('❌ Translation failed:', err)
 
@@ -266,19 +281,21 @@ export async function POST(request: NextRequest) {
           clearTimeout(progressTimeoutId)
         }
 
-        // Refund credits on translation failure (only in production)
+        // Refund credits on translation failure (only in production) - do this asynchronously
         if (process.env.NODE_ENV !== 'development') {
-          try {
-            const { UserService } = await import('@/lib/database-admin')
-            const batchSize = 20
-            const totalBatches = Math.ceil(entries.length / batchSize)
-            const totalCredits = totalBatches * 0.4
+          setImmediate(async () => {
+            try {
+              const { UserService } = await import('@/lib/database-admin')
+              const batchSize = 20
+              const totalBatches = Math.ceil(entries.length / batchSize)
+              const totalCredits = totalBatches * 0.4
 
-            await UserService.adjustCredits(userId, totalCredits, `Refund for failed translation: ${file.name}`)
-            console.log(`💰 Refunded ${totalCredits} credits due to translation failure`)
-          } catch (refundError) {
-            console.error('❌ Failed to refund credits:', refundError)
-          }
+              await UserService.adjustCredits(userId, totalCredits, `Refund for failed translation: ${file.name}`)
+              console.log(`💰 Refunded ${totalCredits} credits due to translation failure`)
+            } catch (refundError) {
+              console.error('❌ Failed to refund credits:', refundError)
+            }
+          })
         }
 
         if (!controllerClosed) {
