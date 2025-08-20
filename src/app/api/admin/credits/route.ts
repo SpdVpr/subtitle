@@ -113,11 +113,42 @@ async function adjustUserCredits(db: any, userId: string, deltaCredits: number, 
 }
 
 async function logCreditTransaction(db: any, userId: string, deltaCredits: number, description: string, adminEmail: string) {
+  // Get current user balance for transaction log
+  let balanceBefore = 0
+  let balanceAfter = 0
+
+  try {
+    if (db.collection) {
+      // Admin SDK
+      const userDoc = await db.collection('users').where('userId', '==', userId).limit(1).get()
+      if (!userDoc.empty) {
+        const userData = userDoc.docs[0].data()
+        balanceBefore = userData.creditsBalance || 0
+        balanceAfter = Math.max(0, balanceBefore + deltaCredits)
+      }
+    } else {
+      // Client SDK
+      const { collection, query, where, limit, getDocs } = await import('firebase/firestore')
+      const { db: clientDb } = await import('@/lib/firebase')
+      const userQuery = query(collection(clientDb, 'users'), where('userId', '==', userId), limit(1))
+      const userSnapshot = await getDocs(userQuery)
+      if (!userSnapshot.empty) {
+        const userData = userSnapshot.docs[0].data()
+        balanceBefore = userData.creditsBalance || 0
+        balanceAfter = Math.max(0, balanceBefore + deltaCredits)
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to get user balance for transaction log:', error)
+  }
+
   const transaction = {
     userId,
-    type: deltaCredits > 0 ? 'admin_credit' : 'admin_debit',
-    credits: Math.abs(deltaCredits),
-    description: description || 'Admin adjustment',
+    type: deltaCredits > 0 ? 'topup' : 'deduction',
+    amount: Math.abs(deltaCredits),
+    balanceBefore,
+    balanceAfter,
+    reason: description || 'Admin adjustment',
     adminEmail,
     createdAt: new Date()
   }

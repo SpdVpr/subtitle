@@ -338,8 +338,8 @@ export class AdminStatsService {
         userId: user.userId,
         email: user.email,
         plan: user.plan,
-        lastActive: safeToDate(user.lastActive),
-        translationsCount: user.translationsCount,
+        lastActive: safeToDate(user.lastActive || user.usage?.lastActive),
+        translationsCount: user.usage?.translationsUsed || 0,
         creditsBalance: user.creditsBalance
       })).sort((a: any, b: any) => b.lastActive.getTime() - a.lastActive.getTime())
     } catch (error) {

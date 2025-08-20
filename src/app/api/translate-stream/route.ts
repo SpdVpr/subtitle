@@ -293,12 +293,13 @@ export async function POST(request: NextRequest) {
             // Continue - we have the content in the job record
           }
 
-          // Update user usage statistics
+          // Update user usage statistics and last active
           const { UserService } = await import('@/lib/database-admin')
           await UserService.updateUsage(userId, {
-            translationsUsed: 1
+            translationsUsed: 1,
+            lastActive: new Date()
           })
-          console.log(`📊 Updated user usage statistics`)
+          console.log(`📊 Updated user usage statistics and last active`)
 
           // Record analytics
           const { AnalyticsService } = await import('@/lib/database-admin')

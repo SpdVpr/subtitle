@@ -37,22 +37,33 @@ export default function DashboardPage() {
       if (!user) return
 
       try {
-        // Fetch analytics data for current month
-        const response = await fetch(`/api/analytics?userId=${user.uid}&period=month`)
-        if (response.ok) {
-          const result = await response.json()
-          setDashboardStats({
-            totalTranslations: result.data.totalTranslations || 0,
-            creditsUsed: result.data.totalFiles * 0.4 || 0, // Approximate credits used
-            loading: false
-          })
-        } else {
-          setDashboardStats({
-            totalTranslations: 0,
-            creditsUsed: 0,
-            loading: false
-          })
+        // Fetch user data for accurate credits used calculation
+        const [analyticsResponse, userResponse] = await Promise.all([
+          fetch(`/api/analytics?userId=${user.uid}&period=month`),
+          fetch(`/api/user/credits?userId=${user.uid}`)
+        ])
+
+        let totalTranslations = 0
+        let creditsUsed = 0
+
+        if (analyticsResponse.ok) {
+          const result = await analyticsResponse.json()
+          totalTranslations = result.data.totalTranslations || 0
         }
+
+        if (userResponse.ok) {
+          const userData = await userResponse.json()
+          // Calculate credits used = total purchased - current balance
+          const totalPurchased = userData.totalPurchased || 0
+          const currentBalance = userData.credits || 0
+          creditsUsed = Math.max(0, totalPurchased - currentBalance)
+        }
+
+        setDashboardStats({
+          totalTranslations,
+          creditsUsed,
+          loading: false
+        })
       } catch (error) {
         console.error('Failed to load dashboard stats:', error)
         setDashboardStats({
