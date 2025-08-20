@@ -34,12 +34,33 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
     try {
       setLoading(true)
       setError(null)
-      
-      const response = await fetch('/api/admin/credit-history')
+
+      // Get admin email from localStorage (same as other admin components)
+      let adminEmail = ''
+      if (typeof window !== 'undefined') {
+        adminEmail = localStorage.getItem('adminEmail') || ''
+      }
+
+      // Fallback to demo admin email if not set
+      if (!adminEmail) {
+        adminEmail = 'premium@test.com'
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('adminEmail', adminEmail)
+        }
+      }
+
+      console.log('🔑 Credit History - Loading with email:', adminEmail)
+
+      const response = await fetch('/api/admin/credit-history', {
+        headers: { 'x-admin-email': adminEmail }
+      })
+
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ Credit History API failed:', response.status, errorText)
         throw new Error(`Failed to load credit history: ${response.status}`)
       }
-      
+
       const data = await response.json()
       setTransactions(data.transactions || [])
     } catch (err) {
