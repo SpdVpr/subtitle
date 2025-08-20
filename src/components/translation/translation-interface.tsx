@@ -433,29 +433,33 @@ export function TranslationInterface() {
   }
 
   const handleTranslationComplete = async (data: any) => {
-    console.log('Translation completed:', data)
+    console.log('🎉 Translation completed, processing result:', data)
 
     if (!isCompleted) {
       setIsCompleted(true)
 
       try {
         completeProgress()
+        console.log('✅ Progress completed successfully')
       } catch (error) {
-        console.warn('Error calling completeProgress:', error)
+        console.warn('⚠️ Error calling completeProgress:', error)
       }
 
       let downloadUrl = ''
       let translatedContent = ''
 
       if (data.translatedContent) {
-        // Direct content (demo jobs)
+        // Direct content (streaming result)
         translatedContent = data.translatedContent
         const blob = new Blob([translatedContent], { type: 'text/plain; charset=utf-8' })
         downloadUrl = URL.createObjectURL(blob)
+        console.log(`📄 Direct content processed: ${data.subtitleCount} subtitles, ${data.characterCount} characters`)
       } else if (data.translatedFileUrl) {
-        // File URL (real jobs)
+        // File URL (database result)
         downloadUrl = data.translatedFileUrl
+        console.log(`🔗 File URL processed: ${downloadUrl}`)
       } else {
+        console.error('❌ No translated content or file URL provided:', data)
         throw new Error('No translated content or file URL provided')
       }
 
@@ -468,6 +472,7 @@ export function TranslationInterface() {
       }
 
       setTranslationResult(result)
+      console.log('✅ Translation result set successfully:', result.translatedFileName)
       console.log('Translation result set:', result)
 
       // Refresh credits

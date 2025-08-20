@@ -192,26 +192,57 @@ export async function POST(request: NextRequest) {
 
         console.log('🎉 Translation completed successfully')
 
+        // Send finalizing progress first
+        try {
+          safeProgressCallback('finalizing', 95, 'Preparing final result...')
+          await new Promise(resolve => setTimeout(resolve, 500)) // Ensure finalizing is visible
+        } catch (progressError) {
+          console.warn('⚠️ Failed to send finalizing progress:', progressError)
+        }
+
         // Send result to client FIRST (before any database operations)
         let jobId: string | undefined
-        try {
-          // Add a small delay to ensure finalizing progress is visible
-          await new Promise(resolve => setTimeout(resolve, 200))
+        let resultSent = false
 
-          controller.enqueue(sse({
-            type: 'result',
-            status: 'completed',
-            translatedContent,
-            translatedFileName,
-            subtitleCount: translated.length,
-            characterCount: translatedContent.length,
-            jobId: 'pending' // Will be updated after database operations
-          }))
-          console.log('✅ Result sent to client successfully')
-        } catch (error) {
-          console.error('❌ Failed to send result - controller closed:', error.message)
-          controllerClosed = true
-          return
+        // Try multiple times to send result (in case of temporary controller issues)
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            console.log(`📤 Sending result to client (attempt ${attempt}/3)...`)
+
+            controller.enqueue(sse({
+              type: 'result',
+              status: 'completed',
+              translatedContent,
+              translatedFileName,
+              subtitleCount: translated.length,
+              characterCount: translatedContent.length,
+              jobId: 'pending' // Will be updated after database operations
+            }))
+
+            console.log('✅ Result sent to client successfully')
+            resultSent = true
+
+            // Send completion progress
+            safeProgressCallback('completed', 100, 'Translation completed successfully!')
+            break
+
+          } catch (error) {
+            console.error(`❌ Failed to send result (attempt ${attempt}/3) - controller issue:`, error.message)
+
+            if (attempt === 3) {
+              console.error('❌ All attempts to send result failed - controller permanently closed')
+              controllerClosed = true
+              // Continue with database operations even if result sending failed
+              // User can still get the result from Translation History
+            } else {
+              // Small delay before retry
+              await new Promise(resolve => setTimeout(resolve, 100))
+            }
+          }
+        }
+
+        if (!resultSent) {
+          console.warn('⚠️ Result not sent to client, but translation completed - will be available in history')
         }
 
         // Now do database operations asynchronously (after client has the result)
