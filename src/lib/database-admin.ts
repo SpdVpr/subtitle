@@ -150,6 +150,41 @@ export class UserService {
     }
   }
 
+  static async updateUsage(uid: string, usage: { translationsUsed?: number; lastActive?: Date; storageUsed?: number; batchJobsUsed?: number }): Promise<void> {
+    try {
+      console.log('📊 Updating user usage:', uid, usage)
+      const db = getAdminDb()
+
+      // Get current user data to increment properly
+      const userDoc = await db.collection(COLLECTIONS.USERS).doc(uid).get()
+      if (!userDoc.exists) {
+        console.warn('⚠️ User not found for usage update:', uid)
+        return
+      }
+
+      const userData = userDoc.data()
+      const currentUsage = userData.usage || {}
+
+      const updatedUsage = {
+        ...currentUsage,
+        translationsUsed: (currentUsage.translationsUsed || 0) + (usage.translationsUsed || 0),
+        storageUsed: (currentUsage.storageUsed || 0) + (usage.storageUsed || 0),
+        batchJobsUsed: (currentUsage.batchJobsUsed || 0) + (usage.batchJobsUsed || 0),
+        lastActive: usage.lastActive || currentUsage.lastActive || new Date()
+      }
+
+      await db.collection(COLLECTIONS.USERS).doc(uid).update({
+        usage: updatedUsage,
+        updatedAt: new Date()
+      })
+
+      console.log('✅ User usage updated successfully:', updatedUsage)
+    } catch (error) {
+      console.error('❌ Failed to update user usage:', error)
+      throw error
+    }
+  }
+
   static async adjustCredits(uid: string, deltaCredits: number, description?: string, relatedJobId?: string, batchNumber?: number, amountUSD?: number): Promise<void> {
     try {
       const db = getAdminDb()
