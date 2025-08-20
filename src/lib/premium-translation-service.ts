@@ -191,43 +191,83 @@ export class PremiumTranslationService {
       let consecutiveFailures = 0
       const maxConsecutiveFailures = 3
 
-      for (let i = 0; i < entries.length; i += batchSize) {
-        const batch = entries.slice(i, i + batchSize)
-        const batchNumber = Math.floor(i/batchSize) + 1
-        const totalBatches = Math.ceil(entries.length/batchSize)
-        const batchProgress = 55 + ((i / entries.length) * 35)
+      // Determine optimal concurrency for speed vs quality balance
+      const totalBatches = Math.ceil(entries.length / batchSize)
+      const maxConcurrency = Math.min(
+        Math.max(2, Math.floor(totalBatches / 3)), // At least 2, max 1/3 of batches
+        4 // Never more than 4 concurrent requests to maintain quality
+      )
 
-        console.log(`🌐 Translating batch ${batchNumber}/${totalBatches}`)
-        safeProgressCallback('translating', batchProgress, `Translating batch ${batchNumber}/${totalBatches} with contextual awareness...`)
+      console.log(`🚀 Using ${maxConcurrency} concurrent translations for ${totalBatches} batches (${entries.length} subtitles)`)
 
-        try {
-          const translatedBatch = await this.translateBatchWithRetry(
-            openai,
-            batch,
-            targetLanguage,
-            sourceLanguage,
-            contentAnalysis,
-            researchData,
-            i
-          )
-          translatedEntries.push(...translatedBatch)
-          consecutiveFailures = 0 // Reset failure counter on success
-        } catch (batchError) {
-          console.error(`❌ Batch ${batchNumber} failed:`, batchError)
-          consecutiveFailures++
+      // Process batches in parallel chunks for speed
+      let completedBatches = 0
+      const translatedBatchResults: { index: number; entries: SubtitleEntry[] }[] = []
 
-          if (consecutiveFailures >= maxConsecutiveFailures) {
-            throw new Error(`Translation failed after ${maxConsecutiveFailures} consecutive batch failures`)
-          }
+      for (let i = 0; i < entries.length; i += batchSize * maxConcurrency) {
+        const batchPromises: Promise<{ index: number; entries: SubtitleEntry[] }>[] = []
 
-          // Use fallback translation for failed batch
-          console.log(`🔄 Using fallback translation for batch ${batchNumber}`)
-          const fallbackBatch = batch.map(entry => ({
-            ...entry,
-            text: `[FALLBACK] ${entry.text}`
-          }))
-          translatedEntries.push(...fallbackBatch)
+        // Create concurrent batch promises
+        for (let j = 0; j < maxConcurrency && i + j * batchSize < entries.length; j++) {
+          const batchStartIndex = i + j * batchSize
+          const batch = entries.slice(batchStartIndex, batchStartIndex + batchSize)
+          const batchIndex = Math.floor(batchStartIndex / batchSize)
+          const batchNumber = batchIndex + 1
+
+          const batchPromise = (async () => {
+            try {
+              console.log(`🌐 Starting parallel batch ${batchNumber}/${totalBatches}`)
+              const translatedBatch = await this.translateBatchWithRetry(
+                openai,
+                batch,
+                targetLanguage,
+                sourceLanguage,
+                contentAnalysis,
+                researchData,
+                batchStartIndex
+              )
+              consecutiveFailures = 0 // Reset failure counter on success
+              return { index: batchIndex, entries: translatedBatch }
+            } catch (batchError) {
+              console.error(`❌ Parallel batch ${batchNumber} failed:`, batchError)
+              consecutiveFailures++
+
+              if (consecutiveFailures >= maxConsecutiveFailures) {
+                throw new Error(`Translation failed after ${maxConsecutiveFailures} consecutive batch failures`)
+              }
+
+              // Use fallback translation for failed batch
+              console.log(`🔄 Using fallback translation for parallel batch ${batchNumber}`)
+              const fallbackBatch = batch.map(entry => ({
+                ...entry,
+                text: `[FALLBACK] ${entry.text}`
+              }))
+              return { index: batchIndex, entries: fallbackBatch }
+            }
+          })()
+
+          batchPromises.push(batchPromise)
         }
+
+        // Wait for current parallel chunk to complete
+        const chunkResults = await Promise.all(batchPromises)
+        translatedBatchResults.push(...chunkResults)
+        completedBatches += chunkResults.length
+
+        // Update progress
+        const batchProgress = 55 + ((completedBatches / totalBatches) * 35)
+        safeProgressCallback('translating', batchProgress, `Completed ${completedBatches}/${totalBatches} batches (${maxConcurrency} parallel)`)
+
+        // Small delay between parallel chunks to avoid overwhelming API
+        if (i + batchSize * maxConcurrency < entries.length) {
+          await new Promise(resolve => setTimeout(resolve, 300))
+        }
+      }
+
+      // Sort results by batch index and combine
+      translatedBatchResults.sort((a, b) => a.index - b.index)
+      for (const result of translatedBatchResults) {
+        translatedEntries.push(...result.entries)
       }
 
       // PHASE 5: Final processing
@@ -816,9 +856,9 @@ CONTENT ANALYSIS:`
       try {
         console.log(`🔄 Batch translation attempt ${attempt}/${maxRetries}`)
 
-        // Add timeout wrapper for the translation
+        // Add timeout wrapper for the translation (optimized for speed)
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Batch translation timeout')), 90000) // 90 second timeout
+          setTimeout(() => reject(new Error('Batch translation timeout')), 60000) // 60 second timeout (faster)
         })
 
         const translationPromise = this.translateBatch(
@@ -875,7 +915,7 @@ CONTENT ANALYSIS:`
     }).join('\n')
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o-mini", // Fast and high-quality model
       messages: [
         {
           role: "system",
