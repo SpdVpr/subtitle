@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
-type Theme = 'light' | 'dark' | 'system'
+type Theme = 'light' | 'dark'
 
 interface ThemeContextType {
   theme: Theme
@@ -13,58 +13,31 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('system')
+  const [theme, setTheme] = useState<Theme>('light') // Default to light
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light')
 
   useEffect(() => {
     // Load theme from localStorage on mount
     const savedTheme = localStorage.getItem('theme') as Theme
-    if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
+    if (savedTheme && ['light', 'dark'].includes(savedTheme)) {
       setTheme(savedTheme)
     }
   }, [])
 
   useEffect(() => {
     const root = window.document.documentElement
-    
+
     // Remove existing theme classes
     root.classList.remove('light', 'dark')
-    
-    let resolvedTheme: 'light' | 'dark'
-    
-    if (theme === 'system') {
-      // Use system preference
-      resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    } else {
-      resolvedTheme = theme
-    }
-    
+
     // Apply theme class to html element
-    root.classList.add(resolvedTheme)
-    setActualTheme(resolvedTheme)
-    
+    root.classList.add(theme)
+    setActualTheme(theme)
+
     // Save to localStorage
     localStorage.setItem('theme', theme)
-    
-    console.log(`🎨 Theme changed: ${theme} (resolved: ${resolvedTheme})`)
-  }, [theme])
 
-  // Listen for system theme changes when using system theme
-  useEffect(() => {
-    if (theme !== 'system') return
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = () => {
-      const resolvedTheme = mediaQuery.matches ? 'dark' : 'light'
-      const root = window.document.documentElement
-      root.classList.remove('light', 'dark')
-      root.classList.add(resolvedTheme)
-      setActualTheme(resolvedTheme)
-      console.log(`🎨 System theme changed: ${resolvedTheme}`)
-    }
-
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
+    console.log(`🎨 Theme changed: ${theme}`)
   }, [theme])
 
   return (
