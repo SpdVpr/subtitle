@@ -100,7 +100,9 @@ export async function POST(request: NextRequest) {
             await UserService.adjustCredits(userId, -totalCredits, `Premium translation: ${entries.length} subtitles (${totalBatches} batches)`)
             console.log(`✅ PRODUCTION: Successfully deducted ${totalCredits} credits for premium translation`)
           } catch (err) {
-            console.error('❌ Credit deduction failed:', err)
+            console.error('❌ PRODUCTION: Credit deduction failed:', err)
+            console.error('❌ PRODUCTION: Error details:', err instanceof Error ? err.message : String(err))
+            console.error('❌ PRODUCTION: Error stack:', err instanceof Error ? err.stack : 'No stack')
             controller.enqueue(sse({ type: 'error', message: 'Failed to process payment. Please try again.' }))
             controller.close()
             return
@@ -319,7 +321,9 @@ export async function POST(request: NextRequest) {
           console.log('✅ All database operations completed successfully')
 
         } catch (backgroundError) {
-          console.error('❌ Database operations failed:', backgroundError)
+          console.error('❌ PRODUCTION: Database operations failed:', backgroundError)
+          console.error('❌ PRODUCTION: Background error details:', backgroundError instanceof Error ? backgroundError.message : String(backgroundError))
+          console.error('❌ PRODUCTION: Background error stack:', backgroundError instanceof Error ? backgroundError.stack : 'No stack')
           // Don't affect the user experience - they already have their translation
         }
       } catch (err: any) {
