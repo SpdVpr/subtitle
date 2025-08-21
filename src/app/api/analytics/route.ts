@@ -290,14 +290,23 @@ export async function GET(req: NextRequest) {
 
         // Check if transaction is in date range and is a deduction
         if (transactionDate >= startDateObj && transactionDate <= endDateObj) {
-          if (transaction.type === 'deduction' || transaction.type === 'debit' ||
-              (transaction.type === 'admin_debit') ||
-              (transaction.credits && transaction.credits < 0) ||
-              (transaction.amount && transaction.amount < 0)) {
-            // Add absolute value of credits used
+          // For debit transactions, the credits field contains positive value but represents a deduction
+          if (transaction.type === 'deduction' || transaction.type === 'debit' || transaction.type === 'admin_debit') {
+            // For debit transactions, credits field is positive but represents usage
             const credits = Math.abs(transaction.credits || transaction.amount || 0)
             creditsUsed += credits
             console.log('💳 ✅ Found credit deduction:', {
+              id: doc.id,
+              type: transaction.type,
+              credits,
+              date: transactionDate.toISOString().split('T')[0],
+              reason: transaction.reason || transaction.description
+            })
+          } else if ((transaction.credits && transaction.credits < 0) || (transaction.amount && transaction.amount < 0)) {
+            // Handle negative values (old format)
+            const credits = Math.abs(transaction.credits || transaction.amount || 0)
+            creditsUsed += credits
+            console.log('💳 ✅ Found credit deduction (negative value):', {
               id: doc.id,
               type: transaction.type,
               credits,
