@@ -6,24 +6,38 @@ function getAdminApp(): admin.app.App {
   if (adminApp) return adminApp
 
   if (!admin.apps.length) {
-    const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID
+    const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
     const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL
     let privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY
 
-    if (!projectId || !clientEmail || !privateKey) {
-      throw new Error('Missing Firebase Admin credentials. Please set FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, FIREBASE_ADMIN_PRIVATE_KEY environment variables.')
+    if (!projectId) {
+      throw new Error('Missing Firebase project ID. Please set FIREBASE_ADMIN_PROJECT_ID or NEXT_PUBLIC_FIREBASE_PROJECT_ID environment variable.')
     }
 
-    // Vercel stores newlines as \n
-    privateKey = privateKey.replace(/\\n/g, '\n')
+    // For production, use proper service account credentials
+    if (clientEmail && privateKey) {
+      privateKey = privateKey.replace(/\\n/g, '\n')
 
-    adminApp = admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId,
-        clientEmail,
-        privateKey,
-      }),
-    })
+      adminApp = admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId,
+          clientEmail,
+          privateKey,
+        }),
+      })
+      console.log('🔧 Firebase Admin: Using service account credentials')
+    } else {
+      // Try application default credentials (for local development with gcloud auth)
+      try {
+        adminApp = admin.initializeApp({
+          projectId,
+        })
+        console.log('🔧 Firebase Admin: Using application default credentials for project:', projectId)
+      } catch (error) {
+        console.error('❌ Failed to initialize Firebase Admin:', error)
+        throw new Error('Firebase Admin SDK not configured. Please set FIREBASE_ADMIN_CLIENT_EMAIL and FIREBASE_ADMIN_PRIVATE_KEY environment variables or run "gcloud auth application-default login".')
+      }
+    }
   } else {
     adminApp = admin.app()
   }

@@ -19,6 +19,12 @@ interface CreditTransaction {
   createdAt: Date
   adminId?: string
   adminEmail?: string
+  source?: string
+  voucherDetails?: {
+    voucherCode: string
+    campaignName: string
+    voucherDescription: string
+  }
 }
 
 interface CreditHistoryProps {
@@ -195,6 +201,12 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
                     </div>
                     <div className="text-sm text-gray-600 dark:text-muted-foreground">
                       {transaction.reason}
+                      {transaction.voucherDetails && (
+                        <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                          🎫 Voucher: {transaction.voucherDetails.voucherCode}
+                          ({transaction.voucherDetails.campaignName})
+                        </div>
+                      )}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-muted-foreground mt-1">
                       {formatDistanceToNow(new Date(transaction.createdAt), { addSuffix: true })}

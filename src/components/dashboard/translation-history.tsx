@@ -11,9 +11,10 @@ import { formatDistanceToNow } from 'date-fns'
 
 interface TranslationHistoryProps {
   className?: string
+  showHeader?: boolean
 }
 
-export function TranslationHistory({ className }: TranslationHistoryProps) {
+export function TranslationHistory({ className, showHeader = true }: TranslationHistoryProps) {
   const { user } = useAuth()
   const [jobs, setJobs] = useState<TranslationJob[]>([])
   const [loading, setLoading] = useState(true)
@@ -129,6 +130,17 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
   }
 
   if (loading) {
+    const content = (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin" />
+        <span className="ml-2">Loading history...</span>
+      </div>
+    )
+
+    if (!showHeader) {
+      return <div className={className}>{content}</div>
+    }
+
     return (
       <Card className={className}>
         <CardHeader>
@@ -141,16 +153,27 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="ml-2">Loading history...</span>
-          </div>
+          {content}
         </CardContent>
       </Card>
     )
   }
 
   if (error) {
+    const content = (
+      <div className="text-center py-8">
+        <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+        <Button onClick={loadTranslationHistory} variant="outline">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Try Again
+        </Button>
+      </div>
+    )
+
+    if (!showHeader) {
+      return <div className={className}>{content}</div>
+    }
+
     return (
       <Card className={className}>
         <CardHeader>
@@ -163,38 +186,15 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">
-            <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
-            <Button onClick={loadTranslationHistory} variant="outline">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Try Again
-            </Button>
-          </div>
+          {content}
         </CardContent>
       </Card>
     )
   }
 
-  return (
-    <Card className={className}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center space-x-2">
-              <Clock className="h-5 w-5" />
-              <span>Translation History</span>
-            </CardTitle>
-            <CardDescription>
-              Your recent subtitle translations
-            </CardDescription>
-          </div>
-          <Button onClick={loadTranslationHistory} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {jobs.length === 0 ? (
+  const content = (
+    <>
+      {jobs.length === 0 ? (
           <div className="text-center py-8">
             <FileText className="h-12 w-12 text-gray-400 dark:text-muted-foreground mx-auto mb-4" />
             <p className="text-gray-600 dark:text-muted-foreground mb-2">No translations yet</p>
@@ -253,6 +253,33 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
             ))}
           </div>
         )}
+    </>
+  )
+
+  if (!showHeader) {
+    return <div className={className}>{content}</div>
+  }
+
+  return (
+    <Card className={className}>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center space-x-2">
+              <Clock className="h-5 w-5" />
+              <span>Translation History</span>
+            </CardTitle>
+            <CardDescription>
+              Your recent subtitle translations
+            </CardDescription>
+          </div>
+          <Button onClick={loadTranslationHistory} variant="outline" size="sm">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {content}
       </CardContent>
     </Card>
   )

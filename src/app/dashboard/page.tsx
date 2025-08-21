@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { CreditsCard } from '@/components/ui/credits-display'
-import { TranslationHistory } from '@/components/dashboard/translation-history'
+import { HistoryTabs } from '@/components/dashboard/history-tabs'
 import Link from 'next/link'
 
 export default function DashboardPage() {
@@ -37,11 +37,8 @@ export default function DashboardPage() {
       if (!user) return
 
       try {
-        // Fetch user data for accurate credits used calculation
-        const [analyticsResponse, userResponse] = await Promise.all([
-          fetch(`/api/analytics?userId=${user.uid}&period=month`),
-          fetch(`/api/user/credits?userId=${user.uid}`)
-        ])
+        // Fetch analytics data which now includes creditsUsed
+        const analyticsResponse = await fetch(`/api/analytics?userId=${user.uid}&period=month`)
 
         let totalTranslations = 0
         let creditsUsed = 0
@@ -49,14 +46,8 @@ export default function DashboardPage() {
         if (analyticsResponse.ok) {
           const result = await analyticsResponse.json()
           totalTranslations = result.data.totalTranslations || 0
-        }
-
-        if (userResponse.ok) {
-          const userData = await userResponse.json()
-          // Calculate credits used = total purchased - current balance
-          const totalPurchased = userData.totalPurchased || 0
-          const currentBalance = userData.credits || 0
-          creditsUsed = Math.max(0, totalPurchased - currentBalance)
+          creditsUsed = result.data.creditsUsed || 0
+          console.log('📊 Dashboard analytics loaded:', { totalTranslations, creditsUsed })
         }
 
         setDashboardStats({
@@ -222,8 +213,8 @@ export default function DashboardPage() {
               </Card>
             </div>
 
-            {/* Translation History */}
-            <TranslationHistory />
+            {/* History Tabs - Translation & Credit History */}
+            <HistoryTabs />
 
             {/* Getting Started Guide */}
             <Card className="border-primary/20 bg-primary/5">

@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/useAuth'
+import { useCredits } from '@/contexts/credits-context'
 import { CreditsDisplay } from '@/components/ui/credits-display'
+import { VoucherRedemption } from '@/components/ui/voucher-redemption'
 import { Coins, Zap, Star, Crown, ArrowRight, Check } from 'lucide-react'
 import Link from 'next/link'
 
@@ -61,6 +63,7 @@ const CREDIT_PACKAGES = [
 
 export default function BuyCreditsPage() {
   const { user } = useAuth()
+  const { refreshCredits } = useCredits()
   const [loading, setLoading] = useState<string | null>(null)
 
   const handlePurchase = async (packageId: string) => {
@@ -151,7 +154,7 @@ export default function BuyCreditsPage() {
               
               <CardContent className="text-center space-y-4">
                 <div>
-                  <div className="text-4xl font-bold text-gray-900">
+                  <div className="text-4xl font-bold text-green-600 dark:text-green-400">
                     {pkg.credits}
                   </div>
                   <div className="text-sm text-gray-600">credits</div>
@@ -196,6 +199,16 @@ export default function BuyCreditsPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Voucher Redemption */}
+        <div className="mb-12">
+          <VoucherRedemption
+            onRedemptionSuccess={(creditsAdded, newBalance) => {
+              // Refresh credits without reloading the page
+              refreshCredits()
+            }}
+          />
         </div>
 
         {/* Usage Guide */}

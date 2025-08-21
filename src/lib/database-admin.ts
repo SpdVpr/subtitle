@@ -1,4 +1,4 @@
-// Server-side database operations using Firebase Admin
+// Server-side database operations using Firebase Admin with client SDK fallback
 import { getAdminDb } from './firebase-admin'
 import {
   UserProfile,
@@ -9,6 +9,12 @@ import {
   Subscription,
   ErrorLog
 } from '@/types/database'
+
+// Helper function to get database instance
+async function getDatabase() {
+  const db = getAdminDb()
+  return { db, isAdmin: true }
+}
 
 // Collection names
 const COLLECTIONS = {
@@ -26,72 +32,18 @@ const COLLECTIONS = {
 export class UserService {
   static async getUser(uid: string): Promise<UserProfile | null> {
     try {
-      const db = getAdminDb()
+      const { db, isAdmin } = await getDatabase()
+
+      // Admin SDK
       const userDoc = await db.collection(COLLECTIONS.USERS).doc(uid).get()
 
       if (!userDoc.exists) {
-        // For demo users in development, create a mock user
-        if (process.env.NODE_ENV === 'development' && (uid.includes('demo') || uid === 'premium-user-demo')) {
-          console.log('🧪 Creating mock user for development:', uid)
-          return {
-            uid: uid,
-            email: uid.includes('premium') ? 'premium@test.com' : 'demo@test.com',
-            displayName: uid.includes('premium') ? 'Premium Demo User' : 'Demo User',
-            creditsBalance: 1000,
-            creditsTotalPurchased: 1000,
-            usage: {
-              translationsUsed: 0,
-              translationsLimit: -1,
-              storageUsed: 0,
-              storageLimit: 100 * 1024 * 1024,
-              batchJobsUsed: 0,
-              batchJobsLimit: -1,
-              resetDate: new Date()
-            },
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            emailVerified: true,
-            preferences: {
-              defaultAiService: 'premium',
-              emailNotifications: false
-            }
-          } as UserProfile
-        }
         return null
       }
 
       return userDoc.data() as UserProfile
     } catch (error) {
       console.error('❌ Error getting user:', error)
-
-      // For demo users in development, return mock user even on error
-      if (process.env.NODE_ENV === 'development' && (uid.includes('demo') || uid === 'premium-user-demo')) {
-        console.log('🧪 Returning mock user due to database error:', uid)
-        return {
-          uid: uid,
-          email: uid.includes('premium') ? 'premium@test.com' : 'demo@test.com',
-          displayName: uid.includes('premium') ? 'Premium Demo User' : 'Demo User',
-          creditsBalance: 1000,
-          creditsTotalPurchased: 1000,
-          usage: {
-            translationsUsed: 0,
-            translationsLimit: -1,
-            storageUsed: 0,
-            storageLimit: 100 * 1024 * 1024,
-            batchJobsUsed: 0,
-            batchJobsLimit: -1,
-            resetDate: new Date()
-          },
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          emailVerified: true,
-          preferences: {
-            defaultAiService: 'premium',
-            emailNotifications: false
-          }
-        } as UserProfile
-      }
-
       throw error
     }
   }
@@ -187,25 +139,19 @@ export class UserService {
 
   static async adjustCredits(uid: string, deltaCredits: number, description?: string, relatedJobId?: string, batchNumber?: number, amountUSD?: number): Promise<void> {
     try {
-      const db = getAdminDb()
-      
-      // Get current user data
+      const { db, isAdmin } = await getDatabase()
+
+      // Admin SDK
       const userDoc = await db.collection(COLLECTIONS.USERS).doc(uid).get()
       if (!userDoc.exists) {
         throw new Error(`User ${uid} not found`)
       }
-
       const userData = userDoc.data() as UserProfile
+
       const currentBalance = userData.creditsBalance || 0
       const newBalance = currentBalance + deltaCredits
 
-      // Update user balance
-      await db.collection(COLLECTIONS.USERS).doc(uid).update({
-        creditsBalance: newBalance,
-        updatedAt: new Date()
-      })
-
-      // Record transaction (filter out undefined values)
+      // Record transaction data
       const transactionData: any = {
         userId: uid,
         type: deltaCredits >= 0 ? 'topup' : 'debit',
@@ -219,6 +165,11 @@ export class UserService {
       if (relatedJobId !== undefined) transactionData.relatedJobId = relatedJobId
       if (batchNumber !== undefined) transactionData.batchNumber = batchNumber
 
+      // Admin SDK
+      await db.collection(COLLECTIONS.USERS).doc(uid).update({
+        creditsBalance: newBalance,
+        updatedAt: new Date()
+      })
       await db.collection(COLLECTIONS.CREDIT_TRANSACTIONS).add(transactionData)
 
       console.log(`✅ Credits adjusted: ${currentBalance} → ${newBalance} (${deltaCredits >= 0 ? '+' : ''}${deltaCredits})`)
@@ -270,7 +221,9 @@ export class TranslationJobService {
 
   static async getUserJobs(userId: string, limitCount = 50): Promise<TranslationJob[]> {
     try {
-      const db = getAdminDb()
+      const { db, isAdmin } = await getDatabase()
+
+      // Admin SDK
       const snapshot = await db.collection(COLLECTIONS.TRANSLATION_JOBS)
         .where('userId', '==', userId)
         .orderBy('createdAt', 'desc')

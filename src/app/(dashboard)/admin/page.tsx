@@ -11,9 +11,11 @@ import { RevenueChart } from '@/components/admin/revenue-chart'
 import { SecurityDashboard } from '@/components/admin/security-dashboard'
 import { AdminSetup } from '@/components/admin/admin-setup'
 import { CreditHistory } from '@/components/admin/credit-history'
+import { VoucherGenerator } from '@/components/admin/voucher-generator'
+import { VoucherManagement } from '@/components/admin/voucher-management'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { RefreshCw, Shield, AlertTriangle } from 'lucide-react'
+import { RefreshCw, Shield, AlertTriangle, Gift } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function AdminDashboard() {
@@ -24,7 +26,7 @@ export default function AdminDashboard() {
   const [revenueData, setRevenueData] = useState<RevenueData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'security'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'security' | 'vouchers' | 'voucher-generator'>('overview')
 
   // Check admin access
   useEffect(() => {
@@ -109,10 +111,10 @@ export default function AdminDashboard() {
 
           {/* Tab Navigation */}
           <div className="border-b border-gray-200 dark:border-border">
-            <nav className="-mb-px flex space-x-8">
+            <nav className="-mb-px flex space-x-8 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('overview')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeTab === 'overview'
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
@@ -121,8 +123,28 @@ export default function AdminDashboard() {
                 📊 Overview
               </button>
               <button
+                onClick={() => setActiveTab('voucher-generator')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                  activeTab === 'voucher-generator'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                }`}
+              >
+                🎫 Generate Vouchers
+              </button>
+              <button
+                onClick={() => setActiveTab('vouchers')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                  activeTab === 'vouchers'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                }`}
+              >
+                🎟️ Manage Vouchers
+              </button>
+              <button
                 onClick={() => setActiveTab('security')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeTab === 'security'
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
@@ -178,6 +200,14 @@ export default function AdminDashboard() {
               {/* Credit History */}
               <CreditHistory onRefresh={loadAdminData} />
             </>
+          )}
+
+          {activeTab === 'voucher-generator' && (
+            <VoucherGenerator />
+          )}
+
+          {activeTab === 'vouchers' && (
+            <VoucherManagement />
           )}
 
           {activeTab === 'security' && (

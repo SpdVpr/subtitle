@@ -259,10 +259,72 @@ export async function GET(req: NextRequest) {
         }
       })
 
+    // Calculate credits used from credit transactions in the date range
+    let creditsUsed = 0
+    try {
+      const { getAdminDb } = await import('@/lib/firebase-admin')
+      const adminDb = await getAdminDb()
+
+      console.log('💳 Fetching credit transactions for period:', { startDateStr, endDateStr })
+
+      // Get credit transactions (deductions) for this user in the date range
+      const creditTransactionsSnapshot = await adminDb.collection('creditTransactions')
+        .where('userId', '==', userId)
+        .get()
+
+      creditTransactionsSnapshot.forEach(doc => {
+        const transaction = doc.data()
+        const transactionDate = transaction.createdAt?.toDate?.() || new Date(transaction.createdAt)
+
+        console.log('💳 Checking transaction:', {
+          id: doc.id,
+          type: transaction.type,
+          credits: transaction.credits || transaction.amount,
+          date: transactionDate.toISOString().split('T')[0],
+          inDateRange: transactionDate >= startDateObj && transactionDate <= endDateObj,
+          startDate: startDateObj.toISOString().split('T')[0],
+          endDate: endDateObj.toISOString().split('T')[0],
+          description: transaction.description || transaction.reason,
+          relatedJobId: transaction.relatedJobId
+        })
+
+        // Check if transaction is in date range and is a deduction
+        if (transactionDate >= startDateObj && transactionDate <= endDateObj) {
+          if (transaction.type === 'deduction' || transaction.type === 'debit' ||
+              (transaction.type === 'admin_debit') ||
+              (transaction.credits && transaction.credits < 0) ||
+              (transaction.amount && transaction.amount < 0)) {
+            // Add absolute value of credits used
+            const credits = Math.abs(transaction.credits || transaction.amount || 0)
+            creditsUsed += credits
+            console.log('💳 ✅ Found credit deduction:', {
+              id: doc.id,
+              type: transaction.type,
+              credits,
+              date: transactionDate.toISOString().split('T')[0],
+              reason: transaction.reason || transaction.description
+            })
+          } else {
+            console.log('💳 ❌ Skipped transaction (not a deduction):', {
+              id: doc.id,
+              type: transaction.type,
+              credits: transaction.credits || transaction.amount
+            })
+          }
+        }
+      })
+
+      console.log('💳 Total credits used in period:', creditsUsed)
+    } catch (error) {
+      console.error('❌ Error calculating credits used:', error)
+      // Continue with creditsUsed = 0
+    }
+
     console.log('📊 Final aggregated data:', {
       totalTranslations,
       totalFiles,
       totalSubtitles,
+      creditsUsed,
       successRate: Math.round(successRate),
       languageCount: languageMap.size,
       serviceCount: serviceMap.size,
@@ -275,6 +337,7 @@ export async function GET(req: NextRequest) {
       totalTranslations,
       totalFiles,
       totalSubtitles,
+      creditsUsed: Math.round(creditsUsed * 10) / 10, // Round to 1 decimal
       averageProcessingTime: Math.round(averageProcessingTime * 100) / 100, // Round to 2 decimals
       storageUsed: user?.usage?.storageUsed || 0,
       successRate: Math.round(successRate),

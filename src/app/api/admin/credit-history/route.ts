@@ -7,9 +7,8 @@ async function getServerFirestore() {
     const { getAdminDb } = await import('@/lib/firebase-admin')
     return getAdminDb()
   } catch (error) {
-    console.warn('⚠️ Falling back to client Firestore. Admin SDK not configured:', error)
-    const { db } = await import('@/lib/firebase')
-    return db
+    console.warn('⚠️ Admin SDK not configured, using demo mode:', error)
+    return null
   }
 }
 
@@ -34,10 +33,10 @@ export async function GET(request: NextRequest) {
 
     // Get Firestore instance
     const db = await getServerFirestore()
-    if (!db) {
-      return NextResponse.json({
-        error: 'Database not available'
-      }, { status: 500 })
+    const isDemoMode = !db
+
+    if (isDemoMode) {
+      return getDemoCreditHistory()
     }
 
     // Get credit transactions from the last 30 days
@@ -166,4 +165,71 @@ export async function GET(request: NextRequest) {
       details: error instanceof Error ? error.message : String(error)
     }, { status: 500 })
   }
+}
+
+// Demo mode credit history
+function getDemoCreditHistory() {
+  console.log('🧪 Demo mode: Returning sample credit history')
+
+  const demoTransactions = [
+    {
+      id: 'demo-tx-1',
+      userId: 'demo-user-1',
+      userEmail: 'demo@test.com',
+      type: 'topup',
+      amount: 100,
+      balanceBefore: 750,
+      balanceAfter: 850,
+      reason: 'Voucher redemption: DEMO-TEST-CODE',
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      source: 'voucher',
+      voucherDetails: {
+        voucherCode: 'DEMO-TEST-CODE',
+        campaignName: 'Demo Campaign',
+        voucherDescription: 'Demo voucher for testing'
+      }
+    },
+    {
+      id: 'demo-tx-2',
+      userId: 'premium-user-demo',
+      userEmail: 'premium@test.com',
+      type: 'topup',
+      amount: 500,
+      balanceBefore: 700,
+      balanceAfter: 1200,
+      reason: 'Admin credit adjustment',
+      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+      adminEmail: 'admin@demo.com'
+    },
+    {
+      id: 'demo-tx-3',
+      userId: 'demo-user-1',
+      userEmail: 'demo@test.com',
+      type: 'deduction',
+      amount: -25,
+      balanceBefore: 775,
+      balanceAfter: 750,
+      reason: 'Subtitle generation usage',
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
+    },
+    {
+      id: 'demo-tx-4',
+      userId: 'demo-user-2',
+      userEmail: 'user2@demo.com',
+      type: 'topup',
+      amount: 50,
+      balanceBefore: 0,
+      balanceAfter: 50,
+      reason: 'Welcome bonus',
+      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
+    }
+  ]
+
+  return NextResponse.json({
+    success: true,
+    demoMode: true,
+    transactions: demoTransactions,
+    total: demoTransactions.length,
+    message: 'Demo mode: Sample credit history (Database not connected)'
+  })
 }

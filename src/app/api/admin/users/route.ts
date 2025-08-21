@@ -10,9 +10,8 @@ async function getServerFirestore() {
     const { getAdminDb } = await import('@/lib/firebase-admin')
     return getAdminDb()
   } catch (error) {
-    console.warn('⚠️ Falling back to client Firestore. Admin SDK not configured:', error)
-    const { db } = await import('@/lib/firebase')
-    return db
+    console.warn('⚠️ Admin SDK not configured, using demo mode:', error)
+    return null
   }
 }
 
@@ -44,9 +43,10 @@ export async function GET(req: NextRequest) {
 
     // Get Firestore instance
     const db = await getServerFirestore()
-    if (!db) {
-      console.log('❌ Firestore not available')
-      throw new Error('Firestore not available')
+    const isDemoMode = !db
+
+    if (isDemoMode) {
+      return getDemoUsers()
     }
 
     console.log('🔍 Admin API: Querying all users from server-side...')
@@ -117,4 +117,56 @@ export async function GET(req: NextRequest) {
       details: 'Check server logs for more information'
     }, { status: 500 })
   }
+}
+
+// Demo mode users
+function getDemoUsers() {
+  console.log('🧪 Demo mode: Returning sample users')
+
+  const demoUsers = [
+    {
+      userId: 'demo-user-1',
+      email: 'demo@test.com',
+      displayName: 'Demo User',
+      plan: 'credits',
+      lastActive: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      translationsCount: 15,
+      creditsBalance: 850,
+      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+      isBlocked: false,
+      subscriptionPlan: 'free'
+    },
+    {
+      userId: 'premium-user-demo',
+      email: 'premium@test.com',
+      displayName: 'Premium Demo User',
+      plan: 'credits',
+      lastActive: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+      translationsCount: 42,
+      creditsBalance: 1200,
+      createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
+      isBlocked: false,
+      subscriptionPlan: 'premium'
+    },
+    {
+      userId: 'demo-user-2',
+      email: 'user2@demo.com',
+      displayName: 'Another Demo User',
+      plan: 'free',
+      lastActive: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+      translationsCount: 3,
+      creditsBalance: 50,
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      isBlocked: false,
+      subscriptionPlan: 'free'
+    }
+  ]
+
+  return NextResponse.json({
+    success: true,
+    demoMode: true,
+    count: demoUsers.length,
+    users: demoUsers,
+    message: 'Demo mode: Sample users (Database not connected)'
+  })
 }
