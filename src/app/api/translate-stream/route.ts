@@ -203,8 +203,50 @@ export async function POST(request: NextRequest) {
           console.warn('⚠️ Failed to send finalizing progress:', progressError)
         }
 
-        // Send result to client FIRST (before any database operations)
+        // CRITICAL: Save to database FIRST (before trying to send result to client)
+        console.log('📝 PRODUCTION: Saving translation job and updating usage BEFORE sending result...')
         let jobId: string | undefined
+
+        try {
+          const { TranslationJobService } = await import('@/lib/database-admin')
+
+          // Create job record as completed (since translation is already done)
+          console.log(`📝 PRODUCTION: About to create translation job for user ${userId}`)
+          jobId = await TranslationJobService.createJob({
+            userId,
+            type: 'single',
+            status: 'completed',
+            originalFileName: file.name,
+            originalFileSize: file.size,
+            sourceLanguage: sourceLanguage || undefined,
+            targetLanguage,
+            aiService: 'premium',
+            translatedFileName,
+            translatedContent, // Store content directly in job
+            subtitleCount: translated.length,
+            characterCount: translatedContent.length,
+            confidence: 0.95,
+            processingTimeMs: Date.now() - startTime,
+            completedAt: new Date() as any
+          })
+          console.log(`📝 PRODUCTION: Successfully created completed translation job: ${jobId} for user ${userId}`)
+
+          // Update user usage statistics and last active
+          const { UserService } = await import('@/lib/database-admin')
+          await UserService.updateUsage(userId, {
+            translationsUsed: 1,
+            lastActive: new Date()
+          })
+          console.log(`📊 PRODUCTION: Updated user usage statistics and last active`)
+
+          console.log('✅ PRODUCTION: All critical database operations completed successfully')
+        } catch (dbError) {
+          console.error('❌ PRODUCTION: Critical database operations failed:', dbError)
+          console.error('❌ PRODUCTION: DB error details:', dbError instanceof Error ? dbError.message : String(dbError))
+          // Continue anyway - user should still get their translation
+        }
+
+        // Now try to send result to client
         let resultSent = false
 
         // Try multiple times to send result (in case of temporary controller issues)
@@ -248,62 +290,36 @@ export async function POST(request: NextRequest) {
           console.warn('⚠️ Result not sent to client, but translation completed - will be available in history')
         }
 
-        // Now do database operations asynchronously (after client has the result)
-        console.log('📝 Starting background database operations...')
+        // Additional background operations (analytics, storage upload)
+        console.log('📝 Starting additional background operations...')
 
-        // Save to database immediately (don't use setImmediate for critical operations)
         try {
-          const { TranslationJobService } = await import('@/lib/database-admin')
-
-          // Create job record as completed (since translation is already done)
-          console.log(`📝 PRODUCTION: About to create translation job for user ${userId}`)
-          jobId = await TranslationJobService.createJob({
-            userId,
-            type: 'single',
-            status: 'completed',
-            originalFileName: file.name,
-            originalFileSize: file.size,
-            sourceLanguage: sourceLanguage || undefined,
-            targetLanguage,
-            aiService: 'premium',
-            translatedFileName,
-            translatedContent, // Store content directly in job
-            subtitleCount: translated.length,
-            characterCount: translatedContent.length,
-            confidence: 0.95,
-            processingTimeMs: Date.now() - startTime,
-            completedAt: new Date() as any
-          })
-          console.log(`📝 PRODUCTION: Successfully created completed translation job: ${jobId} for user ${userId}`)
 
           // Try to upload to storage (optional - if it fails, we still have the content in the job)
-          try {
-            const { StorageService } = await import('@/lib/storage')
-            const { url: translatedFileUrl } = await StorageService.uploadTranslatedFile(
-              translatedContent,
-              file.name,
-              userId,
-              jobId,
-              targetLanguage
-            )
-            console.log(`📤 Uploaded translated file: ${translatedFileUrl}`)
+          if (jobId) {
+            try {
+              const { StorageService } = await import('@/lib/storage')
+              const { TranslationJobService } = await import('@/lib/database-admin')
+              const { url: translatedFileUrl } = await StorageService.uploadTranslatedFile(
+                translatedContent,
+                file.name,
+                userId,
+                jobId,
+                targetLanguage
+              )
+              console.log(`📤 Uploaded translated file: ${translatedFileUrl}`)
 
-            // Update job with storage URL
-            await TranslationJobService.updateJob(jobId, {
-              translatedFileUrl
-            })
-          } catch (storageError) {
-            console.warn('⚠️ Storage upload failed, but job content is saved:', storageError)
-            // Continue - we have the content in the job record
+              // Update job with storage URL
+              await TranslationJobService.updateJob(jobId, {
+                translatedFileUrl
+              })
+            } catch (storageError) {
+              console.warn('⚠️ Storage upload failed, but job content is saved:', storageError)
+              // Continue - we have the content in the job record
+            }
           }
 
-          // Update user usage statistics and last active
-          const { UserService } = await import('@/lib/database-admin')
-          await UserService.updateUsage(userId, {
-            translationsUsed: 1,
-            lastActive: new Date()
-          })
-          console.log(`📊 Updated user usage statistics and last active`)
+          // Storage upload completed (user usage already updated above)
 
           // Record analytics
           const { AnalyticsService } = await import('@/lib/database-admin')
