@@ -203,7 +203,7 @@ export default function DashboardPage() {
                     {dashboardStats.loading ? (
                       <Loader2 className="h-8 w-8 animate-spin" />
                     ) : (
-                      dashboardStats.creditsUsed.toFixed(1)
+                      Math.round(dashboardStats.creditsUsed)
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
