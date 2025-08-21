@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const adminDb = await getAdminDb()
     
     // Get ALL credit transactions for this user (without orderBy to avoid index requirement)
-    const transactionsSnapshot = await adminDb.collection('creditTransactions')
+    const transactionsSnapshot = await adminDb.collection('credit_transactions')
       .where('userId', '==', userId)
       .limit(50)
       .get()

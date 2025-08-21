@@ -138,18 +138,24 @@ export class UserService {
   }
 
   static async adjustCredits(uid: string, deltaCredits: number, description?: string, relatedJobId?: string, batchNumber?: number, amountUSD?: number): Promise<void> {
+    console.log(`🔧 ADJUST_CREDITS: Called with uid=${uid}, deltaCredits=${deltaCredits}, description="${description}"`)
     try {
       const { db, isAdmin } = await getDatabase()
+      console.log(`🔧 ADJUST_CREDITS: Got database connection, isAdmin=${isAdmin}`)
 
       // Admin SDK
+      console.log(`🔧 ADJUST_CREDITS: Getting user document for ${uid}`)
       const userDoc = await db.collection(COLLECTIONS.USERS).doc(uid).get()
       if (!userDoc.exists) {
+        console.error(`🔧 ADJUST_CREDITS: User ${uid} not found`)
         throw new Error(`User ${uid} not found`)
       }
       const userData = userDoc.data() as UserProfile
+      console.log(`🔧 ADJUST_CREDITS: User found, current balance: ${userData.creditsBalance || 0}`)
 
       const currentBalance = userData.creditsBalance || 0
       const newBalance = currentBalance + deltaCredits
+      console.log(`🔧 ADJUST_CREDITS: Balance change: ${currentBalance} → ${newBalance} (${deltaCredits >= 0 ? '+' : ''}${deltaCredits})`)
 
       // Record transaction data
       const transactionData: any = {

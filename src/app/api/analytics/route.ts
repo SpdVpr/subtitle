@@ -270,7 +270,7 @@ export async function GET(req: NextRequest) {
       console.log('💳 DEBUG: Looking for transactions for userId:', userId)
 
       // Get credit transactions (deductions) for this user in the date range
-      const creditTransactionsSnapshot = await adminDb.collection('creditTransactions')
+      const creditTransactionsSnapshot = await adminDb.collection('credit_transactions')
         .where('userId', '==', userId)
         .get()
 
