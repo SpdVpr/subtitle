@@ -6,7 +6,7 @@ export default function TranslatePage() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">AI Subtitle Translation</h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-muted-foreground">
             Upload your SRT subtitle file and translate it to any language using AI
           </p>
         </div>

@@ -21,7 +21,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-4 border rounded-md bg-red-50 text-red-800">
+        <div className="p-4 border rounded-md bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-300">
           <div className="font-semibold">Something went wrong.</div>
           <div className="text-sm mt-1">Please reload the page or try again.</div>
         </div>

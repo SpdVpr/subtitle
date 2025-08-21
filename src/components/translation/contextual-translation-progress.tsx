@@ -140,10 +140,10 @@ function StageInfoDisplay({ stage, isActive, isCompleted, progress, selectedFile
       case 'analyzing':
         if (!data) return null
         return (
-          <div className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="mt-3 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800/30">
             <div className="space-y-3">
-              <div className="bg-white p-3 rounded border border-blue-100">
-                <h4 className="font-semibold text-blue-900 mb-2">📁 File Information</h4>
+              <div className="bg-white dark:bg-card p-3 rounded border border-blue-100 dark:border-border">
+                <h4 className="font-semibold text-blue-900 dark:text-foreground mb-2">📁 File Information</h4>
                 <div className="space-y-1 text-sm">
                   <div><strong>Title:</strong> {data.extractedInfo?.title || 'Unknown'}</div>
                   {data.extractedInfo?.year && <div><strong>Year:</strong> {data.extractedInfo.year}</div>}
@@ -161,10 +161,10 @@ function StageInfoDisplay({ stage, isActive, isCompleted, progress, selectedFile
       case 'researching':
         if (!data) return null
         return (
-          <div className="mt-3 p-4 bg-green-50 rounded-lg border border-green-200">
+          <div className="mt-3 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800/30">
             <div className="space-y-3">
-              <div className="bg-white p-3 rounded border border-green-100">
-                <h4 className="font-semibold text-green-900 mb-2">📚 Show Information</h4>
+              <div className="bg-white dark:bg-card p-3 rounded border border-green-100 dark:border-border">
+                <h4 className="font-semibold text-green-900 dark:text-foreground mb-2">📚 Show Information</h4>
                 <div className="space-y-1 text-sm">
                   <div><strong>Title:</strong> {data.title}</div>
                   <div><strong>Genre:</strong> {Array.isArray(data.genre) ? data.genre.join(', ') : 'Unknown'}</div>
@@ -172,24 +172,24 @@ function StageInfoDisplay({ stage, isActive, isCompleted, progress, selectedFile
                 </div>
               </div>
               {data.characters && Array.isArray(data.characters) && data.characters.length > 0 && (
-                <div className="bg-white p-3 rounded border border-green-100">
-                  <h4 className="font-semibold text-purple-900 mb-2">🎭 Main Characters</h4>
+                <div className="bg-white dark:bg-card p-3 rounded border border-green-100 dark:border-border">
+                  <h4 className="font-semibold text-purple-900 dark:text-foreground mb-2">🎭 Main Characters</h4>
                   <div className="flex flex-wrap gap-2">
                     {data.characters.slice(0, 8).map((char: string, i: number) => (
-                      <span key={i} className="bg-purple-200 text-purple-800 px-2 py-1 rounded text-xs">{char}</span>
+                      <span key={i} className="bg-purple-200 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 px-2 py-1 rounded text-xs">{char}</span>
                     ))}
                   </div>
                 </div>
               )}
               {data.culturalContext && (
-                <div className="bg-white p-3 rounded border border-green-100">
-                  <h4 className="font-semibold text-orange-900 mb-2">🌍 Cultural Context</h4>
+                <div className="bg-white dark:bg-card p-3 rounded border border-green-100 dark:border-border">
+                  <h4 className="font-semibold text-orange-900 dark:text-foreground mb-2">🌍 Cultural Context</h4>
                   <div className="text-sm">{data.culturalContext}</div>
                 </div>
               )}
               {data.plot && (
-                <div className="bg-white p-3 rounded border border-green-100">
-                  <h4 className="font-semibold text-yellow-900 mb-2">📖 Plot Summary</h4>
+                <div className="bg-white dark:bg-card p-3 rounded border border-green-100 dark:border-border">
+                  <h4 className="font-semibold text-yellow-900 dark:text-foreground mb-2">📖 Plot Summary</h4>
                   <div className="text-sm">{data.plot.length > 200 ? data.plot.substring(0, 200) + '...' : data.plot}</div>
                 </div>
               )}
@@ -200,11 +200,11 @@ function StageInfoDisplay({ stage, isActive, isCompleted, progress, selectedFile
       case 'analyzing_content':
         if (!data) return null
         return (
-          <div className="mt-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="mt-3 p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800/30">
             <div className="space-y-3">
               {data.subtitleStatistics && (
-                <div className="bg-white p-3 rounded border border-purple-100">
-                  <h4 className="font-semibold text-indigo-900 mb-2">📊 Subtitle Statistics</h4>
+                <div className="bg-white dark:bg-card p-3 rounded border border-purple-100 dark:border-border">
+                  <h4 className="font-semibold text-indigo-900 dark:text-foreground mb-2">📊 Subtitle Statistics</h4>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div><strong>Total entries:</strong> {data.subtitleStatistics.totalEntries || 0}</div>
                     <div><strong>Dialogue lines:</strong> {data.subtitleStatistics.dialogueLines || 0}</div>
@@ -214,21 +214,21 @@ function StageInfoDisplay({ stage, isActive, isCompleted, progress, selectedFile
                 </div>
               )}
               {data.charactersDetected && Array.isArray(data.charactersDetected) && data.charactersDetected.length > 0 && (
-                <div className="bg-white p-3 rounded border border-purple-100">
-                  <h4 className="font-semibold text-pink-900 mb-2">🎭 Characters Detected</h4>
+                <div className="bg-white dark:bg-card p-3 rounded border border-purple-100 dark:border-border">
+                  <h4 className="font-semibold text-pink-900 dark:text-foreground mb-2">🎭 Characters Detected</h4>
                   <div className="flex flex-wrap gap-2">
                     {data.charactersDetected.slice(0, 10).map((char: string, i: number) => (
-                      <span key={i} className="bg-pink-200 text-pink-800 px-2 py-1 rounded text-xs">{char}</span>
+                      <span key={i} className="bg-pink-200 dark:bg-pink-900/30 text-pink-800 dark:text-pink-300 px-2 py-1 rounded text-xs">{char}</span>
                     ))}
                   </div>
                 </div>
               )}
               {data.culturalElementsFound && Array.isArray(data.culturalElementsFound) && data.culturalElementsFound.length > 0 && (
-                <div className="bg-white p-3 rounded border border-purple-100">
-                  <h4 className="font-semibold text-teal-900 mb-2">🌸 Cultural Elements</h4>
+                <div className="bg-white dark:bg-card p-3 rounded border border-purple-100 dark:border-border">
+                  <h4 className="font-semibold text-teal-900 dark:text-teal-300 mb-2">🌸 Cultural Elements</h4>
                   <div className="flex flex-wrap gap-2">
                     {data.culturalElementsFound.map((term: string, i: number) => (
-                      <span key={i} className="bg-teal-200 text-teal-800 px-2 py-1 rounded text-xs">{term}</span>
+                      <span key={i} className="bg-teal-200 dark:bg-teal-900/30 text-teal-800 dark:text-teal-300 px-2 py-1 rounded text-xs">{term}</span>
                     ))}
                   </div>
                 </div>
@@ -381,26 +381,26 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-600" />
+        return <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
       case 'active':
-        return <div className="h-4 w-4 rounded-full bg-blue-600 animate-pulse" />
+        return <div className="h-4 w-4 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
       case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-600" />
+        return <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
       default:
-        return <Circle className="h-4 w-4 text-gray-300" />
+        return <Circle className="h-4 w-4 text-gray-300 dark:text-muted-foreground" />
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'text-green-600'
+        return 'text-green-600 dark:text-green-400'
       case 'active':
-        return 'text-blue-600 font-medium'
+        return 'text-blue-600 dark:text-blue-400 font-medium'
       case 'error':
-        return 'text-red-600'
+        return 'text-red-600 dark:text-red-400'
       default:
-        return 'text-gray-400'
+        return 'text-gray-400 dark:text-muted-foreground'
     }
   }
 
@@ -458,7 +458,7 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
                         </div>
                       )}
                     </div>
-                    <p className={`text-xs ${status === 'active' ? 'text-muted-foreground' : 'text-gray-400'}`}>
+                    <p className={`text-xs ${status === 'active' ? 'text-muted-foreground' : 'text-gray-400 dark:text-muted-foreground'}`}>
                       {String(stage.description || '')}
                     </p>
                   </div>
@@ -472,17 +472,17 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
         <div className="space-y-4">
           {/* Debug info */}
           {selectedFile && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="text-sm font-medium text-blue-800">File Selected: {selectedFile.name}</div>
-              <div className="text-xs text-blue-600 mt-1">Ready for contextual translation analysis</div>
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/30 rounded-lg">
+              <div className="text-sm font-medium text-blue-800 dark:text-blue-300">File Selected: {selectedFile.name}</div>
+              <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">Ready for contextual translation analysis</div>
             </div>
           )}
 
           {/* Show stored data info */}
           {Object.keys(reasoningData).length > 0 && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="text-sm font-medium text-green-800">Previous Translation Data Available</div>
-              <div className="text-xs text-green-600 mt-1">
+            <div className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800/30 rounded-lg">
+              <div className="text-sm font-medium text-green-800 dark:text-green-300">Previous Translation Data Available</div>
+              <div className="text-xs text-green-600 dark:text-green-400 mt-1">
                 Stages with data: {Object.keys(reasoningData).join(', ')}
               </div>
             </div>
@@ -522,10 +522,10 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
 
         {/* Error State */}
         {progress.stage === 'error' && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/30 rounded-lg">
             <div className="flex items-center space-x-2">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <span className="text-sm font-medium text-red-800">Translation Failed</span>
+              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+              <span className="text-sm font-medium text-red-800 dark:text-red-300">Translation Failed</span>
             </div>
             {progress.details && (
               <p className="text-sm text-red-700 mt-1">{String(progress.details)}</p>
@@ -535,10 +535,10 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
 
         {/* Success State */}
         {progress.stage === 'completed' && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800/30 rounded-lg">
             <div className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium text-green-800">Translation Completed Successfully!</span>
+              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <span className="text-sm font-medium text-green-800 dark:text-green-300">Translation Completed Successfully!</span>
             </div>
             <p className="text-sm text-green-700 mt-1">
               Your subtitles have been translated with full contextual awareness and comprehensive show research.

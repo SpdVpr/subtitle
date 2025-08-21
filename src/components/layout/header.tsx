@@ -19,7 +19,7 @@ export function Header() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <span className="text-xl font-bold text-blue-600">SubtitleAI</span>
+              <span className="text-xl font-bold text-primary">SubtitleAI</span>
             </Link>
           </div>
 
@@ -27,26 +27,26 @@ export function Header() {
           <nav className="hidden md:flex items-center space-x-8">
             <Link
               href="/"
-              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               Home
             </Link>
             <Link
               href="/translate"
-              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               Translate
             </Link>
             <Link
               href="/subtitles-search"
-              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               Find Subtitles
             </Link>
             {user && (
               <Link
                 href="/batch"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                className="text-muted-foreground hover:text-foreground transition-colors font-medium"
               >
                 Batch
               </Link>
@@ -54,7 +54,7 @@ export function Header() {
             {user && isAdmin(user) && (
               <Link
                 href="/admin"
-                className="text-red-600 hover:text-red-700 transition-colors font-medium flex items-center space-x-1"
+                className="text-destructive hover:text-destructive/80 transition-colors font-medium flex items-center space-x-1"
               >
                 <Shield className="h-4 w-4" />
                 <span>Admin</span>
@@ -62,7 +62,7 @@ export function Header() {
             )}
             <Link
               href="/buy-credits"
-              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               Buy Credits
             </Link>
@@ -74,7 +74,7 @@ export function Header() {
             <ThemeToggle />
 
             {loading ? (
-              <div className="h-8 w-20 bg-gray-200 animate-pulse rounded" />
+              <div className="h-8 w-20 bg-muted animate-pulse rounded" />
             ) : user ? (
               <div className="flex items-center space-x-3">
                 <CreditsDisplay showBuyButton={false} className="hidden sm:flex" />

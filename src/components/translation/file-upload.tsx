@@ -71,21 +71,21 @@ export function FileUpload({ onFileSelect, selectedFile, onFileRemove, disabled 
           className={cn(
             "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
             isDragActive || dragActive
-              ? "border-blue-500 bg-blue-50"
-              : "border-gray-300 hover:border-gray-400",
+              ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
+              : "border-gray-300 dark:border-border hover:border-gray-400 dark:hover:border-muted-foreground",
             disabled && "cursor-not-allowed opacity-50"
           )}
         >
           <input {...getInputProps()} />
-          <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <Upload className="h-12 w-12 text-gray-400 dark:text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">Upload Subtitle File</h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 dark:text-muted-foreground mb-4">
             Drag and drop your SRT file here, or click to browse
           </p>
           <Button variant="outline" disabled={disabled}>
             Choose File
           </Button>
-          <p className="text-sm text-gray-500 mt-4">
+          <p className="text-sm text-gray-500 dark:text-muted-foreground mt-4">
             Supports: .srt files up to 10MB
           </p>
         </div>

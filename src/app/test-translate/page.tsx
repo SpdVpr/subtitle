@@ -161,15 +161,15 @@ I feel the need... the need for speed!`)
               </label>
               {service === 'premium' ? (
                 <div className="space-y-2">
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                    <p className="text-sm text-blue-800 font-medium">🎬 Premium Context Mode</p>
-                    <p className="text-xs text-blue-600">Using famous movie quotes for context analysis demo</p>
+                  <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/30 rounded">
+                    <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">🎬 Premium Context Mode</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">Using famous movie quotes for context analysis demo</p>
                   </div>
                   <Textarea
                     value={premiumText}
                     disabled
                     rows={6}
-                    className="bg-gray-50"
+                    className="bg-gray-50 dark:bg-muted"
                   />
                 </div>
               ) : (
@@ -238,14 +238,14 @@ I feel the need... the need for speed!`)
           </CardHeader>
           <CardContent>
             {error ? (
-              <div className="text-red-600 bg-red-50 p-4 rounded-md">
+              <div className="text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-4 rounded-md">
                 <p className="font-medium">Error:</p>
                 <p>{error}</p>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="bg-green-50 p-4 rounded-md">
-                  <p className="font-medium text-green-800 mb-2">
+                <div className="bg-green-50 dark:bg-green-950/30 p-4 rounded-md">
+                  <p className="font-medium text-green-800 dark:text-green-300 mb-2">
                     ✅ {result.message || 'Translation successful!'}
                   </p>
                   
@@ -266,7 +266,7 @@ I feel the need... the need for speed!`)
                   )}
 
                   {result.contextAnalysis && (
-                    <div className="text-sm text-blue-700 mt-4 p-3 bg-blue-50 rounded">
+                    <div className="text-sm text-blue-700 dark:text-blue-300 mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded">
                       <p><strong>🎬 Context Analysis (Premium Feature):</strong></p>
                       <ul className="list-disc list-inside mt-2 space-y-1">
                         {result.contextAnalysis.genre && <li><strong>Genre:</strong> {result.contextAnalysis.genre}</li>}
@@ -281,10 +281,10 @@ I feel the need... the need for speed!`)
                 </div>
 
                 <details className="text-xs">
-                  <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
+                  <summary className="cursor-pointer text-gray-600 dark:text-muted-foreground hover:text-gray-800 dark:hover:text-foreground">
                     Show raw response
                   </summary>
-                  <pre className="mt-2 bg-gray-100 p-2 rounded text-xs overflow-auto">
+                  <pre className="mt-2 bg-gray-100 dark:bg-muted p-2 rounded text-xs overflow-auto">
                     {JSON.stringify(result, null, 2)}
                   </pre>
                 </details>

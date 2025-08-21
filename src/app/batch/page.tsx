@@ -31,32 +31,32 @@ export default function BatchPage() {
 
         {/* Features Overview */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white dark:bg-card rounded-lg p-6 border border-gray-200 dark:border-border shadow-sm">
             <div className="flex items-center space-x-3 mb-3">
-              <FileText className="h-8 w-8 text-blue-500" />
+              <FileText className="h-8 w-8 text-blue-500 dark:text-blue-400" />
               <h3 className="font-semibold">Multiple Files & ZIP</h3>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-muted-foreground">
               Upload individual SRT files or ZIP archives containing multiple subtitle files
             </p>
           </div>
 
-          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white dark:bg-card rounded-lg p-6 border border-gray-200 dark:border-border shadow-sm">
             <div className="flex items-center space-x-3 mb-3">
-              <Archive className="h-8 w-8 text-green-500" />
+              <Archive className="h-8 w-8 text-green-500 dark:text-green-400" />
               <h3 className="font-semibold">Smart Processing</h3>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-muted-foreground">
               Automatic file extraction from ZIP and intelligent cost estimation
             </p>
           </div>
 
-          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white dark:bg-card rounded-lg p-6 border border-gray-200 dark:border-border shadow-sm">
             <div className="flex items-center space-x-3 mb-3">
-              <Download className="h-8 w-8 text-purple-500" />
+              <Download className="h-8 w-8 text-purple-500 dark:text-purple-400" />
               <h3 className="font-semibold">Batch Download</h3>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-muted-foreground">
               Download individual files or get all translations in a single ZIP
             </p>
           </div>
@@ -76,8 +76,8 @@ export default function BatchPage() {
           <CardContent>
             <div className="grid md:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-blue-600 font-bold">1</span>
+                <div className="w-12 h-12 bg-blue-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-blue-600 dark:text-primary font-bold">1</span>
                 </div>
                 <h4 className="font-medium mb-2">Upload Files</h4>
                 <p className="text-sm text-gray-600">
@@ -86,8 +86,8 @@ export default function BatchPage() {
               </div>
 
               <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-green-600 font-bold">2</span>
+                <div className="w-12 h-12 bg-green-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-green-600 dark:text-primary font-bold">2</span>
                 </div>
                 <h4 className="font-medium mb-2">Configure</h4>
                 <p className="text-sm text-gray-600">
@@ -96,8 +96,8 @@ export default function BatchPage() {
               </div>
 
               <div className="text-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-purple-600 font-bold">3</span>
+                <div className="w-12 h-12 bg-purple-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-purple-600 dark:text-primary font-bold">3</span>
                 </div>
                 <h4 className="font-medium mb-2">Process</h4>
                 <p className="text-sm text-gray-600">
@@ -106,11 +106,11 @@ export default function BatchPage() {
               </div>
 
               <div className="text-center">
-                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-orange-600 font-bold">4</span>
+                <div className="w-12 h-12 bg-orange-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-orange-600 dark:text-orange-400 font-bold">4</span>
                 </div>
                 <h4 className="font-medium mb-2">Download</h4>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-muted-foreground">
                   Get all translated files in a single ZIP download
                 </p>
               </div>

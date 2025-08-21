@@ -75,7 +75,7 @@ function UserActionsCell({ userId, email, isBlocked, onUpdate }: {
         <button
           onClick={blockUser}
           disabled={loading}
-          className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50"
+          className="px-2 py-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-900/50 disabled:opacity-50"
         >
           Block
         </button>
@@ -83,7 +83,7 @@ function UserActionsCell({ userId, email, isBlocked, onUpdate }: {
         <button
           onClick={unblockUser}
           disabled={loading}
-          className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50"
+          className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded hover:bg-green-200 dark:hover:bg-green-900/50 disabled:opacity-50"
         >
           Unblock
         </button>
@@ -92,7 +92,7 @@ function UserActionsCell({ userId, email, isBlocked, onUpdate }: {
       <button
         onClick={resetUsage}
         disabled={loading}
-        className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50"
+        className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 disabled:opacity-50"
       >
         Reset
       </button>
@@ -161,31 +161,31 @@ export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) 
   const getPlanBadgeColor = (plan: string) => {
     switch (plan) {
       case 'pro':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
       case 'premium':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
       case 'free':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800 dark:bg-muted dark:text-muted-foreground'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800 dark:bg-muted dark:text-muted-foreground'
     }
   }
 
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900">Recent User Activity</CardTitle>
+        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-foreground">Recent User Activity</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-sm text-gray-600 mb-3">
+        <div className="text-sm text-gray-600 dark:text-muted-foreground mb-3">
           Click credits to edit • Use action buttons to manage users
         </div>
         {/* Mobile view */}
         <div className="block sm:hidden space-y-4">
           {(users || []).slice(0, 10).map((user, index) => (
-            <div key={String(user?.userId || index)} className="p-4 border rounded-lg bg-gray-50">
+            <div key={String(user?.userId || index)} className="p-4 border rounded-lg bg-gray-50 dark:bg-card dark:border-border">
               <div className="flex items-center justify-between mb-2">
-                <div className="font-medium text-sm text-gray-900">
+                <div className="font-medium text-sm text-gray-900 dark:text-foreground">
                   {String(user?.email || 'Unknown')}
                 </div>
                 <Badge
@@ -215,29 +215,29 @@ export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) 
         <div className="hidden sm:block overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-medium text-gray-700">User</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Plan</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Translations</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Credits</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Last Active</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
+              <tr className="border-b border-gray-200 dark:border-border">
+                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-foreground">User</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-foreground">Plan</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-foreground">Translations</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-foreground">Credits</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-foreground">Last Active</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
               {(users || []).slice(0, 10).map((user, index) => (
-                <tr key={String(user?.userId || index)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <tr key={String(user?.userId || index)} className="border-b border-gray-100 dark:border-border hover:bg-gray-50 dark:hover:bg-muted transition-colors">
                   <td className="py-3 px-4">
                     <div>
-                      <div className="font-medium text-sm text-gray-900">
+                      <div className="font-medium text-sm text-gray-900 dark:text-foreground">
                         {String(user?.email || 'Unknown')}
                         {(user as any)?.isBlocked && (
-                          <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-700 rounded">
+                          <span className="ml-2 px-2 py-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded">
                             BLOCKED
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 dark:text-muted-foreground">
                         {String(user?.userId || '').substring(0, 8)}...
                       </div>
                     </div>
@@ -251,14 +251,14 @@ export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) 
                     </Badge>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-gray-900 dark:text-foreground">
                       <div className="flex items-center space-x-2">
                         <span className="inline-flex items-center">
                           📄 {Number(user?.translationsCount || 0).toLocaleString()}
                         </span>
                         {Number(user?.translationsCount || 0) > 0 && (
                           <Info
-                            className="h-3 w-3 text-gray-400 cursor-help"
+                            className="h-3 w-3 text-gray-400 dark:text-muted-foreground cursor-help"
                             title={`Total subtitle files translated by this user`}
                           />
                         )}

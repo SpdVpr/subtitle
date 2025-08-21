@@ -41,13 +41,13 @@ const AniListImage = ({ anilistId, title, isMovie, className }: {
   // For demo purposes, we'll show a placeholder
   // In production, you'd implement proper AniList API integration
   return (
-    <div className={`bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center ${className}`}>
+    <div className={`bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-950/30 dark:to-pink-950/30 rounded-lg flex items-center justify-center ${className}`}>
       <div className="text-center p-2">
-        <Image className="h-8 w-8 text-purple-400 mx-auto mb-1" />
-        <div className="text-xs text-purple-600 font-medium">{isMovie ? 'Movie' : 'Anime'}</div>
-        <div className="text-xs text-purple-500 truncate max-w-[80px]">{title}</div>
+        <Image className="h-8 w-8 text-purple-400 dark:text-purple-300 mx-auto mb-1" />
+        <div className="text-xs text-purple-600 dark:text-purple-300 font-medium">{isMovie ? 'Movie' : 'Anime'}</div>
+        <div className="text-xs text-purple-500 dark:text-purple-400 truncate max-w-[80px]">{title}</div>
         {anilistId && (
-          <div className="text-xs text-purple-400">ID: {anilistId}</div>
+          <div className="text-xs text-purple-400 dark:text-purple-500">ID: {anilistId}</div>
         )}
       </div>
     </div>

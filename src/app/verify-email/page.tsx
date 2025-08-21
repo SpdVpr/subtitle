@@ -84,11 +84,11 @@ export default function VerifyEmailPage() {
   const getStatusColor = () => {
     switch (status) {
       case 'success':
-        return 'text-green-600'
+        return 'text-green-600 dark:text-green-400'
       case 'error':
-        return 'text-red-600'
+        return 'text-red-600 dark:text-red-400'
       default:
-        return 'text-gray-600'
+        return 'text-gray-600 dark:text-muted-foreground'
     }
   }
 
@@ -115,14 +115,14 @@ export default function VerifyEmailPage() {
             {status === 'pending' && user && (
               <div className="space-y-4">
                 <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-sm text-gray-600 dark:text-muted-foreground mb-4">
                     We sent a verification link to:
                   </p>
-                  <p className="font-medium text-gray-900">{user.email}</p>
+                  <p className="font-medium text-gray-900 dark:text-foreground">{user.email}</p>
                 </div>
                 
                 <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-sm text-gray-600 dark:text-muted-foreground mb-4">
                     Didn't receive the email? Check your spam folder or request a new one.
                   </p>
                   
@@ -150,7 +150,7 @@ export default function VerifyEmailPage() {
 
             {status === 'success' && (
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-600 dark:text-muted-foreground mb-4">
                   Redirecting to dashboard in 3 seconds...
                 </p>
                 <Button onClick={() => router.push('/dashboard')} className="w-full">
@@ -162,7 +162,7 @@ export default function VerifyEmailPage() {
             {status === 'error' && (
               <div className="space-y-4">
                 <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-sm text-gray-600 dark:text-muted-foreground mb-4">
                     The verification link may be expired or invalid.
                   </p>
                 </div>

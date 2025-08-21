@@ -89,7 +89,7 @@ export function ForgotPasswordForm() {
           </div>
 
           {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+            <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/30 rounded-md">
               {error}
             </div>
           )}
@@ -98,9 +98,9 @@ export function ForgotPasswordForm() {
             {isLoading ? 'Sending...' : 'Send Reset Link'}
           </Button>
 
-          <p className="text-center text-sm text-gray-600">
+          <p className="text-center text-sm text-gray-600 dark:text-muted-foreground">
             Remember your password?{' '}
-            <Link href="/login" className="text-blue-600 hover:underline">
+            <Link href="/login" className="text-blue-600 dark:text-blue-400 hover:underline">
               Sign in
             </Link>
           </p>

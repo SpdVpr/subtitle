@@ -235,10 +235,10 @@ export default function TestStripePage() {
                 </div>
 
                 <details className="text-xs">
-                  <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
+                  <summary className="cursor-pointer text-gray-600 dark:text-muted-foreground hover:text-gray-800 dark:hover:text-foreground">
                     Show raw response
                   </summary>
-                  <pre className="mt-2 bg-gray-100 p-2 rounded text-xs overflow-auto">
+                  <pre className="mt-2 bg-gray-100 dark:bg-muted p-2 rounded text-xs overflow-auto">
                     {JSON.stringify(result, null, 2)}
                   </pre>
                 </details>

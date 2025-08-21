@@ -124,14 +124,14 @@ export default function TestAnalyticsPage() {
                     )}
                     
                     {result.error && (
-                      <div className="bg-red-50 p-3 rounded mb-3">
-                        <p className="text-red-800 font-medium">Error:</p>
-                        <p className="text-red-700 text-sm">{result.error}</p>
+                      <div className="bg-red-50 dark:bg-red-950/30 p-3 rounded mb-3">
+                        <p className="text-red-800 dark:text-red-300 font-medium">Error:</p>
+                        <p className="text-red-700 dark:text-red-400 text-sm">{result.error}</p>
                       </div>
                     )}
                     
                     {result.data && (
-                      <div className="bg-gray-50 p-3 rounded">
+                      <div className="bg-gray-50 dark:bg-muted p-3 rounded">
                         <p className="font-medium mb-2">Response Data:</p>
                         <pre className="text-xs overflow-auto max-h-96">
                           {JSON.stringify(result.data, null, 2)}

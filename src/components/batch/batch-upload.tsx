@@ -121,20 +121,20 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
               {...getRootProps()}
               className={`
                 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-                ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
+                ${isDragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30' : 'border-gray-300 dark:border-border hover:border-gray-400 dark:hover:border-muted-foreground'}
                 ${isCreating ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
               <input {...getInputProps()} />
-              <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <Upload className="h-12 w-12 text-gray-400 dark:text-muted-foreground mx-auto mb-4" />
               {isDragActive ? (
                 <p className="text-blue-600">Drop the SRT files here...</p>
               ) : (
                 <div>
-                  <p className="text-gray-600 mb-2">
+                  <p className="text-gray-600 dark:text-muted-foreground mb-2">
                     Drag & drop SRT files here, or click to select
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground">
                     Maximum 10MB per file
                   </p>
                 </div>
@@ -147,9 +147,9 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
                 <h4 className="text-sm font-medium">Selected Files ({files.length})</h4>
                 <div className="max-h-40 overflow-y-auto space-y-2">
                   {files.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-card rounded">
                       <div className="flex items-center space-x-2">
-                        <FileText className="h-4 w-4 text-gray-500" />
+                        <FileText className="h-4 w-4 text-gray-500 dark:text-muted-foreground" />
                         <span className="text-sm">{file.name}</span>
                         <Badge variant="outline" className="text-xs">
                           {(file.size / 1024).toFixed(1)} KB
@@ -226,7 +226,7 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
 
           {/* Error Display */}
           {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+            <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/30 rounded-md">
               {error}
             </div>
           )}

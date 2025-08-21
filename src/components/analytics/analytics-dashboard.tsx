@@ -157,8 +157,8 @@ export function AnalyticsDashboard() {
           <Card key={i}>
             <CardContent className="p-6">
               <div className="animate-pulse space-y-4">
-                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-muted rounded w-1/4"></div>
+                <div className="h-8 bg-gray-200 dark:bg-muted rounded w-1/2"></div>
               </div>
             </CardContent>
           </Card>
@@ -207,12 +207,12 @@ export function AnalyticsDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="text-center">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Translations</CardTitle>
-              <Languages className="h-4 w-4 text-blue-500" />
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Total Translations</CardTitle>
+              <Languages className="h-4 w-4 text-blue-500 dark:text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{data.totalTranslations}</div>
-              <p className="text-xs text-green-600 mt-1">
+              <div className="text-3xl font-bold text-gray-900 dark:text-foreground">{data.totalTranslations}</div>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-1">
                 +12% from last {period}
               </p>
             </CardContent>
@@ -220,12 +220,12 @@ export function AnalyticsDashboard() {
 
           <Card className="text-center">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Files Processed</CardTitle>
-              <FileText className="h-4 w-4 text-green-500" />
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Files Processed</CardTitle>
+              <FileText className="h-4 w-4 text-green-500 dark:text-green-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{data.totalFiles}</div>
-              <p className="text-xs text-gray-500 mt-1">
+              <div className="text-3xl font-bold text-gray-900 dark:text-foreground">{data.totalFiles}</div>
+              <p className="text-xs text-gray-500 dark:text-muted-foreground mt-1">
                 {data.totalSubtitles.toLocaleString()} subtitles
               </p>
             </CardContent>
@@ -246,12 +246,12 @@ export function AnalyticsDashboard() {
 
           <Card className="text-center">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Success Rate</CardTitle>
-              <Award className="h-4 w-4 text-purple-500" />
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Success Rate</CardTitle>
+              <Award className="h-4 w-4 text-purple-500 dark:text-purple-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{data.successRate}%</div>
-              <p className="text-xs text-green-600 mt-1">
+              <div className="text-3xl font-bold text-gray-900 dark:text-foreground">{data.successRate}%</div>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-1">
                 +0.2% from last {period}
               </p>
             </CardContent>
@@ -289,9 +289,9 @@ export function AnalyticsDashboard() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium">{lang.percentage}%</p>
-                      <div className="w-20 h-2 bg-gray-200 rounded-full">
-                        <div 
-                          className="h-2 bg-blue-500 rounded-full" 
+                      <div className="w-20 h-2 bg-gray-200 dark:bg-muted rounded-full">
+                        <div
+                          className="h-2 bg-blue-500 dark:bg-primary rounded-full"
                           style={{ width: `${lang.percentage}%` }}
                         />
                       </div>

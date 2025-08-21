@@ -116,28 +116,28 @@ export default function PricingPage() {
         </div>
 
         {/* How it works */}
-        <div className="bg-blue-50 rounded-lg p-6 mb-12 max-w-4xl mx-auto">
+        <div className="bg-primary/5 rounded-lg p-6 mb-12 max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-center mb-6">How Credits Work</h2>
           <div className="grid md:grid-cols-4 gap-6">
             <div className="text-center">
-              <Calculator className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+              <Calculator className="h-8 w-8 text-primary mx-auto mb-2" />
               <h3 className="font-semibold mb-2">Simple Pricing</h3>
-              <p className="text-sm text-gray-600">0.4 credits per 20 subtitles</p>
+              <p className="text-sm text-muted-foreground">0.4 credits per 20 subtitles</p>
             </div>
             <div className="text-center">
-              <FileText className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+              <FileText className="h-8 w-8 text-primary mx-auto mb-2" />
               <h3 className="font-semibold mb-2">Upload & Translate</h3>
-              <p className="text-sm text-gray-600">Upload SRT files and translate instantly</p>
+              <p className="text-sm text-muted-foreground">Upload SRT files and translate instantly</p>
             </div>
             <div className="text-center">
-              <Languages className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+              <Languages className="h-8 w-8 text-primary mx-auto mb-2" />
               <h3 className="font-semibold mb-2">All Languages</h3>
-              <p className="text-sm text-gray-600">Support for 100+ language pairs</p>
+              <p className="text-sm text-muted-foreground">Support for 100+ language pairs</p>
             </div>
             <div className="text-center">
-              <BarChart3 className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+              <BarChart3 className="h-8 w-8 text-primary mx-auto mb-2" />
               <h3 className="font-semibold mb-2">Track Usage</h3>
-              <p className="text-sm text-gray-600">Monitor your credits and analytics</p>
+              <p className="text-sm text-muted-foreground">Monitor your credits and analytics</p>
             </div>
           </div>
         </div>
@@ -147,10 +147,10 @@ export default function PricingPage() {
           {CREDIT_PACKAGES.map((pkg) => (
             <Card
               key={pkg.id}
-              className={`relative ${pkg.popular ? 'border-blue-500 shadow-lg scale-105' : ''}`}
+              className={`relative ${pkg.popular ? 'border-primary shadow-lg scale-105' : ''}`}
             >
               {pkg.popular && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500">
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
                   Best Value
                 </Badge>
               )}
@@ -177,7 +177,7 @@ export default function PricingPage() {
                 <ul className="space-y-3 mb-6">
                   {pkg.features.map((feature, index) => (
                     <li key={index} className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <Check className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
                       <span className="text-sm">{feature}</span>
                     </li>
                   ))}
@@ -202,7 +202,7 @@ export default function PricingPage() {
           <div className="space-y-6">
             <div>
               <h3 className="font-semibold mb-2">How do credits work?</h3>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Credits are used to translate subtitles. Each batch of 20 subtitles costs 0.4 credits.
                 For example, a 100-subtitle file would cost 2 credits to translate.
               </p>
@@ -210,14 +210,14 @@ export default function PricingPage() {
 
             <div>
               <h3 className="font-semibold mb-2">Do credits expire?</h3>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 No! Your credits never expire. Buy once and use them whenever you need to translate subtitles.
               </p>
             </div>
 
             <div>
               <h3 className="font-semibold mb-2">What payment methods do you accept?</h3>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 We accept all major credit cards (Visa, MasterCard, American Express) and PayPal through Stripe.
               </p>
             </div>

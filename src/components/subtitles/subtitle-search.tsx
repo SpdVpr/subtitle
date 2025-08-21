@@ -270,22 +270,22 @@ export function SubtitleSearch() {
                           {subtitle.attributes.feature_details.feature_type}
                         </Badge>
                         {subtitle.attributes.hd && (
-                          <Badge variant="outline" className="text-green-600">
+                          <Badge variant="outline" className="text-green-600 dark:text-green-400">
                             HD
                           </Badge>
                         )}
                         {subtitle.attributes.hearing_impaired && (
-                          <Badge variant="outline" className="text-blue-600">
+                          <Badge variant="outline" className="text-blue-600 dark:text-blue-400">
                             Pro neslyšící
                           </Badge>
                         )}
                         {subtitle.attributes.from_trusted && (
-                          <Badge variant="outline" className="text-purple-600">
+                          <Badge variant="outline" className="text-purple-600 dark:text-purple-400">
                             Ověřený
                           </Badge>
                         )}
                         {subtitle.attributes.ai_translated && (
-                          <Badge variant="outline" className="text-orange-600">
+                          <Badge variant="outline" className="text-orange-600 dark:text-orange-400">
                             AI překlad
                           </Badge>
                         )}
@@ -390,24 +390,24 @@ export function SubtitleSearch() {
       )}
 
       {/* Info Card */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/30">
         <CardContent className="p-6">
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <ExternalLink className="h-4 w-4 text-blue-600" />
+              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                <ExternalLink className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
             <div>
-              <h4 className="font-semibold text-blue-900 mb-2">Jak to funguje?</h4>
+              <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">Jak to funguje?</h4>
               <div className="text-sm text-blue-800 space-y-2">
                 <p>1. Vyhledejte titulky k vašemu filmu nebo seriálu</p>
                 <p>2. Klikněte na "Stáhnout" - budete přesměrováni na OpenSubtitles.com</p>
                 <p>3. Stáhněte si titulky z OpenSubtitles</p>
                 <p>4. Vraťte se k nám a použijte náš AI překladač pro překlad do vašeho jazyka</p>
               </div>
-              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                <p className="text-xs text-yellow-800">
+              <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800/30 rounded-md">
+                <p className="text-xs text-yellow-800 dark:text-yellow-300">
                   <strong>Poznámka:</strong> Pokud vyhledávání nefunguje, může být OpenSubtitles API dočasně nedostupné.
                   Zkuste to prosím za chvíli znovu.
                 </p>

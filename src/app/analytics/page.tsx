@@ -47,10 +47,10 @@ export default function AnalyticsPage() {
             </p>
           </div>
 
-          <Card className="border-orange-500 bg-orange-50">
+          <Card className="border-orange-500 dark:border-orange-400 bg-orange-50 dark:bg-orange-950/30">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Crown className="h-5 w-5 text-orange-600" />
+                <Crown className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                 <span>Analytics - Premium Feature</span>
               </CardTitle>
               <CardDescription>
@@ -59,7 +59,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center space-x-2 text-orange-600 mb-4">
+                <div className="flex items-center space-x-2 text-orange-600 dark:text-orange-400 mb-4">
                   <AlertCircle className="h-4 w-4" />
                   <span className="text-sm">Upgrade to Premium or Pro to unlock analytics</span>
                 </div>
@@ -67,7 +67,7 @@ export default function AnalyticsPage() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <h4 className="font-medium mb-3">What you&apos;ll get with Premium:</h4>
-                    <ul className="space-y-2 text-sm text-gray-700">
+                    <ul className="space-y-2 text-sm text-gray-700 dark:text-foreground">
                       <li>• Translation usage statistics</li>
                       <li>• Language breakdown charts</li>
                       <li>• Processing time analytics</li>
@@ -78,7 +78,7 @@ export default function AnalyticsPage() {
 
                   <div>
                     <h4 className="font-medium mb-3">Pro features include:</h4>
-                    <ul className="space-y-2 text-sm text-gray-700">
+                    <ul className="space-y-2 text-sm text-gray-700 dark:text-foreground">
                       <li>• Advanced performance metrics</li>
                       <li>• Custom date range analysis</li>
                       <li>• Export analytics reports</li>
@@ -126,10 +126,10 @@ export default function AnalyticsPage() {
                 <CardDescription>Your translation history and trends</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                <div className="h-64 bg-gray-100 dark:bg-muted rounded-lg flex items-center justify-center">
                   <div className="text-center">
-                    <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">Interactive charts and graphs</p>
+                    <BarChart3 className="h-12 w-12 text-gray-400 dark:text-muted-foreground mx-auto mb-2" />
+                    <p className="text-gray-500 dark:text-muted-foreground">Interactive charts and graphs</p>
                   </div>
                 </div>
               </CardContent>

@@ -139,13 +139,13 @@ export function RegisterForm() {
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-gray-500">Or continue with email</span>
+            <span className="bg-white dark:bg-background px-2 text-gray-500 dark:text-muted-foreground">Or continue with email</span>
           </div>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-md">
+          <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-3 rounded-md">
             <AlertCircle className="h-4 w-4" />
             <div className="text-sm">
               {error}
@@ -210,7 +210,7 @@ export function RegisterForm() {
           </div>
 
           {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+            <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/30 rounded-md">
               {error}
             </div>
           )}

@@ -199,14 +199,14 @@ export function LoginForm() {
       </CardContent>
 
       {/* Demo Test Account - Below main form */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
-        <h4 className="font-medium text-gray-900 mb-3 text-center">Demo Test Account</h4>
+      <div className="mt-6 p-4 bg-gray-50 dark:bg-muted rounded-lg border dark:border-border">
+        <h4 className="font-medium text-gray-900 dark:text-foreground mb-3 text-center">Demo Test Account</h4>
         <div className="grid gap-2 text-sm">
-          <div className="flex items-center justify-between p-2 bg-white rounded border">
+          <div className="flex items-center justify-between p-2 bg-white dark:bg-accent rounded border dark:border-border">
             <div>
               <strong>Admin:</strong> premium@test.com / test123
               <br />
-              <span className="text-xs text-gray-500">🔧 Admin access, Premium AI, Unlimited credits</span>
+              <span className="text-xs text-gray-500 dark:text-muted-foreground">🔧 Admin access, Premium AI, Unlimited credits</span>
             </div>
             <Button
               size="sm"

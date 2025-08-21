@@ -71,11 +71,11 @@ export default function AdminDashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">
+          <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h1 className="text-xl font-semibold text-foreground mb-2">
             {loading ? 'Loading...' : 'Access Denied'}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             {loading ? 'Checking permissions...' : 'Admin access required'}
           </p>
         </div>
@@ -108,14 +108,14 @@ export default function AdminDashboard() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="border-b border-gray-200">
+          <div className="border-b border-gray-200 dark:border-border">
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab('overview')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'overview'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
               >
                 📊 Overview
@@ -124,8 +124,8 @@ export default function AdminDashboard() {
                 onClick={() => setActiveTab('security')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'security'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
               >
                 🔐 Security
@@ -150,11 +150,11 @@ export default function AdminDashboard() {
               {[...Array(6)].map((_, i) => (
                 <Card key={i}>
                   <CardHeader className="space-y-0 pb-2">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-4 bg-gray-200 dark:bg-muted rounded animate-pulse" />
                   </CardHeader>
                   <CardContent>
-                    <div className="h-8 bg-gray-200 rounded animate-pulse mb-2" />
-                    <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3" />
+                    <div className="h-8 bg-gray-200 dark:bg-muted rounded animate-pulse mb-2" />
+                    <div className="h-3 bg-gray-200 dark:bg-muted rounded animate-pulse w-2/3" />
                   </CardContent>
                 </Card>
               ))}

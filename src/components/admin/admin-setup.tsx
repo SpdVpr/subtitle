@@ -83,11 +83,11 @@ export function AdminSetup() {
         </div>
 
         {debugInfo && (
-          <Alert className={debugInfo.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+          <Alert className={debugInfo.success ? 'border-green-200 dark:border-green-800/30 bg-green-50 dark:bg-green-950/30' : 'border-red-200 dark:border-red-800/30 bg-red-50 dark:bg-red-950/30'}>
             {debugInfo.success ? (
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
             ) : (
-              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
             )}
             <AlertDescription>
               <div className="space-y-3">
@@ -99,22 +99,22 @@ export function AdminSetup() {
                 </div>
 
                 {debugInfo.firebase && (
-                  <div className="p-3 bg-blue-50 rounded border border-blue-200">
-                    <div className="text-blue-800">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded border border-blue-200 dark:border-blue-800/30">
+                    <div className="text-blue-800 dark:text-blue-300">
                       <strong>🔥 Firebase:</strong> {debugInfo.firebase.status}
                     </div>
-                    <div className="text-sm text-blue-600 mt-1">
+                    <div className="text-sm text-blue-600 dark:text-blue-400 mt-1">
                       Found {debugInfo.firebase.userCount} users • Admin SDK: {debugInfo.firebase.adminSdkAvailable ? 'Available' : 'Not Available'}
                     </div>
                   </div>
                 )}
 
                 {debugInfo.apis && (
-                  <div className="p-3 bg-gray-50 rounded border border-gray-200">
-                    <div className="text-gray-800">
+                  <div className="p-3 bg-gray-50 dark:bg-muted rounded border border-gray-200 dark:border-border">
+                    <div className="text-gray-800 dark:text-foreground">
                       <strong>🔧 API Status:</strong>
                     </div>
-                    <div className="text-sm text-gray-600 mt-1 space-y-1">
+                    <div className="text-sm text-gray-600 dark:text-muted-foreground mt-1 space-y-1">
                       <div>Users API: {debugInfo.apis.usersApi}</div>
                       <div>Credits API: {debugInfo.apis.creditsApi}</div>
                       <div>User Management API: {debugInfo.apis.userManagementApi}</div>
@@ -123,11 +123,11 @@ export function AdminSetup() {
                 )}
 
                 {debugInfo.recommendations && (
-                  <div className="p-3 bg-yellow-50 rounded border border-yellow-200">
-                    <div className="text-yellow-800">
+                  <div className="p-3 bg-yellow-50 dark:bg-yellow-950/30 rounded border border-yellow-200 dark:border-yellow-800/30">
+                    <div className="text-yellow-800 dark:text-yellow-300">
                       <strong>💡 Recommendations:</strong>
                     </div>
-                    <ul className="list-disc list-inside ml-4 text-sm text-yellow-700 mt-1">
+                    <ul className="list-disc list-inside ml-4 text-sm text-yellow-700 dark:text-yellow-400 mt-1">
                       {debugInfo.recommendations.map((rec: string, i: number) => (
                         <li key={i}>{rec}</li>
                       ))}

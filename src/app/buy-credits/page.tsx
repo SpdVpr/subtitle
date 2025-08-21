@@ -84,7 +84,7 @@ export default function BuyCreditsPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle>Sign In Required</CardTitle>
@@ -103,22 +103,22 @@ export default function BuyCreditsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
             💰 Buy Credits
           </h1>
-          <p className="text-xl text-gray-600 mb-6">
+          <p className="text-xl text-muted-foreground mb-6">
             Pay only for what you use. No monthly subscriptions.
           </p>
-          
+
           {/* Current Balance */}
           <div className="flex justify-center mb-8">
-            <div className="bg-white rounded-lg p-4 shadow-sm border">
+            <div className="bg-card rounded-lg p-4 shadow-sm border">
               <div className="flex items-center space-x-4">
-                <span className="text-gray-600">Current Balance:</span>
+                <span className="text-muted-foreground">Current Balance:</span>
                 <CreditsDisplay showBuyButton={false} />
               </div>
             </div>
@@ -133,7 +133,7 @@ export default function BuyCreditsPage() {
               className={`relative ${pkg.popular ? 'border-blue-500 shadow-lg scale-105' : ''}`}
             >
               {pkg.popular && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500">
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 dark:bg-primary">
                   <Star className="w-3 h-3 mr-1" />
                   Most Popular
                 </Badge>
@@ -141,9 +141,9 @@ export default function BuyCreditsPage() {
               
               <CardHeader className="text-center">
                 <div className="flex justify-center mb-2">
-                  {pkg.id === 'starter' && <Coins className="w-8 h-8 text-green-600" />}
-                  {pkg.id === 'popular' && <Zap className="w-8 h-8 text-blue-600" />}
-                  {pkg.id === 'professional' && <Crown className="w-8 h-8 text-purple-600" />}
+                  {pkg.id === 'starter' && <Coins className="w-8 h-8 text-primary" />}
+                  {pkg.id === 'popular' && <Zap className="w-8 h-8 text-primary" />}
+                  {pkg.id === 'professional' && <Crown className="w-8 h-8 text-primary" />}
                 </div>
                 <CardTitle className="text-xl">{pkg.name}</CardTitle>
                 <CardDescription>{pkg.description}</CardDescription>
@@ -210,10 +210,10 @@ export default function BuyCreditsPage() {
             <div className="text-center">
               <div className="space-y-3">
                 <h4 className="font-semibold flex items-center justify-center space-x-2">
-                  <Crown className="w-4 h-4 text-purple-600" />
+                  <Crown className="w-4 h-4 text-primary" />
                   <span>Premium Translation (OpenAI GPT-4)</span>
                 </h4>
-                <ul className="text-sm text-gray-600 space-y-1 text-left max-w-md mx-auto">
+                <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
                   <li>• ~0.4 credits per 20 lines</li>
                   <li>• Context-aware translation with show research</li>
                   <li>• Natural dialogue adaptation</li>
@@ -223,8 +223,8 @@ export default function BuyCreditsPage() {
               </div>
             </div>
 
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-300">
                 <strong>Example:</strong> A 100-line subtitle file costs ~2.0 credits with Premium AI.
                 Your 200 welcome credits can translate ~100 files with full context research!
               </p>

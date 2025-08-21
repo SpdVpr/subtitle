@@ -58,25 +58,25 @@ export default function SuccessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-background dark:to-card flex items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center pb-4">
-          <div className="mx-auto mb-4 p-3 bg-green-100 rounded-full w-fit">
-            <CheckCircle className="h-8 w-8 text-green-600" />
+          <div className="mx-auto mb-4 p-3 bg-green-100 dark:bg-green-900/30 rounded-full w-fit">
+            <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-2xl font-bold text-gray-900 dark:text-foreground">
             🎉 Welcome to {planConfig.name}!
           </CardTitle>
         </CardHeader>
         
         <CardContent className="space-y-6">
           {demo && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800/30 rounded-lg p-4">
               <div className="flex items-center space-x-2">
-                <Sparkles className="h-5 w-5 text-yellow-600" />
-                <span className="text-sm font-medium text-yellow-800">Demo Mode</span>
+                <Sparkles className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                <span className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Demo Mode</span>
               </div>
-              <p className="text-sm text-yellow-700 mt-1">
+              <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
                 This is a demo subscription. No actual payment was processed.
               </p>
             </div>
@@ -84,7 +84,7 @@ export default function SuccessPage() {
 
           <div className="text-center">
             <h3 className="text-lg font-semibold mb-2">Subscription Activated!</h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-muted-foreground mb-4">
               Your {planConfig.name} plan is now active. You now have access to:
             </p>
           </div>
@@ -93,14 +93,14 @@ export default function SuccessPage() {
             {planConfig.features.map((feature, index) => (
               <div key={index} className="flex items-center space-x-3">
                 <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                <span className="text-sm text-gray-700">{feature}</span>
+                <span className="text-sm text-gray-700 dark:text-foreground">{feature}</span>
               </div>
             ))}
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-900 mb-2">What&apos;s Next?</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/30 rounded-lg p-4">
+            <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">What&apos;s Next?</h4>
+            <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
               <li>• Start translating your subtitle files</li>
               <li>• Explore our Premium Context AI features</li>
               <li>• Access your subscription settings in dashboard</li>
@@ -126,9 +126,9 @@ export default function SuccessPage() {
           </div>
 
           <div className="text-center">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-muted-foreground">
               Need help? Contact our support team at{' '}
-              <a href="mailto:support@subtitle-ai.com" className="text-blue-600 hover:underline">
+              <a href="mailto:support@subtitle-ai.com" className="text-blue-600 dark:text-blue-400 hover:underline">
                 support@subtitle-ai.com
               </a>
             </p>

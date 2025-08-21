@@ -164,7 +164,7 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <p className="text-red-600 mb-4">{error}</p>
+            <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
             <Button onClick={loadTranslationHistory} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Try Again
@@ -196,9 +196,9 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
       <CardContent>
         {jobs.length === 0 ? (
           <div className="text-center py-8">
-            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-2">No translations yet</p>
-            <p className="text-sm text-gray-500">
+            <FileText className="h-12 w-12 text-gray-400 dark:text-muted-foreground mx-auto mb-4" />
+            <p className="text-gray-600 dark:text-muted-foreground mb-2">No translations yet</p>
+            <p className="text-sm text-gray-500 dark:text-muted-foreground">
               Your completed translations will appear here
             </p>
           </div>
@@ -207,7 +207,7 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
             {jobs.map((job) => (
               <div
                 key={job.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-card transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2 mb-1">
@@ -218,7 +218,7 @@ export function TranslationHistory({ className }: TranslationHistoryProps) {
                       {job.status}
                     </Badge>
                   </div>
-                  <div className="flex items-center space-x-4 text-xs text-gray-500">
+                  <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-muted-foreground">
                     <span className="flex items-center space-x-1">
                       <Globe className="h-3 w-3" />
                       <span>

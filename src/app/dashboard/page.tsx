@@ -96,8 +96,8 @@ export default function DashboardPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your dashboard...</p>
         </div>
       </div>
     )
@@ -108,9 +108,9 @@ export default function DashboardPage() {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Success Alert */}
         {showSuccessAlert && (
-          <Alert className="mb-6 border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
+          <Alert className="mb-6 border-primary/20 bg-primary/5">
+            <CheckCircle className="h-4 w-4 text-primary" />
+            <AlertDescription className="text-foreground">
               <div className="flex items-center justify-between">
                 <span>
                   🎉 Credits purchased successfully! You can now use premium translation features.
@@ -119,7 +119,7 @@ export default function DashboardPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowSuccessAlert(false)}
-                  className="text-green-600 hover:text-green-700"
+                  className="text-primary hover:text-primary/80"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -148,7 +148,7 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Zap className="w-5 h-5 text-blue-600" />
+                  <Zap className="w-5 h-5 text-primary" />
                   <span>Quick Actions</span>
                 </CardTitle>
               </CardHeader>
@@ -182,19 +182,19 @@ export default function DashboardPage() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center space-x-2">
-                    <FileText className="w-5 h-5 text-green-600" />
+                    <FileText className="w-5 h-5 text-primary" />
                     <span>Translations</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-green-600 mb-2">
+                  <div className="text-3xl font-bold text-primary mb-2">
                     {dashboardStats.loading ? (
                       <Loader2 className="h-8 w-8 animate-spin" />
                     ) : (
                       dashboardStats.totalTranslations
                     )}
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     Files translated this month
                   </p>
                 </CardContent>
@@ -215,7 +215,7 @@ export default function DashboardPage() {
                       dashboardStats.creditsUsed.toFixed(1)
                     )}
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     Credits spent this month
                   </p>
                 </CardContent>
@@ -226,39 +226,39 @@ export default function DashboardPage() {
             <TranslationHistory />
 
             {/* Getting Started Guide */}
-            <Card className="border-blue-200 bg-blue-50">
+            <Card className="border-primary/20 bg-primary/5">
               <CardHeader>
-                <CardTitle className="text-blue-900">🚀 Getting Started</CardTitle>
-                <CardDescription className="text-blue-700">
+                <CardTitle className="text-foreground">🚀 Getting Started</CardTitle>
+                <CardDescription className="text-muted-foreground">
                   Make the most of your credits with these tips
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-blue-600">1</span>
+                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-primary">1</span>
                   </div>
                   <div>
-                    <p className="font-medium text-blue-900">Upload your SRT file</p>
-                    <p className="text-sm text-blue-700">Support for various subtitle formats</p>
+                    <p className="font-medium text-foreground">Upload your SRT file</p>
+                    <p className="text-sm text-muted-foreground">Support for various subtitle formats</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-blue-600">2</span>
+                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-primary">2</span>
                   </div>
                   <div>
-                    <p className="font-medium text-blue-900">Choose your AI service</p>
-                    <p className="text-sm text-blue-700">Standard (~0.1 credits) or Premium (~0.2 credits) per 20 lines</p>
+                    <p className="font-medium text-foreground">Choose your AI service</p>
+                    <p className="text-sm text-muted-foreground">Standard (~0.1 credits) or Premium (~0.2 credits) per 20 lines</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-blue-600">3</span>
+                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-primary">3</span>
                   </div>
                   <div>
-                    <p className="font-medium text-blue-900">Download your translation</p>
-                    <p className="text-sm text-blue-700">Get professional-quality results in seconds</p>
+                    <p className="font-medium text-foreground">Download your translation</p>
+                    <p className="text-sm text-muted-foreground">Get professional-quality results in seconds</p>
                   </div>
                 </div>
               </CardContent>

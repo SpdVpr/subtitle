@@ -1,13 +1,13 @@
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+      <div className="max-w-2xl w-full bg-white/10 dark:bg-card/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 dark:border-border/20">
         <h1 className="text-4xl font-bold text-white mb-6 text-center">Contact Us</h1>
         
         <div className="space-y-6 text-white">
           <div>
             <h2 className="text-xl font-semibold mb-2">Get in Touch</h2>
-            <p className="text-gray-300">
+            <p className="text-gray-300 dark:text-muted-foreground">
               We'd love to hear from you. Send us a message and we'll respond as soon as possible.
             </p>
           </div>
@@ -19,12 +19,12 @@ export default function ContactPage() {
           
           <div>
             <h3 className="text-lg font-medium mb-2">Business Hours</h3>
-            <p className="text-gray-300">Monday - Friday: 9:00 AM - 6:00 PM (UTC)</p>
+            <p className="text-gray-300 dark:text-muted-foreground">Monday - Friday: 9:00 AM - 6:00 PM (UTC)</p>
           </div>
           
           <div>
             <h3 className="text-lg font-medium mb-2">Response Time</h3>
-            <p className="text-gray-300">We typically respond within 24 hours</p>
+            <p className="text-gray-300 dark:text-muted-foreground">We typically respond within 24 hours</p>
           </div>
         </div>
         

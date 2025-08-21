@@ -243,7 +243,7 @@ export function SubtitleEditor({
                   />
                 </div>
                 
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-muted-foreground">
                   {Math.floor(currentTime / 60)}:{Math.floor(currentTime % 60).toString().padStart(2, '0')}
                 </span>
               </div>
@@ -253,7 +253,7 @@ export function SubtitleEditor({
                 <div className="bg-black bg-opacity-80 text-white p-4 rounded-lg text-center">
                   <p className="text-lg">{currentEntry.text}</p>
                   {showOriginal && originalEntries && (
-                    <p className="text-sm text-gray-300 mt-2">
+                    <p className="text-sm text-gray-300 dark:text-muted-foreground mt-2">
                       Original: {originalEntries[currentEntry.index - 1]?.text}
                     </p>
                   )}
@@ -306,7 +306,7 @@ export function SubtitleEditor({
                 key={entry.index}
                 className={`
                   p-3 border rounded-lg transition-colors cursor-pointer
-                  ${selectedEntry === index ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}
+                  ${selectedEntry === index ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30' : 'border-gray-200 dark:border-border hover:border-gray-300 dark:hover:border-muted-foreground'}
                   ${currentEntry?.index === entry.index ? 'ring-2 ring-green-500' : ''}
                 `}
                 onClick={() => setSelectedEntry(index)}
@@ -314,7 +314,7 @@ export function SubtitleEditor({
                 <div className="flex items-start justify-between">
                   <div className="flex-1 space-y-2">
                     {/* Timing */}
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-muted-foreground">
                       <Badge variant="outline" className="text-xs">
                         #{entry.index}
                       </Badge>

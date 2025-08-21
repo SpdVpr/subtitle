@@ -51,13 +51,13 @@ export function TranslationProgress({ result }: TranslationProgressProps) {
   const getStatusColor = () => {
     switch (result.status) {
       case 'processing':
-        return 'text-blue-600'
+        return 'text-blue-600 dark:text-blue-400'
       case 'completed':
-        return 'text-green-600'
+        return 'text-green-600 dark:text-green-400'
       case 'failed':
-        return 'text-red-600'
+        return 'text-red-600 dark:text-red-400'
       default:
-        return 'text-gray-600'
+        return 'text-gray-600 dark:text-muted-foreground'
     }
   }
 
@@ -98,8 +98,8 @@ export function TranslationProgress({ result }: TranslationProgressProps) {
         </div>
 
         {result.status === 'failed' && result.errorMessage && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600">{String(result.errorMessage || 'Unknown error')}</p>
+          <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/30 rounded-md">
+            <p className="text-sm text-red-600 dark:text-red-400">{String(result.errorMessage || 'Unknown error')}</p>
           </div>
         )}
 

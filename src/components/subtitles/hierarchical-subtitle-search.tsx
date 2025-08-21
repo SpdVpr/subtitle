@@ -152,11 +152,11 @@ const TMDBImage = ({ tmdbId, type, title, year, className, openSubtitlesImageUrl
 
   if (loading) {
     return (
-      <div className={`bg-gray-200 rounded-lg flex items-center justify-center animate-pulse ${className}`}>
+      <div className={`bg-gray-200 dark:bg-muted rounded-lg flex items-center justify-center animate-pulse ${className}`}>
         <div className="text-center p-2">
-          <div className="h-8 w-8 bg-gray-300 rounded mx-auto mb-1"></div>
-          <div className="h-2 w-12 bg-gray-300 rounded mb-1"></div>
-          <div className="h-2 w-16 bg-gray-300 rounded"></div>
+          <div className="h-8 w-8 bg-gray-300 dark:bg-muted-foreground/20 rounded mx-auto mb-1"></div>
+          <div className="h-2 w-12 bg-gray-300 dark:bg-muted-foreground/20 rounded mb-1"></div>
+          <div className="h-2 w-16 bg-gray-300 dark:bg-muted-foreground/20 rounded"></div>
         </div>
       </div>
     )
@@ -177,19 +177,19 @@ const TMDBImage = ({ tmdbId, type, title, year, className, openSubtitlesImageUrl
 
   // Fallback placeholder with better design
   return (
-    <div className={`bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center border border-slate-300 ${className}`}>
+    <div className={`bg-gradient-to-br from-slate-100 to-slate-200 dark:from-accent dark:to-muted rounded-lg flex items-center justify-center border border-slate-300 dark:border-border ${className}`}>
       <div className="text-center p-2">
         {type === 'movie' ? (
-          <Film className="h-6 w-6 text-slate-500 mx-auto mb-1" />
+          <Film className="h-6 w-6 text-slate-500 dark:text-muted-foreground mx-auto mb-1" />
         ) : (
-          <Tv className="h-6 w-6 text-slate-500 mx-auto mb-1" />
+          <Tv className="h-6 w-6 text-slate-500 dark:text-muted-foreground mx-auto mb-1" />
         )}
-        <div className="text-xs text-slate-600 font-medium">{type === 'movie' ? 'Movie' : 'TV Series'}</div>
-        <div className="text-xs text-slate-500 truncate max-w-[70px] leading-tight" title={title}>
+        <div className="text-xs text-slate-600 dark:text-foreground font-medium">{type === 'movie' ? 'Movie' : 'TV Series'}</div>
+        <div className="text-xs text-slate-500 dark:text-muted-foreground truncate max-w-[70px] leading-tight" title={title}>
           {title}
         </div>
         {year && (
-          <div className="text-xs text-slate-400">({year})</div>
+          <div className="text-xs text-slate-400 dark:text-muted-foreground">({year})</div>
         )}
       </div>
     </div>
@@ -715,7 +715,7 @@ export function HierarchicalSubtitleSearch() {
                 onChange={(e) => setIncludeAI(e.target.checked)}
                 className="rounded"
               />
-              <label htmlFor="includeAI" className="text-sm text-gray-700">
+              <label htmlFor="includeAI" className="text-sm text-gray-700 dark:text-foreground">
                 Include AI/Machine translated
               </label>
             </div>
@@ -727,7 +727,7 @@ export function HierarchicalSubtitleSearch() {
                 onChange={(e) => setTrustedOnly(e.target.checked)}
                 className="rounded"
               />
-              <label htmlFor="trustedOnly" className="text-sm text-gray-700">
+              <label htmlFor="trustedOnly" className="text-sm text-gray-700 dark:text-foreground">
                 Trusted sources only
               </label>
             </div>
@@ -765,7 +765,7 @@ export function HierarchicalSubtitleSearch() {
                 <Card key={showKey} className="overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-l-blue-500">
                   <Collapsible open={isExpanded} onOpenChange={() => toggleShow(showKey, show)}>
                     <CollapsibleTrigger asChild>
-                      <CardHeader className="cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-300 p-6">
+                      <CardHeader className="cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-accent dark:hover:to-muted transition-all duration-300 p-6">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start space-x-4">
                             {/* Enhanced TMDB Thumbnail */}
@@ -785,11 +785,11 @@ export function HierarchicalSubtitleSearch() {
                               {/* Media type badge */}
                               <div className="absolute -top-2 -right-2">
                                 {show.feature_type === 'Movie' ? (
-                                  <div className="bg-blue-500 text-white p-1 rounded-full shadow-lg">
+                                  <div className="bg-blue-500 dark:bg-blue-600 text-white p-1 rounded-full shadow-lg">
                                     <Film className="h-3 w-3" />
                                   </div>
                                 ) : (
-                                  <div className="bg-green-500 text-white p-1 rounded-full shadow-lg">
+                                  <div className="bg-green-500 dark:bg-green-600 text-white p-1 rounded-full shadow-lg">
                                     <Tv className="h-3 w-3" />
                                   </div>
                                 )}
@@ -812,12 +812,12 @@ export function HierarchicalSubtitleSearch() {
                                     {show.feature_type === 'Movie' ? '🎬 Movie' : '📺 TV Series'}
                                   </span>
                                   {show.tmdb_id && (
-                                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                                    <span className="text-xs bg-gray-100 dark:bg-muted px-2 py-1 rounded">
                                       TMDB: {show.tmdb_id}
                                     </span>
                                   )}
                                   {show.imdb_id && (
-                                    <span className="text-xs bg-yellow-100 px-2 py-1 rounded">
+                                    <span className="text-xs bg-yellow-100 dark:bg-yellow-900/30 px-2 py-1 rounded">
                                       IMDb: {show.imdb_id}
                                     </span>
                                   )}
@@ -826,7 +826,7 @@ export function HierarchicalSubtitleSearch() {
 
                               {/* Subtitle count and quality indicators */}
                               <div className="flex items-center space-x-3 text-sm">
-                                <Badge variant="outline" className="bg-blue-50">
+                                <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950/30">
                                   {show.feature_type === 'Movie'
                                     ? (show.movie_subtitles?.length || 0)
                                     : (show.total_subtitles || 0)
@@ -835,12 +835,12 @@ export function HierarchicalSubtitleSearch() {
                                     : (show.total_subtitles || 0)) !== 1) ? 's' : ''}
                                 </Badge>
                                 {((show.feature_type === 'Movie' ? show.movie_subtitles : show.subtitles) || []).some(s => s.from_trusted) && (
-                                  <Badge variant="outline" className="bg-green-50 text-green-700">
+                                  <Badge variant="outline" className="bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300">
                                     ✓ Trusted
                                   </Badge>
                                 )}
                                 {((show.feature_type === 'Movie' ? show.movie_subtitles : show.subtitles) || []).some(s => s.hd) && (
-                                  <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                                  <Badge variant="outline" className="bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300">
                                     HD
                                   </Badge>
                                 )}
@@ -867,7 +867,7 @@ export function HierarchicalSubtitleSearch() {
                           // Movie subtitles
                           <div className="space-y-3">
                             {(show.movie_subtitles || []).map((subtitle) => (
-                              <div key={subtitle.id} className="border rounded-lg p-4 bg-gray-50">
+                              <div key={subtitle.id} className="border rounded-lg p-4 bg-gray-50 dark:bg-card dark:border-border">
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1 space-y-2">
                                     <div className="flex flex-wrap gap-2">
@@ -881,10 +881,10 @@ export function HierarchicalSubtitleSearch() {
                                         <Badge variant="outline" className="text-blue-600">Hearing Impaired</Badge>
                                       )}
                                       {subtitle.attributes.from_trusted && (
-                                        <Badge variant="outline" className="text-purple-600">Trusted</Badge>
+                                        <Badge variant="outline" className="text-purple-600 dark:text-purple-400">Trusted</Badge>
                                       )}
                                       {subtitle.attributes.ai_translated && (
-                                        <Badge variant="outline" className="text-orange-600">AI Translation</Badge>
+                                        <Badge variant="outline" className="text-orange-600 dark:text-orange-400">AI Translation</Badge>
                                       )}
                                     </div>
 
@@ -956,7 +956,7 @@ export function HierarchicalSubtitleSearch() {
                                 <div key={seasonKey} className="border rounded-lg">
                                   <Collapsible open={isSeasonExpanded} onOpenChange={() => toggleSeason(seasonKey)}>
                                     <CollapsibleTrigger asChild>
-                                      <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors">
+                                      <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-card transition-colors">
                                         <div className="flex items-center space-x-2">
                                           <h4 className="font-semibold">Série {season.season_number}</h4>
                                           <Badge variant="outline">
@@ -974,7 +974,7 @@ export function HierarchicalSubtitleSearch() {
                                     <CollapsibleContent>
                                       <div className="px-4 pb-4 space-y-3">
                                         {(season.episodes || []).map((episode) => (
-                                          <div key={`${seasonKey}-episode-${episode.episode_number}`} className="border rounded-lg p-3 bg-gray-50">
+                                          <div key={`${seasonKey}-episode-${episode.episode_number}`} className="border rounded-lg p-3 bg-gray-50 dark:bg-card dark:border-border">
                                             <div className="mb-3">
                                               <h5 className="font-medium">
                                                 Díl {episode.episode_number}
@@ -986,20 +986,20 @@ export function HierarchicalSubtitleSearch() {
 
                                             <div className="space-y-2">
                                               {(episode.subtitles || []).map((subtitle) => (
-                                                <div key={subtitle.id} className="flex items-center justify-between p-2 bg-white rounded border">
+                                                <div key={subtitle.id} className="flex items-center justify-between p-2 bg-white dark:bg-background rounded border dark:border-border">
                                                   <div className="flex-1">
                                                     <div className="flex flex-wrap gap-1 mb-1">
                                                       <Badge variant="secondary" className="text-xs">
                                                         {getLanguageLabel(subtitle.attributes.language)}
                                                       </Badge>
                                                       {subtitle.attributes.hd && (
-                                                        <Badge variant="outline" className="text-xs text-green-600">HD</Badge>
+                                                        <Badge variant="outline" className="text-xs text-green-600 dark:text-green-400">HD</Badge>
                                                       )}
                                                       {subtitle.attributes.hearing_impaired && (
-                                                        <Badge variant="outline" className="text-xs text-blue-600">HI</Badge>
+                                                        <Badge variant="outline" className="text-xs text-blue-600 dark:text-blue-400">HI</Badge>
                                                       )}
                                                       {subtitle.attributes.from_trusted && (
-                                                        <Badge variant="outline" className="text-xs text-purple-600">✓</Badge>
+                                                        <Badge variant="outline" className="text-xs text-purple-600 dark:text-purple-400">✓</Badge>
                                                       )}
                                                     </div>
                                                     <p className="text-xs text-muted-foreground truncate">

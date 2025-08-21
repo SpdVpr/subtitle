@@ -150,9 +150,9 @@ export function BatchJobList() {
     return (
       <Card>
         <CardContent className="text-center py-8">
-          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No batch jobs yet</h3>
-          <p className="text-gray-600">
+          <FileText className="h-12 w-12 text-gray-400 dark:text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-foreground mb-2">No batch jobs yet</h3>
+          <p className="text-gray-600 dark:text-muted-foreground">
             Create your first batch translation job to get started
           </p>
         </CardContent>
@@ -268,7 +268,7 @@ export function BatchJobList() {
 
                 {/* Error Message */}
                 {job.status === 'failed' && job.errorMessage && (
-                  <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+                  <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/30 rounded-md">
                     {job.errorMessage}
                   </div>
                 )}
@@ -279,7 +279,7 @@ export function BatchJobList() {
                     <h4 className="text-sm font-medium">File Status</h4>
                     <div className="max-h-32 overflow-y-auto space-y-1">
                       {job.files.map(file => (
-                        <div key={file.id} className="flex items-center justify-between text-xs p-2 bg-gray-50 rounded">
+                        <div key={file.id} className="flex items-center justify-between text-xs p-2 bg-gray-50 dark:bg-card rounded">
                           <span className="truncate">{file.originalName}</span>
                           <div className="flex items-center space-x-2">
                             {file.status === 'completed' && <CheckCircle className="h-3 w-3 text-green-500" />}

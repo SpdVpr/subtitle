@@ -103,13 +103,13 @@ export function SecurityDashboard() {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high':
-        return 'bg-red-100 text-red-800 border-red-200'
+        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800'
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800'
       case 'low':
-        return 'bg-green-100 text-green-800 border-green-200'
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800'
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-muted dark:text-muted-foreground dark:border-border'
     }
   }
 
@@ -135,11 +135,11 @@ export function SecurityDashboard() {
           {[...Array(4)].map((_, i) => (
             <Card key={i}>
               <CardHeader className="space-y-0 pb-2">
-                <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                <div className="h-4 bg-gray-200 dark:bg-muted rounded animate-pulse" />
               </CardHeader>
               <CardContent>
-                <div className="h-8 bg-gray-200 rounded animate-pulse mb-2" />
-                <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3" />
+                <div className="h-8 bg-gray-200 dark:bg-muted rounded animate-pulse mb-2" />
+                <div className="h-3 bg-gray-200 dark:bg-muted rounded animate-pulse w-2/3" />
               </CardContent>
             </Card>
           ))}
@@ -167,7 +167,7 @@ export function SecurityDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Rate Limits</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
+              <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{metrics.rateLimitViolations}</div>
@@ -243,13 +243,13 @@ export function SecurityDashboard() {
                         </span>
                       </div>
                       <div className="text-sm space-y-1">
-                        <div>IP: <code className="bg-gray-100 px-1 rounded">{event.ip}</code></div>
-                        <div className="text-xs text-gray-600 truncate">
+                        <div>IP: <code className="bg-gray-100 dark:bg-muted px-1 rounded">{event.ip}</code></div>
+                        <div className="text-xs text-gray-600 dark:text-muted-foreground truncate">
                           UA: {event.userAgent}
                         </div>
                         {Object.entries(event.details).map(([key, value]) => (
                           <div key={key} className="text-xs">
-                            {key}: <code className="bg-gray-100 px-1 rounded">
+                            {key}: <code className="bg-gray-100 dark:bg-muted px-1 rounded">
                               {Array.isArray(value) ? value.join(', ') : String(value)}
                             </code>
                           </div>

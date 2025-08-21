@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    /* Light mode - original colors */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -26,25 +27,26 @@
   }
 
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
-    --card: 224 71% 4%;
-    --card-foreground: 213 31% 91%;
-    --popover: 224 71% 4%;
-    --popover-foreground: 213 31% 91%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 216 34% 17%;
+    /* Dark mode - comfortable dark colors, much lighter and more pleasant */
+    --background: 220 13% 15%;
+    --foreground: 220 9% 82%;
+    --card: 220 13% 20%;
+    --card-foreground: 220 9% 82%;
+    --popover: 220 13% 22%;
+    --popover-foreground: 220 9% 82%;
+    --primary: 217 91% 58%;
+    --primary-foreground: 220 13% 15%;
+    --secondary: 220 13% 25%;
+    --secondary-foreground: 220 9% 82%;
+    --muted: 220 13% 25%;
+    --muted-foreground: 220 9% 62%;
+    --accent: 220 13% 28%;
+    --accent-foreground: 220 9% 82%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 220 9% 82%;
+    --border: 220 13% 30%;
+    --input: 220 13% 26%;
+    --ring: 217 91% 58%;
   }
 }
 
@@ -55,6 +57,56 @@
   body {
     @apply bg-background text-foreground;
     font-family: system-ui, -apple-system, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Smooth transitions for theme switching */
+  * {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Better focus states for dark mode */
+  .dark *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Softer shadows for dark mode */
+  .dark .shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .shadow {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Better text contrast in dark mode */
+  .dark {
+    color-scheme: dark;
+  }
+
+  /* Reduce brightness of images in dark mode */
+  .dark img {
+    opacity: 0.9;
+  }
+
+  /* Better selection colors */
+  .dark ::selection {
+    background-color: hsl(var(--primary) / 0.3);
+    color: hsl(var(--primary-foreground));
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary) / 0.2);
+    color: hsl(var(--primary-foreground));
   }
 }
 
@@ -63,6 +115,38 @@
   background-image:
     linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Sonner toast styling for dark mode */
+.dark [data-sonner-toast] {
+  background-color: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--card-foreground)) !important;
+}
+
+.dark [data-sonner-toast][data-type="success"] {
+  background-color: hsl(142 76% 36% / 0.1) !important;
+  border-color: hsl(142 76% 36% / 0.3) !important;
+  color: hsl(142 76% 36%) !important;
+}
+
+.dark [data-sonner-toast][data-type="error"] {
+  background-color: hsl(var(--destructive) / 0.1) !important;
+  border-color: hsl(var(--destructive) / 0.3) !important;
+  color: hsl(var(--destructive)) !important;
+}
+
+.dark [data-sonner-toast][data-type="info"] {
+  background-color: hsl(var(--primary) / 0.1) !important;
+  border-color: hsl(var(--primary) / 0.3) !important;
+  color: hsl(var(--primary)) !important;
+}
+
+.dark .bg-grid-pattern {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 

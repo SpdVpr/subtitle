@@ -194,9 +194,9 @@ export default function PreviewPage() {
     return (
       <div className="container py-8">
         <div className="max-w-4xl mx-auto text-center">
-          <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <FileText className="h-16 w-16 text-gray-400 dark:text-muted-foreground mx-auto mb-4" />
           <h1 className="text-3xl font-bold mb-4">No Preview Data</h1>
-          <p className="text-gray-600 mb-8">
+          <p className="text-gray-600 dark:text-muted-foreground mb-8">
             No subtitle data found for preview. Please translate a file first.
           </p>
           <Button onClick={() => window.location.href = '/translate'}>
@@ -256,18 +256,18 @@ export default function PreviewPage() {
           <CardContent>
             <div className="grid md:grid-cols-4 gap-4 text-sm">
               <div>
-                <span className="text-gray-500">Original File:</span>
+                <span className="text-gray-500 dark:text-muted-foreground">Original File:</span>
                 <div className="font-medium">{previewData.originalFile}</div>
               </div>
               <div>
-                <span className="text-gray-500">Language:</span>
+                <span className="text-gray-500 dark:text-muted-foreground">Language:</span>
                 <div className="font-medium flex items-center">
                   <Languages className="h-3 w-3 mr-1" />
                   {previewData.sourceLanguage} → {previewData.targetLanguage}
                 </div>
               </div>
               <div>
-                <span className="text-gray-500">AI Service:</span>
+                <span className="text-gray-500 dark:text-muted-foreground">AI Service:</span>
                 <div className="font-medium flex items-center">
                   <Zap className="h-3 w-3 mr-1" />
                   {previewData.aiService === 'google' ? 'Google Translate' : 'OpenAI GPT'}

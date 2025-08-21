@@ -439,7 +439,7 @@ export function BatchTranslationInterface() {
             {...getRootProps()}
             className={`
               border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-              ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
+              ${isDragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30' : 'border-gray-300 dark:border-border hover:border-gray-400 dark:hover:border-muted-foreground'}
               ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
             `}
           >
@@ -518,16 +518,16 @@ export function BatchTranslationInterface() {
                 <div className="text-sm text-gray-600">Credits</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                   {userCredits !== null ? userCredits.toFixed(1) : '...'}
                 </div>
-                <div className="text-sm text-gray-600">Available</div>
+                <div className="text-sm text-gray-600 dark:text-muted-foreground">Available</div>
               </div>
             </div>
 
             {userCredits !== null && totalEstimatedCost > userCredits && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center gap-2 text-red-800">
+              <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/30 rounded-lg">
+                <div className="flex items-center gap-2 text-red-800 dark:text-red-300">
                   <AlertCircle className="h-4 w-4" />
                   <span className="text-sm font-medium">
                     Insufficient credits. You need {(totalEstimatedCost - userCredits).toFixed(1)} more credits.
@@ -586,7 +586,7 @@ export function BatchTranslationInterface() {
 
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{file.file.name}</div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-muted-foreground">
                       {file.subtitleCount} subtitles • {file.estimatedCost?.toFixed(1)} credits
                     </div>
 
@@ -595,7 +595,7 @@ export function BatchTranslationInterface() {
                     )}
 
                     {file.error && (
-                      <div className="text-sm text-red-600 mt-1">{file.error}</div>
+                      <div className="text-sm text-red-600 dark:text-red-400 mt-1">{file.error}</div>
                     )}
                   </div>
 
@@ -608,7 +608,7 @@ export function BatchTranslationInterface() {
                     )}
 
                     {file.status === 'processing' && (
-                      <Badge className="bg-blue-500">
+                      <Badge className="bg-blue-500 dark:bg-primary">
                         <Zap className="h-3 w-3 mr-1" />
                         Processing
                       </Badge>
@@ -616,7 +616,7 @@ export function BatchTranslationInterface() {
 
                     {file.status === 'completed' && (
                       <>
-                        <Badge className="bg-green-500">
+                        <Badge className="bg-green-500 dark:bg-green-600">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Completed
                         </Badge>
