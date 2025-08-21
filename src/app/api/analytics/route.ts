@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
     try {
       user = await UserService.getUser(userId)
       console.log('👤 User found:', user ? 'Yes' : 'No')
+      console.log('🔍 DEBUG: Analytics called for userId:', userId)
     } catch (error) {
       console.error('❌ Error fetching user:', error)
       // Continue with null user for demo handling
@@ -266,11 +267,14 @@ export async function GET(req: NextRequest) {
       const adminDb = await getAdminDb()
 
       console.log('💳 Fetching credit transactions for period:', { startDateStr, endDateStr })
+      console.log('💳 DEBUG: Looking for transactions for userId:', userId)
 
       // Get credit transactions (deductions) for this user in the date range
       const creditTransactionsSnapshot = await adminDb.collection('creditTransactions')
         .where('userId', '==', userId)
         .get()
+
+      console.log('💳 DEBUG: Found', creditTransactionsSnapshot.size, 'total transactions for user')
 
       creditTransactionsSnapshot.forEach(doc => {
         const transaction = doc.data()
