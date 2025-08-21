@@ -14,10 +14,9 @@ export async function GET(request: NextRequest) {
 
     const adminDb = await getAdminDb()
     
-    // Get ALL credit transactions for this user
+    // Get ALL credit transactions for this user (without orderBy to avoid index requirement)
     const transactionsSnapshot = await adminDb.collection('creditTransactions')
       .where('userId', '==', userId)
-      .orderBy('createdAt', 'desc')
       .limit(50)
       .get()
 
@@ -41,10 +40,9 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 Debug: Found', transactions.length, 'transactions')
     
-    // Also get translation jobs for comparison
+    // Also get translation jobs for comparison (without orderBy to avoid index requirement)
     const jobsSnapshot = await adminDb.collection('translationJobs')
       .where('userId', '==', userId)
-      .orderBy('createdAt', 'desc')
       .limit(10)
       .get()
 
