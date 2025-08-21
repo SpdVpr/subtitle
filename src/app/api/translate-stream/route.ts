@@ -96,8 +96,9 @@ export async function POST(request: NextRequest) {
             }
 
             // Deduct all credits upfront
+            console.log(`💳 PRODUCTION: About to deduct ${totalCredits} credits for user ${userId}`)
             await UserService.adjustCredits(userId, -totalCredits, `Premium translation: ${entries.length} subtitles (${totalBatches} batches)`)
-            console.log(`✅ Deducted ${totalCredits} credits for premium translation`)
+            console.log(`✅ PRODUCTION: Successfully deducted ${totalCredits} credits for premium translation`)
           } catch (err) {
             console.error('❌ Credit deduction failed:', err)
             controller.enqueue(sse({ type: 'error', message: 'Failed to process payment. Please try again.' }))
@@ -253,6 +254,7 @@ export async function POST(request: NextRequest) {
           const { TranslationJobService } = await import('@/lib/database-admin')
 
           // Create job record as completed (since translation is already done)
+          console.log(`📝 PRODUCTION: About to create translation job for user ${userId}`)
           jobId = await TranslationJobService.createJob({
             userId,
             type: 'single',
@@ -270,7 +272,7 @@ export async function POST(request: NextRequest) {
             processingTimeMs: Date.now() - startTime,
             completedAt: new Date() as any
           })
-          console.log(`📝 Created completed translation job: ${jobId}`)
+          console.log(`📝 PRODUCTION: Successfully created completed translation job: ${jobId} for user ${userId}`)
 
           // Try to upload to storage (optional - if it fails, we still have the content in the job)
           try {
