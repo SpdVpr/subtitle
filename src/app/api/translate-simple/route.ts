@@ -19,11 +19,13 @@ export async function POST(request: NextRequest) {
     const sourceLanguage = (formData.get('sourceLanguage') as string) || 'en'
     const userId = (formData.get('userId') as string) || ''
 
-    console.log('📝 Request data:', { 
-      hasFile: !!file, 
-      targetLanguage, 
-      sourceLanguage, 
-      userId: userId.substring(0, 10) + '...' 
+    const startTime = Date.now()
+
+    console.log('📝 Request data:', {
+      hasFile: !!file,
+      targetLanguage,
+      sourceLanguage,
+      userId: userId.substring(0, 10) + '...'
     })
 
     // Check if user is logged in
@@ -90,9 +92,10 @@ export async function POST(request: NextRequest) {
       }
 
       console.log('💰 Deducting credits...')
+      console.log(`💳 SIMPLE: About to deduct ${totalCredits} credits for user ${userId}`)
       // Deduct all credits upfront
       await UserService.adjustCredits(userId, -totalCredits, `Premium translation: ${entries.length} subtitles (${totalBatches} batches)`)
-      console.log(`✅ Deducted ${totalCredits} credits for premium translation`)
+      console.log(`✅ SIMPLE: Successfully deducted ${totalCredits} credits for premium translation`)
     } catch (err) {
       console.error('❌ Credit deduction failed:', err)
       console.error('❌ Error details:', err instanceof Error ? err.message : String(err))
@@ -128,13 +131,40 @@ export async function POST(request: NextRequest) {
 
       console.log('✅ Translation completed successfully')
 
+      // Save translation job to database (asynchronously)
+      try {
+        const { TranslationJobService } = await import('@/lib/database-admin')
+
+        const jobId = await TranslationJobService.createJob({
+          userId,
+          type: 'single',
+          status: 'completed',
+          originalFileName: file.name,
+          originalFileSize: file.size,
+          sourceLanguage: sourceLanguage || undefined,
+          targetLanguage,
+          aiService: 'premium',
+          translatedFileName,
+          translatedContent,
+          subtitleCount: translatedEntries.length,
+          characterCount: translatedContent.length,
+          confidence: 0.95,
+          processingTimeMs: Date.now() - startTime,
+          completedAt: new Date() as any
+        })
+        console.log(`📝 SIMPLE: Created translation job: ${jobId} for user ${userId}`)
+      } catch (jobError) {
+        console.error('❌ Failed to save translation job:', jobError)
+        // Don't fail the request if job saving fails
+      }
+
       return NextResponse.json({
         status: 'completed',
         translatedContent,
         translatedFileName,
         subtitleCount: entries.length,
         creditsUsed: totalCredits,
-        processingTimeMs: Date.now() - Date.now() // Simple placeholder
+        processingTimeMs: Date.now() - startTime
       })
 
     } catch (translationError) {
