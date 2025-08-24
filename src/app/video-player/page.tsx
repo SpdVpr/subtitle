@@ -28,28 +28,40 @@ export default function VideoPlayerPage() {
           </div>
 
           {/* Instructions */}
-          <div className="bg-blue-50 dark:bg-card border border-blue-200 dark:border-border rounded-lg p-6 mb-8">
-            <h2 className="text-lg font-semibold mb-4 text-blue-900 dark:text-blue-300">
-              🎬 How to use:
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Supported Video Sources:</h3>
-                <ul className="space-y-1 text-blue-700 dark:text-blue-300 text-sm">
-                  <li>• <strong>YouTube:</strong> youtube.com/watch?v=...</li>
-                  <li>• <strong>Vimeo:</strong> vimeo.com/...</li>
-                  <li>• <strong>Direct links:</strong> .mp4, .webm, .ogg files</li>
-                  <li>• <strong>Other embeddable:</strong> Most video platforms</li>
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            {/* Video Player Instructions */}
+            <div className="bg-blue-50 dark:bg-card border border-blue-200 dark:border-border rounded-lg p-6">
+              <h2 className="text-lg font-semibold mb-4 text-blue-900 dark:text-blue-300 flex items-center gap-2">
+                🎬 Video Player
+              </h2>
+              <p className="text-blue-700 dark:text-blue-300 text-sm mb-3">
+                Watch videos with subtitle overlay directly on our website
+              </p>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-blue-800 dark:text-blue-200 text-sm">Supported Sources:</h3>
+                <ul className="space-y-1 text-blue-700 dark:text-blue-300 text-xs">
+                  <li>• YouTube, Vimeo, direct video links</li>
+                  <li>• Upload subtitles and customize appearance</li>
+                  <li>• Perfect sync and timing controls</li>
                 </ul>
               </div>
-              <div>
-                <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Steps:</h3>
-                <ol className="space-y-1 text-blue-700 dark:text-blue-300 text-sm">
-                  <li><strong>1.</strong> Paste your video URL below</li>
-                  <li><strong>2.</strong> Load your subtitle file (.srt)</li>
-                  <li><strong>3.</strong> Customize subtitle appearance</li>
-                  <li><strong>4.</strong> Enjoy synchronized playback!</li>
-                </ol>
+            </div>
+
+            {/* Subtitle Tools Instructions */}
+            <div className="bg-green-50 dark:bg-card border border-green-200 dark:border-border rounded-lg p-6">
+              <h2 className="text-lg font-semibold mb-4 text-green-900 dark:text-green-300 flex items-center gap-2">
+                📝 Subtitle Tools
+              </h2>
+              <p className="text-green-700 dark:text-green-300 text-sm mb-3">
+                Use Picture-in-Picture to watch ANY video with your subtitles
+              </p>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-green-800 dark:text-green-200 text-sm">Works with:</h3>
+                <ul className="space-y-1 text-green-700 dark:text-green-300 text-xs">
+                  <li>• Netflix, Disney+, Amazon Prime, etc.</li>
+                  <li>• Local video files on your computer</li>
+                  <li>• Any video playing in your browser</li>
+                </ul>
               </div>
             </div>
           </div>

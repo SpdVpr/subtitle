@@ -29,6 +29,7 @@ interface VideoSubtitleControlsProps {
   onLoadFromTranslation: () => void
   entries: OverlaySubtitleEntry[]
   currentTime: number
+  compact?: boolean
 }
 
 const FONT_FAMILIES = [
@@ -57,7 +58,8 @@ export function VideoSubtitleControls({
   onFileUpload,
   onLoadFromTranslation,
   entries,
-  currentTime
+  currentTime,
+  compact = false
 }: VideoSubtitleControlsProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
 
@@ -92,6 +94,58 @@ export function VideoSubtitleControls({
     const adjustedTime = ((currentTime * speedMultiplier) * 1000) + offset
     return adjustedTime >= entry.displayStartTime && adjustedTime <= entry.displayEndTime
   })
+
+  // Compact mode for subtitle tools card
+  if (compact) {
+    return (
+      <div className="space-y-3">
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Select File</Label>
+          <div className="relative">
+            <Input
+              id="subtitle-file-compact"
+              type="file"
+              accept=".srt,.vtt,.ass,.ssa,.sub"
+              onChange={onFileUpload}
+              className="hidden"
+            />
+            <Button
+              variant="outline"
+              className="w-full text-sm"
+              size="sm"
+              onClick={() => document.getElementById('subtitle-file-compact')?.click()}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Load from PC
+            </Button>
+          </div>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">or</span>
+          </div>
+        </div>
+
+        <TranslationSelectorDialog
+          onTranslationSelect={onLoadFromTranslation}
+          trigger={
+            <Button
+              variant="outline"
+              className="w-full text-sm"
+              size="sm"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Load from Translation
+            </Button>
+          }
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -148,7 +202,7 @@ export function VideoSubtitleControls({
               </Button>
             }
           />
-          
+
           {entries.length > 0 && (
             <div className="text-sm text-green-600 dark:text-green-400">
               ✅ {entries.length} subtitles loaded
@@ -156,15 +210,6 @@ export function VideoSubtitleControls({
           )}
         </CardContent>
       </Card>
-
-
-
-
-
-
-
-
-
     </div>
   )
 }

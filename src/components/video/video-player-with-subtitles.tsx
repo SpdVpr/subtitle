@@ -34,6 +34,7 @@ import { VideoSubtitleControls } from './video-subtitle-controls'
 import { SubtitlePreviewTable } from './subtitle-preview-table'
 import { SubtitleStyleBar } from './subtitle-style-bar'
 import { TranslationSelectorDialog } from './translation-selector-dialog'
+import { PictureInPictureSubtitles } from './picture-in-picture-subtitles'
 
 interface VideoSource {
   url: string
@@ -56,17 +57,18 @@ export function VideoPlayerWithSubtitles() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const videoContainerRef = useRef<HTMLDivElement>(null)
 
-  // For iframe videos (YouTube, Vimeo), we need to simulate time progression
+  // For iframe videos (YouTube, Vimeo) or subtitle-only mode, we need to simulate time progression
   useEffect(() => {
-    if (videoSource && (videoSource.type === 'youtube' || videoSource.type === 'vimeo' || videoSource.type === 'iframe')) {
-      if (isPlaying) {
-        intervalRef.current = setInterval(() => {
-          setCurrentTime(prev => prev + 0.1)
-        }, 100)
-      } else {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current)
-        }
+    const needsSimulation = !videoSource ||
+      (videoSource && (videoSource.type === 'youtube' || videoSource.type === 'vimeo' || videoSource.type === 'iframe'))
+
+    if (needsSimulation && isPlaying) {
+      intervalRef.current = setInterval(() => {
+        setCurrentTime(prev => prev + 0.1)
+      }, 100)
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
       }
     }
 
@@ -374,80 +376,119 @@ export function VideoPlayerWithSubtitles() {
 
   return (
     <div className="space-y-6">
-      {/* Video URL Input */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <ExternalLink className="h-5 w-5" />
-            <span>Video Source</span>
-          </CardTitle>
-          <CardDescription>
-            Enter a video URL from YouTube, Vimeo, or direct video link
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex space-x-2">
-            <Input
-              placeholder="https://www.youtube.com/watch?v=... or direct video URL"
-              value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
-              className="flex-1"
-            />
-            <Button 
+      {/* Initial Choice - Video URL or Subtitle Upload */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Video URL Option */}
+        <Card className={videoSource ? "ring-2 ring-blue-500" : ""}>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <ExternalLink className="h-5 w-5 text-blue-600" />
+              <span>🎬 Video Player</span>
+            </CardTitle>
+            <CardDescription>
+              Watch videos with subtitle overlay on our website
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="video-url">Video URL</Label>
+              <Input
+                id="video-url"
+                type="url"
+                placeholder="https://youtube.com/watch?v=..."
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+            <Button
               onClick={handleLoadVideo}
               disabled={!videoUrl.trim()}
+              className="w-full"
             >
               Load Video
             </Button>
-          </div>
-          
-          {videoSource && (
-            <div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400">
-              <Play className="h-4 w-4" />
-              <span>Video ready: {videoSource.type.toUpperCase()}</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Main Video + Subtitle Area */}
+            {videoSource && (
+              <div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400">
+                <Play className="h-4 w-4" />
+                <span>Video ready: {videoSource.type.toUpperCase()}</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Subtitle Upload Option */}
+        <Card className={entries.length > 0 ? "ring-2 ring-green-500" : ""}>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Upload className="h-5 w-5 text-green-600" />
+              <span>📝 Subtitle Tools</span>
+            </CardTitle>
+            <CardDescription>
+              Use Picture-in-Picture with any video source
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Use existing VideoSubtitleControls for file upload */}
+            <VideoSubtitleControls
+              configuration={configuration}
+              onConfigurationChange={setConfiguration}
+              onFileUpload={handleFileUpload}
+              onLoadFromTranslation={loadSelectedTranslation}
+              entries={entries}
+              currentTime={currentTime}
+              compact={true}
+            />
+
+            {entries.length > 0 && (
+              <div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400 mt-4">
+                <Settings className="h-4 w-4" />
+                <span>{entries.length} subtitles loaded</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Video Player Section - Show when video is loaded */}
       {videoSource && (
         <div className="space-y-6">
           {/* Video Player - Full Width */}
-          <div>
-            <Card>
-              <CardContent className="p-0">
-                <div
-                  ref={videoContainerRef}
-                  className={`relative bg-black overflow-hidden ${
-                    isFullscreen
-                      ? 'fixed inset-0 z-50 w-screen h-screen'
-                      : 'rounded-lg'
-                  }`}
-                  style={{
-                    aspectRatio: isFullscreen ? 'unset' : '16/9',
-                    minHeight: isFullscreen ? '100vh' : '500px'
-                  }}
-                >
-                  <VideoPlayer
-                    source={videoSource}
-                    currentTime={currentTime}
-                    isPlaying={isPlaying}
-                    volume={isMuted ? 0 : volume}
-                    onTimeUpdate={handleTimeUpdate}
-                    onDurationChange={handleDurationChange}
-                    onPlayStateChange={setIsPlaying}
-                    videoRef={videoRef}
-                  />
-                  
-                  {/* Subtitle Overlay */}
-                  <VideoSubtitleOverlay
-                    entries={entries}
-                    configuration={configuration}
-                    currentTime={currentTime}
-                    onConfigurationChange={setConfiguration}
-                  />
-                </div>
+          <Card>
+            <CardContent className="p-0">
+              <div
+                ref={videoContainerRef}
+                className={`relative bg-black overflow-hidden ${
+                  isFullscreen
+                    ? 'fixed inset-0 z-50 w-screen h-screen'
+                    : 'rounded-lg'
+                }`}
+                style={{
+                  aspectRatio: isFullscreen ? 'unset' : '16/9',
+                  minHeight: isFullscreen ? '100vh' : '500px'
+                }}
+              >
+                <VideoPlayer
+                  source={videoSource}
+                  currentTime={currentTime}
+                  isPlaying={isPlaying}
+                  volume={isMuted ? 0 : volume}
+                  onTimeUpdate={handleTimeUpdate}
+                  onDurationChange={handleDurationChange}
+                  onPlayStateChange={setIsPlaying}
+                  videoRef={videoRef}
+                />
+
+                {/* Subtitle Overlay */}
+                <VideoSubtitleOverlay
+                  entries={entries}
+                  configuration={configuration}
+                  currentTime={currentTime}
+                  onConfigurationChange={setConfiguration}
+                />
+              </div>
                 
                 {/* Video Controls */}
                 <div className={`p-4 ${
@@ -550,19 +591,16 @@ export function VideoPlayerWithSubtitles() {
                 </div>
               </CardContent>
             </Card>
-          </div>
 
+            {/* Subtitle Style Bar - Only show when subtitles are loaded */}
+            {entries.length > 0 && (
+              <SubtitleStyleBar
+                configuration={configuration}
+                onConfigurationChange={setConfiguration}
+              />
+            )}
 
-
-          {/* Subtitle Style Bar - Only show when subtitles are loaded */}
-          {entries.length > 0 && (
-            <SubtitleStyleBar
-              configuration={configuration}
-              onConfigurationChange={setConfiguration}
-            />
-          )}
-
-          {/* Subtitle Controls and Preview - Below Video */}
+          {/* Subtitle Controls for Video Player - Always show */}
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <VideoSubtitleControls
@@ -574,36 +612,41 @@ export function VideoPlayerWithSubtitles() {
                 currentTime={currentTime}
               />
             </div>
-
             <div className="lg:col-span-1">
-              <SubtitlePreviewTable
-                entries={entries}
-                currentTime={currentTime}
-              />
+              {entries.length > 0 && (
+                <SubtitlePreviewTable
+                  entries={entries}
+                  currentTime={currentTime}
+                />
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* No Video State */}
-      {!videoSource && (
-        <Card>
-          <CardContent className="py-16">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gray-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
-                <Play className="h-8 w-8 text-gray-400 dark:text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">No Video Loaded</h3>
-              <p className="text-muted-foreground mb-4">
-                Enter a video URL above to get started
-              </p>
-              <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-                <AlertCircle className="h-4 w-4" />
-                <span>Supports YouTube, Vimeo, and direct video links</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Subtitle Tools Section - Show when subtitles are loaded but no video */}
+      {entries.length > 0 && !videoSource && (
+        <div className="space-y-6">
+
+          {/* Picture-in-Picture Subtitles - Main Feature */}
+          <PictureInPictureSubtitles
+            entries={entries}
+            configuration={configuration}
+            currentTime={currentTime}
+            isPlaying={isPlaying}
+            onConfigurationChange={setConfiguration}
+            onTimeUpdate={setCurrentTime}
+            onPlayStateChange={setIsPlaying}
+          />
+
+          {/* Subtitle Preview Table */}
+          <SubtitlePreviewTable
+            entries={entries}
+            currentTime={currentTime}
+          />
+
+
+        </div>
       )}
     </div>
   )
