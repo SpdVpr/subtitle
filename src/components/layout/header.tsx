@@ -43,6 +43,12 @@ export function Header() {
             >
               Find Subtitles
             </Link>
+            <Link
+              href="/video-player"
+              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+            >
+              Video Player
+            </Link>
             {user && (
               <Link
                 href="/batch"

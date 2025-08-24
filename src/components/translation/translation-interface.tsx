@@ -475,6 +475,23 @@ export function TranslationInterface() {
       console.log('✅ Translation result set successfully:', result.translatedFileName)
       console.log('Translation result set:', result)
 
+      // Store translated content in sessionStorage for video player
+      if (translatedContent) {
+        console.log('💾 Storing translated content in sessionStorage for video player')
+        sessionStorage.setItem('translatedContent', translatedContent)
+
+        // Also store preview data for compatibility
+        const previewData = {
+          originalFileName: selectedFile?.name || 'unknown.srt',
+          translatedFileName: result.translatedFileName,
+          sourceLanguage: sourceLanguage === 'auto' ? 'en' : sourceLanguage,
+          targetLanguage: targetLanguage,
+          translatedContent: translatedContent
+        }
+        sessionStorage.setItem('previewData', JSON.stringify(previewData))
+        console.log('💾 Stored preview data in sessionStorage')
+      }
+
       // Refresh credits
       if (refreshCredits) {
         refreshCredits()
