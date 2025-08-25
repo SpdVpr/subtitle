@@ -10,20 +10,32 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
+export async function GET(request: NextRequest) {
+  return NextResponse.json({
+    status: 'Webhook endpoint is working',
+    timestamp: new Date().toISOString(),
+    url: request.url
+  })
+}
+
 export async function POST(request: NextRequest) {
   const timestamp = new Date().toISOString()
-  console.log('🔗 Webhook received at:', timestamp)
+  console.log('🔗 WEBHOOK RECEIVED AT:', timestamp)
+  console.log('🔗 REQUEST URL:', request.url)
+  console.log('🔗 REQUEST METHOD:', request.method)
 
   try {
     const body = await request.text()
     const headersList = headers()
     const signature = headersList.get('stripe-signature')
 
-    console.log('📝 Webhook details:', {
+    console.log('📝 WEBHOOK DETAILS:', {
       timestamp,
       hasSignature: !!signature,
       bodyLength: body.length,
-      bodyPreview: body.substring(0, 100) + '...'
+      bodyPreview: body.substring(0, 200) + '...',
+      headers: Object.fromEntries(headersList.entries()),
+      webhookSecretConfigured: !!webhookSecret
     })
 
     if (!signature) {
@@ -46,26 +58,61 @@ export async function POST(request: NextRequest) {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session
 
-      console.log('Processing completed checkout session:', {
+      console.log('🔍 FULL SESSION DEBUG:', {
         sessionId: session.id,
         clientReferenceId: session.client_reference_id,
         amountTotal: session.amount_total,
         currency: session.currency,
         metadata: session.metadata,
+        customerEmail: session.customer_details?.email,
+        successUrl: session.success_url,
+        mode: session.mode,
+        paymentStatus: session.payment_status,
+        fullSession: JSON.stringify(session, null, 2)
       })
 
-      // Extract user ID from client_reference_id
-      const userId = session.client_reference_id
-      if (!userId) {
-        console.error('No client_reference_id found in session')
-        return NextResponse.json({ error: 'No user ID found' }, { status: 400 })
+      // Extract user ID from client_reference_id OR try to get from success_url
+      let userId = session.client_reference_id
+
+      if (!userId && session.success_url) {
+        // Try to extract user ID from success URL parameters
+        const url = new URL(session.success_url)
+        userId = url.searchParams.get('userId') || url.searchParams.get('user_id')
+        console.log('🔍 Extracted userId from success_url:', userId)
       }
 
-      // Extract credits from metadata
-      const creditsToAdd = parseInt(session.metadata?.credits || '0')
+      if (!userId) {
+        console.error('❌ No client_reference_id or userId found in session')
+        console.log('🔍 Available session data:', Object.keys(session))
+        return NextResponse.json({
+          error: 'No user ID found',
+          debug: {
+            hasClientReferenceId: !!session.client_reference_id,
+            hasSuccessUrl: !!session.success_url,
+            sessionKeys: Object.keys(session)
+          }
+        }, { status: 400 })
+      }
+
+      // Extract credits from metadata OR try to get from success_url
+      let creditsToAdd = parseInt(session.metadata?.credits || '0')
+
+      if (!creditsToAdd && session.success_url) {
+        // Try to extract credits from success URL parameters
+        const url = new URL(session.success_url)
+        creditsToAdd = parseInt(url.searchParams.get('credits') || '0')
+        console.log('🔍 Extracted credits from success_url:', creditsToAdd)
+      }
+
       if (!creditsToAdd) {
-        console.error('No credits found in session metadata')
-        return NextResponse.json({ error: 'No credits found' }, { status: 400 })
+        console.error('❌ No credits found in session metadata or success_url')
+        return NextResponse.json({
+          error: 'No credits found',
+          debug: {
+            metadata: session.metadata,
+            successUrl: session.success_url
+          }
+        }, { status: 400 })
       }
 
       try {
