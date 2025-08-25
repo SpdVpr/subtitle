@@ -124,21 +124,10 @@ export function btcToSatoshis(btc: number): number {
 
 // Helper to get current BTC price and convert USD to satoshis
 export async function convertUSDToSatoshis(usdAmount: number): Promise<number> {
-  try {
-    // Use a free API to get current BTC price
-    const response = await fetch('https://api.coindesk.com/v1/bpi/currentprice/USD.json')
-    const data = await response.json()
-    const btcPriceUSD = parseFloat(data.bpi.USD.rate.replace(/,/g, ''))
-    
-    const btcAmount = usdAmount / btcPriceUSD
-    const satoshis = btcToSatoshis(btcAmount)
-    
-    return Math.round(satoshis)
-  } catch (error) {
-    console.error('Failed to get BTC price, using fallback rates:', error)
-    // Fallback rates (approximate)
-    return Math.round(usdAmount * 1500) // ~$1 = 1500 sats (adjust as needed)
-  }
+  // Use fixed rates for now to avoid external API dependencies during build
+  // TODO: Implement dynamic pricing later
+  const satoshisPerUSD = 1500 // Approximate rate, adjust based on current BTC price
+  return Math.round(usdAmount * satoshisPerUSD)
 }
 
 export const openNodeClient = new OpenNodeClient(
