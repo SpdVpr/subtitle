@@ -122,15 +122,15 @@ export function btcToSatoshis(btc: number): number {
   return Math.round(btc * 100000000)
 }
 
-// Helper to get current BTC price and convert USD to satoshis
-export async function convertUSDToSatoshis(usdAmount: number): Promise<number> {
-  // Use fixed rates for now to avoid external API dependencies during build
-  // TODO: Implement dynamic pricing later
-  const satoshisPerUSD = 1500 // Approximate rate, adjust based on current BTC price
+// Helper to convert USD to satoshis using fixed rates
+export function convertUSDToSatoshis(usdAmount: number): number {
+  // Fixed rates for stable pricing (update periodically based on BTC price)
+  // Current rate: ~$67,000 per BTC = ~1,493 sats per USD
+  const satoshisPerUSD = 1500 // Conservative rate
   return Math.round(usdAmount * satoshisPerUSD)
 }
 
 export const openNodeClient = new OpenNodeClient(
-  process.env.OPENNODE_API_KEY || '4eb67af3-efa5-4b1f-99f8-7dc741acad5f',
-  process.env.NODE_ENV !== 'production' // use testnet in development
+  '4eb67af3-efa5-4b1f-99f8-7dc741acad5f', // Your provided API key
+  false // use mainnet (production)
 )

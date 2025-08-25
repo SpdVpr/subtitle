@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
 
     console.log(`🟠 Creating Bitcoin invoice for ${credits} credits (${packageConfig.packageName})`)
 
-    // Convert USD to satoshis using current BTC price
-    const satoshiAmount = await convertUSDToSatoshis(packageConfig.priceUSD)
+    // Convert USD to satoshis using fixed rates
+    const satoshiAmount = convertUSDToSatoshis(packageConfig.priceUSD)
     
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com'
     
