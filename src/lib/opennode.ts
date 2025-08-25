@@ -33,6 +33,13 @@ export interface OpenNodeCreateInvoiceRequest {
   metadata?: Record<string, any>
   auto_settle?: boolean
   ttl?: number // time to live in seconds
+  // Custom metadata fields for webhook
+  metadata_userId?: string
+  metadata_credits?: string
+  metadata_packageName?: string
+  metadata_priceUSD?: string
+  metadata_source?: string
+  [key: string]: any // Allow any custom fields
 }
 
 export interface OpenNodeWebhookEvent {

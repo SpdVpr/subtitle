@@ -1,7 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
-import { OpenNodeWebhookEvent } from '@/lib/opennode'
+import crypto from 'crypto'
+
+// OpenNode webhook payload structure (application/x-www-form-urlencoded)
+interface OpenNodeWebhookPayload {
+  id: string
+  callback_url: string
+  success_url: string
+  status: 'paid' | 'expired' | 'underpaid' | 'processing' | 'refunded'
+  order_id: string
+  description: string
+  price: string // in satoshis
+  fee: string
+  auto_settle: string
+  hashed_order: string
+  // Additional fields for metadata (custom fields)
+  [key: string]: string
+}
 
 export async function GET(request: NextRequest) {
   return NextResponse.json({
@@ -20,55 +36,105 @@ export async function POST(request: NextRequest) {
     console.log('🟠 WEBHOOK BODY RAW:', body)
     console.log('🟠 WEBHOOK HEADERS:', Object.fromEntries(request.headers.entries()))
 
-    let event: OpenNodeWebhookEvent
-    try {
-      event = JSON.parse(body)
-    } catch (error) {
-      console.error('🚨 Failed to parse webhook body:', error)
-      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    if (!body) {
+      return NextResponse.json({ error: 'Empty body' }, { status: 400 })
     }
 
-    console.log('🟠 OPENNODE WEBHOOK EVENT:', {
-      type: event.type,
-      chargeId: event.data.id,
-      status: event.data.status,
-      amount: event.data.amount,
-      currency: event.data.currency,
-      metadata: event.data.metadata,
-      fullEvent: event
-    })
+    // Parse form-urlencoded data (OpenNode sends application/x-www-form-urlencoded)
+    const formData = new URLSearchParams(body)
+    const payload: OpenNodeWebhookPayload = {
+      id: formData.get('id') || '',
+      callback_url: formData.get('callback_url') || '',
+      success_url: formData.get('success_url') || '',
+      status: formData.get('status') as any || 'expired',
+      order_id: formData.get('order_id') || '',
+      description: formData.get('description') || '',
+      price: formData.get('price') || '0',
+      fee: formData.get('fee') || '0',
+      auto_settle: formData.get('auto_settle') || '0',
+      hashed_order: formData.get('hashed_order') || ''
+    }
+
+    // Add any additional metadata fields
+    for (const [key, value] of formData.entries()) {
+      if (!['id', 'callback_url', 'success_url', 'status', 'order_id', 'description', 'price', 'fee', 'auto_settle', 'hashed_order'].includes(key)) {
+        payload[key] = value
+      }
+    }
+
+    console.log('🟠 OPENNODE WEBHOOK PAYLOAD:', payload)
+
+    // Validate webhook signature according to OpenNode docs
+    const apiKey = process.env.OPENNODE_API_KEY
+    if (!apiKey) {
+      console.error('🚨 OpenNode API key not found')
+      return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
+    }
+
+    const calculatedHash = crypto.createHmac('sha256', apiKey).update(payload.id).digest('hex')
+    if (payload.hashed_order !== calculatedHash) {
+      console.error('🚨 Invalid webhook signature:', {
+        received: payload.hashed_order,
+        calculated: calculatedHash,
+        chargeId: payload.id
+      })
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+    }
+
+    console.log('✅ Webhook signature validated')
 
     // Handle successful Bitcoin payment
-    if (event.type === 'charge:paid' && event.data.status === 'paid') {
-      const charge = event.data
-      const metadata = charge.metadata
+    if (payload.status === 'paid') {
+      // Extract metadata from success_url or custom fields
+      let userId = payload.userId || ''
+      let credits = 0
+      let packageName = 'Bitcoin Package'
+      let priceUSD = 0
 
-      if (!metadata?.userId || !metadata?.credits) {
-        console.error('🚨 Missing metadata in OpenNode charge')
+      // Try to extract from success_url
+      if (payload.success_url) {
+        try {
+          const url = new URL(payload.success_url)
+          userId = userId || url.searchParams.get('userId') || ''
+          credits = parseInt(url.searchParams.get('credits') || '0')
+          packageName = url.searchParams.get('package') || packageName
+          priceUSD = parseFloat(url.searchParams.get('price') || '0')
+        } catch (error) {
+          console.error('🚨 Failed to parse success_url:', error)
+        }
+      }
+
+      // Try to extract from custom fields
+      userId = userId || payload.metadata_userId || ''
+      credits = credits || parseInt(payload.metadata_credits || '0')
+      packageName = payload.metadata_packageName || packageName
+      priceUSD = priceUSD || parseFloat(payload.metadata_priceUSD || '0')
+
+      if (!userId || !credits) {
+        console.error('🚨 Missing userId or credits in OpenNode webhook:', {
+          userId,
+          credits,
+          payload
+        })
         return NextResponse.json({
           error: 'Missing required metadata',
           received: true
         }, { status: 400 })
       }
 
-      const userId = metadata.userId
-      const credits = parseInt(metadata.credits)
-      const packageName = metadata.packageName || 'Bitcoin Package'
-      const priceUSD = parseFloat(metadata.priceUSD || '0')
-
       console.log(`🟠 Processing Bitcoin payment: ${credits} credits for user ${userId}`)
 
       try {
         // Add credits to user account
         await addCreditsToUser(userId, credits, {
-          chargeId: charge.id,
-          amount: charge.amount,
-          currency: charge.currency,
-          fiatValue: charge.fiat_value || priceUSD,
+          chargeId: payload.id,
+          amount: parseInt(payload.price),
+          currency: 'BTC',
+          fiatValue: priceUSD,
           amountUSD: priceUSD,
           packageName,
           paymentMethod: 'bitcoin_lightning',
-          settledAt: charge.settled_at || timestamp
+          settledAt: timestamp
         })
 
         console.log(`✅ Successfully added ${credits} credits to user ${userId} via Bitcoin`)
@@ -76,28 +142,25 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: `Added ${credits} credits to user ${userId}`,
-          chargeId: charge.id
+          chargeId: payload.id
         })
 
       } catch (error) {
         console.error('🚨 Failed to add credits for Bitcoin payment:', error)
         return NextResponse.json({
           error: 'Failed to add credits',
-          chargeId: charge.id
+          chargeId: payload.id
         }, { status: 500 })
       }
     }
 
-    // Handle expired charges
-    if (event.type === 'charge:expired') {
-      console.log(`🟠 Bitcoin charge expired: ${event.data.id}`)
-      // Could implement cleanup logic here if needed
+    // Handle other statuses
+    if (payload.status === 'expired') {
+      console.log(`🟠 Bitcoin charge expired: ${payload.id}`)
     }
 
-    // Handle failed charges
-    if (event.type === 'charge:failed') {
-      console.log(`🟠 Bitcoin charge failed: ${event.data.id}`)
-      // Could implement cleanup logic here if needed
+    if (payload.status === 'underpaid') {
+      console.log(`🟠 Bitcoin charge underpaid: ${payload.id}`)
     }
 
     // Handle other webhook events

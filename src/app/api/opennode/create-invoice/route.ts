@@ -24,19 +24,21 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com'
 
     // Create OpenNode charge using USD currency (OpenNode handles conversion)
+    // Include metadata in success_url since OpenNode webhooks use form-urlencoded
+    const successUrl = `${baseUrl}/success?success=true&credits=${credits}&payment=bitcoin&charge_id={id}&userId=${userId}&package=${encodeURIComponent(packageConfig.packageName)}&price=${packageConfig.priceUSD}`
+
     const response = await openNodeClient.createCharge({
       amount: packageConfig.priceUSD,
       currency: 'USD',
       description: `${packageConfig.description} - SubtitleBot Credits`,
       callback_url: `${baseUrl}/api/opennode/webhook`,
-      success_url: `${baseUrl}/success?success=true&credits=${credits}&payment=bitcoin&charge_id={id}`,
-      metadata: {
-        userId,
-        credits,
-        packageName: packageConfig.packageName,
-        priceUSD: packageConfig.priceUSD,
-        source: 'subtitlebot_credits'
-      },
+      success_url: successUrl,
+      // Add metadata as custom fields for webhook
+      metadata_userId: userId,
+      metadata_credits: credits.toString(),
+      metadata_packageName: packageConfig.packageName,
+      metadata_priceUSD: packageConfig.priceUSD.toString(),
+      metadata_source: 'subtitlebot_credits',
       auto_settle: true,
       ttl: 3600 // 1 hour expiry
     })
