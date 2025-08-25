@@ -110,42 +110,16 @@ export default function BuyCreditsPage() {
       return
     }
 
-    setLoading(packageId)
-    try {
-      // Find the package
-      const pkg = CREDIT_PACKAGES.find(p => p.id === packageId)
-      if (!pkg) {
-        throw new Error('Package not found')
-      }
-
-      const response = await fetch('/api/opennode/create-invoice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.uid,
-          credits: pkg.credits
-        })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create Bitcoin invoice')
-      }
-
-      // Open OpenNode checkout in new window
-      window.open(data.invoice.checkoutUrl, '_blank')
-
-      alert('Bitcoin invoice created! Complete payment in the new window.')
-
-    } catch (error) {
-      console.error('Bitcoin purchase error:', error)
-      alert('Bitcoin purchase failed. Please try again.')
-    } finally {
-      setLoading(null)
+    // Find the package
+    const pkg = CREDIT_PACKAGES.find(p => p.id === packageId)
+    if (!pkg) {
+      alert('Package not found')
+      return
     }
+
+    // For now, show alert with Bitcoin payment info
+    // TODO: Integrate with real OpenNode API
+    alert(`Bitcoin Lightning Payment\n\nPackage: ${pkg.name}\nCredits: ${pkg.credits.toLocaleString()}\nPrice: $${pkg.price}\n\nOpenNode integration coming soon!\n\nFor now, please use card payment.`)
   }
 
   if (!user) {
