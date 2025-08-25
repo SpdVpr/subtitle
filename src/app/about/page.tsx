@@ -138,7 +138,7 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground leading-relaxed">
-              SubtitleAI leverages the latest advances in artificial intelligence and natural language processing:
+              SubtitleBot leverages the latest advances in artificial intelligence and natural language processing:
             </p>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
               <li>Advanced neural machine translation models for accurate translations</li>

@@ -206,22 +206,13 @@ export default function SuccessPage() {
             </Button>
           </div>
 
-          <div className="flex justify-center mt-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleRefreshCredits}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              🔄 Refresh Credits
-            </Button>
-          </div>
+
 
           <div className="text-center">
             <p className="text-xs text-gray-500 dark:text-muted-foreground">
               Need help? Contact our support team at{' '}
-              <a href="mailto:support@subtitle-ai.com" className="text-blue-600 dark:text-blue-400 hover:underline">
-                support@subtitle-ai.com
+              <a href="mailto:support@subtitlebot.com" className="text-blue-600 dark:text-blue-400 hover:underline">
+                support@subtitlebot.com
               </a>
             </p>
           </div>

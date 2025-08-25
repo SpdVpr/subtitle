@@ -9,6 +9,6 @@ export default function LoginPage() {
 }
 
 export const metadata = {
-  title: 'Sign In - SubtitleAI',
-  description: 'Sign in to your SubtitleAI account',
+  title: 'Sign In - SubtitleBot',
+  description: 'Sign in to your SubtitleBot account',
 }

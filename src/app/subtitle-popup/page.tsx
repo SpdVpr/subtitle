@@ -2,11 +2,11 @@ import { Metadata } from 'next'
 import { SubtitlePopupController } from '@/components/popup/subtitle-popup-controller'
 
 export const metadata: Metadata = {
-  title: 'Subtitle Popup - SubtitleAI',
+  title: 'Subtitle Popup - SubtitleBot',
   description: 'Open a subtitle overlay window that works over any video content. Perfect for streaming services and online videos.',
   keywords: 'subtitle popup, video overlay, streaming subtitles, external subtitles',
   openGraph: {
-    title: 'Subtitle Popup - SubtitleAI',
+    title: 'Subtitle Popup - SubtitleBot',
     description: 'Subtitle overlay that works over any video content',
     type: 'website',
   },

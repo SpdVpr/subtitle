@@ -59,16 +59,16 @@ export function TranslationInterface() {
     if (translationProgress.isActive) {
       const pct = translationProgress.progress || 0
       const roundedPct = Math.max(0, Math.min(100, Math.round(pct)))
-      document.title = `${roundedPct}% • SubtitleAI`
+      document.title = `${roundedPct}% • SubtitleBot`
     } else if (translationResult?.status === 'completed') {
-      document.title = '✅ Done • SubtitleAI'
+      document.title = '✅ Done • SubtitleBot'
       // Restore original title after delay
       const timer = setTimeout(() => {
-        document.title = originalTitleRef.current || 'SubtitleAI'
+        document.title = originalTitleRef.current || 'SubtitleBot'
       }, 3000)
       return () => clearTimeout(timer)
     } else {
-      document.title = originalTitleRef.current || 'SubtitleAI'
+      document.title = originalTitleRef.current || 'SubtitleBot'
     }
   }, [translationProgress.isActive, translationProgress.progress, translationResult?.status])
 

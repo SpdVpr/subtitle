@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator'
 import { Film, Tv, Play } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Search Subtitles - SubtitleAI',
+  title: 'Search Subtitles - SubtitleBot',
   description: 'Search subtitles in OpenSubtitles and Jimaku databases for movies, TV series, and anime',
 }
 

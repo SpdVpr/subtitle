@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import { isAdmin } from "@/lib/admin-auth"
@@ -19,7 +20,15 @@ export function Header() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <span className="text-xl font-bold text-primary">SubtitleAI</span>
+              <Image
+                src="/logo-sub.png"
+                alt="SubtitleBot"
+                width={40}
+                height={40}
+                className="h-10 w-auto"
+                priority
+              />
+              <span className="text-xl font-bold text-primary hidden sm:inline">SubtitleBot</span>
             </Link>
           </div>
 

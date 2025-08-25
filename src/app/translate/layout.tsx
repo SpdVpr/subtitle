@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Translate Subtitles - SubtitleAI',
+  title: 'Translate Subtitles - SubtitleBot',
   description: 'Translate your subtitle files using AI-powered translation services',
 }
 

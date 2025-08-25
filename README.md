@@ -1,4 +1,4 @@
-# SubtitleAI
+# SubtitleBot
 
 🎬 **Professional AI-powered subtitle translation platform** built with Next.js, Firebase, and modern web technologies. Now with real OpenSubtitles API integration!
 

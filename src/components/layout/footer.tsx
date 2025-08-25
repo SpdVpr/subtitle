@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Github, Twitter, Mail, Heart, Globe, Zap } from "lucide-react"
 
 export function Footer() {
@@ -12,8 +13,14 @@ export function Footer() {
           {/* Brand Section */}
           <div className="md:col-span-1">
             <div className="flex items-center space-x-2 mb-4">
-              <Zap className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold text-foreground">SubtitleAI</span>
+              <Image
+                src="/logo-sub.png"
+                alt="SubtitleBot"
+                width={32}
+                height={32}
+                className="h-8 w-auto"
+              />
+              <span className="text-xl font-bold text-foreground">SubtitleBot</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
               AI-powered subtitle translation and timing adjustment. Fast, accurate, and easy to use for creators worldwide.
@@ -169,7 +176,7 @@ export function Footer() {
         <div className="border-t border-border pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <span>© {currentYear} SubtitleAI. All rights reserved.</span>
+              <span>© {currentYear} SubtitleBot. All rights reserved.</span>
             </div>
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
               <span>Built with</span>

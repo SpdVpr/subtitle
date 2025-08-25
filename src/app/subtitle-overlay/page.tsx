@@ -2,11 +2,11 @@ import { Metadata } from 'next'
 import { SubtitleOverlayContainer } from '@/components/overlay/subtitle-overlay-container'
 
 export const metadata: Metadata = {
-  title: 'Subtitle Overlay - SubtitleAI',
+  title: 'Subtitle Overlay - SubtitleBot',
   description: 'Display subtitles over any video content with customizable styling, positioning, and synchronization. Perfect for streaming services and video players.',
   keywords: 'subtitle overlay, video subtitles, streaming subtitles, subtitle display, video accessibility',
   openGraph: {
-    title: 'Subtitle Overlay - SubtitleAI',
+    title: 'Subtitle Overlay - SubtitleBot',
     description: 'Display subtitles over any video content with full customization',
     type: 'website',
   },

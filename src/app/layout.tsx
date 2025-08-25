@@ -12,8 +12,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SubtitleAI - AI-Powered Subtitle Translation",
+  title: "SubtitleBot - AI-Powered Subtitle Translation",
   description: "Translate and retime your subtitles with AI. Fast, accurate, and easy to use.",
+  icons: {
+    icon: '/logo-sub.png',
+    shortcut: '/logo-sub.png',
+    apple: '/logo-sub.png',
+  },
 };
 
 // Force dynamic rendering to avoid prerender-time side effects
