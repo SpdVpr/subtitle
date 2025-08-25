@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { openNodeClient, getPackageByCredits, convertUSDToSatoshis } from '@/lib/opennode'
+import { openNodeClient, getPackageByCredits } from '@/lib/opennode'
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,13 +23,13 @@ export async function POST(request: NextRequest) {
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com'
 
-    // Create real OpenNode invoice using USD currency (OpenNode handles conversion)
-    const invoice = await openNodeClient.createInvoice({
+    // Create OpenNode charge using USD currency (OpenNode handles conversion)
+    const response = await openNodeClient.createCharge({
       amount: packageConfig.priceUSD,
       currency: 'USD',
       description: `${packageConfig.description} - SubtitleBot Credits`,
       callback_url: `${baseUrl}/api/opennode/webhook`,
-      success_url: `${baseUrl}/success?success=true&credits=${credits}&payment=bitcoin&invoice_id={id}`,
+      success_url: `${baseUrl}/success?success=true&credits=${credits}&payment=bitcoin&charge_id={id}`,
       metadata: {
         userId,
         credits,
@@ -41,30 +41,38 @@ export async function POST(request: NextRequest) {
       ttl: 3600 // 1 hour expiry
     })
 
-    console.log(`✅ Bitcoin invoice created:`, {
-      invoiceId: invoice.id,
+    const charge = response.data
+
+    // Create hosted checkout URL according to OpenNode documentation
+    const hostedCheckoutUrl = `https://checkout.opennode.com/${charge.id}?ln=1`
+
+    console.log(`✅ Bitcoin charge created:`, {
+      chargeId: charge.id,
       amount: packageConfig.priceUSD,
       currency: 'USD',
       credits,
       userId,
-      checkoutUrl: invoice.hosted_checkout_url,
-      fullInvoice: invoice // Debug: log full response
+      hostedCheckoutUrl,
+      originalCheckoutUrl: charge.hosted_checkout_url,
+      fullCharge: charge // Debug: log full response
     })
 
     return NextResponse.json({
       success: true,
-      invoice: {
-        id: invoice.id,
-        amount: invoice.amount,
-        amountBTC: invoice.amount / 100000000,
+      charge: {
+        id: charge.id,
+        amount: charge.amount,
+        currency: charge.currency,
+        fiatValue: charge.fiat_value,
+        sourceFiatValue: charge.source_fiat_value,
         priceUSD: packageConfig.priceUSD,
         credits,
         packageName: packageConfig.packageName,
-        description: invoice.description,
-        checkoutUrl: invoice.hosted_checkout_url || `https://checkout.opennode.com/p/${invoice.id}`,
-        lightningInvoice: invoice.lightning_invoice?.payreq,
-        expiresAt: invoice.lightning_invoice?.expires_at,
-        status: invoice.status
+        description: charge.description,
+        checkoutUrl: hostedCheckoutUrl, // Use our constructed URL with Lightning default
+        lightningInvoice: charge.lightning_invoice?.payreq,
+        expiresAt: charge.lightning_invoice?.expires_at,
+        status: charge.status
       }
     })
 
@@ -79,43 +87,46 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const invoiceId = searchParams.get('invoiceId')
+  const chargeId = searchParams.get('chargeId')
 
-  if (!invoiceId) {
+  if (!chargeId) {
     return NextResponse.json({
-      message: 'OpenNode invoice creation endpoint',
+      message: 'OpenNode charge creation endpoint',
       usage: 'POST with { userId, credits }',
       supportedCredits: [100, 500, 1200, 2500],
       example: {
         userId: 'firebase-user-id',
         credits: 100
-      }
+      },
+      hostedCheckout: 'https://checkout.opennode.com/{id}?ln=1'
     })
   }
 
   try {
-    // Get invoice status
-    const invoice = await openNodeClient.getInvoice(invoiceId)
-    
+    // Get charge status
+    const response = await openNodeClient.getCharge(chargeId)
+    const charge = response.data
+
     return NextResponse.json({
       success: true,
-      invoice: {
-        id: invoice.id,
-        status: invoice.status,
-        amount: invoice.amount,
-        description: invoice.description,
-        checkoutUrl: invoice.hosted_checkout_url,
-        lightningInvoice: invoice.lightning_invoice?.payreq,
-        expiresAt: invoice.lightning_invoice?.expires_at,
-        settledAt: invoice.settled_at,
-        metadata: invoice.metadata
+      charge: {
+        id: charge.id,
+        status: charge.status,
+        amount: charge.amount,
+        currency: charge.currency,
+        description: charge.description,
+        checkoutUrl: `https://checkout.opennode.com/${charge.id}?ln=1`,
+        lightningInvoice: charge.lightning_invoice?.payreq,
+        expiresAt: charge.lightning_invoice?.expires_at,
+        settledAt: charge.settled_at,
+        metadata: charge.metadata
       }
     })
 
   } catch (error) {
-    console.error('🚨 Failed to get Bitcoin invoice:', error)
+    console.error('🚨 Failed to get Bitcoin charge:', error)
     return NextResponse.json({
-      error: 'Failed to get Bitcoin invoice',
+      error: 'Failed to get Bitcoin charge',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }

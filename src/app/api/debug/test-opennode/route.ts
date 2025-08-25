@@ -5,11 +5,11 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🧪 Testing OpenNode API connection...')
     
-    // Test creating a small invoice
-    const testInvoice = await openNodeClient.createInvoice({
+    // Test creating a small charge
+    const response = await openNodeClient.createCharge({
       amount: 1,
       currency: 'USD',
-      description: 'Test invoice - SubtitleBot',
+      description: 'Test charge - SubtitleBot',
       metadata: {
         test: true,
         source: 'debug_endpoint'
@@ -17,19 +17,24 @@ export async function GET(request: NextRequest) {
       ttl: 300 // 5 minutes
     })
 
-    console.log('✅ OpenNode test invoice created:', testInvoice)
+    const testCharge = response.data
+    const hostedCheckoutUrl = `https://checkout.opennode.com/${testCharge.id}?ln=1`
+
+    console.log('✅ OpenNode test charge created:', testCharge)
 
     return NextResponse.json({
       success: true,
       message: 'OpenNode API is working!',
-      testInvoice: {
-        id: testInvoice.id,
-        amount: testInvoice.amount,
-        description: testInvoice.description,
-        status: testInvoice.status,
-        checkoutUrl: testInvoice.hosted_checkout_url,
-        lightningInvoice: testInvoice.lightning_invoice?.payreq,
-        expiresAt: testInvoice.lightning_invoice?.expires_at
+      testCharge: {
+        id: testCharge.id,
+        amount: testCharge.amount,
+        currency: testCharge.currency,
+        description: testCharge.description,
+        status: testCharge.status,
+        checkoutUrl: hostedCheckoutUrl,
+        originalCheckoutUrl: testCharge.hosted_checkout_url,
+        lightningInvoice: testCharge.lightning_invoice?.payreq,
+        expiresAt: testCharge.lightning_invoice?.expires_at
       }
     })
 

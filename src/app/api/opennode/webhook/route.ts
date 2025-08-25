@@ -36,15 +36,15 @@ export async function POST(request: NextRequest) {
     })
 
     // Handle successful Bitcoin payment
-    if (event.type === 'invoice.paid' && event.data.status === 'paid') {
-      const invoice = event.data
-      const metadata = invoice.metadata
+    if (event.type === 'charge:paid' && event.data.status === 'paid') {
+      const charge = event.data
+      const metadata = charge.metadata
 
       if (!metadata?.userId || !metadata?.credits) {
-        console.error('🚨 Missing metadata in OpenNode invoice')
-        return NextResponse.json({ 
+        console.error('🚨 Missing metadata in OpenNode charge')
+        return NextResponse.json({
           error: 'Missing required metadata',
-          received: true 
+          received: true
         }, { status: 400 })
       }
 
@@ -58,34 +58,42 @@ export async function POST(request: NextRequest) {
       try {
         // Add credits to user account
         await addCreditsToUser(userId, credits, {
-          invoiceId: invoice.id,
-          amountSats: invoice.amount,
+          chargeId: charge.id,
+          amount: charge.amount,
+          currency: charge.currency,
+          fiatValue: charge.fiat_value || priceUSD,
           amountUSD: priceUSD,
           packageName,
           paymentMethod: 'bitcoin_lightning',
-          settledAt: invoice.settled_at || timestamp
+          settledAt: charge.settled_at || timestamp
         })
 
         console.log(`✅ Successfully added ${credits} credits to user ${userId} via Bitcoin`)
-        
-        return NextResponse.json({ 
-          success: true, 
+
+        return NextResponse.json({
+          success: true,
           message: `Added ${credits} credits to user ${userId}`,
-          invoiceId: invoice.id
+          chargeId: charge.id
         })
 
       } catch (error) {
         console.error('🚨 Failed to add credits for Bitcoin payment:', error)
-        return NextResponse.json({ 
+        return NextResponse.json({
           error: 'Failed to add credits',
-          invoiceId: invoice.id
+          chargeId: charge.id
         }, { status: 500 })
       }
     }
 
-    // Handle expired invoices
-    if (event.type === 'invoice.expired') {
-      console.log(`🟠 Bitcoin invoice expired: ${event.data.id}`)
+    // Handle expired charges
+    if (event.type === 'charge:expired') {
+      console.log(`🟠 Bitcoin charge expired: ${event.data.id}`)
+      // Could implement cleanup logic here if needed
+    }
+
+    // Handle failed charges
+    if (event.type === 'charge:failed') {
+      console.log(`🟠 Bitcoin charge failed: ${event.data.id}`)
       // Could implement cleanup logic here if needed
     }
 
@@ -110,8 +118,10 @@ async function addCreditsToUser(
   userId: string,
   credits: number,
   paymentDetails: {
-    invoiceId: string
-    amountSats: number
+    chargeId: string
+    amount: number
+    currency: string
+    fiatValue: number
     amountUSD: number
     packageName: string
     paymentMethod: string
@@ -137,8 +147,10 @@ async function addCreditsToUser(
     credits,
     description: `Purchased ${credits} credits - ${paymentDetails.packageName} (Bitcoin Lightning)`,
     source: 'bitcoin_lightning',
-    openNodeInvoiceId: paymentDetails.invoiceId,
-    amountSats: paymentDetails.amountSats,
+    openNodeChargeId: paymentDetails.chargeId,
+    amount: paymentDetails.amount,
+    currency: paymentDetails.currency,
+    fiatValue: paymentDetails.fiatValue,
     amountUSD: paymentDetails.amountUSD,
     paymentMethod: paymentDetails.paymentMethod,
     createdAt: FieldValue.serverTimestamp(),
@@ -150,8 +162,10 @@ async function addCreditsToUser(
   const paymentRef = adminDb.collection('payments').doc()
   batch.set(paymentRef, {
     userId,
-    openNodeInvoiceId: paymentDetails.invoiceId,
-    amountSats: paymentDetails.amountSats,
+    openNodeChargeId: paymentDetails.chargeId,
+    amount: paymentDetails.amount,
+    currency: paymentDetails.currency,
+    fiatValue: paymentDetails.fiatValue,
     amountUSD: paymentDetails.amountUSD,
     credits,
     packageName: paymentDetails.packageName,

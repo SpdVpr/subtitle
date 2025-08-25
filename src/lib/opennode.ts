@@ -1,19 +1,25 @@
 // OpenNode Bitcoin Lightning payment integration
-export interface OpenNodeInvoice {
+export interface OpenNodeCharge {
   id: string
-  description: string
-  amount: number // in satoshis
+  description?: string
+  amount: number
+  currency: string
   status: 'unpaid' | 'paid' | 'expired'
-  lightning_invoice: {
+  lightning_invoice?: {
     payreq: string
     expires_at: string
   }
-  hosted_checkout_url: string
+  chain_invoice?: {
+    address: string
+  }
+  hosted_checkout_url?: string
   created_at: string
   settled_at?: string
   callback_url?: string
   success_url?: string
   metadata?: Record<string, any>
+  fiat_value?: number
+  source_fiat_value?: number
 }
 
 export interface OpenNodeCreateInvoiceRequest {
@@ -31,8 +37,8 @@ export interface OpenNodeCreateInvoiceRequest {
 
 export interface OpenNodeWebhookEvent {
   id: string
-  type: 'invoice.paid' | 'invoice.expired'
-  data: OpenNodeInvoice
+  type: 'charge:paid' | 'charge:expired' | 'charge:failed'
+  data: OpenNodeCharge
   created_at: string
 }
 
@@ -65,19 +71,19 @@ export class OpenNodeClient {
     return response.json()
   }
 
-  async createInvoice(data: OpenNodeCreateInvoiceRequest): Promise<OpenNodeInvoice> {
-    return this.request<OpenNodeInvoice>('/v1/charges', {
+  async createCharge(data: OpenNodeCreateInvoiceRequest): Promise<{ data: OpenNodeCharge }> {
+    return this.request<{ data: OpenNodeCharge }>('/v1/charges', {
       method: 'POST',
       body: JSON.stringify(data),
     })
   }
 
-  async getInvoice(invoiceId: string): Promise<OpenNodeInvoice> {
-    return this.request<OpenNodeInvoice>(`/v1/charge/${invoiceId}`)
+  async getCharge(chargeId: string): Promise<{ data: OpenNodeCharge }> {
+    return this.request<{ data: OpenNodeCharge }>(`/v1/charge/${chargeId}`)
   }
 
-  async getInvoices(limit = 50): Promise<{ data: OpenNodeInvoice[] }> {
-    return this.request<{ data: OpenNodeInvoice[] }>(`/v1/charges?limit=${limit}`)
+  async getCharges(limit = 50): Promise<{ data: OpenNodeCharge[] }> {
+    return this.request<{ data: OpenNodeCharge[] }>(`/v1/charges?limit=${limit}`)
   }
 }
 

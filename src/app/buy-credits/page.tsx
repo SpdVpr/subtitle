@@ -139,19 +139,19 @@ export default function BuyCreditsPage() {
         throw new Error(data.error || 'Failed to create Bitcoin invoice')
       }
 
-      console.log('✅ Bitcoin invoice created:', data.invoice)
+      console.log('✅ Bitcoin charge created:', data.charge)
 
       // Dismiss loading toast
       toast.dismiss('bitcoin-invoice')
 
-      // Open OpenNode checkout in new window
-      window.open(data.invoice.checkoutUrl, '_blank')
+      // Open OpenNode hosted checkout in new window (with Lightning default)
+      window.open(data.charge.checkoutUrl, '_blank')
 
-      toast.success(`Bitcoin Lightning invoice created!
+      toast.success(`Bitcoin Lightning payment ready!
 
-Amount: ${data.invoice.amountBTC} BTC (~${data.invoice.amount} sats)
-Package: ${data.invoice.packageName}
-Credits: ${data.invoice.credits}
+Amount: $${data.charge.priceUSD} USD
+Package: ${data.charge.packageName}
+Credits: ${data.charge.credits}
 
 Complete payment in the new window.`, {
         duration: 8000
