@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCredits } from '@/contexts/credits-context'
 import { CreditsDisplay } from '@/components/ui/credits-display'
 import { VoucherRedemption } from '@/components/ui/voucher-redemption'
-import { Coins, Zap, Star, Crown, ArrowRight, Check, ExternalLink, TestTube } from 'lucide-react'
+import { Coins, Zap, Star, Crown, ArrowRight, Check, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { STRIPE_PAYMENT_LINKS, createPaymentUrl, formatPrice, getPricePerCredit } from '@/lib/stripe-payment-links'
 
@@ -26,7 +26,6 @@ const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS.map((link, index) => ({
 }))
 
 function getPackageName(credits: number): string {
-  if (credits <= 100) return 'Test Pack'
   if (credits <= 500) return 'Starter Pack'
   if (credits <= 1200) return 'Popular Pack'
   if (credits <= 2500) return 'Professional Pack'
@@ -152,8 +151,7 @@ export default function BuyCreditsPage() {
             <Card
               key={pkg.id}
               className={`relative ${
-                pkg.popular ? 'border-blue-500 shadow-lg scale-105' :
-                pkg.credits <= 100 ? 'border-orange-300 bg-orange-50/50 dark:bg-orange-950/20' : ''
+                pkg.popular ? 'border-blue-500 shadow-lg scale-105' : ''
               }`}
             >
               {pkg.popular && (
@@ -162,17 +160,10 @@ export default function BuyCreditsPage() {
                   Most Popular
                 </Badge>
               )}
-              {pkg.credits <= 100 && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white">
-                  <TestTube className="w-3 h-3 mr-1" />
-                  Test Only
-                </Badge>
-              )}
-              
+
               <CardHeader className="text-center">
                 <div className="flex justify-center mb-2">
-                  {pkg.credits <= 100 && <TestTube className="w-8 h-8 text-orange-500" />}
-                  {pkg.credits > 100 && pkg.credits <= 500 && <Coins className="w-8 h-8 text-primary" />}
+                  {pkg.credits <= 500 && <Coins className="w-8 h-8 text-primary" />}
                   {pkg.credits > 500 && pkg.credits <= 1200 && <Zap className="w-8 h-8 text-primary" />}
                   {pkg.credits > 1200 && <Crown className="w-8 h-8 text-primary" />}
                 </div>

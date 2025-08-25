@@ -15,45 +15,39 @@ Jděte na: https://dashboard.stripe.com/payment-links
 
 Pro **KAŽDÝ** Payment Link:
 
-#### A) **100 Credits Test** - `https://buy.stripe.com/aFacN58737HPbYe2Tr6sw03`
+#### A) **500 Credits** - `https://buy.stripe.com/bJe00jcnj6DL2nE1Pn6sw00`
 1. Klikněte **Edit**
-2. **Success URL**: `http://localhost:3001/success?success=true&credits=100&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
-3. **Cancel URL**: `http://localhost:3001/buy-credits`
+2. **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=500&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
+3. **Cancel URL**: `https://www.subtitlebot.com/buy-credits`
 4. Klikněte **Save**
 
-#### B) **500 Credits** - `https://buy.stripe.com/bJe00jcnj6DL2nE1Pn6sw00`
+#### B) **1200 Credits** - `https://buy.stripe.com/dRmaEX2MJ9PXbYe2Tr6sw01`
 1. Klikněte **Edit**
-2. **Success URL**: `http://localhost:3001/success?success=true&credits=500&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
-3. **Cancel URL**: `http://localhost:3001/buy-credits`
+2. **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=1200&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
+3. **Cancel URL**: `https://www.subtitlebot.com/buy-credits`
 4. Klikněte **Save**
 
-#### C) **1200 Credits** - `https://buy.stripe.com/dRmaEX2MJ9PXbYe2Tr6sw01`
+#### C) **2500 Credits** - `https://buy.stripe.com/4gM6oH72Z2nv2nE65D6sw02`
 1. Klikněte **Edit**
-2. **Success URL**: `http://localhost:3001/success?success=true&credits=1200&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
-3. **Cancel URL**: `http://localhost:3001/buy-credits`
-4. Klikněte **Save**
-
-#### D) **2500 Credits** - `https://buy.stripe.com/4gM6oH72Z2nv2nE65D6sw02`
-1. Klikněte **Edit**
-2. **Success URL**: `http://localhost:3001/success?success=true&credits=2500&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
-3. **Cancel URL**: `http://localhost:3001/buy-credits`
+2. **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=2500&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
+3. **Cancel URL**: `https://www.subtitlebot.com/buy-credits`
 4. Klikněte **Save**
 
 ### 2. **Zkontrolujte Webhook**
 
 Jděte na: https://dashboard.stripe.com/webhooks
 
-1. **Najděte webhook** pro `http://localhost:3002/api/stripe/payment-links-webhook`
+1. **Najděte webhook** pro `https://www.subtitlebot.com/api/stripe/payment-links-webhook`
 2. **Pokud neexistuje, vytvořte ho:**
-   - **Endpoint URL**: `http://localhost:3002/api/stripe/payment-links-webhook`
+   - **Endpoint URL**: `https://www.subtitlebot.com/api/stripe/payment-links-webhook`
    - **Events**: `checkout.session.completed`
-   - **Zkopírujte signing secret** do `.env.local`
+   - **Zkopírujte signing secret** do Vercel environment variables
 
-### 3. **Pro PRODUKCI změňte URL na:**
+### 3. **Produkční URL jsou nastavené:**
 ```
-Success URL: https://yourdomain.com/success?success=true&credits={CREDITS}&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}
-Cancel URL: https://yourdomain.com/buy-credits
-Webhook URL: https://yourdomain.com/api/stripe/payment-links-webhook
+Success URL: https://www.subtitlebot.com/success?success=true&credits={CREDITS}&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}
+Cancel URL: https://www.subtitlebot.com/buy-credits
+Webhook URL: https://www.subtitlebot.com/api/stripe/payment-links-webhook
 ```
 
 ## 🧪 **Test po opravě:**

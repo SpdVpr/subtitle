@@ -50,12 +50,12 @@ STRIPE_WEBHOOK_SECRET=whsec_your_actual_secret_here
 
 ### Test 1: Ověření endpoint
 ```bash
-curl -X GET http://localhost:3002/api/test-webhook
+curl -X GET https://www.subtitlebot.com/api/test-webhook
 ```
 
 ### Test 2: Simulace webhook (dočasné řešení)
 ```bash
-curl -X POST http://localhost:3002/api/stripe/payment-links-webhook \
+curl -X POST https://www.subtitlebot.com/api/stripe/payment-links-webhook \
   -H "Content-Type: application/json" \
   -d '{"type": "test"}'
 ```
@@ -64,21 +64,17 @@ curl -X POST http://localhost:3002/api/stripe/payment-links-webhook \
 
 V Stripe Dashboard → Payment Links, pro každý link nastavte:
 
-### 100 Credits Test:
-- **Success URL**: `http://localhost:3002/success?success=true&credits=100&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
-- **Cancel URL**: `http://localhost:3002/buy-credits`
-
 ### 500 Credits:
-- **Success URL**: `http://localhost:3002/success?success=true&credits=500&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
-- **Cancel URL**: `http://localhost:3002/buy-credits`
+- **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=500&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
+- **Cancel URL**: `https://www.subtitlebot.com/buy-credits`
 
 ### 1200 Credits:
-- **Success URL**: `http://localhost:3002/success?success=true&credits=1200&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
-- **Cancel URL**: `http://localhost:3002/buy-credits`
+- **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=1200&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
+- **Cancel URL**: `https://www.subtitlebot.com/buy-credits`
 
 ### 2500 Credits:
-- **Success URL**: `http://localhost:3002/success?success=true&credits=2500&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
-- **Cancel URL**: `http://localhost:3002/buy-credits`
+- **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=2500&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
+- **Cancel URL**: `https://www.subtitlebot.com/buy-credits`
 
 ## 🚨 **Dočasné řešení - Manuální přidání kreditů**
 
