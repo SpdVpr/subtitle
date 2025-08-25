@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       transactions.push({
         id: doc.id,
         type: data.type || 'unknown', // 'topup', 'deduction', 'purchase', etc.
-        amount: Number(data.amount || data.credits) || 0,
+        amount: Number(data.credits || data.amount) || 0, // FIXED: credits first, then amount
         balanceBefore: Number(data.balanceBefore) || 0,
         balanceAfter: Number(data.balanceAfter) || 0,
         reason: data.reason || data.description || 'No description',
