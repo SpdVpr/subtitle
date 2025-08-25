@@ -41,10 +41,8 @@ function getPackageFeatures(credits: number): string[] {
     'No expiration'
   ]
 
-  // Zdůrazni bonus kredity u dražších balíčků
-  if (credits === 500) {
-    features.unshift('🎁 +100 BONUS credits (400 + 100)')
-  } else if (credits === 1200) {
+  // Zdůrazni bonus kredity jen u dražších balíčků
+  if (credits === 1200) {
     features.unshift('🎁 +200 BONUS credits (1000 + 200)')
   } else if (credits === 2500) {
     features.unshift('🎁 +500 BONUS credits (2000 + 500)')
@@ -346,34 +344,7 @@ Complete payment in the new window.`, {
           </CardContent>
         </Card>
 
-        {/* FAQ */}
-        <Card>
-          <CardHeader>
-            <CardTitle>❓ Frequently Asked Questions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h4 className="font-semibold mb-2">Do credits expire?</h4>
-              <p className="text-sm text-gray-600">
-                No! Your credits never expire. Use them whenever you need translation services.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-2">Can I get a refund?</h4>
-              <p className="text-sm text-gray-600">
-                We offer refunds within 7 days of purchase if you haven't used the credits yet.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-2">What payment methods do you accept?</h4>
-              <p className="text-sm text-gray-600">
-                We accept all major credit cards, PayPal, and other payment methods via Stripe.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
     </div>
   )

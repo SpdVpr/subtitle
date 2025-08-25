@@ -24,7 +24,7 @@ export const STRIPE_PAYMENT_LINKS: PaymentLinkConfig[] = [
     price: 5,
     currency: 'USD',
     link: 'https://buy.stripe.com/bJe00jcnj6DL2nE1Pn6sw00',
-    description: '🎁 +100 BONUS credits included!',
+    description: 'Great for regular use',
   },
   {
     credits: 1200,
