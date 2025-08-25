@@ -53,10 +53,10 @@ export function Header() {
               Find Subtitles
             </Link>
             <Link
-              href="/video-player"
+              href="/video-tools"
               className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
-              Video Player
+              Video Tools
             </Link>
             {user && (
               <Link

@@ -340,127 +340,16 @@ export default function Home() {
               <Link href="/subtitles-search">Try Subtitle Search</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/subtitle-overlay">Try Subtitle Overlay</Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
               <Link href="/subtitle-popup">Try Popup Window</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/video-player">Try Video Player</Link>
+              <Link href="/video-tools">Try Video Tools</Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Subtitle Overlay Feature Section */}
-      <section className="py-20 bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-background dark:via-card dark:to-background">
-        <div className="container px-4 mx-auto">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <Badge className="mb-4 bg-gradient-to-r from-indigo-500 to-cyan-500 text-white">
-                <span className="text-2xl mr-2">📺</span>
-                NEW FEATURE
-              </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">
-                Subtitle Overlay
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Display subtitles over any video content with full customization. Perfect for streaming services,
-                video players, and online content where external subtitle loading isn't available.
-              </p>
-            </div>
 
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-8">
-                <div className="space-y-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-indigo-100 dark:bg-accent p-3 rounded-full">
-                      <span className="text-2xl">🎨</span>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">Full Customization</h3>
-                      <p className="text-muted-foreground">
-                        Customize font, size, colors, background, shadows, and positioning.
-                        Make subtitles look exactly how you want them.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-cyan-100 dark:bg-accent p-3 rounded-full">
-                      <span className="text-2xl">🎯</span>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">Drag & Drop Positioning</h3>
-                      <p className="text-muted-foreground">
-                        Simply drag the overlay anywhere on your screen. Smart snapping to edges
-                        and center alignment for perfect positioning.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-purple-100 dark:bg-accent p-3 rounded-full">
-                      <span className="text-2xl">⏱️</span>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">Perfect Synchronization</h3>
-                      <p className="text-muted-foreground">
-                        Fine-tune timing with offset controls and speed multipliers.
-                        Get perfect sync with any video content.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-green-100 dark:bg-accent p-3 rounded-full">
-                      <span className="text-2xl">🌐</span>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">Universal Compatibility</h3>
-                      <p className="text-muted-foreground">
-                        Works with any video player, streaming service, or online content.
-                        No need for special software or plugins.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-6">
-                  <Button size="lg" className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white" asChild>
-                    <Link href="/subtitle-overlay" className="flex items-center gap-2">
-                      <span className="text-xl">📺</span>
-                      Try Subtitle Overlay Now
-                      <ArrowRight className="h-5 w-5" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 shadow-2xl">
-                  <div className="bg-black rounded-lg aspect-video flex items-center justify-center mb-4 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20"></div>
-                    <div className="text-white text-center z-10">
-                      <div className="text-4xl mb-2">🎬</div>
-                      <div className="text-sm opacity-75">Your Video Content</div>
-                    </div>
-
-                    {/* Simulated subtitle overlay */}
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded text-sm font-medium">
-                      Perfect subtitle positioning anywhere on screen
-                    </div>
-                  </div>
-
-                  <div className="text-white/60 text-xs text-center">
-                    Overlay works with any video player or streaming service
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Credits System */}
       <section className="bg-muted/50 dark:bg-card py-16">
@@ -654,11 +543,11 @@ export default function Home() {
                 ALL-IN-ONE SOLUTION
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Integrated Video Player
+                Video Tools
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Watch any video with custom subtitles in one place. Perfect synchronization,
-                full customization, and support for all major video platforms.
+                Two powerful tools: integrated video player for direct viewing and Picture-in-Picture
+                subtitle overlay for streaming services. Perfect for any video content.
               </p>
             </div>
 
@@ -670,10 +559,10 @@ export default function Home() {
                       <span className="text-2xl">🔗</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Universal Video Support</h3>
+                      <h3 className="text-xl font-semibold mb-2">Integrated Video Player</h3>
                       <p className="text-muted-foreground">
-                        Works with YouTube, Vimeo, direct video links, and any embeddable
-                        video content. Just paste the URL and start watching.
+                        Watch YouTube, Vimeo, and direct video links with custom subtitles
+                        in one place. Perfect synchronization and full customization.
                       </p>
                     </div>
                   </div>
@@ -696,10 +585,10 @@ export default function Home() {
                       <span className="text-2xl">🎨</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Complete Customization</h3>
+                      <h3 className="text-xl font-semibold mb-2">Picture-in-Picture Overlay</h3>
                       <p className="text-muted-foreground">
-                        Full control over subtitle appearance - fonts, colors, positioning,
-                        opacity, and effects. Make it look exactly how you want.
+                        Use subtitle overlay with Netflix, Disney+, Amazon Prime, and any
+                        streaming service. Works with local videos too.
                       </p>
                     </div>
                   </div>
@@ -709,10 +598,10 @@ export default function Home() {
                       <span className="text-2xl">🎯</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">All-in-One Interface</h3>
+                      <h3 className="text-xl font-semibold mb-2">Complete Customization</h3>
                       <p className="text-muted-foreground">
-                        Everything in one place - video player, subtitle controls, and
-                        customization options. No need to juggle multiple windows.
+                        Full control over subtitle appearance - fonts, colors, positioning,
+                        timing, and effects. Perfect sync with any video content.
                       </p>
                     </div>
                   </div>
@@ -720,9 +609,9 @@ export default function Home() {
 
                 <div className="pt-6">
                   <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white" asChild>
-                    <Link href="/video-player" className="flex items-center gap-2">
-                      <span className="text-xl">🎬</span>
-                      Try Video Player Now
+                    <Link href="/video-tools" className="flex items-center gap-2">
+                      <span className="text-xl">🛠️</span>
+                      Try Video Tools Now
                       <ArrowRight className="h-5 w-5" />
                     </Link>
                   </Button>

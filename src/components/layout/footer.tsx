@@ -76,10 +76,10 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/video-player"
+                  href="/video-tools"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Video Player
+                  Video Tools
                 </Link>
               </li>
               <li>

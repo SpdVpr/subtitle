@@ -2,12 +2,12 @@ import { Metadata } from 'next'
 import { VideoPlayerWithSubtitles } from '@/components/video/video-player-with-subtitles'
 
 export const metadata: Metadata = {
-  title: 'Video Player with Subtitles - SubtitleAI',
-  description: 'Watch any video with custom subtitles. Support for YouTube, Vimeo, and direct video links with synchronized subtitle overlay.',
-  keywords: 'video player, subtitles, YouTube subtitles, Vimeo subtitles, video overlay, streaming',
+  title: 'Video Tools - SubtitleBot',
+  description: 'Video Player and Subtitle Tools. Watch videos with custom subtitles or use Picture-in-Picture overlay for streaming services.',
+  keywords: 'video tools, video player, subtitle overlay, Picture-in-Picture, streaming subtitles, YouTube subtitles',
   openGraph: {
-    title: 'Video Player with Subtitles - SubtitleAI',
-    description: 'Watch videos with custom subtitles in one place',
+    title: 'Video Tools - SubtitleBot',
+    description: 'Video Player and Subtitle Tools for any video content',
     type: 'website',
   },
 }
@@ -20,10 +20,10 @@ export default function VideoPlayerPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Video Player with Subtitles
+              🛠️ Video Tools
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Watch any video with custom subtitles. Simply paste a video URL and load your subtitle file for the perfect viewing experience.
+              Two powerful tools in one place: Video Player for direct viewing and Subtitle Tools for streaming services.
             </p>
           </div>
 
@@ -35,7 +35,7 @@ export default function VideoPlayerPage() {
                 🎬 Video Player
               </h2>
               <p className="text-blue-700 dark:text-blue-300 text-sm mb-3">
-                Watch videos with subtitle overlay directly on our website
+                Watch videos with custom subtitles directly on our website
               </p>
               <div className="space-y-2">
                 <h3 className="font-semibold text-blue-800 dark:text-blue-200 text-sm">Supported Sources:</h3>
@@ -53,7 +53,7 @@ export default function VideoPlayerPage() {
                 📝 Subtitle Tools
               </h2>
               <p className="text-green-700 dark:text-green-300 text-sm mb-3">
-                Use Picture-in-Picture to watch ANY video with your subtitles
+                Picture-in-Picture overlay that works with ANY video content
               </p>
               <div className="space-y-2">
                 <h3 className="font-semibold text-green-800 dark:text-green-200 text-sm">Works with:</h3>
