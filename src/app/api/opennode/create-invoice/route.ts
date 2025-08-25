@@ -21,14 +21,12 @@ export async function POST(request: NextRequest) {
 
     console.log(`🟠 Creating Bitcoin invoice for ${credits} credits (${packageConfig.packageName})`)
 
-    // Convert USD to satoshis using fixed rates
-    const satoshiAmount = convertUSDToSatoshis(packageConfig.priceUSD)
-    
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com'
-    
-    // Create real OpenNode invoice
+
+    // Create real OpenNode invoice using USD currency (OpenNode handles conversion)
     const invoice = await openNodeClient.createInvoice({
-      amount: satoshiAmount,
+      amount: packageConfig.priceUSD,
+      currency: 'USD',
       description: `${packageConfig.description} - SubtitleBot Credits`,
       callback_url: `${baseUrl}/api/opennode/webhook`,
       success_url: `${baseUrl}/success?success=true&credits=${credits}&payment=bitcoin&invoice_id={id}`,
@@ -45,23 +43,25 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Bitcoin invoice created:`, {
       invoiceId: invoice.id,
-      amount: satoshiAmount,
+      amount: packageConfig.priceUSD,
+      currency: 'USD',
       credits,
       userId,
-      checkoutUrl: invoice.hosted_checkout_url
+      checkoutUrl: invoice.hosted_checkout_url,
+      fullInvoice: invoice // Debug: log full response
     })
 
     return NextResponse.json({
       success: true,
       invoice: {
         id: invoice.id,
-        amount: satoshiAmount,
-        amountBTC: satoshiAmount / 100000000,
+        amount: invoice.amount,
+        amountBTC: invoice.amount / 100000000,
         priceUSD: packageConfig.priceUSD,
         credits,
         packageName: packageConfig.packageName,
         description: invoice.description,
-        checkoutUrl: invoice.hosted_checkout_url,
+        checkoutUrl: invoice.hosted_checkout_url || `https://checkout.opennode.com/p/${invoice.id}`,
         lightningInvoice: invoice.lightning_invoice?.payreq,
         expiresAt: invoice.lightning_invoice?.expires_at,
         status: invoice.status

@@ -17,10 +17,13 @@ export interface OpenNodeInvoice {
 }
 
 export interface OpenNodeCreateInvoiceRequest {
-  amount: number // in satoshis
-  description: string
+  amount: number
+  currency: string // 'USD', 'EUR', 'BTC', 'SAT'
+  description?: string
   callback_url?: string
   success_url?: string
+  customer_email?: string
+  customer_name?: string
   metadata?: Record<string, any>
   auto_settle?: boolean
   ttl?: number // time to live in seconds
@@ -44,11 +47,11 @@ export class OpenNodeClient {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
-    
+
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Authorization': this.apiKey,
+        'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
         ...options.headers,
       },
