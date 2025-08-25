@@ -20,6 +20,8 @@ export default function SuccessPage() {
   const amount = searchParams.get('amount')
   const sessionId = searchParams.get('session_id')
   const success = searchParams.get('success')
+  const payment = searchParams.get('payment')
+  const chargeId = searchParams.get('charge_id') || searchParams.get('invoice_id')
 
   // Parse amount - handle both numeric and placeholder values
   const parsedAmount = amount && amount !== '{CHECKOUT_SESSION_TOTAL_AMOUNT}'
@@ -29,9 +31,48 @@ export default function SuccessPage() {
   useEffect(() => {
     let mounted = true
 
+    const handleBitcoinPayment = async () => {
+      if (payment === 'bitcoin' && chargeId && user && credits) {
+        console.log('🟠 Bitcoin payment detected, checking status:', chargeId)
+
+        try {
+          // Check charge status and manually add credits if needed
+          const response = await fetch(`/api/opennode/create-invoice?chargeId=${chargeId}`)
+          const data = await response.json()
+
+          if (data.success && data.charge.status === 'paid') {
+            console.log('🟠 Bitcoin charge is paid, ensuring credits are added')
+
+            // Try to add credits manually as fallback
+            const addCreditsResponse = await fetch('/api/debug/add-credits', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: user.uid,
+                credits: parseInt(credits),
+                description: `Bitcoin Lightning payment - Charge ${chargeId}`
+              })
+            })
+
+            if (addCreditsResponse.ok) {
+              console.log('✅ Credits added manually for Bitcoin payment')
+              refreshCredits()
+            }
+          }
+        } catch (error) {
+          console.error('🚨 Failed to check Bitcoin payment status:', error)
+        }
+      }
+    }
+
     // Refresh credits when page loads
     if (user && mounted) {
       refreshCredits()
+
+      // Handle Bitcoin payment fallback
+      if (payment === 'bitcoin') {
+        handleBitcoinPayment()
+      }
     }
 
     // Simulate loading for better UX
@@ -45,7 +86,7 @@ export default function SuccessPage() {
       mounted = false
       clearTimeout(timer)
     }
-  }, [user]) // Removed refreshCredits from dependencies
+  }, [user, payment, chargeId, credits]) // Added dependencies
 
   if (!success) {
     router.push('/buy-credits')

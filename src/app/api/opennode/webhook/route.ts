@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.text()
-    console.log('🟠 WEBHOOK BODY:', body)
+    console.log('🟠 WEBHOOK BODY RAW:', body)
+    console.log('🟠 WEBHOOK HEADERS:', Object.fromEntries(request.headers.entries()))
 
     let event: OpenNodeWebhookEvent
     try {
@@ -29,10 +30,12 @@ export async function POST(request: NextRequest) {
 
     console.log('🟠 OPENNODE WEBHOOK EVENT:', {
       type: event.type,
-      invoiceId: event.data.id,
+      chargeId: event.data.id,
       status: event.data.status,
       amount: event.data.amount,
-      metadata: event.data.metadata
+      currency: event.data.currency,
+      metadata: event.data.metadata,
+      fullEvent: event
     })
 
     // Handle successful Bitcoin payment
