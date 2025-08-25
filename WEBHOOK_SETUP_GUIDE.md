@@ -64,6 +64,10 @@ curl -X POST https://www.subtitlebot.com/api/stripe/payment-links-webhook \
 
 V Stripe Dashboard → Payment Links, pro každý link nastavte:
 
+### 100 Credits:
+- **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=100&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
+- **Cancel URL**: `https://www.subtitlebot.com/buy-credits`
+
 ### 500 Credits:
 - **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=500&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
 - **Cancel URL**: `https://www.subtitlebot.com/buy-credits`

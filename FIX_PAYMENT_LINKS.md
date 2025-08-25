@@ -15,19 +15,25 @@ Jděte na: https://dashboard.stripe.com/payment-links
 
 Pro **KAŽDÝ** Payment Link:
 
-#### A) **500 Credits** - `https://buy.stripe.com/bJe00jcnj6DL2nE1Pn6sw00`
+#### A) **100 Credits** - `https://buy.stripe.com/aFacN58737HPbYe2Tr6sw03`
+1. Klikněte **Edit**
+2. **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=100&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
+3. **Cancel URL**: `https://www.subtitlebot.com/buy-credits`
+4. Klikněte **Save**
+
+#### B) **500 Credits** - `https://buy.stripe.com/bJe00jcnj6DL2nE1Pn6sw00`
 1. Klikněte **Edit**
 2. **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=500&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
 3. **Cancel URL**: `https://www.subtitlebot.com/buy-credits`
 4. Klikněte **Save**
 
-#### B) **1200 Credits** - `https://buy.stripe.com/dRmaEX2MJ9PXbYe2Tr6sw01`
+#### C) **1200 Credits** - `https://buy.stripe.com/dRmaEX2MJ9PXbYe2Tr6sw01`
 1. Klikněte **Edit**
 2. **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=1200&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
 3. **Cancel URL**: `https://www.subtitlebot.com/buy-credits`
 4. Klikněte **Save**
 
-#### C) **2500 Credits** - `https://buy.stripe.com/4gM6oH72Z2nv2nE65D6sw02`
+#### D) **2500 Credits** - `https://buy.stripe.com/4gM6oH72Z2nv2nE65D6sw02`
 1. Klikněte **Edit**
 2. **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=2500&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
 3. **Cancel URL**: `https://www.subtitlebot.com/buy-credits`

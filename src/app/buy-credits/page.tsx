@@ -26,6 +26,7 @@ const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS.map((link, index) => ({
 }))
 
 function getPackageName(credits: number): string {
+  if (credits <= 100) return 'Trial Pack'
   if (credits <= 500) return 'Starter Pack'
   if (credits <= 1200) return 'Popular Pack'
   if (credits <= 2500) return 'Professional Pack'
@@ -163,7 +164,8 @@ export default function BuyCreditsPage() {
 
               <CardHeader className="text-center">
                 <div className="flex justify-center mb-2">
-                  {pkg.credits <= 500 && <Coins className="w-8 h-8 text-primary" />}
+                  {pkg.credits <= 100 && <Coins className="w-8 h-8 text-blue-500" />}
+                  {pkg.credits > 100 && pkg.credits <= 500 && <Coins className="w-8 h-8 text-primary" />}
                   {pkg.credits > 500 && pkg.credits <= 1200 && <Zap className="w-8 h-8 text-primary" />}
                   {pkg.credits > 1200 && <Crown className="w-8 h-8 text-primary" />}
                 </div>

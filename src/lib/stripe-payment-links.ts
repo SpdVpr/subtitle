@@ -13,11 +13,18 @@ export interface PaymentLinkConfig {
 
 export const STRIPE_PAYMENT_LINKS: PaymentLinkConfig[] = [
   {
+    credits: 100,
+    price: 1,
+    currency: 'USD',
+    link: 'https://buy.stripe.com/aFacN58737HPbYe2Tr6sw03',
+    description: 'Perfect for first-time users',
+  },
+  {
     credits: 500,
     price: 5,
     currency: 'USD',
     link: 'https://buy.stripe.com/bJe00jcnj6DL2nE1Pn6sw00',
-    description: 'Perfect for trying out our service',
+    description: 'Great for trying out our service',
   },
   {
     credits: 1200,

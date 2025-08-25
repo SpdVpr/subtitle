@@ -14,6 +14,10 @@
 
 Jděte na: https://dashboard.stripe.com/payment-links
 
+**100 Credits** - `https://buy.stripe.com/aFacN58737HPbYe2Tr6sw03`:
+- **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=100&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
+- **Cancel URL**: `https://www.subtitlebot.com/buy-credits`
+
 **500 Credits** - `https://buy.stripe.com/bJe00jcnj6DL2nE1Pn6sw00`:
 - **Success URL**: `https://www.subtitlebot.com/success?success=true&credits=500&amount={CHECKOUT_SESSION_TOTAL_AMOUNT}`
 - **Cancel URL**: `https://www.subtitlebot.com/buy-credits`
@@ -40,9 +44,9 @@ Jděte na: https://dashboard.stripe.com/webhooks
    - Najděte "Signing secret"
    - Klikněte "Reveal" a zkopírujte
 
-#### **C) Deaktivujte testovací Payment Link:**
-- Najděte: `https://buy.stripe.com/aFacN58737HPbYe2Tr6sw03`
-- Klikněte **Archive** nebo **Deactivate**
+#### **C) Aktivujte všechny Payment Links:**
+- Ověřte, že všechny 4 Payment Links jsou aktivní
+- Zkontrolujte správné Success/Cancel URL u všech
 
 ### 🔑 **3. Vercel Environment Variables**
 
@@ -133,7 +137,7 @@ curl "https://www.subtitlebot.com/api/user/credits?userId=test"
 
 ## 🎯 **Výsledek:**
 
-- ✅ Pouze produkční Payment Links (500, 1200, 2500 credits)
+- ✅ Produkční Payment Links (100, 500, 1200, 2500 credits)
 - ✅ Správné produkční URL pro Success/Cancel
 - ✅ Funkční webhook pro automatické přičítání kreditů
 - ✅ Žádné testovací prvky v UI
