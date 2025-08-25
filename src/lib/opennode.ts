@@ -131,6 +131,6 @@ export function convertUSDToSatoshis(usdAmount: number): number {
 }
 
 export const openNodeClient = new OpenNodeClient(
-  '4eb67af3-efa5-4b1f-99f8-7dc741acad5f', // Your provided API key
+  process.env.OPENNODE_API_KEY || '4eb67af3-efa5-4b1f-99f8-7dc741acad5f',
   false // use mainnet (production)
 )

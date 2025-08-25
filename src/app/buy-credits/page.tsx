@@ -10,6 +10,7 @@ import { CreditsDisplay } from '@/components/ui/credits-display'
 import { VoucherRedemption } from '@/components/ui/voucher-redemption'
 import { Coins, Zap, Star, Crown, ArrowRight, Check, ExternalLink, Bitcoin } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { STRIPE_PAYMENT_LINKS, createPaymentUrl, formatPrice, getPricePerCredit } from '@/lib/stripe-payment-links'
 
 // Enhanced credit packages with Stripe Payment Links
@@ -65,7 +66,7 @@ export default function BuyCreditsPage() {
 
   const handlePurchase = async (packageId: string) => {
     if (!user) {
-      alert('Please log in to purchase credits')
+      toast.error('Please log in to purchase credits')
       return
     }
 
@@ -98,7 +99,7 @@ export default function BuyCreditsPage() {
       window.location.href = paymentUrl
     } catch (error) {
       console.error('Purchase failed:', error)
-      alert('Purchase failed. Please try again.')
+      toast.error('Purchase failed. Please try again.')
     } finally {
       setLoading(null)
     }
@@ -106,20 +107,65 @@ export default function BuyCreditsPage() {
 
   const handleBitcoinPurchase = async (packageId: string) => {
     if (!user) {
-      alert('Please log in to purchase credits')
+      toast.error('Please log in to purchase credits')
       return
     }
 
-    // Find the package
-    const pkg = CREDIT_PACKAGES.find(p => p.id === packageId)
-    if (!pkg) {
-      alert('Package not found')
-      return
-    }
+    setLoading(packageId)
+    try {
+      // Find the package
+      const pkg = CREDIT_PACKAGES.find(p => p.id === packageId)
+      if (!pkg) {
+        throw new Error('Package not found')
+      }
 
-    // For now, show alert with Bitcoin payment info
-    // TODO: Integrate with real OpenNode API
-    alert(`Bitcoin Lightning Payment\n\nPackage: ${pkg.name}\nCredits: ${pkg.credits.toLocaleString()}\nPrice: $${pkg.price}\n\nOpenNode integration coming soon!\n\nFor now, please use card payment.`)
+      console.log(`🟠 Creating Bitcoin invoice for ${pkg.credits} credits`)
+      toast.loading('Creating Bitcoin Lightning invoice...', { id: 'bitcoin-invoice' })
+
+      const response = await fetch('/api/opennode/create-invoice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          credits: pkg.credits
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create Bitcoin invoice')
+      }
+
+      console.log('✅ Bitcoin invoice created:', data.invoice)
+
+      // Dismiss loading toast
+      toast.dismiss('bitcoin-invoice')
+
+      // Open OpenNode checkout in new window
+      window.open(data.invoice.checkoutUrl, '_blank')
+
+      toast.success(`Bitcoin Lightning invoice created!
+
+Amount: ${data.invoice.amountBTC} BTC (~${data.invoice.amount} sats)
+Package: ${data.invoice.packageName}
+Credits: ${data.invoice.credits}
+
+Complete payment in the new window.`, {
+        duration: 8000
+      })
+
+    } catch (error) {
+      console.error('🚨 Bitcoin purchase error:', error)
+      toast.dismiss('bitcoin-invoice')
+      toast.error(`Bitcoin payment failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or use card payment.`, {
+        duration: 6000
+      })
+    } finally {
+      setLoading(null)
+    }
   }
 
   if (!user) {
