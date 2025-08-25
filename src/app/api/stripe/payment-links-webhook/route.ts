@@ -10,6 +10,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
+function getPackageName(credits: number): string {
+  if (credits <= 100) return 'Trial Pack'
+  if (credits <= 500) return 'Starter Pack'
+  if (credits <= 1200) return 'Popular Pack'
+  if (credits <= 2500) return 'Professional Pack'
+  return 'Enterprise Pack'
+}
+
 export async function GET(request: NextRequest) {
   return NextResponse.json({
     status: 'Webhook endpoint is working',
@@ -71,57 +79,61 @@ export async function POST(request: NextRequest) {
         fullSession: JSON.stringify(session, null, 2)
       })
 
-      // Extract user ID from client_reference_id OR try to get from success_url
-      let userId = session.client_reference_id
-
-      if (!userId && session.success_url) {
-        // Try to extract user ID from success URL parameters
-        const url = new URL(session.success_url)
-        userId = url.searchParams.get('userId') || url.searchParams.get('user_id')
-        console.log('🔍 Extracted userId from success_url:', userId)
-      }
+      // Extract user ID from client_reference_id (Payment Links automatically set this)
+      const userId = session.client_reference_id
 
       if (!userId) {
-        console.error('❌ No client_reference_id or userId found in session')
-        console.log('🔍 Available session data:', Object.keys(session))
+        console.error('❌ No client_reference_id found in session')
         return NextResponse.json({
           error: 'No user ID found',
           debug: {
             hasClientReferenceId: !!session.client_reference_id,
-            hasSuccessUrl: !!session.success_url,
             sessionKeys: Object.keys(session)
           }
         }, { status: 400 })
       }
 
-      // Extract credits from metadata OR try to get from success_url
-      let creditsToAdd = parseInt(session.metadata?.credits || '0')
+      // Extract credits from success_url (Payment Links don't use metadata)
+      let creditsToAdd = 0
 
-      if (!creditsToAdd && session.success_url) {
-        // Try to extract credits from success URL parameters
-        const url = new URL(session.success_url)
-        creditsToAdd = parseInt(url.searchParams.get('credits') || '0')
-        console.log('🔍 Extracted credits from success_url:', creditsToAdd)
+      if (session.success_url) {
+        try {
+          const url = new URL(session.success_url)
+          creditsToAdd = parseInt(url.searchParams.get('credits') || '0')
+          console.log('🔍 Extracted credits from success_url:', creditsToAdd)
+        } catch (error) {
+          console.error('❌ Failed to parse success_url:', error)
+        }
+      }
+
+      // Fallback: try metadata (for other payment methods)
+      if (!creditsToAdd) {
+        creditsToAdd = parseInt(session.metadata?.credits || '0')
+        console.log('🔍 Fallback: credits from metadata:', creditsToAdd)
       }
 
       if (!creditsToAdd) {
-        console.error('❌ No credits found in session metadata or success_url')
+        console.error('❌ No credits found in success_url or metadata')
         return NextResponse.json({
           error: 'No credits found',
           debug: {
             metadata: session.metadata,
-            successUrl: session.success_url
+            successUrl: session.success_url,
+            amountTotal: session.amount_total
           }
         }, { status: 400 })
       }
 
       try {
+        // Determine package name based on credits
+        const packageName = getPackageName(creditsToAdd)
+
         // Add credits to user account
         await addCreditsToUser(userId, creditsToAdd, {
           sessionId: session.id,
           amountPaid: session.amount_total || 0,
           currency: session.currency || 'usd',
-          packageName: session.metadata?.package_name || 'Unknown Package',
+          packageName,
           paymentMethod: 'stripe_payment_link',
         })
 
