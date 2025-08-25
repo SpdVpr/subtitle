@@ -34,6 +34,11 @@ yarn-error.log*
 .env*
 VERCEL_ENV.txt
 
+# Stripe CLI and ngrok
+stripe-cli/
+ngrok/
+*.zip
+
 # vercel
 .vercel
 

@@ -3,54 +3,73 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { useCredits } from '@/contexts/credits-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { CheckCircle, ArrowRight, Sparkles } from 'lucide-react'
-import { SUBSCRIPTION_PLANS } from '@/lib/stripe'
+import { CheckCircle, ArrowRight, Sparkles, Coins, Zap } from 'lucide-react'
+import Link from 'next/link'
 
 export default function SuccessPage() {
   const { user } = useAuth()
+  const { refreshCredits } = useCredits()
   const searchParams = useSearchParams()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
 
-  const plan = searchParams.get('plan')
-  const demo = searchParams.get('demo')
+  const credits = searchParams.get('credits')
+  const amount = searchParams.get('amount')
+  const sessionId = searchParams.get('session_id')
   const success = searchParams.get('success')
 
+  // Parse amount - handle both numeric and placeholder values
+  const parsedAmount = amount && amount !== '{CHECKOUT_SESSION_TOTAL_AMOUNT}'
+    ? parseInt(amount) / 100
+    : credits ? parseInt(credits) * 0.01 : null
+
   useEffect(() => {
-    // Simulate loading for demo
+    let mounted = true
+
+    // Refresh credits when page loads
+    if (user && mounted) {
+      refreshCredits()
+    }
+
+    // Simulate loading for better UX
     const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 2000)
+      if (mounted) {
+        setIsLoading(false)
+      }
+    }, 3000) // Increased to 3 seconds to allow webhook processing
 
-    return () => clearTimeout(timer)
-  }, [])
+    return () => {
+      mounted = false
+      clearTimeout(timer)
+    }
+  }, [user]) // Removed refreshCredits from dependencies
 
-  if (!success || !plan) {
-    router.push('/pricing')
-    return null
-  }
-
-  const planConfig = SUBSCRIPTION_PLANS[plan as keyof typeof SUBSCRIPTION_PLANS]
-
-  if (!planConfig) {
-    router.push('/pricing')
+  if (!success) {
+    router.push('/buy-credits')
     return null
   }
 
   const handleContinue = () => {
-    router.push('/dashboard')
+    router.push('/translate')
+  }
+
+  const handleRefreshCredits = async () => {
+    if (user) {
+      await refreshCredits()
+    }
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <h2 className="text-xl font-semibold mb-2">Processing your subscription...</h2>
-            <p className="text-gray-600">Please wait while we set up your account.</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <h2 className="text-xl font-semibold mb-2">Processing your purchase...</h2>
+            <p className="text-gray-600">Please wait while we add credits to your account.</p>
           </CardContent>
         </Card>
       </div>
@@ -58,70 +77,102 @@ export default function SuccessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-background dark:to-card flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-background dark:to-card flex items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center pb-4">
           <div className="mx-auto mb-4 p-3 bg-green-100 dark:bg-green-900/30 rounded-full w-fit">
             <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900 dark:text-foreground">
-            🎉 Welcome to {planConfig.name}!
+            🎉 Credits Added Successfully!
           </CardTitle>
         </CardHeader>
-        
-        <CardContent className="space-y-6">
-          {demo && (
-            <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800/30 rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <Sparkles className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                <span className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Demo Mode</span>
-              </div>
-              <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
-                This is a demo subscription. No actual payment was processed.
-              </p>
-            </div>
-          )}
 
+        <CardContent className="space-y-6">
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-2">Subscription Activated!</h3>
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <Coins className="h-8 w-8 text-yellow-500" />
+              <span className="text-3xl font-bold text-green-600">
+                {credits ? `+${parseInt(credits).toLocaleString()}` : '+500'}
+              </span>
+              <span className="text-lg text-muted-foreground">credits</span>
+            </div>
+            {parsedAmount && (
+              <p className="text-sm text-muted-foreground mb-4">
+                Payment of ${parsedAmount.toFixed(2)} processed successfully
+              </p>
+            )}
+            {sessionId && (
+              <p className="text-xs text-muted-foreground mb-4">
+                Session ID: {sessionId}
+              </p>
+            )}
+            <h3 className="text-lg font-semibold mb-2">Payment Successful!</h3>
             <p className="text-gray-600 dark:text-muted-foreground mb-4">
-              Your {planConfig.name} plan is now active. You now have access to:
+              Your credits have been added to your account. You can now:
             </p>
           </div>
 
           <div className="space-y-3">
-            {planConfig.features.map((feature, index) => (
-              <div key={index} className="flex items-center space-x-3">
-                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                <span className="text-sm text-gray-700 dark:text-foreground">{feature}</span>
-              </div>
-            ))}
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700 dark:text-foreground">Translate subtitle files with AI</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700 dark:text-foreground">Use Premium Context AI features</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700 dark:text-foreground">Process multiple files in batch</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700 dark:text-foreground">Credits never expire</span>
+            </div>
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/30 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">What&apos;s Next?</h4>
+            <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2 flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Ready to Start Translating?
+            </h4>
             <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
-              <li>• Start translating your subtitle files</li>
-              <li>• Explore our Premium Context AI features</li>
-              <li>• Access your subscription settings in dashboard</li>
-              {plan === 'pro' && <li>• Try batch translation for multiple files</li>}
+              <li>• Upload your subtitle files (.srt, .vtt, .ass)</li>
+              <li>• Choose your target language</li>
+              <li>• Let our AI do the translation magic</li>
+              <li>• Download your translated subtitles</li>
             </ul>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button 
+            <Button
               onClick={handleContinue}
               className="flex-1 flex items-center justify-center space-x-2"
             >
-              <span>Go to Dashboard</span>
+              <Zap className="h-4 w-4" />
+              <span>Start Translating</span>
               <ArrowRight className="h-4 w-4" />
             </Button>
-            <Button 
+            <Button
               variant="outline"
-              onClick={() => router.push('/translate')}
+              asChild
               className="flex-1"
             >
-              Start Translating
+              <Link href="/dashboard">
+                View Dashboard
+              </Link>
+            </Button>
+          </div>
+
+          <div className="flex justify-center mt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRefreshCredits}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              🔄 Refresh Credits
             </Button>
           </div>
 

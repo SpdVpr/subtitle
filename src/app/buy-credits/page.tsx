@@ -8,58 +8,55 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCredits } from '@/contexts/credits-context'
 import { CreditsDisplay } from '@/components/ui/credits-display'
 import { VoucherRedemption } from '@/components/ui/voucher-redemption'
-import { Coins, Zap, Star, Crown, ArrowRight, Check } from 'lucide-react'
+import { Coins, Zap, Star, Crown, ArrowRight, Check, ExternalLink, TestTube } from 'lucide-react'
 import Link from 'next/link'
+import { STRIPE_PAYMENT_LINKS, createPaymentUrl, formatPrice, getPricePerCredit } from '@/lib/stripe-payment-links'
 
-const CREDIT_PACKAGES = [
-  {
-    id: 'starter',
-    name: 'Starter Pack',
-    credits: 500,
-    price: 5,
-    pricePerCredit: 0.01,
-    popular: false,
-    description: 'Perfect for occasional use',
-    features: [
-      '~2,500 lines of translation',
-      '25 premium translation jobs',
-      'Context research included',
-      'No expiration'
-    ]
-  },
-  {
-    id: 'popular',
-    name: 'Popular Pack',
-    credits: 1200,
-    price: 10,
-    pricePerCredit: 0.0083,
-    popular: true,
-    description: 'Best value for regular users',
-    features: [
-      '~6,000 lines of translation',
-      '60 premium translation jobs',
-      'Context research included',
-      'No expiration',
-      '20% bonus credits'
-    ]
-  },
-  {
-    id: 'professional',
-    name: 'Professional Pack',
-    credits: 2500,
-    price: 20,
-    pricePerCredit: 0.008,
-    popular: false,
-    description: 'For heavy users and professionals',
-    features: [
-      '~12,500 lines of translation',
-      '125 premium translation jobs',
-      'Context research included',
-      'No expiration',
-      '25% bonus credits'
-    ]
+// Enhanced credit packages with Stripe Payment Links
+const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS.map((link, index) => ({
+  id: `package-${index}`,
+  name: getPackageName(link.credits),
+  credits: link.credits,
+  price: link.price,
+  pricePerCredit: getPricePerCredit(link),
+  popular: link.popular || false,
+  description: link.description,
+  paymentLink: link.link,
+  features: getPackageFeatures(link.credits)
+}))
+
+function getPackageName(credits: number): string {
+  if (credits <= 100) return 'Test Pack'
+  if (credits <= 500) return 'Starter Pack'
+  if (credits <= 1200) return 'Popular Pack'
+  if (credits <= 2500) return 'Professional Pack'
+  return 'Enterprise Pack'
+}
+
+function getPackageFeatures(credits: number): string[] {
+  const baseFeatures = [
+    `${credits.toLocaleString()} credits`,
+    `~${(credits * 5).toLocaleString()} lines of translation`,
+    `${Math.floor(credits / 20)} premium translation jobs`,
+    'Context research included',
+    'No expiration'
+  ]
+
+  if (credits >= 500) {
+    baseFeatures.push('Priority support')
   }
-]
+
+  if (credits >= 1000) {
+    baseFeatures.push('Batch processing')
+  }
+
+  if (credits >= 2500) {
+    baseFeatures.push('API access')
+    baseFeatures.push('Custom integrations')
+  }
+
+  return baseFeatures
+}
 
 export default function BuyCreditsPage() {
   const { user } = useAuth()
@@ -74,13 +71,34 @@ export default function BuyCreditsPage() {
 
     setLoading(packageId)
     try {
-      // TODO: Implement Stripe checkout
-      console.log('Purchasing package:', packageId)
-      alert('Credit purchase will be implemented with Stripe integration')
+      // Find the package
+      const pkg = CREDIT_PACKAGES.find(p => p.id === packageId)
+      if (!pkg) {
+        throw new Error('Package not found')
+      }
+
+      // Create payment URL with user metadata
+      const paymentUrl = createPaymentUrl(
+        {
+          credits: pkg.credits,
+          price: pkg.price,
+          currency: 'USD',
+          link: pkg.paymentLink,
+          description: pkg.description
+        },
+        user.uid,
+        {
+          credits: pkg.credits.toString(),
+          package_name: pkg.name,
+          user_email: user.email || '',
+        }
+      )
+
+      // Redirect to Stripe Payment Link
+      window.location.href = paymentUrl
     } catch (error) {
       console.error('Purchase failed:', error)
       alert('Purchase failed. Please try again.')
-    } finally {
       setLoading(null)
     }
   }
@@ -131,9 +149,12 @@ export default function BuyCreditsPage() {
         {/* Credit Packages */}
         <div className="grid md:grid-cols-3 gap-8 mb-12">
           {CREDIT_PACKAGES.map((pkg) => (
-            <Card 
-              key={pkg.id} 
-              className={`relative ${pkg.popular ? 'border-blue-500 shadow-lg scale-105' : ''}`}
+            <Card
+              key={pkg.id}
+              className={`relative ${
+                pkg.popular ? 'border-blue-500 shadow-lg scale-105' :
+                pkg.credits <= 100 ? 'border-orange-300 bg-orange-50/50 dark:bg-orange-950/20' : ''
+              }`}
             >
               {pkg.popular && (
                 <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 dark:bg-primary">
@@ -141,12 +162,19 @@ export default function BuyCreditsPage() {
                   Most Popular
                 </Badge>
               )}
+              {pkg.credits <= 100 && (
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white">
+                  <TestTube className="w-3 h-3 mr-1" />
+                  Test Only
+                </Badge>
+              )}
               
               <CardHeader className="text-center">
                 <div className="flex justify-center mb-2">
-                  {pkg.id === 'starter' && <Coins className="w-8 h-8 text-primary" />}
-                  {pkg.id === 'popular' && <Zap className="w-8 h-8 text-primary" />}
-                  {pkg.id === 'professional' && <Crown className="w-8 h-8 text-primary" />}
+                  {pkg.credits <= 100 && <TestTube className="w-8 h-8 text-orange-500" />}
+                  {pkg.credits > 100 && pkg.credits <= 500 && <Coins className="w-8 h-8 text-primary" />}
+                  {pkg.credits > 500 && pkg.credits <= 1200 && <Zap className="w-8 h-8 text-primary" />}
+                  {pkg.credits > 1200 && <Crown className="w-8 h-8 text-primary" />}
                 </div>
                 <CardTitle className="text-xl">{pkg.name}</CardTitle>
                 <CardDescription>{pkg.description}</CardDescription>
@@ -191,8 +219,8 @@ export default function BuyCreditsPage() {
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">
-                      <span>Buy {pkg.credits} Credits</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <span>Buy {pkg.credits.toLocaleString()} Credits</span>
+                      <ExternalLink className="w-4 h-4" />
                     </div>
                   )}
                 </Button>
