@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCredits } from '@/contexts/credits-context'
 import { CreditsDisplay } from '@/components/ui/credits-display'
 import { VoucherRedemption } from '@/components/ui/voucher-redemption'
-import { Coins, Zap, Star, Crown, ArrowRight, Check, ExternalLink } from 'lucide-react'
+import { Coins, Zap, Star, Crown, ArrowRight, Check, ExternalLink, Bitcoin } from 'lucide-react'
 import Link from 'next/link'
 import { STRIPE_PAYMENT_LINKS, createPaymentUrl, formatPrice, getPricePerCredit } from '@/lib/stripe-payment-links'
 
@@ -99,6 +99,51 @@ export default function BuyCreditsPage() {
     } catch (error) {
       console.error('Purchase failed:', error)
       alert('Purchase failed. Please try again.')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const handleBitcoinPurchase = async (packageId: string) => {
+    if (!user) {
+      alert('Please log in to purchase credits')
+      return
+    }
+
+    setLoading(packageId)
+    try {
+      // Find the package
+      const pkg = CREDIT_PACKAGES.find(p => p.id === packageId)
+      if (!pkg) {
+        throw new Error('Package not found')
+      }
+
+      const response = await fetch('/api/opennode/create-invoice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          credits: pkg.credits
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create Bitcoin invoice')
+      }
+
+      // Open OpenNode checkout in new window
+      window.open(data.invoice.checkoutUrl, '_blank')
+
+      alert('Bitcoin invoice created! Complete payment in the new window.')
+
+    } catch (error) {
+      console.error('Bitcoin purchase error:', error)
+      alert('Bitcoin purchase failed. Please try again.')
+    } finally {
       setLoading(null)
     }
   }
@@ -199,24 +244,45 @@ export default function BuyCreditsPage() {
                   ))}
                 </ul>
                 
-                <Button 
-                  className="w-full"
-                  onClick={() => handlePurchase(pkg.id)}
-                  disabled={loading === pkg.id}
-                  variant={pkg.popular ? 'default' : 'outline'}
-                >
-                  {loading === pkg.id ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Processing...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <span>Buy {pkg.credits.toLocaleString()} Credits</span>
-                      <ExternalLink className="w-4 h-4" />
-                    </div>
-                  )}
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    className="w-full"
+                    onClick={() => handlePurchase(pkg.id)}
+                    disabled={loading === pkg.id}
+                    variant={pkg.popular ? 'default' : 'outline'}
+                  >
+                    {loading === pkg.id ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Processing...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <span>Pay with Card - ${pkg.price}</span>
+                        <ExternalLink className="w-4 h-4" />
+                      </div>
+                    )}
+                  </Button>
+
+                  <Button
+                    onClick={() => handleBitcoinPurchase(pkg.id)}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white border-orange-500"
+                    disabled={loading === pkg.id}
+                    variant="outline"
+                  >
+                    {loading === pkg.id ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-orange-300 border-t-transparent rounded-full animate-spin" />
+                        <span>Processing...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <Bitcoin className="w-4 h-4" />
+                        <span>Pay with Bitcoin ⚡</span>
+                      </div>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
