@@ -17,21 +17,21 @@ export const STRIPE_PAYMENT_LINKS: PaymentLinkConfig[] = [
     price: 1,
     currency: 'USD',
     link: 'https://buy.stripe.com/aFacN58737HPbYe2Tr6sw03',
-    description: 'Perfect for first-time users',
+    description: 'Perfect for trying our service',
   },
   {
     credits: 500,
     price: 5,
     currency: 'USD',
     link: 'https://buy.stripe.com/bJe00jcnj6DL2nE1Pn6sw00',
-    description: 'Great for trying out our service',
+    description: '🎁 +100 BONUS credits included!',
   },
   {
     credits: 1200,
     price: 10,
     currency: 'USD',
     link: 'https://buy.stripe.com/dRmaEX2MJ9PXbYe2Tr6sw01',
-    description: 'Great value for regular users',
+    description: '🎁 +200 BONUS credits included!',
     popular: true,
   },
   {
@@ -39,7 +39,7 @@ export const STRIPE_PAYMENT_LINKS: PaymentLinkConfig[] = [
     price: 20,
     currency: 'USD',
     link: 'https://buy.stripe.com/4gM6oH72Z2nv2nE65D6sw02',
-    description: 'Best for power users',
+    description: '🎁 +500 BONUS credits included!',
   },
 ]
 

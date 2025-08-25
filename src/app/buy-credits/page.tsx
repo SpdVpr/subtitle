@@ -35,28 +35,22 @@ function getPackageName(credits: number): string {
 }
 
 function getPackageFeatures(credits: number): string[] {
-  const baseFeatures = [
+  const features = [
     `${credits.toLocaleString()} credits`,
     `~${(credits * 5).toLocaleString()} lines of translation`,
-    `${Math.floor(credits / 20)} premium translation jobs`,
-    'Context research included',
     'No expiration'
   ]
 
-  if (credits >= 500) {
-    baseFeatures.push('Priority support')
+  // Zdůrazni bonus kredity u dražších balíčků
+  if (credits === 500) {
+    features.unshift('🎁 +100 BONUS credits (400 + 100)')
+  } else if (credits === 1200) {
+    features.unshift('🎁 +200 BONUS credits (1000 + 200)')
+  } else if (credits === 2500) {
+    features.unshift('🎁 +500 BONUS credits (2000 + 500)')
   }
 
-  if (credits >= 1000) {
-    baseFeatures.push('Batch processing')
-  }
-
-  if (credits >= 2500) {
-    baseFeatures.push('API access')
-    baseFeatures.push('Custom integrations')
-  }
-
-  return baseFeatures
+  return features
 }
 
 export default function BuyCreditsPage() {
@@ -197,7 +191,7 @@ Complete payment in the new window.`, {
             💰 Buy Credits
           </h1>
           <p className="text-xl text-muted-foreground mb-6">
-            Pay only for what you use. No monthly subscriptions.
+            Simple pay-per-use credits. Each credit = 1 line of translation. No subscriptions, no expiration.
           </p>
 
           {/* Current Balance */}
@@ -212,7 +206,7 @@ Complete payment in the new window.`, {
         </div>
 
         {/* Credit Packages */}
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {CREDIT_PACKAGES.map((pkg) => (
             <Card
               key={pkg.id}
