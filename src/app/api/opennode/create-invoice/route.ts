@@ -26,7 +26,30 @@ export async function POST(request: NextRequest) {
     
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com'
     
-    // Create OpenNode invoice
+    // For now, create a mock invoice for testing UI
+    // TODO: Replace with real OpenNode API call once API key is validated
+    const invoice = {
+      id: `mock_${Date.now()}`,
+      amount: satoshiAmount,
+      description: `${packageConfig.description} - SubtitleBot Credits`,
+      hosted_checkout_url: `https://checkout.opennode.com/p/mock_${Date.now()}`,
+      lightning_invoice: {
+        payreq: 'lnbc15000n1...',
+        expires_at: new Date(Date.now() + 3600000).toISOString()
+      },
+      status: 'unpaid' as const,
+      created_at: new Date().toISOString(),
+      metadata: {
+        userId,
+        credits,
+        packageName: packageConfig.packageName,
+        priceUSD: packageConfig.priceUSD,
+        source: 'subtitlebot_credits'
+      }
+    }
+
+    // Uncomment when OpenNode API key is working:
+    /*
     const invoice = await openNodeClient.createInvoice({
       amount: satoshiAmount,
       description: `${packageConfig.description} - SubtitleBot Credits`,
@@ -42,6 +65,7 @@ export async function POST(request: NextRequest) {
       auto_settle: true,
       ttl: 3600 // 1 hour expiry
     })
+    */
 
     console.log(`✅ Bitcoin invoice created:`, {
       invoiceId: invoice.id,
