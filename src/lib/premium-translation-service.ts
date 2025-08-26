@@ -22,6 +22,76 @@ export class PremiumTranslationService {
   }
 
   /**
+   * Translate single text with OpenAI
+   */
+  async translateWithOpenAI(
+    text: string,
+    sourceLanguage: string,
+    targetLanguage: string,
+    contextPrompt?: string
+  ): Promise<string> {
+    const { OpenAI } = await import('openai')
+    const openai = new OpenAI({ apiKey: this.apiKey })
+
+    const prompt = contextPrompt || `Translate the following text from ${sourceLanguage} to ${targetLanguage}. Maintain the original meaning and tone:`
+
+    try {
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: prompt
+          },
+          {
+            role: 'user',
+            content: text
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 1000
+      })
+
+      const translatedText = response.choices[0]?.message?.content?.trim()
+      if (!translatedText) {
+        throw new Error('No translation received from OpenAI')
+      }
+
+      return translatedText
+    } catch (error) {
+      console.error('OpenAI translation error:', error)
+      throw new Error(`OpenAI translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Translate single text with Google Translate
+   */
+  async translateWithGoogle(
+    text: string,
+    sourceLanguage: string,
+    targetLanguage: string
+  ): Promise<string> {
+    try {
+      const { Translate } = await import('@google-cloud/translate').catch(() => {
+        throw new Error('Google Translate library not available. Please install @google-cloud/translate')
+      })
+
+      const translate = new Translate({ key: this.apiKey })
+
+      const [translation] = await translate.translate(text, {
+        from: sourceLanguage,
+        to: targetLanguage
+      })
+
+      return translation
+    } catch (error) {
+      console.error('Google Translate error:', error)
+      throw new Error(`Google Translate failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
    * Advanced subtitle translation with perfect timing and context preservation
    */
   async translateSubtitles(
@@ -1072,26 +1142,75 @@ TECHNICAL REQUIREMENTS:
 
   private extractCharacterNames(entries: SubtitleEntry[]): string[] {
     const names = new Set<string>()
-    const commonNames = [
+    const wordFrequency = new Map<string, number>()
+
+    // Known character names for specific shows/movies
+    const knownCharacters = [
       'Ashitaka', 'San', 'Moro', 'Eboshi', 'Jigo', 'Yakul', 'Okkoto', 'Gonza',
       'Ringo', 'Hachi', 'Toki', 'Kohroku', 'Kiyo', 'Tatara', 'Shishigami'
     ]
 
+    // Common words that are NOT character names
+    const commonWords = new Set([
+      'The', 'And', 'But', 'Or', 'So', 'Yet', 'For', 'Nor', 'A', 'An',
+      'This', 'That', 'These', 'Those', 'My', 'Your', 'His', 'Her', 'Its',
+      'Our', 'Their', 'I', 'You', 'He', 'She', 'It', 'We', 'They',
+      'What', 'Where', 'When', 'Why', 'How', 'Who', 'Which',
+      'Yes', 'No', 'Maybe', 'Please', 'Thank', 'Sorry', 'Hello', 'Goodbye',
+      'Good', 'Bad', 'Big', 'Small', 'Old', 'New', 'First', 'Last',
+      'Something', 'Nothing', 'Everything', 'Anything', 'Someone', 'Anyone',
+      'Studio', 'Production', 'Company', 'Film', 'Movie', 'Show', 'Series'
+    ])
+
+    // First pass: check for known characters
     entries.forEach(entry => {
-      commonNames.forEach(name => {
+      knownCharacters.forEach(name => {
         if (entry.text.includes(name)) {
           names.add(name)
         }
       })
+    })
 
-      // Look for capitalized words that might be names
-      const words = entry.text.match(/\b[A-Z][a-z]+\b/g) || []
-      words.forEach(word => {
-        if (word.length > 2 && word.length < 15) {
-          names.add(word)
-        }
+    // Second pass: analyze capitalized words with frequency and context
+    entries.forEach(entry => {
+      // Find capitalized words that are NOT at the beginning of sentences
+      const text = entry.text
+      const sentences = text.split(/[.!?]+/)
+
+      sentences.forEach(sentence => {
+        const trimmed = sentence.trim()
+        if (trimmed.length === 0) return
+
+        // Get words that are capitalized but NOT at sentence start
+        const words = trimmed.split(/\s+/)
+        words.forEach((word, index) => {
+          // Clean the word of punctuation
+          const cleanWord = word.replace(/[^\w]/g, '')
+
+          // Skip if it's a common word or too short/long
+          if (commonWords.has(cleanWord) || cleanWord.length < 3 || cleanWord.length > 15) {
+            return
+          }
+
+          // Only consider capitalized words that are NOT at the beginning of the sentence
+          if (index > 0 && /^[A-Z][a-z]+$/.test(cleanWord)) {
+            wordFrequency.set(cleanWord, (wordFrequency.get(cleanWord) || 0) + 1)
+          }
+        })
       })
     })
+
+    // Add words that appear multiple times (likely character names)
+    wordFrequency.forEach((count, word) => {
+      if (count >= 2) { // Must appear at least twice to be considered a character
+        names.add(word)
+      }
+    })
+
+    console.log('🎭 Character detection results:')
+    console.log('   Known characters found:', Array.from(names).filter(n => knownCharacters.includes(n)))
+    console.log('   Detected characters:', Array.from(names).filter(n => !knownCharacters.includes(n)))
+    console.log('   Word frequencies:', Object.fromEntries(wordFrequency))
 
     return Array.from(names).slice(0, 10)
   }

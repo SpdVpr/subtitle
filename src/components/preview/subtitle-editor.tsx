@@ -1,13 +1,16 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Checkbox } from '@/components/ui/checkbox'
 import { SubtitleEntry } from '@/types/preview'
+import { SearchAndReplacePanel } from '@/components/subtitle-editor/search-and-replace-panel'
+import { toast } from 'sonner'
 import { 
   Play, 
   Pause, 
@@ -25,7 +28,14 @@ import {
   EyeOff,
   Clock,
   Type,
-  Star
+  Star,
+  Wand2,
+  Replace,
+  CheckSquare,
+  Square,
+  RefreshCw,
+  Loader2,
+  Sparkles
 } from 'lucide-react'
 
 interface SubtitleEditorProps {
@@ -51,6 +61,13 @@ export function SubtitleEditor({
   const [isPlaying, setIsPlaying] = useState(false)
   const [editHistory, setEditHistory] = useState<any[]>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
+
+  // Batch operations state
+  const [selectedEntries, setSelectedEntries] = useState<Set<number>>(new Set())
+  const [activeTab, setActiveTab] = useState('editor')
+
+  // AI regeneration state
+  const [regeneratingEntries, setRegeneratingEntries] = useState<Set<number>>(new Set())
   const videoRef = useRef<HTMLVideoElement>(null)
 
   // Convert time string to seconds
@@ -196,6 +213,101 @@ export function SubtitleEditor({
 
   const currentEntry = getCurrentEntry()
 
+  // Batch operations handlers
+  const toggleEntrySelection = useCallback((index: number) => {
+    setSelectedEntries(prev => {
+      const newSelection = new Set(prev)
+      if (newSelection.has(index)) {
+        newSelection.delete(index)
+      } else {
+        newSelection.add(index)
+      }
+      return newSelection
+    })
+  }, [])
+
+  const selectAllEntries = useCallback(() => {
+    setSelectedEntries(new Set(entries.map((_, index) => index)))
+  }, [entries])
+
+  const clearSelection = useCallback(() => {
+    setSelectedEntries(new Set())
+  }, [])
+
+  // AI regeneration function
+  const regenerateEntry = useCallback(async (index: number) => {
+    const entry = entries[index]
+    const originalEntry = originalEntries?.[index]
+
+    if (!originalEntry?.text) {
+      toast.error('No original text found for regeneration')
+      return
+    }
+
+    setRegeneratingEntries(prev => new Set(prev).add(index))
+
+    try {
+      // Get translation settings from sessionStorage - prioritize preview data
+      let previewData = JSON.parse(sessionStorage.getItem('previewData') || '{}')
+
+      // Extract translation settings with proper fallbacks
+      const sourceLanguage = previewData.sourceLanguage || 'en'
+      const targetLanguage = previewData.targetLanguage || 'cs'
+      const aiService = previewData.aiService || 'openai' // Default to openai for better quality
+
+      console.log(`🔄 Regenerating subtitle #${entry.index}:`)
+      console.log(`   From: ${sourceLanguage} → To: ${targetLanguage}`)
+      console.log(`   Using: ${aiService}`)
+      console.log(`   Original text: "${originalEntry.text}"`)
+      console.log(`   Current text: "${entry.text}"`)
+
+      const response = await fetch('/api/translate-text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: originalEntry.text, // Use original text for regeneration
+          sourceLanguage: sourceLanguage,
+          targetLanguage: targetLanguage,
+          aiService: aiService,
+          context: `Subtitle #${entry.index} from video content. Previous subtitle: "${entries[index - 1]?.text || ''}" Next subtitle: "${entries[index + 1]?.text || ''}"`
+        }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`❌ API Error (${response.status}):`, errorText)
+        throw new Error(`Translation failed: ${response.status} - ${errorText}`)
+      }
+
+      const result = await response.json()
+      console.log('✅ Translation result:', result)
+
+      if (result.translatedText) {
+        // Update the entry with new translation
+        updateEntry(index, {
+          text: result.translatedText,
+          isEdited: true
+        })
+        toast.success(`Subtitle #${entry.index} regenerated to ${targetLanguage}`)
+      } else {
+        console.error('❌ No translatedText in result:', result)
+        throw new Error('No translation received')
+      }
+
+    } catch (error) {
+      console.error('Failed to regenerate entry:', error)
+      toast.error(`Failed to regenerate subtitle #${entry.index}. Please try again.`)
+    } finally {
+      setRegeneratingEntries(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(index)
+        return newSet
+      })
+    }
+  }, [entries, originalEntries, updateEntry])
+
   return (
     <div className="flex-1 flex flex-col space-y-6 min-h-0">
       {/* Video Player */}
@@ -300,19 +412,68 @@ export function SubtitleEditor({
           </div>
         </CardHeader>
         <CardContent className="flex-1 min-h-0 overflow-hidden">
-          <div className="space-y-2 h-full overflow-y-auto pr-1">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="editor">
+                <Edit3 className="h-4 w-4 mr-2" />
+                Editor
+              </TabsTrigger>
+              <TabsTrigger value="batch">
+                <Wand2 className="h-4 w-4 mr-2" />
+                Batch Operations
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="editor" className="flex-1 min-h-0 overflow-hidden mt-4">
+              {/* Selection Controls */}
+              <div className="flex items-center justify-between mb-4 p-2 bg-muted/50 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={selectedEntries.size === entries.length && entries.length > 0}
+                    onCheckedChange={(checked) => checked ? selectAllEntries() : clearSelection()}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {selectedEntries.size === 0
+                      ? 'Select entries for batch operations'
+                      : `${selectedEntries.size} selected`
+                    }
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm" onClick={selectAllEntries}>
+                    <CheckSquare className="h-4 w-4 mr-1" />
+                    All
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={clearSelection}>
+                    <Square className="h-4 w-4 mr-1" />
+                    Clear
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2 h-full overflow-y-auto pr-1">
             {entries.map((entry, index) => (
               <div
                 key={entry.index}
                 className={`
                   p-3 border rounded-lg transition-colors cursor-pointer
                   ${selectedEntry === index ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30' : 'border-gray-200 dark:border-border hover:border-gray-300 dark:hover:border-muted-foreground'}
+                  ${selectedEntries.has(index) ? 'ring-2 ring-primary bg-primary/5' : ''}
+                  ${regeneratingEntries.has(index) ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-950/30' : ''}
                   ${currentEntry?.index === entry.index ? 'ring-2 ring-green-500' : ''}
                 `}
                 onClick={() => setSelectedEntry(index)}
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex-1 space-y-2">
+                  {/* Selection Checkbox */}
+                  <div className="flex items-start space-x-3 flex-1">
+                    <Checkbox
+                      checked={selectedEntries.has(index)}
+                      onCheckedChange={() => toggleEntrySelection(index)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-1"
+                    />
+                    <div className="flex-1 space-y-2">
                     {/* Timing */}
                     <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-muted-foreground">
                       <Badge variant="outline" className="text-xs">
@@ -322,7 +483,13 @@ export function SubtitleEditor({
                         <Clock className="h-3 w-3 mr-1" />
                         {entry.startTime} → {entry.endTime}
                       </span>
-                      {entry.isEdited && (
+                      {regeneratingEntries.has(index) && (
+                        <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          Regenerating...
+                        </Badge>
+                      )}
+                      {entry.isEdited && !regeneratingEntries.has(index) && (
                         <Badge variant="secondary" className="text-xs">
                           Edited
                         </Badge>
@@ -384,8 +551,9 @@ export function SubtitleEditor({
                         )}
                       </div>
                     )}
+                    </div>
                   </div>
-                  
+
                   {/* Actions */}
                   <div className="flex items-center space-x-1 ml-4">
                     <Button
@@ -393,13 +561,19 @@ export function SubtitleEditor({
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation()
-                        jumpToEntry(entry)
+                        regenerateEntry(index)
                       }}
-                      title="Jump to this subtitle"
+                      disabled={regeneratingEntries.has(index) || !originalEntries?.[index]?.text}
+                      title="Regenerate translation with AI"
+                      className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-950/30"
                     >
-                      <Play className="h-3 w-3" />
+                      {regeneratingEntries.has(index) ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3 w-3" />
+                      )}
                     </Button>
-                    
+
                     <Button
                       variant="ghost"
                       size="sm"
@@ -411,7 +585,7 @@ export function SubtitleEditor({
                     >
                       <Plus className="h-3 w-3" />
                     </Button>
-                    
+
                     <Button
                       variant="ghost"
                       size="sm"
@@ -427,7 +601,64 @@ export function SubtitleEditor({
                 </div>
               </div>
             ))}
-          </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="batch" className="flex-1 min-h-0 overflow-hidden mt-4">
+              <div className="h-full overflow-y-auto space-y-6">
+                {/* AI Regeneration Panel */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 p-6 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                      <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                      <h3 className="font-semibold text-purple-900 dark:text-purple-100">AI Regeneration</h3>
+                    </div>
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                      {selectedEntries.size} selected
+                    </Badge>
+                  </div>
+
+                  <p className="text-sm text-purple-700 dark:text-purple-300 mb-4">
+                    Regenerate translations for selected subtitles using AI. This will create new translations from the original text.
+                  </p>
+
+                  <Button
+                    onClick={() => {
+                      if (selectedEntries.size === 0) {
+                        toast.error('Please select subtitles to regenerate')
+                        return
+                      }
+
+                      // Regenerate all selected entries
+                      Array.from(selectedEntries).forEach(index => {
+                        regenerateEntry(index)
+                      })
+                    }}
+                    disabled={selectedEntries.size === 0 || regeneratingEntries.size > 0}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    {regeneratingEntries.size > 0 ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Regenerating {regeneratingEntries.size} subtitles...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Regenerate Selected ({selectedEntries.size})
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Search and Replace Panel */}
+                <SearchAndReplacePanel
+                  entries={entries}
+                  onEntriesChange={onEntriesChange}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
