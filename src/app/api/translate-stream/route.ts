@@ -47,6 +47,9 @@ export async function POST(request: NextRequest) {
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      let progressTimeoutId: NodeJS.Timeout | null = null
+      let controllerClosed = false
+
       try {
         controller.enqueue(sse({ type: 'connected' }))
         controller.enqueue(sse({ type: 'progress', stage: 'initializing', progress: 0, details: 'Starting translation process...' }))
@@ -112,8 +115,6 @@ export async function POST(request: NextRequest) {
         const premium = new PremiumTranslationService(apiKey)
 
         let lastProgressTime = Date.now()
-        let progressTimeoutId: NodeJS.Timeout | null = null
-        let controllerClosed = false
 
         const progressCallback = async (stage: string, progress: number, details?: string) => {
           // Check if controller is still open
@@ -168,6 +169,15 @@ export async function POST(request: NextRequest) {
           } catch (error) {
             console.warn(`⚠️ [${timestamp}] Failed to send progress update - controller may be closed:`, error.message)
             controllerClosed = true
+          }
+        }
+
+        // Safe wrapper for progress callback that handles errors gracefully
+        const safeProgressCallback = (stage: string, progress: number, details?: string) => {
+          try {
+            progressCallback(stage, progress, details)
+          } catch (error) {
+            console.warn(`⚠️ Failed to send progress update for ${stage}:`, error)
           }
         }
 
