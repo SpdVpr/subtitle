@@ -19,6 +19,9 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import { CreditsCard } from '@/components/ui/credits-display'
 import { HistoryTabs } from '@/components/dashboard/history-tabs'
+import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { BarChart3 } from 'lucide-react'
 import Link from 'next/link'
 
 export default function DashboardPage() {
@@ -129,7 +132,22 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        {/* Dashboard Tabs */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-8">
+            <TabsTrigger value="overview" className="flex items-center space-x-2">
+              <Zap className="w-4 h-4" />
+              <span>Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center space-x-2">
+              <BarChart3 className="w-4 h-4" />
+              <span>Analytics</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview">
+            <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - Credits & Quick Actions */}
           <div className="lg:col-span-1 space-y-6">
             {/* Credits Card */}
@@ -254,8 +272,15 @@ export default function DashboardPage() {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </div>
-        </div>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics">
+            <AnalyticsDashboard />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

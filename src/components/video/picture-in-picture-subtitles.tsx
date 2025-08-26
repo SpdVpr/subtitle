@@ -137,8 +137,9 @@ export function PictureInPictureSubtitles({
       return
     }
 
-    // Set up text styling - use consistent font size
-    const fontSize = 32 // Fixed size that matches our measurement
+    // Set up text styling - use font size from configuration
+    const fontSize = configuration.style.fontSize
+    console.log('PiP drawSubtitle - fontSize:', fontSize, 'color:', configuration.style.color)
     ctx.font = `${configuration.style.fontWeight} ${fontSize}px ${configuration.style.fontFamily}`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
@@ -250,6 +251,18 @@ export function PictureInPictureSubtitles({
       animationRef.current = undefined
     }
   }, [isPipActive, animate])
+
+  // Force redraw when configuration changes while PiP is active
+  useEffect(() => {
+    if (isPipActive && canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d')
+      if (ctx) {
+        const currentEntry = getCurrentEntry(currentTimeRef.current)
+        const text = currentEntry?.text || ''
+        drawSubtitle(ctx, text)
+      }
+    }
+  }, [isPipActive, configuration.style, drawSubtitle, getCurrentEntry])
 
 
 
@@ -461,6 +474,15 @@ export function PictureInPictureSubtitles({
                 const canvas = canvasRef.current
                 if (canvas) {
                   canvas.width = parseInt(e.target.value) || 800
+                  // Redraw after canvas resize
+                  if (isPipActive) {
+                    const ctx = canvas.getContext('2d')
+                    if (ctx) {
+                      const currentEntry = getCurrentEntry(currentTimeRef.current)
+                      const text = currentEntry?.text || ''
+                      drawSubtitle(ctx, text)
+                    }
+                  }
                 }
               }}
             />
@@ -478,6 +500,15 @@ export function PictureInPictureSubtitles({
                 const canvas = canvasRef.current
                 if (canvas) {
                   canvas.height = parseInt(e.target.value) || 200
+                  // Redraw after canvas resize
+                  if (isPipActive) {
+                    const ctx = canvas.getContext('2d')
+                    if (ctx) {
+                      const currentEntry = getCurrentEntry(currentTimeRef.current)
+                      const text = currentEntry?.text || ''
+                      drawSubtitle(ctx, text)
+                    }
+                  }
                 }
               }}
             />

@@ -105,88 +105,91 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="py-8">
+    <div className="py-4 sm:py-6 md:py-8">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Buy Translation Credits</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        <div className="text-center mb-8 sm:mb-10 md:mb-12">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2">Buy Translation Credits</h1>
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-muted-foreground max-w-3xl mx-auto px-4">
             Pay only for what you use. No subscriptions, no monthly fees. Just simple, transparent credit-based pricing.
           </p>
         </div>
 
         {/* How it works */}
-        <div className="bg-primary/5 rounded-lg p-6 mb-12 max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-6">How Credits Work</h2>
-          <div className="grid md:grid-cols-4 gap-6">
+        <div className="bg-primary/5 rounded-lg p-4 sm:p-6 mb-8 sm:mb-10 md:mb-12 max-w-4xl mx-auto">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-center mb-4 sm:mb-6">How Credits Work</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <div className="text-center">
-              <Calculator className="h-8 w-8 text-primary mx-auto mb-2" />
-              <h3 className="font-semibold mb-2">Simple Pricing</h3>
-              <p className="text-sm text-muted-foreground">0.4 credits per 20 subtitles</p>
+              <Calculator className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-2" />
+              <h3 className="text-sm sm:text-base font-semibold mb-2">Simple Pricing</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">0.4 credits per 20 subtitles</p>
             </div>
             <div className="text-center">
-              <FileText className="h-8 w-8 text-primary mx-auto mb-2" />
-              <h3 className="font-semibold mb-2">Upload & Translate</h3>
-              <p className="text-sm text-muted-foreground">Upload SRT files and translate instantly</p>
+              <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-2" />
+              <h3 className="text-sm sm:text-base font-semibold mb-2">Upload & Translate</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">Upload SRT files and translate instantly</p>
             </div>
             <div className="text-center">
-              <Languages className="h-8 w-8 text-primary mx-auto mb-2" />
-              <h3 className="font-semibold mb-2">All Languages</h3>
-              <p className="text-sm text-muted-foreground">Support for 100+ language pairs</p>
+              <Languages className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-2" />
+              <h3 className="text-sm sm:text-base font-semibold mb-2">All Languages</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">Support for 100+ language pairs</p>
             </div>
             <div className="text-center">
-              <BarChart3 className="h-8 w-8 text-primary mx-auto mb-2" />
-              <h3 className="font-semibold mb-2">Track Usage</h3>
-              <p className="text-sm text-muted-foreground">Monitor your credits and analytics</p>
+              <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-2" />
+              <h3 className="text-sm sm:text-base font-semibold mb-2">Track Usage</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">Monitor your credits and analytics</p>
             </div>
           </div>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 mb-12 max-w-5xl mx-auto">
+        <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-10 md:mb-12 max-w-5xl mx-auto">
           {CREDIT_PACKAGES.map((pkg) => (
             <Card
               key={pkg.id}
-              className={`relative ${pkg.popular ? 'border-primary shadow-lg scale-105' : ''}`}
+              className={`relative ${pkg.popular ? 'border-primary shadow-lg sm:scale-105' : ''}`}
             >
               {pkg.popular && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
+                <Badge className="absolute -top-2 sm:-top-3 left-1/2 transform -translate-x-1/2 bg-primary text-xs sm:text-sm">
                   Best Value
                 </Badge>
               )}
 
-              <CardHeader className="text-center">
-                <div className="flex justify-center mb-4">
-                  {getPackageIcon(pkg.id)}
+              <CardHeader className="text-center pb-4 sm:pb-6">
+                <div className="flex justify-center mb-3 sm:mb-4">
+                  <div className="h-5 w-5 sm:h-6 sm:w-6">
+                    {getPackageIcon(pkg.id)}
+                  </div>
                 </div>
-                <CardTitle className="text-2xl">{pkg.name}</CardTitle>
-                <CardDescription className="text-sm text-gray-600 mt-2">
+                <CardTitle className="text-lg sm:text-xl md:text-2xl">{pkg.name}</CardTitle>
+                <CardDescription className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground mt-2">
                   {pkg.description}
                 </CardDescription>
-                <div className="text-center mt-4">
-                  <div className="text-4xl font-bold text-blue-600">
+                <div className="text-center mt-3 sm:mt-4">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600 dark:text-primary">
                     ${pkg.price}
                   </div>
-                  <div className="text-sm text-gray-500 mt-1">
+                  <div className="text-xs sm:text-sm text-gray-500 dark:text-muted-foreground mt-1">
                     {pkg.credits} credits • ${pkg.pricePerCredit.toFixed(3)} per credit
                   </div>
                 </div>
               </CardHeader>
 
-              <CardContent>
-                <ul className="space-y-3 mb-6">
+              <CardContent className="pt-0">
+                <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                   {pkg.features.map((feature, index) => (
                     <li key={index} className="flex items-start">
-                      <Check className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">{feature}</span>
+                      <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
 
                 <Button
-                  className="w-full"
+                  className="w-full text-sm sm:text-base"
                   variant={pkg.popular ? 'default' : 'outline'}
                   disabled={loading === pkg.id}
+                  onClick={() => handleBuyCredits(pkg.id)}
                 >
                   {loading === pkg.id ? 'Processing...' : 'Buy Credits'}
                 </Button>
@@ -197,12 +200,12 @@ export default function PricingPage() {
 
         {/* FAQ Section */}
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-center mb-6 sm:mb-8 px-2">Frequently Asked Questions</h2>
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 px-2">
             <div>
-              <h3 className="font-semibold mb-2">How do credits work?</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-sm sm:text-base font-semibold mb-2">How do credits work?</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Credits are used to translate subtitles. Each batch of 20 subtitles costs 0.4 credits.
                 For example, a 100-subtitle file would cost 2 credits to translate.
               </p>

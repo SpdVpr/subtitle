@@ -547,19 +547,20 @@ export function TranslationInterface() {
 
   return (
     <ErrorBoundary>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle>AI Subtitle Translation</CardTitle>
-          <CardDescription>Upload your SRT file and translate it to any language</CardDescription>
+        <CardHeader className="pb-4 sm:pb-6">
+          <CardTitle className="text-lg sm:text-xl">AI Subtitle Translation</CardTitle>
+          <CardDescription className="text-sm sm:text-base">Upload your SRT file and translate it to any language</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 sm:space-y-6">
           {user && (
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
               <span className="text-sm text-muted-foreground">Credits:</span>
               <CreditsDisplay
                 userId={user.uid}
                 onRefreshChange={setRefreshCredits}
+                className="self-start sm:self-auto"
               />
             </div>
           )}
@@ -583,7 +584,7 @@ export function TranslationInterface() {
             disabled={isTranslating}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Source Language

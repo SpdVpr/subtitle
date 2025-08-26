@@ -65,11 +65,11 @@ export function FileUpload({ onFileSelect, selectedFile, onFileRemove, disabled 
 
   return (
     <Card className="w-full">
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <div
           {...getRootProps()}
           className={cn(
-            "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+            "border-2 border-dashed rounded-lg p-4 sm:p-6 md:p-8 text-center cursor-pointer transition-colors",
             isDragActive || dragActive
               ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
               : "border-gray-300 dark:border-border hover:border-gray-400 dark:hover:border-muted-foreground",
@@ -77,15 +77,15 @@ export function FileUpload({ onFileSelect, selectedFile, onFileRemove, disabled 
           )}
         >
           <input {...getInputProps()} />
-          <Upload className="h-12 w-12 text-gray-400 dark:text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">Upload Subtitle File</h3>
-          <p className="text-gray-600 dark:text-muted-foreground mb-4">
+          <Upload className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-gray-400 dark:text-muted-foreground mx-auto mb-3 sm:mb-4" />
+          <h3 className="text-base sm:text-lg font-medium mb-2">Upload Subtitle File</h3>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-muted-foreground mb-3 sm:mb-4 px-2">
             Drag and drop your SRT file here, or click to browse
           </p>
-          <Button variant="outline" disabled={disabled}>
+          <Button variant="outline" disabled={disabled} size="sm" className="text-sm sm:text-base">
             Choose File
           </Button>
-          <p className="text-sm text-gray-500 dark:text-muted-foreground mt-4">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-muted-foreground mt-3 sm:mt-4">
             Supports: .srt files up to 10MB
           </p>
         </div>

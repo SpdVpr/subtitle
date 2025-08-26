@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Simplified middleware - just add security headers
+  // Just add security headers - no locale routing
   const response = NextResponse.next()
 
   // Add basic security headers

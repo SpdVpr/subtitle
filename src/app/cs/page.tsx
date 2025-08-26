@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import {
   Star
 } from "lucide-react";
 
-export default function Home() {
+export default function CzechHome() {
   const { loading } = useAuth()
 
   // Show loading state while checking auth
@@ -26,7 +26,7 @@ export default function Home() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">Načítání...</p>
         </div>
       </div>
     )
@@ -42,36 +42,36 @@ export default function Home() {
             {/* Free Credits Badge */}
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-full mb-8 shadow-lg">
               <Gift className="h-5 w-5" />
-              <span className="font-semibold">🎉 New users get 200 FREE credits to start!</span>
+              <span className="font-semibold">🎉 Noví uživatelé získají 200 ZDARMA kreditů na začátek!</span>
               <Sparkles className="h-5 w-5" />
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-              AI-Powered Subtitle Translation
+              AI Překlad Titulků
             </h1>
 
             <p className="text-xl md:text-2xl text-gray-600 dark:text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-              Translate your subtitles with our <span className="font-semibold text-blue-600 dark:text-primary">proprietary AI engine</span> that combines
-              <span className="font-semibold text-purple-600 dark:text-primary"> OpenAI + Context Research</span> for maximum translation quality.
+              Přeložte své titulky pomocí našeho <span className="font-semibold text-blue-600 dark:text-primary">proprietárního AI enginu</span>, který kombinuje
+              <span className="font-semibold text-purple-600 dark:text-primary"> OpenAI + Kontextový Výzkum</span> pro maximální kvalitu překladu.
             </p>
 
             {/* Key Features Pills */}
             <div className="flex flex-wrap justify-center gap-3 mb-10">
               <Badge variant="secondary" className="px-4 py-2 text-sm">
                 <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                100+ Language Pairs
+                100+ Jazykových Párů
               </Badge>
               <Badge variant="secondary" className="px-4 py-2 text-sm">
                 <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                Context-Aware AI
+                Kontextové AI
               </Badge>
               <Badge variant="secondary" className="px-4 py-2 text-sm">
                 <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                No Subscriptions
+                Žádné Předplatné
               </Badge>
               <Badge variant="secondary" className="px-4 py-2 text-sm">
                 <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                Credits Never Expire
+                Kredity Nikdy Nevyprší
               </Badge>
             </div>
 
@@ -79,27 +79,27 @@ export default function Home() {
             <div className="bg-white/80 backdrop-blur-sm border border-blue-200 rounded-2xl p-6 mb-10 max-w-lg mx-auto shadow-xl dark:bg-card/80 dark:border-border dark:backdrop-blur-sm">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Zap className="h-5 w-5 text-blue-600 dark:text-primary" />
-                <span className="font-semibold text-gray-800 dark:text-card-foreground">Simple Pricing</span>
+                <span className="font-semibold text-gray-800 dark:text-card-foreground">Jednoduché Ceny</span>
               </div>
-              <p className="text-2xl font-bold text-blue-600 dark:text-primary mb-2">0.4 credits per 20 subtitles</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-primary mb-2">0,4 kreditů za 20 titulků</p>
               <p className="text-sm text-gray-600 dark:text-muted-foreground">
-                Example: 100 subtitles = 2 credits • No hidden fees • Pay only for what you use
+                Příklad: 100 titulků = 2 kredity • Žádné skryté poplatky • Plaťte jen za to, co použijete
               </p>
             </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg" asChild>
-                <Link href="/translate" className="flex items-center gap-2">
+                <Link href="/cs/translate" className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5" />
-                  Start Translating FREE
+                  Začít Překládat ZDARMA
                   <ArrowRight className="h-5 w-5" />
                 </Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <Link href="/pricing" className="flex items-center gap-2">
+                <Link href="/cs/pricing" className="flex items-center gap-2">
                   <Gift className="h-5 w-5" />
-                  View Credit Packages
+                  Zobrazit Balíčky Kreditů
                 </Link>
               </Button>
             </div>
@@ -108,15 +108,15 @@ export default function Home() {
             <div className="mt-12 flex flex-wrap justify-center items-center gap-8 text-gray-600 dark:text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Star className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm">Premium AI Quality</span>
+                <span className="text-sm">Prémiová AI Kvalita</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
-                <span className="text-sm">Instant Processing</span>
+                <span className="text-sm">Okamžité Zpracování</span>
               </div>
               <div className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                <span className="text-sm">Global Language Support</span>
+                <span className="text-sm">Globální Jazyková Podpora</span>
               </div>
             </div>
           </div>
@@ -129,14 +129,14 @@ export default function Home() {
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-purple-100 dark:bg-accent text-purple-700 dark:text-primary border-purple-200 dark:border-border">
               <Brain className="h-4 w-4 mr-2" />
-              Proprietary AI Technology
+              Proprietární AI Technologie
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Advanced Translation Engine
+              Pokročilý Překladový Engine
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our custom-built AI combines the power of OpenAI with specialized context research
-              to deliver translations that understand nuance, emotion, and cultural context.
+              Náš vlastní AI kombinuje sílu OpenAI se specializovaným kontextovým výzkumem
+              pro překlady, které rozumí nuancím, emocím a kulturnímu kontextu.
             </p>
           </div>
 
@@ -147,9 +147,9 @@ export default function Home() {
                   <Brain className="h-6 w-6 text-blue-600 dark:text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">OpenAI Integration</h3>
+                  <h3 className="text-xl font-semibold mb-2">OpenAI Integrace</h3>
                   <p className="text-gray-600 dark:text-muted-foreground">
-                    Leverages GPT models for natural, human-like translations that capture the original meaning and tone.
+                    Využívá GPT modely pro přirozené, lidské překlady, které zachycují původní význam a tón.
                   </p>
                 </div>
               </div>
@@ -159,9 +159,9 @@ export default function Home() {
                   <FileText className="h-6 w-6 text-purple-600 dark:text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Context Research</h3>
+                  <h3 className="text-xl font-semibold mb-2">Kontextový Výzkum</h3>
                   <p className="text-gray-600 dark:text-muted-foreground">
-                    Analyzes subtitle context, character relationships, and scene dynamics for more accurate translations.
+                    Analyzuje kontext titulků, vztahy mezi postavami a dynamiku scén pro přesnější překlady.
                   </p>
                 </div>
               </div>
@@ -171,9 +171,9 @@ export default function Home() {
                   <Zap className="h-6 w-6 text-green-600 dark:text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Real-time Processing</h3>
+                  <h3 className="text-xl font-semibold mb-2">Zpracování v Reálném Čase</h3>
                   <p className="text-gray-600 dark:text-muted-foreground">
-                    Lightning-fast translation with intelligent timing adjustment for perfect subtitle synchronization.
+                    Bleskově rychlý překlad s inteligentním úpravou časování pro perfektní synchronizaci titulků.
                   </p>
                 </div>
               </div>
@@ -184,25 +184,25 @@ export default function Home() {
                 <div className="bg-gradient-to-r from-primary to-primary/80 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Sparkles className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <h3 className="text-2xl font-bold mb-2">Translation Quality</h3>
-                <p className="text-muted-foreground">See the difference our AI makes</p>
+                <h3 className="text-2xl font-bold mb-2">Kvalita Překladu</h3>
+                <p className="text-muted-foreground">Uvidíte rozdíl, který naše AI dělá</p>
               </div>
 
               <div className="space-y-4">
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-                  <p className="text-sm text-destructive font-medium mb-1">Basic Translation:</p>
-                  <p className="text-sm text-muted-foreground">"I am very happy to see you"</p>
+                  <p className="text-sm text-destructive font-medium mb-1">Základní Překlad:</p>
+                  <p className="text-sm text-muted-foreground">"Jsem velmi šťastný, že tě vidím"</p>
                 </div>
                 <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                  <p className="text-sm text-primary font-medium mb-1">Our AI Translation:</p>
-                  <p className="text-sm text-muted-foreground">"I'm absolutely thrilled to see you!"</p>
+                  <p className="text-sm text-primary font-medium mb-1">Náš AI Překlad:</p>
+                  <p className="text-sm text-muted-foreground">"Jsem naprosto nadšený, že tě vidím!"</p>
                 </div>
               </div>
 
               <div className="mt-6 text-center">
                 <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                   <Star className="h-4 w-4 mr-1" />
-                  95% Accuracy Rate
+                  95% Míra Přesnosti
                 </Badge>
               </div>
             </div>
@@ -213,9 +213,9 @@ export default function Home() {
       {/* Features Section */}
       <section className="container px-4 py-20 mx-auto bg-background dark:bg-background">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Why Choose SubtitleAI?</h2>
+          <h2 className="text-4xl font-bold mb-4">Proč si vybrat SubtitleAI?</h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Everything you need for professional subtitle translation, powered by cutting-edge AI technology.
+            Vše, co potřebujete pro profesionální překlad titulků, poháněno nejmodernější AI technologií.
           </p>
         </div>
 
@@ -225,14 +225,14 @@ export default function Home() {
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Zap className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-xl">Lightning Fast</CardTitle>
+              <CardTitle className="text-xl">Bleskově Rychlé</CardTitle>
               <CardDescription className="text-base">
-                Translate entire subtitle files in under 30 seconds
+                Přeložte celé soubory s titulky za méně než 30 sekund
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">
-                Our optimized AI processes your subtitles quickly while maintaining perfect timing and context.
+                Naše optimalizované AI zpracuje vaše titulky rychle při zachování perfektního časování a kontextu.
               </p>
             </CardContent>
           </Card>
@@ -242,14 +242,14 @@ export default function Home() {
               <div className="bg-purple-100 dark:bg-accent w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Brain className="h-8 w-8 text-purple-600 dark:text-primary" />
               </div>
-              <CardTitle className="text-xl">Context-Aware AI</CardTitle>
+              <CardTitle className="text-xl">Kontextové AI</CardTitle>
               <CardDescription className="text-base">
-                AI understands movie context for better translations
+                AI rozumí kontextu filmu pro lepší překlady
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">
-                Advanced AI models consider dialogue flow, character emotions, and cultural nuances.
+                Pokročilé AI modely zvažují tok dialogu, emoce postav a kulturní nuance.
               </p>
             </CardContent>
           </Card>
@@ -259,14 +259,14 @@ export default function Home() {
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Gift className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-xl">Pay Per Use</CardTitle>
+              <CardTitle className="text-xl">Platba za Použití</CardTitle>
               <CardDescription className="text-base">
-                Simple credit system - no subscriptions needed
+                Jednoduchý kreditový systém - žádné předplatné
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">
-                Buy credits once, use them forever. Only pay for what you translate with transparent pricing.
+                Kupte kredity jednou, používejte je navždy. Plaťte jen za to, co přeložíte s transparentními cenami.
               </p>
             </CardContent>
           </Card>
@@ -276,9 +276,9 @@ export default function Home() {
       {/* Powerful Features Section */}
       <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-muted dark:to-accent">
         <div className="container px-4 mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">🚀 Powerful Features</h2>
+          <h2 className="text-3xl font-bold mb-4">🚀 Výkonné Funkce</h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Everything you need for professional subtitle translation
+            Vše, co potřebujete pro profesionální překlad titulků
           </p>
 
           <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto mb-8">
@@ -286,52 +286,52 @@ export default function Home() {
               <div className="w-12 h-12 bg-blue-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">📁</span>
               </div>
-              <h3 className="font-semibold mb-2">Batch Processing</h3>
+              <h3 className="font-semibold mb-2">Dávkové Zpracování</h3>
               <p className="text-sm text-muted-foreground">
-                Upload multiple files and translate them all at once
+                Nahrajte více souborů a přeložte je všechny najednou
               </p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-green-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">📺</span>
               </div>
-              <h3 className="font-semibold mb-2">Subtitle Overlay</h3>
+              <h3 className="font-semibold mb-2">Titulkový Overlay</h3>
               <p className="text-sm text-muted-foreground">
-                Display subtitles over any video with full customization
+                Zobrazujte titulky nad jakýmkoli videem s plným přizpůsobením
               </p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-purple-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🌐</span>
               </div>
-              <h3 className="font-semibold mb-2">100+ Languages</h3>
+              <h3 className="font-semibold mb-2">100+ Jazyků</h3>
               <p className="text-sm text-muted-foreground">
-                Support for all major world languages and dialects
+                Podpora všech hlavních světových jazyků a dialektů
               </p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-orange-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">⚡</span>
               </div>
-              <h3 className="font-semibold mb-2">Instant Translation</h3>
+              <h3 className="font-semibold mb-2">Okamžitý Překlad</h3>
               <p className="text-sm text-muted-foreground">
-                Fast AI-powered translation with context awareness
+                Rychlý AI překlad s kontextovým povědomím
               </p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild>
-              <Link href="/subtitles-search">Try Subtitle Search</Link>
+              <Link href="/cs/subtitles-search">Vyzkoušet Hledání Titulků</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/subtitle-overlay">Try Subtitle Overlay</Link>
+              <Link href="/cs/subtitle-overlay">Vyzkoušet Titulkový Overlay</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/subtitle-popup">Try Popup Window</Link>
+              <Link href="/cs/subtitle-popup">Vyzkoušet Popup Okno</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/video-player">Try Video Player</Link>
+              <Link href="/cs/video-tools">Vyzkoušet Video Přehrávač</Link>
             </Button>
           </div>
         </div>
@@ -344,14 +344,14 @@ export default function Home() {
             <div className="text-center mb-16">
               <Badge className="mb-4 bg-gradient-to-r from-indigo-500 to-cyan-500 text-white">
                 <span className="text-2xl mr-2">📺</span>
-                NEW FEATURE
+                NOVÁ FUNKCE
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">
-                Subtitle Overlay
+                Titulkový Overlay
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Display subtitles over any video content with full customization. Perfect for streaming services,
-                video players, and online content where external subtitle loading isn't available.
+                Zobrazujte titulky nad jakýmkoli video obsahem s plným přizpůsobením. Perfektní pro streamovací služby,
+                video přehrávače a online obsah, kde není možné načíst externí titulky.
               </p>
             </div>
 
@@ -363,10 +363,10 @@ export default function Home() {
                       <span className="text-2xl">🎨</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Full Customization</h3>
+                      <h3 className="text-xl font-semibold mb-2">Plné Přizpůsobení</h3>
                       <p className="text-muted-foreground">
-                        Customize font, size, colors, background, shadows, and positioning.
-                        Make subtitles look exactly how you want them.
+                        Přizpůsobte písmo, velikost, barvy, pozadí, stíny a umístění.
+                        Udělejte titulky přesně tak, jak je chcete.
                       </p>
                     </div>
                   </div>
@@ -376,10 +376,10 @@ export default function Home() {
                       <span className="text-2xl">🎯</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Drag & Drop Positioning</h3>
+                      <h3 className="text-xl font-semibold mb-2">Přetažení & Umístění</h3>
                       <p className="text-muted-foreground">
-                        Simply drag the overlay anywhere on your screen. Smart snapping to edges
-                        and center alignment for perfect positioning.
+                        Jednoduše přetáhněte overlay kamkoli na obrazovku. Inteligentní přichycení k okrajům
+                        a centrální zarovnání pro perfektní umístění.
                       </p>
                     </div>
                   </div>
@@ -389,10 +389,10 @@ export default function Home() {
                       <span className="text-2xl">⏱️</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Perfect Synchronization</h3>
+                      <h3 className="text-xl font-semibold mb-2">Perfektní Synchronizace</h3>
                       <p className="text-muted-foreground">
-                        Fine-tune timing with offset controls and speed multipliers.
-                        Get perfect sync with any video content.
+                        Dolaďte časování pomocí ovládání offsetu a rychlostních multiplikátorů.
+                        Získejte perfektní synchronizaci s jakýmkoli video obsahem.
                       </p>
                     </div>
                   </div>
@@ -402,10 +402,10 @@ export default function Home() {
                       <span className="text-2xl">🌐</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Universal Compatibility</h3>
+                      <h3 className="text-xl font-semibold mb-2">Univerzální Kompatibilita</h3>
                       <p className="text-muted-foreground">
-                        Works with any video player, streaming service, or online content.
-                        No need for special software or plugins.
+                        Funguje s jakýmkoli video přehrávačem, streamovací službou nebo online obsahem.
+                        Není potřeba speciální software nebo pluginy.
                       </p>
                     </div>
                   </div>
@@ -413,9 +413,9 @@ export default function Home() {
 
                 <div className="pt-6">
                   <Button size="lg" className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white" asChild>
-                    <Link href="/subtitle-overlay" className="flex items-center gap-2">
+                    <Link href="/cs/subtitle-overlay" className="flex items-center gap-2">
                       <span className="text-xl">📺</span>
-                      Try Subtitle Overlay Now
+                      Vyzkoušet Titulkový Overlay Nyní
                       <ArrowRight className="h-5 w-5" />
                     </Link>
                   </Button>
@@ -428,17 +428,17 @@ export default function Home() {
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20"></div>
                     <div className="text-white text-center z-10">
                       <div className="text-4xl mb-2">🎬</div>
-                      <div className="text-sm opacity-75">Your Video Content</div>
+                      <div className="text-sm opacity-75">Váš Video Obsah</div>
                     </div>
 
                     {/* Simulated subtitle overlay */}
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded text-sm font-medium">
-                      Perfect subtitle positioning anywhere on screen
+                      Perfektní umístění titulků kdekoli na obrazovce
                     </div>
                   </div>
 
                   <div className="text-white/60 text-xs text-center">
-                    Overlay works with any video player or streaming service
+                    Overlay funguje s jakýmkoli video přehrávačem nebo streamovací službou
                   </div>
                 </div>
               </div>
@@ -450,9 +450,9 @@ export default function Home() {
       {/* Credits System */}
       <section className="bg-muted/50 dark:bg-card py-16">
         <div className="container px-4 mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">💰 Pay-as-you-go Credits</h2>
+          <h2 className="text-3xl font-bold mb-4">💰 Kredity na Platbu za Použití</h2>
           <p className="text-muted-foreground mb-8">
-            No monthly subscriptions. Only pay for what you use.
+            Žádné měsíční předplatné. Plaťte jen za to, co použijete.
           </p>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -460,19 +460,19 @@ export default function Home() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-center space-x-2">
                   <span>🎁</span>
-                  <span>Welcome Bonus</span>
+                  <span>Uvítací Bonus</span>
                 </CardTitle>
-                <CardDescription>Get started for free</CardDescription>
+                <CardDescription>Začněte zdarma</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-3xl font-bold text-primary">200 Credits</div>
-                <div className="text-sm text-muted-foreground">Free on signup</div>
+                <div className="text-3xl font-bold text-primary">200 Kreditů</div>
+                <div className="text-sm text-muted-foreground">Zdarma při registraci</div>
               </CardContent>
               <CardContent className="space-y-2">
-                <p>✓ ~500 lines of translation</p>
-                <p>✓ Premium AI translation</p>
-                <p>✓ No time limit</p>
-                <p>✓ Full feature access</p>
+                <p>✓ ~500 řádků překladu</p>
+                <p>✓ Prémiový AI překlad</p>
+                <p>✓ Žádný časový limit</p>
+                <p>✓ Přístup ke všem funkcím</p>
               </CardContent>
             </Card>
 
@@ -480,29 +480,29 @@ export default function Home() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-center space-x-2">
                   <span>🎬</span>
-                  <span>Premium Translation</span>
+                  <span>Prémiový Překlad</span>
                 </CardTitle>
-                <CardDescription>OpenAI GPT-4 with context research</CardDescription>
+                <CardDescription>OpenAI GPT-4 s kontextovým výzkumem</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-3xl font-bold">~0.4</div>
-                <div className="text-sm text-muted-foreground">credits per 20 lines</div>
+                <div className="text-3xl font-bold">~0,4</div>
+                <div className="text-sm text-muted-foreground">kreditů za 20 řádků</div>
               </CardContent>
               <CardContent className="space-y-2">
-                <p>✓ Context-aware translation</p>
-                <p>✓ Show/movie research</p>
-                <p>✓ Cultural adaptation</p>
-                <p>✓ Professional quality</p>
+                <p>✓ Kontextový překlad</p>
+                <p>✓ Výzkum filmu/seriálu</p>
+                <p>✓ Kulturní adaptace</p>
+                <p>✓ Profesionální kvalita</p>
               </CardContent>
             </Card>
           </div>
 
           <div className="mt-8 space-y-4">
             <div className="text-sm text-muted-foreground">
-              💡 <strong>1 USD = 100 credits</strong> • Buy credits as needed • No expiration
+              💡 <strong>1 USD = 100 kreditů</strong> • Kupte kredity podle potřeby • Bez vypršení
             </div>
             <Button size="lg" asChild>
-              <Link href="/register">Get 200 Free Credits</Link>
+              <Link href="/register">Získat 200 Zdarma Kreditů</Link>
             </Button>
           </div>
         </div>
@@ -515,14 +515,14 @@ export default function Home() {
             <div className="text-center mb-16">
               <Badge className="mb-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white">
                 <span className="text-2xl mr-2">🪟</span>
-                NO INSTALLATION NEEDED
+                ŽÁDNÁ INSTALACE POTŘEBA
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                Popup Window Solution
+                Řešení Popup Okna
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Open a subtitle window that stays on top of any video. No browser extensions,
-                no installations - just click and use instantly!
+                Otevřete titulkové okno, které zůstává nad jakýmkoli videem. Žádná rozšíření prohlížeče,
+                žádné instalace - jen klikněte a okamžitě používejte!
               </p>
             </div>
 
@@ -534,10 +534,10 @@ export default function Home() {
                       <span className="text-2xl">⚡</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Instant Setup</h3>
+                      <h3 className="text-xl font-semibold mb-2">Okamžité Nastavení</h3>
                       <p className="text-muted-foreground">
-                        No browser extensions or software to install. Works immediately
-                        in any modern web browser.
+                        Žádná rozšíření prohlížeče nebo software k instalaci. Funguje okamžitě
+                        v jakémkoli moderním webovém prohlížeči.
                       </p>
                     </div>
                   </div>
@@ -547,10 +547,10 @@ export default function Home() {
                       <span className="text-2xl">🎯</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Always On Top</h3>
+                      <h3 className="text-xl font-semibold mb-2">Vždy Nahoře</h3>
                       <p className="text-muted-foreground">
-                        The subtitle window stays above all other windows, perfect for
-                        Netflix, YouTube, or any video player.
+                        Titulkové okno zůstává nad všemi ostatními okny, perfektní pro
+                        Netflix, YouTube nebo jakýkoli video přehrávač.
                       </p>
                     </div>
                   </div>
@@ -560,10 +560,10 @@ export default function Home() {
                       <span className="text-2xl">🎨</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Transparent Background</h3>
+                      <h3 className="text-xl font-semibold mb-2">Průhledné Pozadí</h3>
                       <p className="text-muted-foreground">
-                        Clean, transparent overlay that doesn't interfere with your video.
-                        Customize colors, fonts, and positioning.
+                        Čistý, průhledný overlay, který neruší vaše video.
+                        Přizpůsobte barvy, písma a umístění.
                       </p>
                     </div>
                   </div>
@@ -573,10 +573,10 @@ export default function Home() {
                       <span className="text-2xl">🖱️</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Easy Positioning</h3>
+                      <h3 className="text-xl font-semibold mb-2">Snadné Umístění</h3>
                       <p className="text-muted-foreground">
-                        Drag the window anywhere on your screen. Position remembers
-                        your preference for next time.
+                        Přetáhněte okno kamkoli na obrazovku. Pozice si pamatuje
+                        vaše preference pro příště.
                       </p>
                     </div>
                   </div>
@@ -584,9 +584,9 @@ export default function Home() {
 
                 <div className="pt-6">
                   <Button size="lg" className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white" asChild>
-                    <Link href="/subtitle-popup" className="flex items-center gap-2">
+                    <Link href="/cs/subtitle-popup" className="flex items-center gap-2">
                       <span className="text-xl">🪟</span>
-                      Try Popup Window Now
+                      Vyzkoušet Popup Okno Nyní
                       <ArrowRight className="h-5 w-5" />
                     </Link>
                   </Button>
@@ -608,7 +608,7 @@ export default function Home() {
                     <div className="aspect-video bg-black rounded-b-lg flex items-center justify-center relative">
                       <div className="text-white text-center">
                         <div className="text-3xl mb-2">🎬</div>
-                        <div className="text-sm opacity-75">Your Video</div>
+                        <div className="text-sm opacity-75">Vaše Video</div>
                       </div>
                     </div>
                   </div>
@@ -616,10 +616,10 @@ export default function Home() {
                   {/* Popup window mockup */}
                   <div className="absolute -top-4 -right-4 bg-black/90 backdrop-blur-sm rounded-lg p-4 shadow-2xl border-2 border-green-400">
                     <div className="text-white text-center text-sm font-medium">
-                      Perfect subtitle positioning
+                      Perfektní umístění titulků
                     </div>
                     <div className="text-xs text-green-400 mt-1 text-center">
-                      ↑ Popup Window
+                      ↑ Popup Okno
                     </div>
                   </div>
                 </div>
@@ -636,14 +636,14 @@ export default function Home() {
             <div className="text-center mb-16">
               <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                 <span className="text-2xl mr-2">🎬</span>
-                ALL-IN-ONE SOLUTION
+                VŠE-V-JEDNOM ŘEŠENÍ
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Integrated Video Player
+                Integrovaný Video Přehrávač
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Watch any video with custom subtitles in one place. Perfect synchronization,
-                full customization, and support for all major video platforms.
+                Sledujte jakékoli video s vlastními titulky na jednom místě. Perfektní synchronizace,
+                plné přizpůsobení a podpora všech hlavních video platforem.
               </p>
             </div>
 
@@ -655,10 +655,10 @@ export default function Home() {
                       <span className="text-2xl">🔗</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Universal Video Support</h3>
+                      <h3 className="text-xl font-semibold mb-2">Univerzální Video Podpora</h3>
                       <p className="text-muted-foreground">
-                        Works with YouTube, Vimeo, direct video links, and any embeddable
-                        video content. Just paste the URL and start watching.
+                        Funguje s YouTube, Vimeo, přímými video odkazy a jakýmkoli vložitelným
+                        video obsahem. Stačí vložit URL a začít sledovat.
                       </p>
                     </div>
                   </div>
@@ -668,10 +668,10 @@ export default function Home() {
                       <span className="text-2xl">⚡</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Perfect Synchronization</h3>
+                      <h3 className="text-xl font-semibold mb-2">Perfektní Synchronizace</h3>
                       <p className="text-muted-foreground">
-                        Subtitles are perfectly synced with video playback. Automatic timing
-                        with manual fine-tuning controls for perfect alignment.
+                        Titulky jsou perfektně synchronizovány s přehráváním videa. Automatické časování
+                        s možností ručního doladění pro perfektní zarovnání.
                       </p>
                     </div>
                   </div>
@@ -681,10 +681,10 @@ export default function Home() {
                       <span className="text-2xl">🎨</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Complete Customization</h3>
+                      <h3 className="text-xl font-semibold mb-2">Kompletní Přizpůsobení</h3>
                       <p className="text-muted-foreground">
-                        Full control over subtitle appearance - fonts, colors, positioning,
-                        opacity, and effects. Make it look exactly how you want.
+                        Plná kontrola nad vzhledem titulků - písma, barvy, umístění,
+                        průhlednost a efekty. Udělejte si je přesně podle svých představ.
                       </p>
                     </div>
                   </div>
@@ -694,10 +694,10 @@ export default function Home() {
                       <span className="text-2xl">🎯</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">All-in-One Interface</h3>
+                      <h3 className="text-xl font-semibold mb-2">Vše-v-Jednom Rozhraní</h3>
                       <p className="text-muted-foreground">
-                        Everything in one place - video player, subtitle controls, and
-                        customization options. No need to juggle multiple windows.
+                        Vše na jednom místě - video přehrávač, ovládání titulků a
+                        možnosti přizpůsobení. Není potřeba žonglovat s více okny.
                       </p>
                     </div>
                   </div>
@@ -705,9 +705,9 @@ export default function Home() {
 
                 <div className="pt-6">
                   <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white" asChild>
-                    <Link href="/video-player" className="flex items-center gap-2">
+                    <Link href="/cs/video-tools" className="flex items-center gap-2">
                       <span className="text-xl">🎬</span>
-                      Try Video Player Now
+                      Vyzkoušet Video Přehrávač Nyní
                       <ArrowRight className="h-5 w-5" />
                     </Link>
                   </Button>
@@ -722,13 +722,13 @@ export default function Home() {
                     <div className="absolute inset-0 flex items-center justify-center text-white">
                       <div className="text-center">
                         <div className="text-4xl mb-2">▶️</div>
-                        <div className="text-sm opacity-75">Your Video Here</div>
+                        <div className="text-sm opacity-75">Vaše Video Zde</div>
                       </div>
                     </div>
 
                     {/* Subtitle overlay mockup */}
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded text-sm font-medium">
-                      Perfect subtitle integration
+                      Perfektní integrace titulků
                     </div>
                   </div>
 
@@ -744,7 +744,7 @@ export default function Home() {
                       <div className="text-white text-xs">2:34</div>
                     </div>
                     <div className="text-gray-400 text-xs text-center">
-                      Integrated video controls + subtitle customization
+                      Integrované video ovládání + přizpůsobení titulků
                     </div>
                   </div>
                 </div>

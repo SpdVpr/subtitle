@@ -27,31 +27,41 @@ const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS.map((link, index) => ({
 }))
 
 function getPackageName(credits: number): string {
-  if (credits <= 100) return 'Trial Pack'
-  if (credits <= 500) return 'Starter Pack'
-  if (credits <= 1200) return 'Popular Pack'
-  if (credits <= 2500) return 'Professional Pack'
-  return 'Enterprise Pack'
+  if (credits <= 100) return 'Zkušební Balíček'
+  if (credits <= 500) return 'Začátečnický Balíček'
+  if (credits <= 1200) return 'Populární Balíček'
+  if (credits <= 2500) return 'Profesionální Balíček'
+  return 'Podnikový Balíček'
 }
 
 function getPackageFeatures(credits: number): string[] {
   const features = [
-    `${credits.toLocaleString()} credits`,
-    `~${(credits * 5).toLocaleString()} lines of translation`,
-    'No expiration'
+    `${credits.toLocaleString()} kreditů`,
+    `~${(credits * 5).toLocaleString()} řádků překladu`,
+    'Bez vypršení'
   ]
 
   // Zdůrazni bonus kredity jen u dražších balíčků
   if (credits === 1200) {
-    features.unshift('🎁 +200 BONUS credits (1000 + 200)')
+    features.unshift('🎁 +200 BONUS kreditů (1000 + 200)')
   } else if (credits === 2500) {
-    features.unshift('🎁 +500 BONUS credits (2000 + 500)')
+    features.unshift('🎁 +500 BONUS kreditů (2000 + 500)')
+  }
+
+  if (credits >= 500) {
+    features.push('Prioritní podpora')
+  }
+  if (credits >= 1000) {
+    features.push('Pokročilé analýzy')
+  }
+  if (credits >= 2000) {
+    features.push('API přístup')
   }
 
   return features
 }
 
-export default function BuyCreditsPage() {
+export default function CzechBuyCreditsPage() {
   const { user } = useAuth()
   const { refreshCredits } = useCredits()
   const [loading, setLoading] = useState<string | null>(null)
@@ -59,7 +69,7 @@ export default function BuyCreditsPage() {
   const handlePurchase = async (packageId: string) => {
     if (!user) {
       // Redirect to login instead of showing error
-      window.location.href = '/login?redirect=/buy-credits'
+      window.location.href = '/login?redirect=/cs/buy-credits'
       return
     }
 
@@ -92,7 +102,7 @@ export default function BuyCreditsPage() {
       window.location.href = paymentUrl
     } catch (error) {
       console.error('Purchase failed:', error)
-      toast.error('Purchase failed. Please try again.')
+      toast.error('Nákup se nezdařil. Zkuste to prosím znovu.')
     } finally {
       setLoading(null)
     }
@@ -101,7 +111,7 @@ export default function BuyCreditsPage() {
   const handleBitcoinPurchase = async (packageId: string) => {
     if (!user) {
       // Redirect to login instead of showing error
-      window.location.href = '/login?redirect=/buy-credits'
+      window.location.href = '/login?redirect=/cs/buy-credits'
       return
     }
 
@@ -114,7 +124,7 @@ export default function BuyCreditsPage() {
       }
 
       console.log(`🟠 Creating Bitcoin invoice for ${pkg.credits} credits`)
-      toast.loading('Creating Bitcoin Lightning invoice...', { id: 'bitcoin-invoice' })
+      toast.loading('Vytváření Bitcoin Lightning faktury...', { id: 'bitcoin-invoice' })
 
       const response = await fetch('/api/opennode/create-invoice', {
         method: 'POST',
@@ -141,20 +151,20 @@ export default function BuyCreditsPage() {
       // Open OpenNode hosted checkout in new window (with Lightning default)
       window.open(data.charge.checkoutUrl, '_blank')
 
-      toast.success(`Bitcoin Lightning payment ready!
+      toast.success(`Bitcoin Lightning platba připravena!
 
-Amount: $${data.charge.priceUSD} USD
-Package: ${data.charge.packageName}
-Credits: ${data.charge.credits}
+Částka: $${data.charge.priceUSD} USD
+Balíček: ${data.charge.packageName}
+Kredity: ${data.charge.credits}
 
-Complete payment in the new window.`, {
+Dokončete platbu v novém okně.`, {
         duration: 8000
       })
 
     } catch (error) {
       console.error('🚨 Bitcoin purchase error:', error)
       toast.dismiss('bitcoin-invoice')
-      toast.error(`Bitcoin payment failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or use card payment.`, {
+      toast.error(`Bitcoin platba se nezdařila: ${error instanceof Error ? error.message : 'Neznámá chyba'}. Zkuste to prosím znovu nebo použijte platbu kartou.`, {
         duration: 6000
       })
     } finally {
@@ -162,18 +172,16 @@ Complete payment in the new window.`, {
     }
   }
 
-
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-4">
-            💰 Buy Credits
+            💰 Koupit Kredity
           </h1>
           <p className="text-xl text-muted-foreground mb-6">
-            Simple pay-per-use credits. Each credit = 1 line of translation. No subscriptions, no expiration.
+            Jednoduché kredity za použití. Každý kredit = 1 řádek překladu. Žádné předplatné, žádné vypršení.
           </p>
 
           {/* Current Balance - only for logged in users */}
@@ -181,7 +189,7 @@ Complete payment in the new window.`, {
             <div className="flex justify-center mb-8">
               <div className="bg-card rounded-lg p-4 shadow-sm border">
                 <div className="flex items-center space-x-4">
-                  <span className="text-muted-foreground">Current Balance:</span>
+                  <span className="text-muted-foreground">Aktuální Zůstatek:</span>
                   <CreditsDisplay showBuyButton={false} />
                 </div>
               </div>
@@ -201,7 +209,7 @@ Complete payment in the new window.`, {
               {pkg.popular && (
                 <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 dark:bg-primary">
                   <Star className="w-3 h-3 mr-1" />
-                  Most Popular
+                  Nejpopulárnější
                 </Badge>
               )}
 
@@ -215,24 +223,24 @@ Complete payment in the new window.`, {
                 <CardTitle className="text-xl">{pkg.name}</CardTitle>
                 <CardDescription>{pkg.description}</CardDescription>
               </CardHeader>
-              
+
               <CardContent className="text-center space-y-4">
                 <div>
                   <div className="text-4xl font-bold text-green-600 dark:text-green-400">
                     {pkg.credits}
                   </div>
-                  <div className="text-sm text-gray-600">credits</div>
+                  <div className="text-sm text-gray-600">kreditů</div>
                 </div>
-                
+
                 <div>
                   <div className="text-3xl font-bold text-blue-600">
                     ${pkg.price}
                   </div>
                   <div className="text-sm text-gray-600">
-                    ${pkg.pricePerCredit.toFixed(3)} per credit
+                    ${pkg.pricePerCredit.toFixed(3)} za kredit
                   </div>
                 </div>
-                
+
                 <ul className="space-y-2 text-sm text-left">
                   {pkg.features.map((feature, index) => (
                     <li key={index} className="flex items-center space-x-2">
@@ -241,7 +249,7 @@ Complete payment in the new window.`, {
                     </li>
                   ))}
                 </ul>
-                
+
                 <div className="space-y-2">
                   {user ? (
                     <>
@@ -254,11 +262,11 @@ Complete payment in the new window.`, {
                         {loading === pkg.id ? (
                           <div className="flex items-center space-x-2">
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            <span>Processing...</span>
+                            <span>Zpracovává se...</span>
                           </div>
                         ) : (
                           <div className="flex items-center space-x-2">
-                            <span>Pay with Card - ${pkg.price}</span>
+                            <span>Platba Kartou - ${pkg.price}</span>
                             <ExternalLink className="w-4 h-4" />
                           </div>
                         )}
@@ -273,20 +281,20 @@ Complete payment in the new window.`, {
                         {loading === pkg.id ? (
                           <div className="flex items-center space-x-2">
                             <div className="w-4 h-4 border-2 border-orange-300 border-t-transparent rounded-full animate-spin" />
-                            <span>Processing...</span>
+                            <span>Zpracovává se...</span>
                           </div>
                         ) : (
                           <div className="flex items-center space-x-2">
                             <Bitcoin className="w-4 h-4" />
-                            <span>Pay with Bitcoin ⚡</span>
+                            <span>Platba Bitcoinem ⚡</span>
                           </div>
                         )}
                       </Button>
                     </>
                   ) : (
                     <Button className="w-full" asChild variant={pkg.popular ? 'default' : 'outline'}>
-                      <Link href="/login?redirect=/buy-credits">
-                        Sign In to Purchase
+                      <Link href="/login?redirect=/cs/buy-credits">
+                        Přihlásit se pro Nákup
                       </Link>
                     </Button>
                   )}
@@ -311,9 +319,9 @@ Complete payment in the new window.`, {
         {/* Usage Guide */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>💡 How Credits Work</CardTitle>
+            <CardTitle>💡 Jak Kredity Fungují</CardTitle>
             <CardDescription>
-              Understanding credit usage for different translation services
+              Pochopení používání kreditů pro různé překladové služby
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -321,26 +329,30 @@ Complete payment in the new window.`, {
               <div className="space-y-3">
                 <h4 className="font-semibold flex items-center justify-center space-x-2">
                   <Crown className="w-4 h-4 text-primary" />
-                  <span>Premium Translation (OpenAI GPT-4)</span>
+                  <span>Prémiový Překlad (OpenAI GPT-4)</span>
                 </h4>
                 <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
-                  <li>• ~0.4 credits per 20 lines</li>
-                  <li>• Context-aware translation with show research</li>
-                  <li>• Natural dialogue adaptation</li>
-                  <li>• Cultural context understanding</li>
-                  <li>• Professional quality results</li>
+                  <li>• ~0,4 kreditů za 20 řádků</li>
+                  <li>• Kontextový překlad s výzkumem seriálu</li>
+                  <li>• Přirozená adaptace dialogů</li>
+                  <li>• Porozumění kulturnímu kontextu</li>
+                  <li>• Profesionální kvalita výsledků</li>
                 </ul>
               </div>
             </div>
 
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-300">
-                <strong>Example:</strong> A 100-line subtitle file costs ~2.0 credits with Premium AI.
-                Your 200 welcome credits can translate ~100 files with full context research!
+                <strong>Příklad:</strong> Soubor s 100 řádky titulků stojí ~2,0 kreditů s Prémiovým AI.
+                Vašich 200 uvítacích kreditů může přeložit ~100 souborů s plným kontextovým výzkumem!
               </p>
             </div>
           </CardContent>
         </Card>
+
+
+
+
 
 
       </div>
