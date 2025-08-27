@@ -1,255 +1,229 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Check, Star, Zap, Crown, Calculator, FileText, Languages, BarChart3 } from 'lucide-react'
+import { Check, Star, Zap, Crown, Coins, Bitcoin, ExternalLink } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import Link from 'next/link'
+import { STRIPE_PAYMENT_LINKS, getPricePerCredit } from '@/lib/stripe-payment-links'
 
-// Credit packages
-const CREDIT_PACKAGES = [
-  {
-    id: 'starter',
-    name: 'Starter Pack',
-    credits: 100,
-    price: 9.99,
-    pricePerCredit: 0.10,
-    popular: false,
-    description: 'Perfect for trying out our service',
-    features: [
-      '100 translation credits',
-      'Translate ~2,500 subtitles',
-      'Premium AI translation',
-      'All language pairs',
-      'Download translated files',
-      'Translation history'
-    ]
-  },
-  {
-    id: 'professional',
-    name: 'Professional Pack',
-    credits: 500,
-    price: 39.99,
-    pricePerCredit: 0.08,
-    popular: true,
-    description: 'Best value for regular users',
-    features: [
-      '500 translation credits',
-      'Translate ~12,500 subtitles',
-      'Premium AI translation',
-      'All language pairs',
-      'Batch processing',
-      'Priority support',
-      'Analytics dashboard',
-      'Download translated files'
-    ]
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise Pack',
-    credits: 2000,
-    price: 129.99,
-    pricePerCredit: 0.065,
-    popular: false,
-    description: 'For heavy users and businesses',
-    features: [
-      '2,000 translation credits',
-      'Translate ~50,000 subtitles',
-      'Premium AI translation',
-      'All language pairs',
-      'Batch processing',
-      'Priority support',
-      'Advanced analytics',
-      'API access (coming soon)',
-      'Custom integrations'
-    ]
+// Enhanced credit packages with current Stripe Payment Links
+const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS.map((link, index) => ({
+  id: `package-${index}`,
+  name: getPackageName(link.credits),
+  credits: link.credits,
+  price: link.price,
+  pricePerCredit: getPricePerCredit(link),
+  popular: link.popular || false,
+  description: link.description,
+  paymentLink: link.link,
+  features: getPackageFeatures(link.credits)
+}))
+
+function getPackageName(credits: number): string {
+  if (credits <= 100) return 'Trial Pack'
+  if (credits <= 500) return 'Starter Pack'
+  if (credits <= 1200) return 'Popular Pack'
+  if (credits <= 2500) return 'Professional Pack'
+  return 'Enterprise Pack'
+}
+
+function getPackageFeatures(credits: number): string[] {
+  const features = [
+    `${credits.toLocaleString()} credits`,
+    `~${(credits * 5).toLocaleString()} lines of translation`,
+    'No expiration',
+    'Premium AI translation',
+    'All language pairs supported',
+    'Download translated files',
+    'Translation history'
+  ]
+
+  // Add bonus credits info for larger packages
+  if (credits === 1200) {
+    features.unshift('🎁 +200 BONUS credits (1000 + 200)')
+  } else if (credits === 2500) {
+    features.unshift('🎁 +500 BONUS credits (2000 + 500)')
   }
-]
+
+  // Add extra features for larger packages
+  if (credits >= 500) {
+    features.push('Batch processing')
+  }
+
+  return features
+}
 
 export default function PricingPage() {
   const { user } = useAuth()
-  const [loading, setLoading] = useState<string | null>(null)
 
-  const handleBuyCredits = async (packageId: string) => {
-    if (!user) {
-      // Redirect to login
-      window.location.href = '/login?redirect=/pricing'
-      return
-    }
-
-    try {
-      setLoading(packageId)
-
-      // Redirect to buy-credits page with selected package
-      window.location.href = `/buy-credits?package=${packageId}`
-    } catch (error) {
-      console.error('Buy credits error:', error)
-      alert('Failed to start purchase process. Please try again.')
-    } finally {
-      setLoading(null)
-    }
-  }
-
-  const getPackageIcon = (packageId: string) => {
-    switch (packageId) {
-      case 'starter':
-        return <Star className="h-6 w-6" />
-      case 'professional':
-        return <Zap className="h-6 w-6" />
-      case 'enterprise':
-        return <Crown className="h-6 w-6" />
-      default:
-        return <Star className="h-6 w-6" />
-    }
+  const getPackageIcon = (credits: number) => {
+    if (credits <= 100) return <Coins className="w-8 h-8 text-blue-500" />
+    if (credits <= 500) return <Coins className="w-8 h-8 text-primary" />
+    if (credits <= 1200) return <Zap className="w-8 h-8 text-primary" />
+    return <Crown className="w-8 h-8 text-primary" />
   }
 
   return (
     <div className="py-4 sm:py-6 md:py-8">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+      <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-8 sm:mb-10 md:mb-12">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2">Buy Translation Credits</h1>
-          <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-muted-foreground max-w-3xl mx-auto px-4">
-            Pay only for what you use. No subscriptions, no monthly fees. Just simple, transparent credit-based pricing.
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">
+            Simple, Transparent Pricing
+          </h1>
+          <p className="text-xl text-muted-foreground mb-6 max-w-3xl mx-auto">
+            Choose the perfect credit package for your subtitle translation needs. 
+            No subscriptions, no hidden fees - just pay for what you use.
           </p>
-        </div>
-
-        {/* How it works */}
-        <div className="bg-primary/5 rounded-lg p-4 sm:p-6 mb-8 sm:mb-10 md:mb-12 max-w-4xl mx-auto">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-center mb-4 sm:mb-6">How Credits Work</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            <div className="text-center">
-              <Calculator className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-2" />
-              <h3 className="text-sm sm:text-base font-semibold mb-2">Simple Pricing</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">0.4 credits per 20 subtitles</p>
+          <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-green-600" />
+              <span>Credits never expire</span>
             </div>
-            <div className="text-center">
-              <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-2" />
-              <h3 className="text-sm sm:text-base font-semibold mb-2">Upload & Translate</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">Upload SRT files and translate instantly</p>
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-green-600" />
+              <span>All languages supported</span>
             </div>
-            <div className="text-center">
-              <Languages className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-2" />
-              <h3 className="text-sm sm:text-base font-semibold mb-2">All Languages</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">Support for 100+ language pairs</p>
-            </div>
-            <div className="text-center">
-              <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-2" />
-              <h3 className="text-sm sm:text-base font-semibold mb-2">Track Usage</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">Monitor your credits and analytics</p>
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-green-600" />
+              <span>Premium AI translation</span>
             </div>
           </div>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-10 md:mb-12 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
           {CREDIT_PACKAGES.map((pkg) => (
-            <Card
-              key={pkg.id}
-              className={`relative ${pkg.popular ? 'border-primary shadow-lg sm:scale-105' : ''}`}
+            <Card 
+              key={pkg.id} 
+              className={`relative transition-all duration-200 hover:shadow-lg ${
+                pkg.popular ? 'border-primary shadow-md scale-105' : ''
+              }`}
             >
               {pkg.popular && (
-                <Badge className="absolute -top-2 sm:-top-3 left-1/2 transform -translate-x-1/2 bg-primary text-xs sm:text-sm">
-                  Best Value
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 dark:bg-primary">
+                  <Star className="w-3 h-3 mr-1" />
+                  Most Popular
                 </Badge>
               )}
 
-              <CardHeader className="text-center pb-4 sm:pb-6">
-                <div className="flex justify-center mb-3 sm:mb-4">
-                  <div className="h-5 w-5 sm:h-6 sm:w-6">
-                    {getPackageIcon(pkg.id)}
-                  </div>
+              <CardHeader className="text-center">
+                <div className="flex justify-center mb-2">
+                  {getPackageIcon(pkg.credits)}
                 </div>
-                <CardTitle className="text-lg sm:text-xl md:text-2xl">{pkg.name}</CardTitle>
-                <CardDescription className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground mt-2">
-                  {pkg.description}
-                </CardDescription>
-                <div className="text-center mt-3 sm:mt-4">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600 dark:text-primary">
+                <CardTitle className="text-xl">{pkg.name}</CardTitle>
+                <CardDescription>{pkg.description}</CardDescription>
+              </CardHeader>
+              
+              <CardContent className="text-center space-y-4">
+                <div>
+                  <div className="text-4xl font-bold text-green-600 dark:text-green-400">
+                    {pkg.credits.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-600">credits</div>
+                </div>
+                
+                <div>
+                  <div className="text-3xl font-bold text-blue-600">
                     ${pkg.price}
                   </div>
-                  <div className="text-xs sm:text-sm text-gray-500 dark:text-muted-foreground mt-1">
-                    {pkg.credits} credits • ${pkg.pricePerCredit.toFixed(3)} per credit
+                  <div className="text-sm text-gray-600">
+                    ${pkg.pricePerCredit.toFixed(3)} per credit
                   </div>
                 </div>
-              </CardHeader>
-
-              <CardContent className="pt-0">
-                <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+                
+                <ul className="space-y-2 text-sm text-left">
                   {pkg.features.map((feature, index) => (
-                    <li key={index} className="flex items-start">
-                      <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
-                      <span className="text-xs sm:text-sm">{feature}</span>
+                    <li key={index} className="flex items-center space-x-2">
+                      <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
-
-                <Button
-                  className="w-full text-sm sm:text-base"
-                  variant={pkg.popular ? 'default' : 'outline'}
-                  disabled={loading === pkg.id}
-                  onClick={() => handleBuyCredits(pkg.id)}
-                >
-                  {loading === pkg.id ? 'Processing...' : 'Buy Credits'}
-                </Button>
+                
+                <div className="space-y-2">
+                  <Button 
+                    className="w-full" 
+                    asChild
+                    variant={pkg.popular ? 'default' : 'outline'}
+                  >
+                    <Link href={user ? '/buy-credits' : '/login?redirect=/buy-credits'}>
+                      {user ? 'Buy Now' : 'Sign In to Purchase'}
+                    </Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
+        {/* Payment Methods */}
+        <div className="text-center mb-12">
+          <h2 className="text-2xl font-bold mb-4">Multiple Payment Options</h2>
+          <div className="flex items-center justify-center gap-8 text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <ExternalLink className="w-5 h-5" />
+              <span>Credit/Debit Cards</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Bitcoin className="w-5 h-5 text-orange-500" />
+              <span>Bitcoin Lightning ⚡</span>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            Secure payments powered by Stripe and OpenNode
+          </p>
+        </div>
+
         {/* FAQ Section */}
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-center mb-6 sm:mb-8 px-2">Frequently Asked Questions</h2>
-
-          <div className="space-y-4 sm:space-y-6 px-2">
+          <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+          <div className="space-y-6">
             <div>
-              <h3 className="text-sm sm:text-base font-semibold mb-2">How do credits work?</h3>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                Credits are used to translate subtitles. Each batch of 20 subtitles costs 0.4 credits.
-                For example, a 100-subtitle file would cost 2 credits to translate.
+              <h3 className="font-semibold mb-2">How do credits work?</h3>
+              <p className="text-muted-foreground">
+                Each credit allows you to translate approximately 5 lines of subtitles. 
+                Credits are deducted based on the actual number of lines processed.
               </p>
             </div>
-
             <div>
               <h3 className="font-semibold mb-2">Do credits expire?</h3>
               <p className="text-muted-foreground">
-                No! Your credits never expire. Buy once and use them whenever you need to translate subtitles.
+                No! Your credits never expire. Use them whenever you need subtitle translation services.
               </p>
             </div>
-
-            <div>
-              <h3 className="font-semibold mb-2">What payment methods do you accept?</h3>
-              <p className="text-muted-foreground">
-                We accept all major credit cards (Visa, MasterCard, American Express) and PayPal through Stripe.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-2">Can I get a refund?</h3>
-              <p className="text-gray-600">
-                We offer refunds for unused credits within 30 days of purchase. Contact support for assistance.
-              </p>
-            </div>
-
             <div>
               <h3 className="font-semibold mb-2">What languages are supported?</h3>
-              <p className="text-gray-600">
-                We support 100+ language pairs with premium AI translation including Spanish, French, German, Italian, Portuguese, Japanese, Chinese, and many more.
+              <p className="text-muted-foreground">
+                We support 100+ languages including all major world languages. 
+                Our AI provides context-aware translations for accurate results.
               </p>
             </div>
-
             <div>
-              <h3 className="font-semibold mb-2">Is there a free option?</h3>
-              <p className="text-gray-600">
-                Yes! New users get free credits to try our service. You can also earn additional credits through referrals.
+              <h3 className="font-semibold mb-2">Can I get a refund?</h3>
+              <p className="text-muted-foreground">
+                We offer refunds within 7 days of purchase if you haven't used any credits. 
+                Contact our support team for assistance.
               </p>
             </div>
           </div>
+        </div>
+
+        {/* CTA Section */}
+        <div className="text-center mt-12 p-8 bg-muted rounded-lg">
+          <h2 className="text-2xl font-bold mb-4">Ready to get started?</h2>
+          <p className="text-muted-foreground mb-6">
+            Join thousands of content creators who trust SubtitleBot for their translation needs.
+          </p>
+          <Button size="lg" asChild>
+            <Link href={user ? '/buy-credits' : '/login?redirect=/buy-credits'}>
+              {user ? 'Buy Credits Now' : 'Sign Up & Buy Credits'}
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
   )
 }
-
-

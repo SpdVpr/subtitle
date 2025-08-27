@@ -162,6 +162,14 @@ export function Footer() {
               </li>
               <li>
                 <Link
+                  href="/cookie-settings"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Cookie Settings
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/gdpr"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >

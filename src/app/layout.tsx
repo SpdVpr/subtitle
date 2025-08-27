@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Providers } from "@/components/providers/providers"
 import { Toaster } from "sonner"
+import { CookieBannerWrapper } from "@/components/cookie-banner-wrapper"
 
 
 const inter = Inter({
@@ -136,6 +137,7 @@ export default function RootLayout({
               },
             }}
           />
+          <CookieBannerWrapper />
         </Providers>
 
 
