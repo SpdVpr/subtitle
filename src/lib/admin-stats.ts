@@ -315,6 +315,12 @@ export class AdminStatsService {
       const users = data.users || []
       console.log('👥 User Activity - Got users from API:', users.length)
 
+      // Debug log for lastActive data
+      console.log('🕒 Admin Stats - Sample user lastActive data:')
+      users.slice(0, 3).forEach((user: any) => {
+        console.log(`  - ${user.email}: ${user.lastActive} (${typeof user.lastActive})`)
+      })
+
       // Helper function to safely convert to Date
       const safeToDate = (dateValue: any): Date => {
         if (!dateValue) return new Date()
@@ -346,15 +352,23 @@ export class AdminStatsService {
         return new Date()
       }
 
-      return users.map((user: any) => ({
+      const mappedUsers = users.map((user: any) => ({
         userId: user.userId,
         email: user.email,
         plan: user.plan,
         // Use multiple fallbacks for lastActive
-        lastActive: safeToDate(user.usage?.lastActive || user.lastActive || user.updatedAt || user.createdAt),
-        translationsCount: user.usage?.translationsUsed || 0,
+        lastActive: safeToDate(user.lastActive || user.updatedAt || user.createdAt),
+        translationsCount: user.translationsCount || 0, // API už vrací správné pole
         creditsBalance: user.creditsBalance
-      })).sort((a: any, b: any) => b.lastActive.getTime() - a.lastActive.getTime())
+      }))
+
+      // Debug log after conversion
+      console.log('🕒 Admin Stats - After safeToDate conversion:')
+      mappedUsers.slice(0, 3).forEach((user: any) => {
+        console.log(`  - ${user.email}: ${user.lastActive} (${typeof user.lastActive})`)
+      })
+
+      return mappedUsers.sort((a: any, b: any) => b.lastActive.getTime() - a.lastActive.getTime())
     } catch (error) {
       console.error('Failed to get user activity:', error)
       throw error

@@ -158,6 +158,41 @@ function EditableCreditsCell({ userId, initial, onUpdate }: { userId: string; in
 }
 
 export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) {
+  const [debugInfo, setDebugInfo] = useState<any>(null)
+  const [showDebug, setShowDebug] = useState(false)
+  const [debugLoading, setDebugLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [usersPerPage, setUsersPerPage] = useState(20) // Zobrazit 20 uživatelů na stránku
+
+  const runDebug = async () => {
+    setDebugLoading(true)
+    try {
+      let adminEmail = ''
+      if (typeof window !== 'undefined') {
+        adminEmail = localStorage.getItem('adminEmail') || 'premium@test.com'
+      }
+
+      const response = await fetch('/api/admin/debug-users', {
+        headers: { 'x-admin-email': adminEmail }
+      })
+
+      const data = await response.json()
+      setDebugInfo(data)
+      setShowDebug(true)
+    } catch (error) {
+      console.error('Debug failed:', error)
+    } finally {
+      setDebugLoading(false)
+    }
+  }
+
+  // Stránkování logika
+  const totalUsers = users?.length || 0
+  const totalPages = Math.ceil(totalUsers / usersPerPage)
+  const startIndex = (currentPage - 1) * usersPerPage
+  const endIndex = startIndex + usersPerPage
+  const currentUsers = users?.slice(startIndex, endIndex) || []
+
   const getPlanBadgeColor = (plan: string) => {
     switch (plan) {
       case 'pro':
@@ -174,15 +209,68 @@ export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) 
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-foreground">Recent User Activity</CardTitle>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-foreground">
+              User Activity ({totalUsers} users)
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Showing {startIndex + 1}-{Math.min(endIndex, totalUsers)} of {totalUsers} users
+            </p>
+          </div>
+          <button
+            onClick={runDebug}
+            disabled={debugLoading}
+            className="px-3 py-1 text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded hover:bg-yellow-200 dark:hover:bg-yellow-900/50 disabled:opacity-50"
+          >
+            {debugLoading ? 'Debugging...' : 'Debug Firebase'}
+          </button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="text-sm text-gray-600 dark:text-muted-foreground mb-3">
           Click credits to edit • Use action buttons to manage users
         </div>
+
+        {/* Debug Info */}
+        {showDebug && debugInfo && (
+          <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="font-medium text-yellow-800 dark:text-yellow-200">Firebase Debug Info</h4>
+              <button
+                onClick={() => setShowDebug(false)}
+                className="text-yellow-600 hover:text-yellow-800 dark:text-yellow-300 dark:hover:text-yellow-100"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="text-xs space-y-2">
+              <div>
+                <strong>Environment:</strong>
+                <ul className="ml-4 mt-1">
+                  {Object.entries(debugInfo.environment || {}).map(([key, value]) => (
+                    <li key={key}>{key}: {String(value)}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <strong>Tests:</strong>
+                <ul className="ml-4 mt-1">
+                  {(debugInfo.tests || []).map((test: any, i: number) => (
+                    <li key={i} className={test.status === 'SUCCESS' ? 'text-green-600' : 'text-red-600'}>
+                      {test.name}: {test.status}
+                      {test.userCount !== undefined && ` (${test.userCount} users)`}
+                      {test.error && ` - ${test.error}`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Mobile view */}
         <div className="block sm:hidden space-y-4">
-          {(users || []).slice(0, 10).map((user, index) => (
+          {currentUsers.map((user, index) => (
             <div key={String(user?.userId || index)} className="p-4 border rounded-lg bg-gray-50 dark:bg-card dark:border-border">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-medium text-sm text-gray-900 dark:text-foreground">
@@ -225,7 +313,7 @@ export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) 
               </tr>
             </thead>
             <tbody>
-              {(users || []).slice(0, 10).map((user, index) => (
+              {currentUsers.map((user, index) => (
                 <tr key={String(user?.userId || index)} className="border-b border-gray-100 dark:border-border hover:bg-gray-50 dark:hover:bg-muted transition-colors">
                   <td className="py-3 px-4">
                     <div>
@@ -295,6 +383,79 @@ export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) 
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalUsers > 10 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-border">
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Show:</span>
+                <select
+                  value={usersPerPage}
+                  onChange={(e) => {
+                    setUsersPerPage(Number(e.target.value))
+                    setCurrentPage(1) // Reset to first page
+                  }}
+                  className="px-2 py-1 text-sm border border-gray-300 dark:border-border rounded bg-white dark:bg-background text-gray-700 dark:text-foreground"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span className="text-sm text-muted-foreground">per page</span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-sm bg-gray-100 dark:bg-muted text-gray-700 dark:text-foreground rounded hover:bg-gray-200 dark:hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+
+              {/* Page numbers */}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum
+                if (totalPages <= 5) {
+                  pageNum = i + 1
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i
+                } else {
+                  pageNum = currentPage - 2 + i
+                }
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-3 py-1 text-sm rounded ${
+                      currentPage === pageNum
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 dark:bg-muted text-gray-700 dark:text-foreground hover:bg-gray-200 dark:hover:bg-muted/80'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
+
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 text-sm bg-gray-100 dark:bg-muted text-gray-700 dark:text-foreground rounded hover:bg-gray-200 dark:hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

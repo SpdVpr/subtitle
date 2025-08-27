@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
         receivedEmail: adminEmail,
         allowedEmails: [
           'premium@test.com',
-          'pro@test.com',
+          'admin@subtitlebot.com',
           'admin@subtitle-ai.com',
           'ceo@subtitle-ai.com',
           'manager@subtitle-ai.com'

@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
         isValidAdmin: adminEmail ? isAdminEmail(adminEmail) : false,
         allowedEmails: [
           'premium@test.com',
-          'pro@test.com', 
+          'admin@subtitlebot.com',
           'admin@subtitle-ai.com',
           'ceo@subtitle-ai.com',
           'manager@subtitle-ai.com'

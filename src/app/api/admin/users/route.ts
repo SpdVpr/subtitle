@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
           isValidAdmin: adminEmail ? isAdminEmail(adminEmail) : false,
           allowedEmails: [
             'premium@test.com',
-            'pro@test.com',
+            'admin@subtitlebot.com',
             'admin@subtitle-ai.com',
             'ceo@subtitle-ai.com',
             'manager@subtitle-ai.com'
@@ -41,12 +41,12 @@ export async function GET(req: NextRequest) {
 
     console.log('🔑 Admin API access granted for:', adminEmail)
 
-    // Get Firestore instance
-    const db = await getServerFirestore()
-    const isDemoMode = !db
+    // Try to get Firestore instance - use alternative method if main fails
+    let db = await getServerFirestore()
 
-    if (isDemoMode) {
-      return getDemoUsers()
+    if (!db) {
+      console.log('⚠️ Main Firebase Admin failed, trying alternative method...')
+      return await getClientSideUsers()
     }
 
     console.log('🔍 Admin API: Querying all users from server-side...')
@@ -64,10 +64,21 @@ export async function GET(req: NextRequest) {
           .get()
         console.log('📄 Admin API: Found', snapshot.size, 'users (Admin SDK)')
 
-        users = snapshot.docs.map((doc: any) => ({
-          uid: doc.id,
-          ...doc.data(),
-        }))
+        users = snapshot.docs.map((doc: any) => {
+          const data = doc.data()
+          return {
+            uid: doc.id,
+            ...data,
+            // Convert Firestore timestamps to dates
+            createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+            updatedAt: data.updatedAt?.toDate?.() || new Date(data.updatedAt),
+            usage: {
+              ...data.usage,
+              lastActive: data.usage?.lastActive?.toDate?.() || new Date(data.usage?.lastActive || data.updatedAt),
+              resetDate: data.usage?.resetDate?.toDate?.() || new Date(data.usage?.resetDate)
+            }
+          }
+        })
       } else {
         // Client SDK fallback
         console.log('📡 Using Firebase Client SDK')
@@ -89,24 +100,41 @@ export async function GET(req: NextRequest) {
       throw new Error(`Firestore query failed: ${firestoreError.message}`)
     }
 
+    const mappedUsers = users.map(user => ({
+      userId: user.uid,
+      email: user.email || 'Unknown',
+      displayName: user.displayName,
+      plan: (user.creditsBalance || 0) > 0 ? 'credits' : 'free',
+      lastActive: user.usage?.lastActive || user.updatedAt || user.createdAt,
+      translationsCount: user.usage?.translationsUsed || 0,
+      creditsBalance: user.creditsBalance || 0,
+      createdAt: user.createdAt,
+      isBlocked: user.isBlocked || false,
+      blockReason: user.blockReason,
+      blockedAt: user.blockedAt,
+      blockedBy: user.blockedBy,
+      subscriptionPlan: user.subscriptionPlan || 'free'
+    }))
+
+    // Debug log to see actual translation counts and lastActive
+    console.log('📊 Users with translation data:')
+    mappedUsers.forEach(user => {
+      if (user.translationsCount > 0) {
+        console.log(`  - ${user.email}: ${user.translationsCount} translations, lastActive: ${user.lastActive}`)
+      }
+    })
+
+    // Debug log for all users' lastActive
+    console.log('🕒 All users lastActive:')
+    mappedUsers.slice(0, 5).forEach(user => {
+      console.log(`  - ${user.email}: ${user.lastActive} (${typeof user.lastActive})`)
+    })
+
     return NextResponse.json({
       success: true,
       count: users.length,
-      users: users.map(user => ({
-        userId: user.uid,
-        email: user.email || 'Unknown',
-        displayName: user.displayName,
-        plan: (user.creditsBalance || 0) > 0 ? 'credits' : 'free',
-        lastActive: user.updatedAt || user.createdAt,
-        translationsCount: user.usage?.translationsUsed || 0,
-        creditsBalance: user.creditsBalance || 0,
-        createdAt: user.createdAt,
-        isBlocked: user.isBlocked || false,
-        blockReason: user.blockReason,
-        blockedAt: user.blockedAt,
-        blockedBy: user.blockedBy,
-        subscriptionPlan: user.subscriptionPlan || 'free'
-      }))
+      users: mappedUsers,
+      source: 'firebase_admin'
     })
 
   } catch (error: any) {
@@ -116,6 +144,100 @@ export async function GET(req: NextRequest) {
       error: error.message,
       details: 'Check server logs for more information'
     }, { status: 500 })
+  }
+}
+
+async function getClientSideUsers() {
+  try {
+    console.log('🔄 Attempting to load users via alternative method...')
+
+    // Try to initialize Firebase Admin with environment variables
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    if (!projectId) {
+      console.log('❌ No Firebase project ID found, using demo data')
+      return getDemoUsers()
+    }
+
+    // Try to use Firebase Admin SDK with application default credentials
+    try {
+      const admin = await import('firebase-admin')
+
+      // Initialize if not already initialized
+      if (!admin.default.apps.length) {
+        admin.default.initializeApp({
+          projectId: projectId
+        })
+        console.log('🔧 Firebase Admin initialized with project ID:', projectId)
+      }
+
+      const db = admin.default.firestore()
+      const snapshot = await db.collection('users')
+        .orderBy('createdAt', 'desc')
+        .get()
+
+      console.log('📄 Alternative method: Found', snapshot.size, 'users')
+
+      const users = snapshot.docs.map((doc: any) => {
+        const data = doc.data()
+        return {
+          uid: doc.id,
+          ...data,
+          // Convert Firestore timestamps to dates
+          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate?.() || new Date(data.updatedAt),
+          usage: {
+            ...data.usage,
+            lastActive: data.usage?.lastActive?.toDate?.() || new Date(data.usage?.lastActive || data.updatedAt),
+            resetDate: data.usage?.resetDate?.toDate?.() || new Date(data.usage?.resetDate)
+          }
+        }
+      })
+
+      const mappedUsers = users.map(user => ({
+        userId: user.uid,
+        email: user.email || 'Unknown',
+        displayName: user.displayName,
+        plan: (user.creditsBalance || 0) > 0 ? 'credits' : 'free',
+        lastActive: user.usage?.lastActive || user.updatedAt || user.createdAt,
+        translationsCount: user.usage?.translationsUsed || 0,
+        creditsBalance: user.creditsBalance || 0,
+        createdAt: user.createdAt,
+        isBlocked: user.isBlocked || false,
+        blockReason: user.blockReason,
+        blockedAt: user.blockedAt,
+        blockedBy: user.blockedBy,
+        subscriptionPlan: user.subscriptionPlan || 'free'
+      }))
+
+      // Debug log to see actual translation counts and lastActive
+      console.log('📊 Alternative method - Users with translation data:')
+      mappedUsers.forEach(user => {
+        if (user.translationsCount > 0) {
+          console.log(`  - ${user.email}: ${user.translationsCount} translations, lastActive: ${user.lastActive}`)
+        }
+      })
+
+      // Debug log for all users' lastActive
+      console.log('🕒 Alternative method - All users lastActive:')
+      mappedUsers.slice(0, 5).forEach(user => {
+        console.log(`  - ${user.email}: ${user.lastActive} (${typeof user.lastActive})`)
+      })
+
+      return NextResponse.json({
+        success: true,
+        count: users.length,
+        users: mappedUsers,
+        source: 'firebase_alternative'
+      })
+
+    } catch (adminError: any) {
+      console.error('❌ Firebase Admin failed:', adminError.message)
+      return getDemoUsers()
+    }
+
+  } catch (error: any) {
+    console.error('❌ Alternative method failed, falling back to demo data:', error)
+    return getDemoUsers()
   }
 }
 
@@ -137,9 +259,9 @@ function getDemoUsers() {
       subscriptionPlan: 'free'
     },
     {
-      userId: 'premium-user-demo',
-      email: 'premium@test.com',
-      displayName: 'Premium Demo User',
+      userId: 'admin-user-demo',
+      email: 'admin@subtitlebot.com',
+      displayName: 'Admin User',
       plan: 'credits',
       lastActive: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
       translationsCount: 42,

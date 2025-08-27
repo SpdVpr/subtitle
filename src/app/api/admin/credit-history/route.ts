@@ -73,33 +73,36 @@ export async function GET(request: NextRequest) {
 
       // Get user email for display
       let userEmail = 'Unknown User'
+      console.log(`🔍 Looking up user for transaction ${doc.id}, userId: ${data.userId}`)
       if (data.userId) {
         try {
           if (db.collection && typeof db.collection === 'function') {
-            // Admin SDK
-            const userSnapshot = await db.collection('users')
-              .where('userId', '==', data.userId)
-              .limit(1)
-              .get()
+            // Admin SDK - get user document directly by ID
+            const userDoc = await db.collection('users').doc(data.userId).get()
 
-            if (!userSnapshot.empty) {
-              const userData = userSnapshot.docs[0].data()
-              userEmail = userData.email || `User ${data.userId.substring(0, 8)}...`
+            if (userDoc.exists) {
+              const userData = userDoc.data()
+              userEmail = userData.email || userData.displayName || `User ${data.userId.substring(0, 8)}...`
+              console.log(`✅ Found user: ${userEmail}`)
+            } else {
+              console.log(`❌ User document not found for userId: ${data.userId}`)
             }
           } else {
-            // Client SDK
-            const { collection, query, where, limit, getDocs } = await import('firebase/firestore')
-            const usersRef = collection(db, 'users')
-            const userQuery = query(usersRef, where('userId', '==', data.userId), limit(1))
-            const userSnapshot = await getDocs(userQuery)
+            // Client SDK - get user document directly by ID
+            const { doc, getDoc } = await import('firebase/firestore')
+            const userDocRef = doc(db, 'users', data.userId)
+            const userDoc = await getDoc(userDocRef)
 
-            if (!userSnapshot.empty) {
-              const userData = userSnapshot.docs[0].data()
-              userEmail = userData.email || `User ${data.userId.substring(0, 8)}...`
+            if (userDoc.exists()) {
+              const userData = userDoc.data()
+              userEmail = userData.email || userData.displayName || `User ${data.userId.substring(0, 8)}...`
+              console.log(`✅ Found user (client SDK): ${userEmail}`)
+            } else {
+              console.log(`❌ User document not found (client SDK) for userId: ${data.userId}`)
             }
           }
         } catch (userError) {
-          console.warn('Failed to get user email for transaction:', data.userId, userError)
+          console.warn(`❌ Failed to get user email for transaction userId ${data.userId}:`, userError)
         }
       }
 
@@ -135,7 +138,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      transactions.push({
+      const transaction = {
         id: doc.id,
         userId: data.userId,
         userEmail,
@@ -147,7 +150,10 @@ export async function GET(request: NextRequest) {
         createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt) || new Date(),
         adminId: data.adminId,
         adminEmail: adminEmailFromDb
-      })
+      }
+
+      console.log(`📝 Final transaction: ${transaction.type} ${transaction.amount} for ${userEmail}`)
+      transactions.push(transaction)
     }
 
     console.log(`📊 Loaded ${transactions.length} credit transactions`)
@@ -177,27 +183,22 @@ function getDemoCreditHistory() {
       userId: 'demo-user-1',
       userEmail: 'demo@test.com',
       type: 'topup',
-      amount: 100,
-      balanceBefore: 750,
-      balanceAfter: 850,
-      reason: 'Voucher redemption: DEMO-TEST-CODE',
+      amount: 100, // Purchased 100 credits
+      balanceBefore: 0,
+      balanceAfter: 100,
+      reason: 'Purchased 100 credits - Trial Pack (Bitcoin Lightning)',
       createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      source: 'voucher',
-      voucherDetails: {
-        voucherCode: 'DEMO-TEST-CODE',
-        campaignName: 'Demo Campaign',
-        voucherDescription: 'Demo voucher for testing'
-      }
+      source: 'purchase'
     },
     {
       id: 'demo-tx-2',
       userId: 'premium-user-demo',
       userEmail: 'premium@test.com',
       type: 'topup',
-      amount: 500,
-      balanceBefore: 700,
+      amount: 1200, // Purchased 1200 credits
+      balanceBefore: 0,
       balanceAfter: 1200,
-      reason: 'Admin credit adjustment',
+      reason: 'Purchased 1200 credits - Popular Pack',
       createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
       adminEmail: 'admin@demo.com'
     },

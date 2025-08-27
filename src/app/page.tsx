@@ -131,7 +131,7 @@ export default function Home() {
               <Brain className="h-4 w-4 mr-2" />
               Proprietary AI Technology
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent" style={{ lineHeight: '1.4' }}>
               Advanced Translation Engine
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -346,7 +346,7 @@ export default function Home() {
                 <span className="text-2xl mr-2">📺</span>
                 NEW FEATURE
               </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent" style={{ lineHeight: '1.4' }}>
                 Subtitle Overlay
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
@@ -425,11 +425,12 @@ export default function Home() {
               <div className="relative">
                 <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 shadow-2xl">
                   <div className="bg-black rounded-lg aspect-video flex items-center justify-center mb-4 relative overflow-hidden">
+                    <img
+                      src="/images/gladiator.webp"
+                      alt="Gladiator movie scene - Russell Crowe as Maximus"
+                      className="w-full h-full object-cover"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20"></div>
-                    <div className="text-white text-center z-10">
-                      <div className="text-4xl mb-2">🎬</div>
-                      <div className="text-sm opacity-75">Your Video Content</div>
-                    </div>
 
                     {/* Simulated subtitle overlay */}
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded text-sm font-medium">
@@ -517,7 +518,7 @@ export default function Home() {
                 <span className="text-2xl mr-2">🪟</span>
                 NO INSTALLATION NEEDED
               </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent" style={{ lineHeight: '1.4' }}>
                 Popup Window Solution
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
@@ -605,11 +606,12 @@ export default function Home() {
                         netflix.com/watch/movie
                       </div>
                     </div>
-                    <div className="aspect-video bg-black rounded-b-lg flex items-center justify-center relative">
-                      <div className="text-white text-center">
-                        <div className="text-3xl mb-2">🎬</div>
-                        <div className="text-sm opacity-75">Your Video</div>
-                      </div>
+                    <div className="aspect-video bg-black rounded-b-lg flex items-center justify-center relative overflow-hidden">
+                      <img
+                        src="/images/SouthPark.webp"
+                        alt="South Park episode scene"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   </div>
 
@@ -638,7 +640,7 @@ export default function Home() {
                 <span className="text-2xl mr-2">🎬</span>
                 ALL-IN-ONE SOLUTION
               </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent" style={{ lineHeight: '1.4' }}>
                 Integrated Video Player
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
@@ -718,13 +720,12 @@ export default function Home() {
                 <div className="bg-gradient-to-br from-gray-900 to-purple-900 rounded-2xl p-6 shadow-2xl">
                   {/* Video player mockup */}
                   <div className="bg-black rounded-lg aspect-video mb-4 relative overflow-hidden">
+                    <img
+                      src="/images/solo-leveling.jpeg"
+                      alt="Solo Leveling anime scene"
+                      className="w-full h-full object-cover"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-pink-900/30"></div>
-                    <div className="absolute inset-0 flex items-center justify-center text-white">
-                      <div className="text-center">
-                        <div className="text-4xl mb-2">▶️</div>
-                        <div className="text-sm opacity-75">Your Video Here</div>
-                      </div>
-                    </div>
 
                     {/* Subtitle overlay mockup */}
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded text-sm font-medium">

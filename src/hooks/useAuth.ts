@@ -36,26 +36,34 @@ export function useAuthProvider(): AuthContextType {
   } | null>(null)
 
   useEffect(() => {
+    console.log('🔥 useAuth useEffect triggered')
     // Initialize Firebase only on client side
     const initFirebase = async () => {
       try {
+        console.log('🔥 Importing Firebase services...')
         const { auth, db, isFirebaseConfigured, googleProvider } = await import('@/lib/firebase')
+        console.log('🔥 Firebase configured:', isFirebaseConfigured, 'Auth available:', !!auth)
         setFirebaseServices({ auth, db, isConfigured: isFirebaseConfigured })
 
         if (!isFirebaseConfigured || !auth) {
+          console.log('🔥 Firebase not configured, stopping initialization')
           setLoading(false)
           return
         }
 
         // Check for persistent demo user first
+        console.log('🔍 Checking for persistent demo user...')
         const persistentDemoUser = localStorage.getItem('demoUser')
+        console.log('🔍 Demo user in localStorage:', !!persistentDemoUser)
         if (persistentDemoUser) {
           try {
             const demoUser = JSON.parse(persistentDemoUser)
+            console.log('✅ Found persistent demo user:', demoUser.email)
             setUser(demoUser)
             setLoading(false)
             return
           } catch (error) {
+            console.error('❌ Failed to parse persistent demo user:', error)
             localStorage.removeItem('demoUser')
           }
         }
@@ -117,8 +125,10 @@ export function useAuthProvider(): AuthContextType {
   }, [])
 
   const signIn = async (email: string, password: string) => {
+    console.log('🔑 SignIn attempt:', { email, password: password.substring(0, 3) + '...' })
+
     // Demo login for testing - Admin account only
-    if (email === 'premium@test.com' && password === 'test123') {
+    if (email === 'premium@test.com' && password === 'yIk5i4mdFinuxPz') {
       console.log('🔑 Demo login initiated for admin user')
       setLoading(true)
 
@@ -126,7 +136,7 @@ export function useAuthProvider(): AuthContextType {
       const mockAdminUser = {
         uid: 'premium-user-demo',
         email: 'premium@test.com',
-        displayName: 'Admin Test User',
+        displayName: 'Admin User',
         emailVerified: true,
         photoURL: null,
         phoneNumber: null,
@@ -139,10 +149,11 @@ export function useAuthProvider(): AuthContextType {
 
       // Small delay to show loading state, then set user
       setTimeout(() => {
-        console.log('✅ Demo admin user authenticated')
+        console.log('✅ Demo admin user authenticated:', mockAdminUser)
         setUser(mockAdminUser)
         localStorage.setItem('demoUser', JSON.stringify(mockAdminUser))
         setLoading(false)
+        console.log('✅ Demo user set in state and localStorage')
       }, 500) // 500ms delay for better UX
       return
     }

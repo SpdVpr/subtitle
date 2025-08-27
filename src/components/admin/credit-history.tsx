@@ -11,7 +11,7 @@ interface CreditTransaction {
   id: string
   userId: string
   userEmail: string
-  type: 'topup' | 'deduction' | 'refund' | 'bonus'
+  type: 'topup' | 'deduction' | 'refund' | 'bonus' | 'credit'
   amount: number
   balanceBefore: number
   balanceAfter: number
@@ -84,15 +84,17 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'topup':
-        return <Plus className="h-4 w-4 text-green-600" />
+        return <Plus className="h-4 w-4 text-green-600 dark:text-green-400" />
+      case 'credit':
+        return <Plus className="h-4 w-4 text-green-600 dark:text-green-400" />
       case 'deduction':
-        return <Minus className="h-4 w-4 text-red-600" />
+        return <Minus className="h-4 w-4 text-red-600 dark:text-red-400" />
       case 'refund':
-        return <TrendingUp className="h-4 w-4 text-blue-600" />
+        return <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
       case 'bonus':
-        return <DollarSign className="h-4 w-4 text-purple-600" />
+        return <DollarSign className="h-4 w-4 text-purple-600 dark:text-purple-400" />
       default:
-        return <TrendingUp className="h-4 w-4 text-gray-600" />
+        return <TrendingUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
     }
   }
 
@@ -100,6 +102,8 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
     switch (type) {
       case 'topup':
         return <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800/30">Top Up</Badge>
+      case 'credit':
+        return <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800/30">Credit</Badge>
       case 'deduction':
         return <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800/30">Deduction</Badge>
       case 'refund':
@@ -112,8 +116,13 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
   }
 
   const formatAmount = (amount: number, type: string) => {
-    const sign = type === 'topup' || type === 'refund' || type === 'bonus' ? '+' : '-'
-    return `${sign}${Math.abs(amount).toFixed(2)}`
+    // Pro topup, credit, refund a bonus zobrazujeme kladné číslo bez znaménka
+    // Pro deduction zobrazujeme záporné číslo
+    if (type === 'topup' || type === 'credit' || type === 'refund' || type === 'bonus') {
+      return `+${Math.abs(amount).toFixed(2)}`
+    } else {
+      return `-${Math.abs(amount).toFixed(2)}`
+    }
   }
 
   if (loading) {
@@ -200,7 +209,30 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
                       {getTransactionBadge(transaction.type)}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-muted-foreground">
-                      {transaction.reason}
+                      {transaction.type === 'topup' || transaction.type === 'credit' ? (
+                        <div>
+                          <div className="font-medium text-green-700 dark:text-green-300">
+                            💳 Credit Purchase: {Math.abs(transaction.amount).toFixed(2)} credits
+                          </div>
+                          <div className="text-xs mt-1">
+                            Account: {transaction.userEmail}
+                          </div>
+                          {transaction.reason && transaction.reason !== 'Credit purchase' && (
+                            <div className="text-xs mt-1">
+                              {transaction.reason}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          {transaction.reason}
+                          {transaction.type === 'deduction' && (
+                            <div className="text-xs mt-1">
+                              Used by: {transaction.userEmail}
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {transaction.voucherDetails && (
                         <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                           🎫 Voucher: {transaction.voucherDetails.voucherCode}
@@ -218,14 +250,14 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
                 </div>
                 <div className="text-right">
                   <div className={`text-lg font-bold ${
-                    transaction.type === 'topup' || transaction.type === 'refund' || transaction.type === 'bonus'
-                      ? 'text-green-600'
-                      : 'text-red-600'
+                    transaction.type === 'topup' || transaction.type === 'credit' || transaction.type === 'refund' || transaction.type === 'bonus'
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400'
                   }`}>
-                    {formatAmount(transaction.amount, transaction.type)}
+                    {formatAmount(transaction.amount, transaction.type)} credits
                   </div>
                   <div className="text-xs text-gray-500 dark:text-muted-foreground">
-                    Balance: {transaction.balanceAfter.toFixed(2)}
+                    Balance: {transaction.balanceAfter.toFixed(2)} credits
                   </div>
                 </div>
               </div>

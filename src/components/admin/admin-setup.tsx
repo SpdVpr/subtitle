@@ -74,9 +74,6 @@ export function AdminSetup() {
           <Button size="sm" variant="outline" onClick={() => quickSetup('premium@test.com')}>
             Use premium@test.com
           </Button>
-          <Button size="sm" variant="outline" onClick={() => quickSetup('pro@test.com')}>
-            Use pro@test.com
-          </Button>
           <Button size="sm" variant="outline" onClick={() => quickSetup('admin@subtitle-ai.com')}>
             Use admin@subtitle-ai.com
           </Button>

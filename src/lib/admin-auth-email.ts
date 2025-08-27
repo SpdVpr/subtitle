@@ -1,9 +1,9 @@
 const ADMIN_EMAILS = [
+  'premium@test.com',
+  'admin@subtitlebot.com',
   'admin@subtitle-ai.com',
   'ceo@subtitle-ai.com',
-  'manager@subtitle-ai.com',
-  'premium@test.com',
-  'pro@test.com'
+  'manager@subtitle-ai.com'
 ]
 
 export function isAdminEmail(email: string): boolean {
