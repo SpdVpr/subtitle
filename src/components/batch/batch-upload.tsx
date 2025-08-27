@@ -31,24 +31,30 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const isSupportedSubtitleFile = (fileName: string): boolean => {
+    const supportedExtensions = ['.srt', '.vtt', '.ass', '.ssa', '.sub', '.sbv']
+    return supportedExtensions.some(ext => fileName.toLowerCase().endsWith(ext))
+  }
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const srtFiles = acceptedFiles.filter(file => 
-      file.name.toLowerCase().endsWith('.srt') && file.size <= 10 * 1024 * 1024 // 10MB limit
+    const subtitleFiles = acceptedFiles.filter(file =>
+      isSupportedSubtitleFile(file.name) && file.size <= 10 * 1024 * 1024 // 10MB limit
     )
     
-    setFiles(prev => [...prev, ...srtFiles])
-    
+    setFiles(prev => [...prev, ...subtitleFiles])
+
     // Auto-generate job name if not set
-    if (!jobName && srtFiles.length > 0) {
+    if (!jobName && subtitleFiles.length > 0) {
       const timestamp = new Date().toLocaleDateString()
       setJobName(`Batch Translation - ${timestamp}`)
     }
-  }, [jobName])
+  }, [jobName, isSupportedSubtitleFile])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'text/plain': ['.srt'],
+      'text/plain': ['.srt', '.vtt', '.ass', '.ssa', '.sub', '.sbv'],
+      'text/vtt': ['.vtt'],
       'application/x-subrip': ['.srt']
     },
     disabled: isCreating

@@ -137,7 +137,7 @@ export function TranslationInterface() {
     // Parse subtitle file to count subtitles (from original code)
     try {
       const text = await file.text()
-      const parsed = SubtitleProcessor.parseSRT(text)
+      const parsed = SubtitleProcessor.parseSubtitleFile(text, file.name)
       setSubtitleCount(parsed.length)
       console.log('Subtitle count:', parsed.length)
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { useDropzone } from 'react-dropzone'
@@ -10,17 +10,19 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { LanguageSelector } from '../translation/language-selector'
 import { CreditsDisplay } from '@/components/ui/credits-display'
-import { 
-  Upload, 
-  X, 
-  FileText, 
-  Archive, 
-  Download, 
+import {
+  Upload,
+  X,
+  FileText,
+  Archive,
+  Download,
   Calculator,
   AlertCircle,
   CheckCircle,
   Clock,
-  Zap
+  Zap,
+  Eye,
+  Edit3
 } from 'lucide-react'
 
 interface BatchFile {
@@ -35,15 +37,15 @@ interface BatchFile {
 }
 
 export function BatchTranslationInterface() {
-  const router = useRouter()
   const { user } = useAuth()
+  const router = useRouter()
   const [files, setFiles] = useState<BatchFile[]>([])
   const [targetLanguage, setTargetLanguage] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [totalEstimatedCost, setTotalEstimatedCost] = useState<number>(0)
   const [totalSubtitles, setTotalSubtitles] = useState<number>(0)
   const [userCredits, setUserCredits] = useState<number | null>(null)
-  const [refreshCredits, setRefreshCredits] = useState<(() => void) | null>(null)
+  const refreshCreditsRef = useRef<(() => void) | null>(null)
   const [overallProgress, setOverallProgress] = useState<number>(0)
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0)
 
@@ -74,6 +76,12 @@ export function BatchTranslationInterface() {
     }
   }, [user])
 
+  // Helper function to check supported subtitle formats
+  const isSupportedSubtitleFile = (fileName: string): boolean => {
+    const supportedExtensions = ['.srt', '.vtt', '.ass', '.ssa', '.sub', '.sbv']
+    return supportedExtensions.some(ext => fileName.toLowerCase().endsWith(ext))
+  }
+
   // File processing functions
   const processZipFile = async (zipFile: File): Promise<File[]> => {
     // Import JSZip dynamically
@@ -85,17 +93,17 @@ export function BatchTranslationInterface() {
       const srtFiles: File[] = []
       
       for (const [filename, file] of Object.entries(zipData.files)) {
-        if (filename.toLowerCase().endsWith('.srt') && !file.dir) {
+        if (isSupportedSubtitleFile(filename) && !file.dir) {
           const content = await file.async('blob')
-          const srtFile = new File([content], filename, { type: 'text/plain' })
-          srtFiles.push(srtFile)
+          const subtitleFile = new File([content], filename, { type: 'text/plain' })
+          srtFiles.push(subtitleFile)
         }
       }
-      
+
       return srtFiles
     } catch (error) {
       console.error('Error processing ZIP file:', error)
-      throw new Error('Failed to extract SRT files from ZIP')
+      throw new Error('Failed to extract subtitle files from ZIP')
     }
   }
 
@@ -136,7 +144,7 @@ export function BatchTranslationInterface() {
           console.error('Error processing ZIP file:', error)
           alert(`Error processing ZIP file: ${file.name}`)
         }
-      } else if (file.name.toLowerCase().endsWith('.srt')) {
+      } else if (isSupportedSubtitleFile(file.name)) {
         const { cost, subtitleCount } = await estimateFileCredits(file)
         newFiles.push({
           file,
@@ -155,7 +163,9 @@ export function BatchTranslationInterface() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'text/plain': ['.srt'],
+      'text/plain': ['.srt', '.vtt', '.ass', '.ssa', '.sub', '.sbv'],
+      'text/vtt': ['.vtt'],
+      'application/x-subrip': ['.srt'],
       'application/zip': ['.zip'],
       'application/x-zip-compressed': ['.zip']
     },
@@ -172,6 +182,34 @@ export function BatchTranslationInterface() {
 
   const removeFile = (id: string) => {
     setFiles(prev => prev.filter(file => file.id !== id))
+  }
+
+  // Handle edit button click for completed translations
+  const handleEditTranslation = (file: BatchFile) => {
+    if (!file.result?.translatedContent) {
+      console.error('No translated content available for editing')
+      return
+    }
+
+    // Store data in sessionStorage for preview page
+    const previewData = {
+      originalFile: file.file.name,
+      sourceLanguage: 'Auto-detect',
+      targetLanguage: targetLanguage,
+      aiService: 'premium',
+      translatedFileName: file.result.translatedFileName || `${file.file.name.replace('.srt', '')}_translated.srt`
+    }
+
+    sessionStorage.setItem('previewData', JSON.stringify(previewData))
+    sessionStorage.setItem('translatedContent', file.result.translatedContent)
+
+    // Store original content if available
+    file.file.text().then(originalContent => {
+      sessionStorage.setItem('originalContent', originalContent)
+    }).catch(console.error)
+
+    // Open preview page in new tab
+    window.open('/preview', '_blank')
   }
 
 
@@ -233,64 +271,127 @@ export function BatchTranslationInterface() {
           formData.append('aiService', 'premium')
           formData.append('userId', user.uid)
 
-          console.log('📤 Sending request to /api/translate-simple...')
+          console.log('📤 Sending request to /api/translate-stream...')
 
-          const response = await fetch('/api/translate-simple', {
-            method: 'POST',
-            body: formData
-          })
+          try {
+            // Use streaming API for real progress updates
+            const response = await fetch('/api/translate-stream', {
+              method: 'POST',
+              body: formData
+            })
 
-          console.log('📥 Response status:', response.status, response.statusText)
+            if (!response.ok) {
+              const errorText = await response.text()
+              console.error('❌ API Error:', errorText)
+              throw new Error(`Translation failed: ${response.statusText} - ${errorText}`)
+            }
 
-          if (!response.ok) {
-            const errorText = await response.text()
-            console.error('❌ API Error:', errorText)
-            throw new Error(`Translation failed: ${response.statusText} - ${errorText}`)
-          }
+            // Handle streaming response
+            const reader = response.body?.getReader()
+            if (!reader) {
+              throw new Error('No response body reader available')
+            }
 
-          const result = await response.json()
-          console.log('✅ Translation result:', result)
+            const decoder = new TextDecoder()
+            let buffer = ''
+            let translationResult: any = null
 
-          // translate-simple returns direct response with translated content
-          if (result.translatedContent) {
-            console.log('💾 Saving translation to database...')
+            while (true) {
+              const { done, value } = await reader.read()
+              if (done) break
 
-            try {
-              // Save translation to database via API
-              const saveResponse = await fetch('/api/batch/save-translation', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  userId: user.uid,
-                  originalFileName: file.file.name,
-                  targetLanguage,
-                  translatedContent: result.translatedContent,
-                  subtitleCount: result.subtitleCount || file.subtitleCount || 0,
-                  characterCount: result.characterCount || 0
-                })
-              })
+              buffer += decoder.decode(value, { stream: true })
+              const lines = buffer.split('\n')
+              buffer = lines.pop() || ''
 
-              if (saveResponse.ok) {
-                const saveResult = await saveResponse.json()
-                console.log('✅ Translation saved to database and credits deducted:', saveResult)
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const data = JSON.parse(line.substring(6))
 
-                // Update file status to completed
-                setFiles(prev => prev.map(f =>
-                  f.id === file.id ? {
-                    ...f,
-                    status: 'completed' as const,
-                    progress: 100,
-                    result: {
-                      ...result,
-                      jobId: saveResult.jobId,
-                      translatedFileName: saveResult.translatedFileName
+                    if (data.type === 'progress') {
+                      // Update real progress from API
+                      const realProgress = Math.min(data.progress || 0, 99)
+                      setFiles(prev => prev.map(f =>
+                        f.id === file.id ? { ...f, progress: realProgress } : f
+                      ))
+                      console.log(`📊 Real progress: ${data.stage} (${realProgress}%) - ${data.details || ''}`)
+                    } else if (data.type === 'result' || data.type === 'complete') {
+                      translationResult = data
+                      // Set progress to 100% when complete
+                      setFiles(prev => prev.map(f =>
+                        f.id === file.id ? { ...f, progress: 100 } : f
+                      ))
+                    } else if (data.type === 'error') {
+                      throw new Error(data.error || data.message || 'Translation failed')
                     }
-                  } : f
-                ))
-              } else {
-                console.error('❌ Failed to save to database:', await saveResponse.text())
+                  } catch (parseError) {
+                    console.warn('Failed to parse SSE data:', line, parseError)
+                  }
+                }
+              }
+            }
+
+            if (!translationResult) {
+              throw new Error('No translation result received')
+            }
+
+            const result = translationResult
+            console.log('✅ Translation result:', result)
+
+            // translate-simple returns direct response with translated content
+            if (result.translatedContent) {
+              console.log('💾 Saving translation to database...')
+
+              try {
+                // Save translation to database via API
+                const saveResponse = await fetch('/api/batch/save-translation', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    userId: user.uid,
+                    originalFileName: file.file.name,
+                    targetLanguage,
+                    translatedContent: result.translatedContent,
+                    subtitleCount: result.subtitleCount || file.subtitleCount || 0,
+                    characterCount: result.characterCount || 0
+                  })
+                })
+
+                if (saveResponse.ok) {
+                  const saveResult = await saveResponse.json()
+                  console.log('✅ Translation saved to database and credits deducted:', saveResult)
+
+                  // Update file status to completed
+                  setFiles(prev => prev.map(f =>
+                    f.id === file.id ? {
+                      ...f,
+                      status: 'completed' as const,
+                      progress: 100,
+                      result: {
+                        ...result,
+                        jobId: saveResult.jobId,
+                        translatedFileName: saveResult.translatedFileName
+                      }
+                    } : f
+                  ))
+                } else {
+                  console.error('❌ Failed to save to database:', await saveResponse.text())
+                  // Still show as completed in UI, but log the error
+                  setFiles(prev => prev.map(f =>
+                    f.id === file.id ? {
+                      ...f,
+                      status: 'completed' as const,
+                      progress: 100,
+                      result
+                    } : f
+                  ))
+                }
+
+              } catch (dbError) {
+                console.error('❌ Failed to save to database:', dbError)
                 // Still show as completed in UI, but log the error
                 setFiles(prev => prev.map(f =>
                   f.id === file.id ? {
@@ -301,46 +402,47 @@ export function BatchTranslationInterface() {
                   } : f
                 ))
               }
-
-            } catch (dbError) {
-              console.error('❌ Failed to save to database:', dbError)
-              // Still show as completed in UI, but log the error
-              setFiles(prev => prev.map(f =>
-                f.id === file.id ? {
-                  ...f,
-                  status: 'completed' as const,
-                  progress: 100,
-                  result
-                } : f
-              ))
+            } else {
+              throw new Error('No translated content in response')
             }
-          } else {
-            throw new Error('No translated content in response')
-          }
 
-          // Update overall progress
-          const completedProgress = ((i + 1) / files.length) * 100
-          setOverallProgress(completedProgress)
+            // Update overall progress
+            const completedProgress = ((i + 1) / files.length) * 100
+            setOverallProgress(completedProgress)
 
-          // Refresh credits after each successful translation
-          await fetchUserCredits()
-          if (refreshCredits && typeof refreshCredits === 'function') {
-            try {
-              refreshCredits()
-            } catch (error) {
-              console.warn('Failed to refresh credits display:', error)
+            // Refresh credits after each successful translation
+            await fetchUserCredits()
+            if (refreshCreditsRef.current && typeof refreshCreditsRef.current === 'function') {
+              try {
+                refreshCreditsRef.current()
+              } catch (error) {
+                console.warn('Failed to refresh credits display:', error)
+              }
             }
-          }
 
+          } catch (error) {
+            console.error(`Error translating file ${file.file.name}:`, error)
+
+            // Update file status to error
+            setFiles(prev => prev.map(f =>
+              f.id === file.id ? {
+                ...f,
+                status: 'error' as const,
+                progress: 0,
+                error: error instanceof Error ? error.message : 'Translation failed'
+              } : f
+            ))
+          }
         } catch (error) {
-          console.error(`Error translating file ${file.file.name}:`, error)
-          
+          console.error(`Error processing file ${file.file.name}:`, error)
+
           // Update file status to error
-          setFiles(prev => prev.map(f => 
-            f.id === file.id ? { 
-              ...f, 
-              status: 'error' as const, 
-              error: error instanceof Error ? error.message : 'Translation failed'
+          setFiles(prev => prev.map(f =>
+            f.id === file.id ? {
+              ...f,
+              status: 'error' as const,
+              progress: 0,
+              error: error instanceof Error ? error.message : 'File processing failed'
             } : f
           ))
         }
@@ -418,10 +520,16 @@ export function BatchTranslationInterface() {
 
   return (
     <div className="space-y-6">
-      {/* Credits Display */}
-      <CreditsDisplay
-        onRefresh={setRefreshCredits}
-      />
+      {/* Credits Display - Centered and Larger */}
+      <div className="flex justify-center">
+        <div className="transform scale-125">
+          <CreditsDisplay
+            onRefresh={(refreshFn) => {
+              refreshCreditsRef.current = refreshFn
+            }}
+          />
+        </div>
+      </div>
 
       {/* File Upload Area */}
       <Card>
@@ -431,7 +539,7 @@ export function BatchTranslationInterface() {
             Upload Subtitle Files
           </CardTitle>
           <CardDescription>
-            Upload multiple SRT files or a ZIP archive containing SRT files
+            Upload multiple subtitle files (SRT, VTT, ASS, SSA) or a ZIP archive containing subtitle files
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -458,15 +566,18 @@ export function BatchTranslationInterface() {
                   </div>
                   <div>
                     <p className="text-gray-600 font-medium mb-2">
-                      Drag & drop SRT files or ZIP archives here
+                      Drag & drop subtitle files or ZIP archives here
                     </p>
                     <p className="text-sm text-gray-500">
                       or click to browse files
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Badge variant="secondary">.srt files</Badge>
-                    <Badge variant="secondary">.zip archives</Badge>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">.srt</Badge>
+                    <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">.vtt</Badge>
+                    <Badge variant="secondary" className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300">.ass</Badge>
+                    <Badge variant="secondary" className="bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300">.ssa</Badge>
+                    <Badge variant="secondary" className="bg-gray-50 text-gray-700 dark:bg-gray-950 dark:text-gray-300">.zip</Badge>
                   </div>
                 </>
               )}
@@ -590,8 +701,20 @@ export function BatchTranslationInterface() {
                       {file.subtitleCount} subtitles • {file.estimatedCost?.toFixed(1)} credits
                     </div>
 
-                    {file.status === 'processing' && (
-                      <Progress value={file.progress} className="mt-2" />
+                    {(file.status === 'processing' || file.status === 'completed') && (
+                      <div className="mt-2">
+                        <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                          <span>
+                            {file.status === 'completed' ? 'Completed' :
+                             (file.progress || 0) < 30 ? 'Analysis & research...' : 'Translating...'}
+                          </span>
+                          <span>{Math.round(file.progress || 0)}%</span>
+                        </div>
+                        <Progress
+                          value={file.progress || 0}
+                          className={`h-2 ${file.status === 'completed' ? 'bg-green-100' : ''}`}
+                        />
+                      </div>
                     )}
 
                     {file.error && (
@@ -620,13 +743,24 @@ export function BatchTranslationInterface() {
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Completed
                         </Badge>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => downloadFile(file)}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditTranslation(file)}
+                            title="Edit & Preview"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => downloadFile(file)}
+                            title="Download"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </>
                     )}
 

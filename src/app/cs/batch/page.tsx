@@ -1,6 +1,6 @@
 'use client'
 
-import { BatchTranslationInterface } from '@/components/batch/batch-translation-interface'
+import { BatchTranslationInterfaceCS } from '@/components/batch/batch-translation-interface-cs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -40,7 +40,7 @@ export default function CzechBatchPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Nahrajte ZIP archiv s více SRT soubory a my je všechny přeložíme najednou.
+                Nahrajte ZIP archiv s více soubory titulků (SRT, VTT, ASS, SSA) a my je všechny přeložíme najednou.
               </p>
             </CardContent>
           </Card>
@@ -54,7 +54,7 @@ export default function CzechBatchPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Vyberte více SRT souborů najednou a zpracujte je v jedné dávce.
+                Vyberte více souborů titulků (SRT, VTT, ASS, SSA) najednou a zpracujte je v jedné dávce.
               </p>
             </CardContent>
           </Card>
@@ -75,7 +75,7 @@ export default function CzechBatchPage() {
         </div>
 
         {/* Batch Interface */}
-        <BatchTranslationInterface />
+        <BatchTranslationInterfaceCS />
 
         {/* How it Works */}
         <div className="mt-12">
@@ -88,7 +88,7 @@ export default function CzechBatchPage() {
               </div>
               <h3 className="font-semibold mb-2">1. Nahrajte Soubory</h3>
               <p className="text-sm text-muted-foreground">
-                Vyberte více SRT souborů nebo nahrajte ZIP archiv
+                Vyberte více souborů titulků nebo nahrajte ZIP archiv
               </p>
             </div>
 
@@ -172,9 +172,11 @@ export default function CzechBatchPage() {
         <div className="mt-8 text-center">
           <h3 className="text-lg font-semibold mb-4">Podporované Formáty</h3>
           <div className="flex flex-wrap justify-center gap-3">
-            <span className="bg-white/50 dark:bg-card/50 px-3 py-1 rounded-full text-sm">.srt</span>
-            <span className="bg-white/50 dark:bg-card/50 px-3 py-1 rounded-full text-sm">.zip</span>
-            <span className="bg-white/50 dark:bg-card/50 px-3 py-1 rounded-full text-sm">Více formátů brzy</span>
+            <span className="bg-blue-50 dark:bg-blue-950 px-3 py-1 rounded-full text-sm font-medium text-blue-700 dark:text-blue-300">.srt</span>
+            <span className="bg-green-50 dark:bg-green-950 px-3 py-1 rounded-full text-sm font-medium text-green-700 dark:text-green-300">.vtt</span>
+            <span className="bg-purple-50 dark:bg-purple-950 px-3 py-1 rounded-full text-sm font-medium text-purple-700 dark:text-purple-300">.ass</span>
+            <span className="bg-orange-50 dark:bg-orange-950 px-3 py-1 rounded-full text-sm font-medium text-orange-700 dark:text-orange-300">.ssa</span>
+            <span className="bg-gray-50 dark:bg-gray-950 px-3 py-1 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300">.zip</span>
           </div>
         </div>
       </div>

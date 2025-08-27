@@ -176,8 +176,11 @@ export function VideoPlayerWithSubtitles() {
     const file = event.target.files?.[0]
     if (!file) return
 
-    if (!file.name.toLowerCase().endsWith('.srt')) {
-      toast.error('Please select a valid SRT subtitle file')
+    const supportedExtensions = ['.srt', '.vtt', '.ass', '.ssa', '.sub', '.sbv']
+    const isSupported = supportedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
+
+    if (!isSupported) {
+      toast.error('Please select a valid subtitle file (SRT, VTT, ASS, SSA, SUB, SBV)')
       return
     }
 
@@ -235,11 +238,12 @@ export function VideoPlayerWithSubtitles() {
 
       console.log(`📄 Content preview:`, translatedContent.substring(0, 200) + '...')
 
-      // Parse as SRT content
+      // Parse subtitle content (auto-detect format)
       try {
-        console.log('🎬 Parsing as SRT...')
-        const entries = SubtitleProcessor.parseSRT(translatedContent)
-        console.log(`✅ Successfully parsed ${entries.length} SRT entries`)
+        console.log('🎬 Parsing subtitle content...')
+        const fileName = job.translatedFileName || job.originalFileName || 'subtitles.srt'
+        const entries = SubtitleProcessor.parseSubtitleFile(translatedContent, fileName)
+        console.log(`✅ Successfully parsed ${entries.length} subtitle entries`)
         const overlayEntries = convertToOverlayEntries(entries)
         setEntries(overlayEntries)
         toast.success(`Loaded ${overlayEntries.length} subtitles from "${job.translatedFileName || job.originalFileName}"`)

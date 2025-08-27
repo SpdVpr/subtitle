@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { isAdmin } from "@/lib/admin-auth"
 import { Badge } from "@/components/ui/badge"
 import { Shield, Menu, X } from "lucide-react"
-import { CreditsDisplay } from "@/components/ui/credits-display"
+
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
 
@@ -25,11 +25,10 @@ export function Header() {
   // Get navigation labels based on language
   const navLabels = isCzech ? {
     translate: 'Překlad',
-    findSubtitles: 'Hledat Titulky',
-    videoTools: 'Video Nástroje',
+    findSubtitles: 'Hledat',
+    videoTools: 'Nástroje',
     subtitleEditor: 'Editor Titulků',
-    batch: 'Hromadný Překlad',
-    buyCredits: 'Koupit Kredity',
+    buyCredits: 'Kredity',
     dashboard: 'Dashboard',
     signOut: 'Odhlásit se',
     signIn: 'Přihlásit se',
@@ -39,7 +38,6 @@ export function Header() {
     findSubtitles: 'Find Subtitles',
     videoTools: 'Video Tools',
     subtitleEditor: 'Subtitle Editor',
-    batch: 'Batch',
     buyCredits: 'Buy Credits',
     dashboard: 'Dashboard',
     signOut: 'Sign Out',
@@ -79,14 +77,7 @@ export function Header() {
             >
               {navLabels.translate}
             </Link>
-            {user && (
-              <Link
-                href={`${langPrefix}/batch`}
-                className="text-muted-foreground hover:text-foreground transition-colors font-medium"
-              >
-                {navLabels.batch}
-              </Link>
-            )}
+            {/* Batch is now integrated into translate page for both languages */}
             <Link
               href={`${langPrefix}/subtitles-search`}
               className="text-muted-foreground hover:text-foreground transition-colors font-medium"
@@ -142,7 +133,6 @@ export function Header() {
               <div className="h-8 w-20 bg-muted animate-pulse rounded" />
             ) : user ? (
               <div className="flex items-center space-x-1">
-                <CreditsDisplay showBuyButton={false} className="hidden 2xl:flex" />
                 <Button variant="ghost" size="sm" asChild className="hidden 2xl:inline-flex px-2">
                   <Link href="/dashboard">{navLabels.dashboard}</Link>
                 </Button>
@@ -185,15 +175,7 @@ export function Header() {
                 >
                   {navLabels.translate}
                 </Link>
-                {user && (
-                  <Link
-                    href={`${langPrefix}/batch`}
-                    className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {navLabels.batch}
-                  </Link>
-                )}
+                {/* Batch is now integrated into translate page for both languages */}
                 <Link
                   href={`${langPrefix}/subtitles-search`}
                   className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
@@ -240,7 +222,6 @@ export function Header() {
                   <div className="h-8 bg-muted animate-pulse rounded" />
                 ) : user ? (
                   <div className="space-y-3">
-                    <CreditsDisplay showBuyButton={false} className="justify-start" />
                     <div className="flex flex-col space-y-2">
                       <Button variant="ghost" size="sm" asChild className="justify-start">
                         <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>

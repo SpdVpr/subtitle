@@ -26,7 +26,8 @@ export function FileUpload({ onFileSelect, selectedFile, onFileRemove, disabled 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'text/plain': ['.srt'],
+      'text/plain': ['.srt', '.vtt', '.ass', '.ssa', '.sub', '.sbv'],
+      'text/vtt': ['.vtt'],
       'application/x-subrip': ['.srt']
     },
     maxFiles: 1,

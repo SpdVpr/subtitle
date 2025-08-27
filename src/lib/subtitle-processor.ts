@@ -3,6 +3,30 @@ import { calculateTimingAdjustment, getLanguageCharacteristics } from './languag
 
 export class SubtitleProcessor {
   /**
+   * Auto-detect and parse subtitle file based on extension
+   */
+  static parseSubtitleFile(content: string, fileName: string): SubtitleEntry[] {
+    const extension = fileName.toLowerCase().split('.').pop()
+
+    switch (extension) {
+      case 'srt':
+        return this.parseSRT(content)
+      case 'vtt':
+        return this.parseVTT(content)
+      case 'ass':
+      case 'ssa':
+        return this.parseASS(content)
+      case 'sub':
+        return this.parseSUB(content)
+      case 'sbv':
+        return this.parseSBV(content)
+      default:
+        // Fallback to SRT parser for unknown formats
+        return this.parseSRT(content)
+    }
+  }
+
+  /**
    * Parse SRT file content into subtitle entries
    */
   static parseSRT(content: string): SubtitleEntry[] {
@@ -43,6 +67,197 @@ export class SubtitleProcessor {
     }
 
     return entries
+  }
+
+  /**
+   * Parse VTT (WebVTT) file content into subtitle entries
+   */
+  static parseVTT(content: string): SubtitleEntry[] {
+    const entries: SubtitleEntry[] = []
+    const lines = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n')
+
+    let index = 1
+    let i = 0
+
+    // Skip header
+    while (i < lines.length && !lines[i].includes('-->')) {
+      i++
+    }
+
+    while (i < lines.length) {
+      // Find timing line
+      if (lines[i].includes('-->')) {
+        const timeMatch = lines[i].match(/(\d{2}:\d{2}:\d{2}[.,]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[.,]\d{3})/)
+        if (timeMatch) {
+          const startTime = timeMatch[1].replace('.', ',')
+          const endTime = timeMatch[2].replace('.', ',')
+
+          // Collect text lines
+          const textLines = []
+          i++
+          while (i < lines.length && lines[i].trim() !== '' && !lines[i].includes('-->')) {
+            if (lines[i].trim()) {
+              textLines.push(lines[i].trim())
+            }
+            i++
+          }
+
+          if (textLines.length > 0) {
+            entries.push({
+              index,
+              startTime,
+              endTime,
+              text: textLines.join('\n'),
+              originalText: textLines.join('\n')
+            })
+            index++
+          }
+        }
+      } else {
+        i++
+      }
+    }
+
+    return entries
+  }
+
+  /**
+   * Parse ASS/SSA file content into subtitle entries
+   */
+  static parseASS(content: string): SubtitleEntry[] {
+    const entries: SubtitleEntry[] = []
+    const lines = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n')
+
+    let index = 1
+    let inEventsSection = false
+
+    for (const line of lines) {
+      if (line.trim() === '[Events]') {
+        inEventsSection = true
+        continue
+      }
+
+      if (inEventsSection && line.startsWith('Dialogue:')) {
+        const parts = line.split(',')
+        if (parts.length >= 10) {
+          const startTime = this.convertAssTimeToSrt(parts[1].trim())
+          const endTime = this.convertAssTimeToSrt(parts[2].trim())
+          const text = parts.slice(9).join(',').replace(/\\N/g, '\n')
+
+          if (startTime && endTime && text) {
+            entries.push({
+              index,
+              startTime,
+              endTime,
+              text: text.trim(),
+              originalText: text.trim()
+            })
+            index++
+          }
+        }
+      }
+    }
+
+    return entries
+  }
+
+  /**
+   * Parse SUB file content into subtitle entries
+   */
+  static parseSUB(content: string): SubtitleEntry[] {
+    const entries: SubtitleEntry[] = []
+    const lines = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n')
+
+    let index = 1
+
+    for (const line of lines) {
+      const match = line.match(/\{(\d+)\}\{(\d+)\}(.+)/)
+      if (match) {
+        const startFrame = parseInt(match[1])
+        const endFrame = parseInt(match[2])
+        const text = match[3].replace(/\|/g, '\n')
+
+        // Convert frames to time (assuming 25fps)
+        const startTime = this.framesToSrtTime(startFrame, 25)
+        const endTime = this.framesToSrtTime(endFrame, 25)
+
+        entries.push({
+          index,
+          startTime,
+          endTime,
+          text: text.trim(),
+          originalText: text.trim()
+        })
+        index++
+      }
+    }
+
+    return entries
+  }
+
+  /**
+   * Parse SBV file content into subtitle entries
+   */
+  static parseSBV(content: string): SubtitleEntry[] {
+    const entries: SubtitleEntry[] = []
+    const blocks = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim().split(/\n\s*\n/)
+
+    let index = 1
+
+    for (const block of blocks) {
+      const lines = block.trim().split('\n')
+      if (lines.length >= 2) {
+        const timeMatch = lines[0].match(/(\d+:\d{2}:\d{2}[.,]\d{3}),(\d+:\d{2}:\d{2}[.,]\d{3})/)
+        if (timeMatch) {
+          const startTime = timeMatch[1].replace('.', ',')
+          const endTime = timeMatch[2].replace('.', ',')
+          const text = lines.slice(1).join('\n')
+
+          entries.push({
+            index,
+            startTime,
+            endTime,
+            text: text.trim(),
+            originalText: text.trim()
+          })
+          index++
+        }
+      }
+    }
+
+    return entries
+  }
+
+  /**
+   * Helper: Convert ASS time format to SRT time format
+   */
+  private static convertAssTimeToSrt(assTime: string): string {
+    // ASS format: H:MM:SS.CC (centiseconds)
+    // SRT format: HH:MM:SS,mmm (milliseconds)
+    const match = assTime.match(/(\d+):(\d{2}):(\d{2})\.(\d{2})/)
+    if (match) {
+      const hours = match[1].padStart(2, '0')
+      const minutes = match[2]
+      const seconds = match[3]
+      const centiseconds = match[4]
+      const milliseconds = (parseInt(centiseconds) * 10).toString().padStart(3, '0')
+
+      return `${hours}:${minutes}:${seconds},${milliseconds}`
+    }
+    return assTime
+  }
+
+  /**
+   * Helper: Convert frame number to SRT time format
+   */
+  private static framesToSrtTime(frames: number, fps: number): string {
+    const totalSeconds = frames / fps
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = Math.floor(totalSeconds % 60)
+    const milliseconds = Math.floor((totalSeconds % 1) * 1000)
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')},${milliseconds.toString().padStart(3, '0')}`
   }
 
   /**
@@ -96,14 +311,14 @@ export class SubtitleProcessor {
       reader.onload = (event) => {
         try {
           const content = event.target?.result as string
-          const validation = this.validateSRT(content)
-          
-          if (!validation.isValid) {
-            reject(new Error(validation.error))
+
+          // Use auto-detect parser based on file extension
+          const entries = this.parseSubtitleFile(content, file.name)
+
+          if (entries.length === 0) {
+            reject(new Error('No valid subtitle entries found'))
             return
           }
-
-          const entries = this.parseSRT(content)
           
           resolve({
             name: file.name,

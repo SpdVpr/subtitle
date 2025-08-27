@@ -249,16 +249,16 @@ export class StorageService {
     }
     
     // Check file type
-    const allowedTypes = ['text/plain', 'application/x-subrip']
-    const allowedExtensions = ['.srt', '.txt']
-    
+    const allowedTypes = ['text/plain', 'application/x-subrip', 'text/vtt']
+    const allowedExtensions = ['.srt', '.vtt', '.ass', '.ssa', '.sub', '.sbv', '.txt']
+
     const hasValidType = allowedTypes.includes(file.type)
-    const hasValidExtension = allowedExtensions.some(ext => 
+    const hasValidExtension = allowedExtensions.some(ext =>
       file.name.toLowerCase().endsWith(ext)
     )
-    
+
     if (!hasValidType && !hasValidExtension) {
-      return { valid: false, error: 'Only SRT and TXT files are allowed' }
+      return { valid: false, error: 'Only subtitle files (SRT, VTT, ASS, SSA, SUB, SBV) are allowed' }
     }
     
     return { valid: true }
