@@ -57,6 +57,52 @@ export function VideoPlayerWithSubtitles() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const videoContainerRef = useRef<HTMLDivElement>(null)
 
+  // Load subtitles from sessionStorage (from translate page PiP overlay)
+  useEffect(() => {
+    const pipSubtitles = sessionStorage.getItem('pipSubtitles')
+    const pipSubtitleFileName = sessionStorage.getItem('pipSubtitleFileName')
+
+    if (pipSubtitles) {
+      try {
+        console.log('🔍 Video Tools - Loading PiP subtitles:')
+        console.log('📝 Content length:', pipSubtitles.length)
+        console.log('📝 First 500 chars:', pipSubtitles.substring(0, 500))
+        console.log('📝 Contains timing?', pipSubtitles.includes('-->'))
+
+        const parsedEntries = SubtitleProcessor.parseSRT(pipSubtitles)
+        console.log('📝 Parsed entries:', parsedEntries.length)
+        if (parsedEntries[0]) {
+          console.log('📝 First entry details:')
+          console.log('  - Index:', parsedEntries[0].index)
+          console.log('  - Start time:', parsedEntries[0].startTime)
+          console.log('  - End time:', parsedEntries[0].endTime)
+          console.log('  - Text:', parsedEntries[0].text)
+        }
+
+        // Use convertToOverlayEntries to properly convert time to milliseconds
+        const overlayEntries = convertToOverlayEntries(parsedEntries).map(entry => ({
+          ...entry,
+          visible: true
+        }))
+
+        setEntries(overlayEntries)
+        toast.success(`Loaded ${overlayEntries.length} subtitles from translation${pipSubtitleFileName ? ` (${pipSubtitleFileName})` : ''}`)
+
+        // Auto-start playback for subtitle-only mode
+        setIsPlaying(true)
+        setCurrentTime(0)
+
+        // Clear from sessionStorage after loading
+        sessionStorage.removeItem('pipSubtitles')
+        sessionStorage.removeItem('pipSubtitleFileName')
+      } catch (error) {
+        console.error('Failed to load subtitles from sessionStorage:', error)
+        console.log('📝 Raw content that failed to parse:', pipSubtitles)
+        toast.error('Failed to load subtitles from translation')
+      }
+    }
+  }, [])
+
   // For iframe videos (YouTube, Vimeo) or subtitle-only mode, we need to simulate time progression
   useEffect(() => {
     const needsSimulation = !videoSource ||

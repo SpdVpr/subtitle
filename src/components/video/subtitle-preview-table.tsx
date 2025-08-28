@@ -76,7 +76,7 @@ export function SubtitlePreviewTable({
         <CardTitle className="text-sm">Subtitle Preview</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-1 max-h-32 overflow-y-auto">
+        <div className="space-y-1 max-h-60 overflow-y-auto">
           {visibleEntries.map((entry) => (
             <div
               key={entry.index}

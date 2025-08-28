@@ -14,6 +14,8 @@ import {
   Gift,
   CheckCircle,
   ArrowRight,
+  ArrowDown,
+  Languages,
   Star
 } from "lucide-react";
 
@@ -75,16 +77,94 @@ export default function CzechHome() {
               </Badge>
             </div>
 
-            {/* Pricing Info Card */}
-            <div className="bg-white/80 backdrop-blur-sm border border-blue-200 rounded-2xl p-6 mb-10 max-w-lg mx-auto shadow-xl dark:bg-card/80 dark:border-border dark:backdrop-blur-sm">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <Zap className="h-5 w-5 text-blue-600 dark:text-primary" />
-                <span className="font-semibold text-gray-800 dark:text-card-foreground">Jednoduché Ceny</span>
+            {/* Live Translation Demo */}
+            <div className="bg-white/80 backdrop-blur-sm border border-blue-200 rounded-2xl p-6 mb-10 max-w-4xl mx-auto shadow-xl dark:bg-card/80 dark:border-border dark:backdrop-blur-sm">
+              <div className="flex items-center justify-center gap-2 mb-6">
+                <Languages className="h-5 w-5 text-blue-600 dark:text-primary" />
+                <span className="font-semibold text-gray-800 dark:text-card-foreground">Podívejte se na překlad v akci</span>
               </div>
-              <p className="text-2xl font-bold text-blue-600 dark:text-primary mb-2">0,4 kreditů za 20 titulků</p>
-              <p className="text-sm text-gray-600 dark:text-muted-foreground">
-                Příklad: 100 titulků = 2 kredity • Žádné skryté poplatky • Plaťte jen za to, co použijete
-              </p>
+
+              {/* Translation Demo */}
+              <div className="flex flex-col lg:flex-row gap-6 items-start">
+                {/* Original English */}
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-6 h-4 bg-red-500 rounded-sm flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">EN</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Originál v angličtině</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border-l-4 border-red-500">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-1">00:02:15,340 → 00:02:18,720</div>
+                      <div className="text-sm text-gray-800 dark:text-gray-200">This algorithm looks impossible to solve.</div>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border-l-4 border-red-500">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-1">00:02:19,180 → 00:02:22,560</div>
+                      <div className="text-sm text-gray-800 dark:text-gray-200">It's a piece of cake for David.</div>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border-l-4 border-red-500">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-1">00:02:23,890 → 00:02:26,450</div>
+                      <div className="text-sm text-gray-800 dark:text-gray-200">He's been coding since he was twelve.</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Arrow - Desktop */}
+                <div className="hidden lg:flex items-center justify-center px-4">
+                  <div className="flex flex-col items-center">
+                    <ArrowRight className="h-8 w-8 text-blue-500 dark:text-primary animate-pulse" />
+                    <span className="text-xs text-blue-600 dark:text-primary font-medium mt-1">AI Překlad</span>
+                  </div>
+                </div>
+
+                {/* Arrow - Mobile/Tablet */}
+                <div className="lg:hidden flex items-center justify-center py-4 w-full">
+                  <div className="flex items-center">
+                    <ArrowDown className="h-6 w-6 text-blue-500 dark:text-primary animate-bounce" />
+                    <span className="text-xs text-blue-600 dark:text-primary font-medium ml-2">AI Překlad</span>
+                  </div>
+                </div>
+
+                {/* Translated Czech */}
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-6 h-4 bg-blue-600 rounded-sm flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">CZ</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Přeloženo do češtiny</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 border-l-4 border-blue-600">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-1">00:02:15,340 → 00:02:18,720</div>
+                      <div className="text-sm text-gray-800 dark:text-blue-200">Tento algoritmus vypadá neřešitelně.</div>
+                    </div>
+
+                    <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 border-l-4 border-blue-600">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-1">00:02:19,180 → 00:02:22,560</div>
+                      <div className="text-sm text-gray-800 dark:text-blue-200">Pro Davida je to hračka.</div>
+                    </div>
+
+                    <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 border-l-4 border-blue-600">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-1">00:02:23,890 → 00:02:26,450</div>
+                      <div className="text-sm text-gray-800 dark:text-blue-200">Programuje už od dvanácti let.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Info */}
+              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-center text-sm text-gray-600 dark:text-muted-foreground">
+                  <span className="font-medium text-blue-600 dark:text-primary">Perfektní časování zachováno</span> •
+                  <span className="font-medium text-green-600 dark:text-green-400"> Přirozené překlady</span> •
+                  <span className="font-medium text-purple-600 dark:text-purple-400"> Podpora 40+ jazyků</span>
+                </p>
+              </div>
             </div>
 
             {/* CTA Buttons */}
@@ -191,7 +271,7 @@ export default function CzechHome() {
               <div className="space-y-4">
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
                   <p className="text-sm text-destructive font-medium mb-1">Základní Překlad:</p>
-                  <p className="text-sm text-muted-foreground">"Jsem velmi šťastný, že tě vidím"</p>
+                  <p className="text-sm text-muted-foreground">"I am very happy to see you"</p>
                 </div>
                 <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
                   <p className="text-sm text-primary font-medium mb-1">Náš AI Překlad:</p>
@@ -325,10 +405,10 @@ export default function CzechHome() {
               <Link href="/cs/subtitles-search">Vyzkoušet Hledání Titulků</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/cs/subtitle-overlay">Vyzkoušet Titulkový Overlay</Link>
+              <Link href="/cs/subtitle-editor">Vyzkoušet Editor Titulků</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/cs/subtitle-popup">Vyzkoušet Popup Okno</Link>
+              <Link href="/cs/video-tools">Vyzkoušet Picture-in-Picture</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="/cs/video-tools">Vyzkoušet Video Přehrávač</Link>
@@ -413,9 +493,9 @@ export default function CzechHome() {
 
                 <div className="pt-6">
                   <Button size="lg" className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white" asChild>
-                    <Link href="/cs/subtitle-overlay" className="flex items-center gap-2">
+                    <Link href="/cs/subtitle-editor" className="flex items-center gap-2">
                       <span className="text-xl">📺</span>
-                      Vyzkoušet Titulkový Overlay Nyní
+                      Vyzkoušet Editor Titulků Nyní
                       <ArrowRight className="h-5 w-5" />
                     </Link>
                   </Button>
@@ -585,9 +665,9 @@ export default function CzechHome() {
 
                 <div className="pt-6">
                   <Button size="lg" className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white" asChild>
-                    <Link href="/cs/subtitle-popup" className="flex items-center gap-2">
+                    <Link href="/cs/video-tools" className="flex items-center gap-2">
                       <span className="text-xl">🪟</span>
-                      Vyzkoušet Popup Okno Nyní
+                      Vyzkoušet Picture-in-Picture Nyní
                       <ArrowRight className="h-5 w-5" />
                     </Link>
                   </Button>

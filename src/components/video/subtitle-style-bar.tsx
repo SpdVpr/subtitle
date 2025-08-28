@@ -40,10 +40,10 @@ export function SubtitleStyleBar({
 
   return (
     <div className="bg-gray-50 dark:bg-card border rounded-lg p-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 items-end">
-        {/* Font Size */}
-        <div className="space-y-2">
-          <Label className="text-xs">Size: {configuration.style.fontSize}px</Label>
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+        {/* Font Size - Takes more space */}
+        <div className="flex-1 min-w-[120px] space-y-2">
+          <Label className="text-xs font-medium">Size: {configuration.style.fontSize}px</Label>
           <Slider
             value={[configuration.style.fontSize]}
             onValueChange={([value]) => updateStyle({ fontSize: value })}
@@ -54,14 +54,14 @@ export function SubtitleStyleBar({
           />
         </div>
 
-        {/* Font Family */}
-        <div className="space-y-2">
-          <Label className="text-xs">Font</Label>
+        {/* Font Family - Takes more space */}
+        <div className="flex-1 min-w-[140px] space-y-2">
+          <Label className="text-xs font-medium">Font</Label>
           <Select
             value={configuration.style.fontFamily}
             onValueChange={(value) => updateStyle({ fontFamily: value })}
           >
-            <SelectTrigger className="text-xs h-8">
+            <SelectTrigger className="text-xs h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -74,14 +74,14 @@ export function SubtitleStyleBar({
           </Select>
         </div>
 
-        {/* Font Weight */}
-        <div className="space-y-2">
-          <Label className="text-xs">Weight</Label>
+        {/* Font Weight - Compact */}
+        <div className="min-w-[100px] space-y-2">
+          <Label className="text-xs font-medium">Weight</Label>
           <Select
             value={configuration.style.fontWeight}
             onValueChange={(value) => updateStyle({ fontWeight: value })}
           >
-            <SelectTrigger className="text-xs h-8">
+            <SelectTrigger className="text-xs h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -94,38 +94,15 @@ export function SubtitleStyleBar({
           </Select>
         </div>
 
-        {/* Text Color */}
-        <div className="space-y-2">
-          <Label className="text-xs">Text Color</Label>
+        {/* Text Color - Compact */}
+        <div className="min-w-[80px] space-y-2">
+          <Label className="text-xs font-medium">Color</Label>
           <input
             type="color"
             value={configuration.style.color}
             onChange={(e) => updateStyle({ color: e.target.value })}
-            className="w-full h-8 rounded border cursor-pointer"
-          />
-        </div>
-
-        {/* Background Color */}
-        <div className="space-y-2">
-          <Label className="text-xs">Background</Label>
-          <input
-            type="color"
-            value={configuration.style.backgroundColor}
-            onChange={(e) => updateStyle({ backgroundColor: e.target.value })}
-            className="w-full h-8 rounded border cursor-pointer"
-          />
-        </div>
-
-        {/* Background Opacity */}
-        <div className="space-y-2">
-          <Label className="text-xs">Opacity: {Math.round(configuration.style.backgroundOpacity * 100)}%</Label>
-          <Slider
-            value={[configuration.style.backgroundOpacity]}
-            onValueChange={([value]) => updateStyle({ backgroundOpacity: value })}
-            min={0}
-            max={1}
-            step={0.1}
-            className="w-full"
+            className="w-full h-9 rounded border cursor-pointer"
+            title="Choose text color"
           />
         </div>
       </div>

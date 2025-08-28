@@ -14,7 +14,8 @@ import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { TranslationResult } from '@/types/subtitle'
 import { CreditsDisplay } from '@/components/ui/credits-display'
 import { TranslationJobService } from '@/lib/database'
-import { Download, Crown, AlertCircle, Eye, Calculator } from 'lucide-react'
+import { Download, Crown, AlertCircle, Eye, Calculator, PictureInPicture2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function TranslationInterface() {
   const router = useRouter()
@@ -742,17 +743,52 @@ export function TranslationInterface() {
                 </Button>
 
                 <Button
-                  onClick={() => {
-                    // Reset for new translation
-                    setTranslationResult(null)
-                    setSelectedFile(null)
-                    setSubtitleCount(null)
-                    setEstimatedCost(null)
+                  onClick={async () => {
+                    if (!translationResult) return
+
+                    let subtitleContent = ''
+
+                    if (translationResult.translatedContent) {
+                      // Direct content available
+                      subtitleContent = translationResult.translatedContent
+                    } else if (translationResult.downloadUrl) {
+                      // Need to fetch from URL
+                      try {
+                        const response = await fetch(translationResult.downloadUrl)
+                        if (response.ok) {
+                          subtitleContent = await response.text()
+                        } else {
+                          throw new Error('Failed to fetch subtitle content')
+                        }
+                      } catch (error) {
+                        console.error('Failed to fetch subtitles:', error)
+                        toast.error('Failed to load subtitles for PiP overlay')
+                        return
+                      }
+                    }
+
+                    if (subtitleContent) {
+                      // Debug: Log the content being stored
+                      console.log('🔍 PiP Overlay - Storing subtitle content:')
+                      console.log('📝 Content length:', subtitleContent.length)
+                      console.log('📝 First 500 chars:', subtitleContent.substring(0, 500))
+                      console.log('📝 Contains timing?', subtitleContent.includes('-->'))
+
+                      // Store translated subtitles for Video Tools PiP
+                      sessionStorage.setItem('pipSubtitles', subtitleContent)
+                      sessionStorage.setItem('pipSubtitleFileName', translationResult.translatedFileName || 'translated.srt')
+
+                      // Navigate to Video Tools
+                      router.push('/video-tools')
+                    } else {
+                      toast.error('No subtitle content available for PiP overlay')
+                    }
                   }}
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 flex items-center gap-2"
                 >
-                  New Translation
+                  <PictureInPicture2 className="h-4 w-4" />
+                  PiP Overlay
                 </Button>
               </div>
             </div>

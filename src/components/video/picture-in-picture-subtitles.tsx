@@ -110,6 +110,12 @@ export function PictureInPictureSubtitles({
     // Convert time to milliseconds
     const timeInMs = time * 1000
 
+    // Debug: Log timing information
+    if (entries.length > 0 && time % 5 < 0.1) { // Log every 5 seconds
+      console.log(`🕐 PiP getCurrentEntry - Time: ${time}s (${timeInMs}ms)`)
+      console.log(`📝 Looking for subtitle at time ${time}s among ${entries.length} entries`)
+    }
+
     // Check if entries have displayStartTime/displayEndTime or use startTime/endTime
     const entry = entries.find(entry => {
       const startTime = entry.displayStartTime ?? entry.startTime
@@ -121,6 +127,14 @@ export function PictureInPictureSubtitles({
 
       return timeInMs >= startTimeMs && timeInMs <= endTimeMs
     })
+
+    // Debug: Log found entry
+    if (entry && time % 5 < 0.1) {
+      console.log(`✅ Found subtitle: "${entry.text}" (${entry.startTime}-${entry.endTime})`)
+    } else if (!entry && time % 5 < 0.1) {
+      console.log(`❌ No subtitle found at time ${time}s`)
+    }
+
     return entry || null
   }, [entries, currentTime])
 
@@ -174,23 +188,7 @@ export function PictureInPictureSubtitles({
     const x = width / 2
     const startY = (height - totalTextHeight) / 2 + (lineHeight / 2)
 
-    // Draw background if enabled
-    if (configuration.style.backgroundColor && configuration.style.backgroundOpacity > 0) {
-      const maxLineWidth = Math.max(...lines.map(line => ctx.measureText(line).width))
-      const padding = configuration.style.padding || 16
-      const bgWidth = maxLineWidth + padding * 2
-      const bgHeight = totalTextHeight + padding * 2
-
-      ctx.fillStyle = configuration.style.backgroundColor
-      ctx.globalAlpha = configuration.style.backgroundOpacity
-      ctx.fillRect(
-        x - bgWidth / 2,
-        startY - lineHeight / 2 - padding,
-        bgWidth,
-        bgHeight
-      )
-      ctx.globalAlpha = 1
-    }
+    // No background drawing needed - PiP window has black background
 
     // Draw each line
     lines.forEach((line, index) => {
@@ -459,61 +457,7 @@ export function PictureInPictureSubtitles({
 
 
 
-        {/* PiP Window Size Settings */}
-        <div className="grid grid-cols-2 gap-4 p-3 bg-muted rounded-lg">
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Window Width</label>
-            <input
-              type="number"
-              min="400"
-              max="1200"
-              step="50"
-              defaultValue="800"
-              className="w-full px-2 py-1 text-sm border rounded"
-              onChange={(e) => {
-                const canvas = canvasRef.current
-                if (canvas) {
-                  canvas.width = parseInt(e.target.value) || 800
-                  // Redraw after canvas resize
-                  if (isPipActive) {
-                    const ctx = canvas.getContext('2d')
-                    if (ctx) {
-                      const currentEntry = getCurrentEntry(currentTimeRef.current)
-                      const text = currentEntry?.text || ''
-                      drawSubtitle(ctx, text)
-                    }
-                  }
-                }
-              }}
-            />
-          </div>
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Window Height</label>
-            <input
-              type="number"
-              min="100"
-              max="400"
-              step="25"
-              defaultValue="200"
-              className="w-full px-2 py-1 text-sm border rounded"
-              onChange={(e) => {
-                const canvas = canvasRef.current
-                if (canvas) {
-                  canvas.height = parseInt(e.target.value) || 200
-                  // Redraw after canvas resize
-                  if (isPipActive) {
-                    const ctx = canvas.getContext('2d')
-                    if (ctx) {
-                      const currentEntry = getCurrentEntry(currentTimeRef.current)
-                      const text = currentEntry?.text || ''
-                      drawSubtitle(ctx, text)
-                    }
-                  }
-                }
-              }}
-            />
-          </div>
-        </div>
+
 
 
 
@@ -612,14 +556,21 @@ export function PictureInPictureSubtitles({
               </div>
             </div>
 
-            {/* Current Subtitle Preview */}
+            {/* Current Subtitle Preview - Black Bar Only */}
             <div className="bg-black text-white p-4 rounded-lg text-center min-h-[60px] flex items-center justify-center">
-              <VideoSubtitleOverlay
-                entries={entries}
-                configuration={configuration}
-                currentTime={currentTime}
-                onConfigurationChange={onConfigurationChange}
-              />
+              <div
+                className="text-center"
+                style={{
+                  fontSize: `${configuration.style.fontSize}px`,
+                  fontFamily: configuration.style.fontFamily,
+                  fontWeight: configuration.style.fontWeight,
+                  color: configuration.style.textColor,
+                  textShadow: configuration.style.textShadow ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none',
+                  lineHeight: 1.4
+                }}
+              >
+                {getCurrentEntry()?.text || 'No subtitle at current time'}
+              </div>
             </div>
           </div>
         )}
