@@ -42,33 +42,36 @@ export function RevenueChart({ revenueData, stats }: RevenueChartProps) {
   ]
 
   return (
-    <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+    <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
       {/* Daily Revenue Chart */}
       <Card className="lg:col-span-2">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900">Daily Revenue (Last 14 Days)</CardTitle>
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-foreground">Daily Revenue (Last 14 Days)</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] w-full">
+          <div className="h-[250px] sm:h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <BarChart data={chartData} margin={{ top: 10, right: 15, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 10 }}
                   stroke="#6b7280"
+                  className="text-xs sm:text-sm"
                 />
                 <YAxis
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 10 }}
                   stroke="#6b7280"
+                  className="text-xs sm:text-sm"
                 />
                 <Tooltip
                   formatter={(value) => [`$${value}`, 'Revenue']}
-                  labelStyle={{ color: '#374151' }}
+                  labelStyle={{ color: '#374151', fontSize: '12px' }}
                   contentStyle={{
                     backgroundColor: '#ffffff',
                     border: '1px solid #e5e7eb',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
+                    fontSize: '12px'
                   }}
                 />
                 <Bar dataKey="amount" fill="#3b82f6" radius={[4, 4, 0, 0]} />
@@ -80,20 +83,20 @@ export function RevenueChart({ revenueData, stats }: RevenueChartProps) {
 
       {/* Subscription Distribution */}
       <Card className="hover:shadow-md transition-shadow">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900">User Distribution</CardTitle>
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-foreground">User Distribution</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px] w-full">
+          <div className="h-[200px] sm:h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={subscriptionData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={50}
-                  outerRadius={90}
-                  paddingAngle={5}
+                  innerRadius={30}
+                  outerRadius={60}
+                  paddingAngle={3}
                   dataKey="value"
                 >
                   {subscriptionData.map((entry, index) => (
@@ -105,20 +108,21 @@ export function RevenueChart({ revenueData, stats }: RevenueChartProps) {
                   contentStyle={{
                     backgroundColor: '#ffffff',
                     border: '1px solid #e5e7eb',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
+                    fontSize: '12px'
                   }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex flex-wrap justify-center gap-3 mt-4">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-3 sm:mt-4">
             {subscriptionData.map((item, index) => (
-              <div key={index} className="flex items-center space-x-2">
+              <div key={index} className="flex items-center space-x-1 sm:space-x-2">
                 <div
-                  className="w-3 h-3 rounded-full"
+                  className="w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-xs sm:text-sm text-gray-600">
+                <span className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground">
                   {item.name} ({item.value})
                 </span>
               </div>
@@ -129,20 +133,20 @@ export function RevenueChart({ revenueData, stats }: RevenueChartProps) {
 
       {/* Service Usage */}
       <Card className="hover:shadow-md transition-shadow">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900">Service Usage</CardTitle>
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-foreground">Service Usage</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px] w-full">
+          <div className="h-[200px] sm:h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={serviceData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={50}
-                  outerRadius={90}
-                  paddingAngle={5}
+                  innerRadius={30}
+                  outerRadius={60}
+                  paddingAngle={3}
                   dataKey="value"
                 >
                   {serviceData.map((entry, index) => (
@@ -154,20 +158,21 @@ export function RevenueChart({ revenueData, stats }: RevenueChartProps) {
                   contentStyle={{
                     backgroundColor: '#ffffff',
                     border: '1px solid #e5e7eb',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
+                    fontSize: '12px'
                   }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex flex-wrap justify-center gap-3 mt-4">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-3 sm:mt-4">
             {serviceData.map((item, index) => (
-              <div key={index} className="flex items-center space-x-2">
+              <div key={index} className="flex items-center space-x-1 sm:space-x-2">
                 <div
-                  className="w-3 h-3 rounded-full"
+                  className="w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-xs sm:text-sm text-gray-600">
+                <span className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground">
                   {item.name} ({item.value})
                 </span>
               </div>

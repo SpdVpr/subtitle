@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -17,6 +17,7 @@ import {
   Download,
   Save,
   FileText,
+  ArrowLeft,
   Search,
   Replace,
   Edit3,
@@ -34,53 +35,186 @@ import {
   RefreshCw,
   Wand2,
   Info,
-  CheckCircle
+  CheckCircle,
+  RotateCcw
 } from 'lucide-react'
 import { AdvancedSubtitleEditor } from '@/components/subtitle-editor/advanced-subtitle-editor'
+import { EditorModeSelector } from '@/components/subtitle-editor/editor-mode-selector'
+import { DualSubtitleEditor } from '@/components/subtitle-editor/dual-subtitle-editor'
 
 export default function SubtitleEditorPage() {
   const { user } = useAuth()
+  const [editorMode, setEditorMode] = useState<'select' | 'single' | 'dual'>('select')
   const [entries, setEntries] = useState<SubtitleEntry[]>([])
   const [originalEntries, setOriginalEntries] = useState<SubtitleEntry[]>([])
   const [fileName, setFileName] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Handle file upload
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
+  // Process file upload with better error handling
+  const processFile = async (file: File) => {
+    // Validation
     if (!file.name.toLowerCase().endsWith('.srt')) {
-      toast.error('Please select a valid SRT file')
+      toast.error('Invalid file type. Please select an SRT file.', {
+        description: 'Only .srt subtitle files are supported'
+      })
+      return
+    }
+
+    if (file.size > 50 * 1024 * 1024) { // 50MB limit
+      toast.error('File too large. Maximum size is 50MB.', {
+        description: 'Please use a smaller subtitle file'
+      })
       return
     }
 
     setIsLoading(true)
+
     try {
+      // Check for auto-saved version
+      const autoSavedContent = localStorage.getItem(`subtitle-editor-autosave-${file.name}`)
+      if (autoSavedContent && hasUnsavedChanges) {
+        toast.info('Found auto-saved version', {
+          description: 'Loading your previous work...',
+          duration: 2000
+        })
+      }
+
       const content = await file.text()
+
+      // Validate file content
+      if (!content.trim()) {
+        toast.error('Empty file detected', {
+          description: 'The selected file appears to be empty'
+        })
+        return
+      }
+
       const parsedEntries = SubtitleProcessor.parseSRT(content)
-      
+
+      if (parsedEntries.length === 0) {
+        toast.error('No subtitles found', {
+          description: 'The file doesn\'t contain valid subtitle entries'
+        })
+        return
+      }
+
       setEntries(parsedEntries)
       setOriginalEntries([...parsedEntries])
       setFileName(file.name)
       setHasUnsavedChanges(false)
-      
-      toast.success(`Loaded ${parsedEntries.length} subtitle entries from ${file.name}`)
+
+      toast.success(`Successfully loaded ${parsedEntries.length} subtitle entries`, {
+        description: `From ${file.name}`,
+        duration: 3000
+      })
+
     } catch (error) {
       console.error('Failed to parse SRT file:', error)
-      toast.error('Failed to parse SRT file. Please check the format.')
+      toast.error('Failed to parse subtitle file', {
+        description: 'Please check if the file format is correct and try again'
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Handle entries change
+  // Handle file upload
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    await processFile(file)
+  }
+
+  // Handle drag and drop
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+  }, [])
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+
+    const files = Array.from(e.dataTransfer.files)
+    const srtFile = files.find(file => file.name.toLowerCase().endsWith('.srt'))
+
+    if (srtFile) {
+      await processFile(srtFile)
+    } else {
+      toast.error('Please drop a valid SRT file')
+    }
+  }, [])
+
+  // Handle entries change with auto-save
   const handleEntriesChange = (newEntries: SubtitleEntry[]) => {
     setEntries(newEntries)
     setHasUnsavedChanges(true)
+
+    // Auto-save after 3 seconds of inactivity
+    if (autoSaveEnabled && fileName) {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current)
+      }
+
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        // Auto-save to localStorage
+        try {
+          const srtContent = SubtitleProcessor.generateSRT(newEntries)
+          localStorage.setItem(`subtitle-editor-autosave-${fileName}`, srtContent)
+          toast.success('Auto-saved', { duration: 1000 })
+        } catch (error) {
+          console.error('Auto-save failed:', error)
+        }
+      }, 3000)
+    }
   }
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+S - Download
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault()
+        if (entries.length > 0) {
+          handleDownload()
+        }
+      }
+
+      // Ctrl+O - Open file
+      if (e.ctrlKey && e.key === 'o') {
+        e.preventDefault()
+        fileInputRef.current?.click()
+      }
+
+      // Ctrl+Z - Reset (when no entries are being edited)
+      if (e.ctrlKey && e.key === 'z' && hasUnsavedChanges) {
+        e.preventDefault()
+        handleReset()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [entries.length, hasUnsavedChanges])
+
+  // Cleanup auto-save timeout
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current)
+      }
+    }
+  }, [])
 
   // Download edited subtitles
   const handleDownload = () => {
@@ -125,124 +259,172 @@ export default function SubtitleEditorPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="mb-12 text-center">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl font-bold text-foreground mb-4">Subtitle Editor</h1>
-            <p className="text-xl text-muted-foreground mb-6 max-w-3xl mx-auto">
-              Professional subtitle editing suite with advanced tools for precise timing, batch operations, and intelligent text processing.
-            </p>
-            
-            {/* Feature highlights */}
-            <div className="flex flex-wrap justify-center gap-3 mb-8">
-              <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 px-3 py-1">
-                <Edit3 className="h-4 w-4 mr-2" />
-                Individual Editing
-              </Badge>
-              <Badge variant="secondary" className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 px-3 py-1">
-                <Wand2 className="h-4 w-4 mr-2" />
-                Batch Operations
-              </Badge>
-              <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 px-3 py-1">
-                <Search className="h-4 w-4 mr-2" />
-                Find & Replace
-              </Badge>
-              <Badge variant="secondary" className="bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300 px-3 py-1">
-                <Clock className="h-4 w-4 mr-2" />
-                Timing Tools
-              </Badge>
+        {/* Modern Header */}
+        <div className="mb-8">
+          <div className="max-w-6xl mx-auto">
+            {/* Main Title */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 px-6 py-3 rounded-full mb-6">
+                <Edit3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <span className="font-semibold text-blue-600 dark:text-blue-400">Professional Editor</span>
+              </div>
+
+              <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                Subtitle Editor
+              </h1>
+
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                Edit, sync, and perfect your subtitles with professional-grade tools
+              </p>
             </div>
-            
-            {/* Status badges */}
-            <div className="flex justify-center items-center space-x-4">
-              {hasUnsavedChanges && (
-                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                  <Edit3 className="h-3 w-3 mr-1" />
-                  Unsaved Changes
-                </Badge>
-              )}
-              {fileName && (
-                <Badge variant="outline">
-                  <FileText className="h-3 w-3 mr-1" />
-                  {fileName}
-                </Badge>
-              )}
-            </div>
+
+            {/* Status Bar - Only show when file is loaded and in single mode */}
+            {fileName && editorMode === 'single' && (
+              <div className="bg-card/50 backdrop-blur-sm border rounded-2xl p-4 mb-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <span className="font-medium">{fileName}</span>
+                    </div>
+                    <Separator orientation="vertical" className="h-6" />
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950">
+                        {entries.length} entries
+                      </Badge>
+                      {hasUnsavedChanges && (
+                        <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                          <Edit3 className="h-3 w-3 mr-1" />
+                          Modified
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditorMode('select')}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Change Mode
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      New File
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleReset}
+                      disabled={!hasUnsavedChanges}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Reset
+                    </Button>
+                    <Button
+                      onClick={handleDownload}
+                      size="sm"
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg"
+                      title="Download edited file (Ctrl+S)"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Action Bar */}
-        {entries.length === 0 ? (
-          // Upload state - Dominant upload button
+        {editorMode === 'single' && entries.length === 0 ? (
+          // Modern Upload Zone with Drag & Drop
           <div className="text-center mb-12">
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 rounded-2xl p-8 border-2 border-dashed border-blue-200 dark:border-blue-800 max-w-md mx-auto">
-              <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Upload className="h-10 w-10 text-blue-600 dark:text-blue-400" />
+            <div
+              className={`relative bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950/50 dark:via-background dark:to-purple-950/50 rounded-3xl p-12 border-2 border-dashed transition-all duration-300 max-w-2xl mx-auto ${
+                isDragOver
+                  ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/70 scale-105'
+                  : 'border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700'
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              {/* Animated background effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-3xl animate-pulse"></div>
+
+              <div className="relative z-10">
+                <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 transition-all duration-300 ${
+                  isDragOver
+                    ? 'bg-blue-500 scale-110'
+                    : 'bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900'
+                }`}>
+                  <Upload className={`h-12 w-12 transition-colors duration-300 ${
+                    isDragOver
+                      ? 'text-white'
+                      : 'text-blue-600 dark:text-blue-400'
+                  }`} />
+                </div>
+
+                <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  {isDragOver ? 'Drop Your File Here!' : 'Start Editing'}
+                </h3>
+
+                <p className="text-lg text-muted-foreground mb-8 max-w-md mx-auto">
+                  {isDragOver
+                    ? 'Release to upload your SRT file'
+                    : 'Drag & drop your SRT file here, or click to browse'
+                  }
+                </p>
+
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                  size="lg"
+                  className="text-lg px-10 py-6 h-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-6 w-6 mr-3" />
+                      <span>Choose SRT File</span>
+                    </>
+                  )}
+                </Button>
+
+                <div className="mt-8 flex items-center justify-center space-x-6 text-sm text-muted-foreground">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>SRT Format</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Max 50MB</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Instant Processing</span>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-2xl font-semibold mb-3">Start Here</h3>
-              <p className="text-muted-foreground mb-6">
-                Upload your SRT subtitle file to begin editing
-              </p>
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
-                size="lg"
-                className="text-lg px-8 py-4 h-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                <Upload className="h-6 w-6 mr-3" />
-                <span>{isLoading ? 'Loading...' : 'Upload SRT File'}</span>
-              </Button>
-              <p className="text-sm text-muted-foreground mt-4">
-                Supports standard SRT subtitle format - Max 50MB
-              </p>
             </div>
           </div>
-        ) : (
-          // Editor controls - Centered
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center space-x-2 text-sm text-muted-foreground mb-4">
-              <FileText className="h-4 w-4" />
-              <span>{entries.length} subtitle entries loaded</span>
-              {hasUnsavedChanges && (
-                <>
-                  <Separator orientation="vertical" className="h-4" />
-                  <Edit3 className="h-4 w-4 text-yellow-600" />
-                  <span className="text-yellow-600">Modified</span>
-                </>
-              )}
-            </div>
-            
-            <div className="flex flex-wrap justify-center items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
-                className="flex items-center space-x-2"
-              >
-                <Upload className="h-4 w-4" />
-                <span>Load New File</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={handleReset}
-                disabled={!hasUnsavedChanges}
-                className="flex items-center space-x-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span>Reset Changes</span>
-              </Button>
-
-              <Button
-                onClick={handleDownload}
-                className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
-              >
-                <Download className="h-4 w-4" />
-                <span>Download Edited</span>
-              </Button>
-            </div>
-          </div>
-        )}
+        ) : null}
 
         <input
           ref={fileInputRef}
@@ -253,79 +435,131 @@ export default function SubtitleEditorPage() {
         />
 
         {/* Main Content */}
-        {entries.length === 0 ? (
-          <div className="max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Welcome Card */}
-              <Card className="p-8 text-center">
-                <CardContent className="p-0">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Edit3 className="h-10 w-10 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <h3 className="text-2xl font-semibold mb-3">Professional Subtitle Editor</h3>
-                  <p className="text-muted-foreground">
-                    Upload your SRT file above to start editing with our advanced tools and features.
-                  </p>
-                </CardContent>
-              </Card>
+        {editorMode === 'select' ? (
+          <EditorModeSelector onModeSelect={setEditorMode} />
+        ) : editorMode === 'dual' ? (
+          <DualSubtitleEditor onBack={() => setEditorMode('select')} />
+        ) : editorMode === 'single' && entries.length === 0 ? (
+          <div className="max-w-5xl mx-auto">
+            {/* Feature Showcase */}
+            <div className="text-center mb-12">
+              <h2 className="text-2xl font-bold mb-8 text-muted-foreground">
+                ✨ What You Can Do
+              </h2>
 
-              {/* Features Card */}
-              <Card className="p-8">
-                <CardContent className="p-0">
-                  <h4 className="text-lg font-semibold mb-6 flex items-center justify-center">
-                    <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                    What You Can Do
-                  </h4>
-                  <div className="space-y-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <Edit3 className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="font-semibold mb-2 text-blue-900 dark:text-blue-100">Precise Editing</h3>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      Edit text, timing, and formatting with pixel-perfect precision
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <Zap className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="font-semibold mb-2 text-purple-900 dark:text-purple-100">Quick Navigation</h3>
+                    <p className="text-sm text-purple-700 dark:text-purple-300">
+                      Jump between subtitles with smart pagination
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <Search className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="font-semibold mb-2 text-green-900 dark:text-green-100">Smart Search</h3>
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      Find and replace text across all entries
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <Clock className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="font-semibold mb-2 text-orange-900 dark:text-orange-100">Perfect Timing</h3>
+                    <p className="text-sm text-orange-700 dark:text-orange-300">
+                      Sync and adjust timing with millisecond precision
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Getting Started Guide */}
+            <Card className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900 dark:to-gray-900 border-0">
+              <CardContent className="p-8">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-slate-600 to-gray-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Info className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-4">Quick Start Guide</h3>
+                  <div className="grid md:grid-cols-3 gap-6 text-left max-w-3xl mx-auto">
                     <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Edit3 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      </div>
+                      <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold">1</div>
                       <div>
-                        <p className="font-medium">Individual Editing</p>
-                        <p className="text-sm text-muted-foreground">Edit text, timing, and formatting for each subtitle entry</p>
+                        <p className="font-medium">Upload File</p>
+                        <p className="text-sm text-muted-foreground">Drag & drop or click to upload your SRT file</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Wand2 className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                      </div>
+                      <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold">2</div>
                       <div>
-                        <p className="font-medium">Batch Operations</p>
-                        <p className="text-sm text-muted-foreground">Apply changes to multiple subtitles at once</p>
+                        <p className="font-medium">Edit & Navigate</p>
+                        <p className="text-sm text-muted-foreground">Edit subtitles and use floating window for better workflow</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Search className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      </div>
+                      <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold">3</div>
                       <div>
-                        <p className="font-medium">Find & Replace</p>
-                        <p className="text-sm text-muted-foreground">Search and replace text across all subtitles</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Clock className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Timing Adjustments</p>
-                        <p className="text-sm text-muted-foreground">Sync and adjust subtitle timing precisely</p>
+                        <p className="font-medium">Download</p>
+                        <p className="text-sm text-muted-foreground">Save your edited subtitles as SRT file</p>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+
+                  {/* Keyboard Shortcuts */}
+                  <div className="mt-8 pt-6 border-t border-muted">
+                    <h4 className="text-sm font-semibold mb-4 text-center">⌨️ Keyboard Shortcuts</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span>Open file</span>
+                        <Badge variant="outline" className="font-mono">Ctrl+O</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Download</span>
+                        <Badge variant="outline" className="font-mono">Ctrl+S</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Reset changes</span>
+                        <Badge variant="outline" className="font-mono">Ctrl+Z</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        ) : (
+        ) : editorMode === 'single' && entries.length > 0 ? (
           <AdvancedSubtitleEditor
             entries={entries}
             originalEntries={originalEntries}
             onEntriesChange={handleEntriesChange}
             fileName={fileName}
           />
-        )}
+        ) : null}
       </div>
     </div>
   )

@@ -99,7 +99,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8 max-w-7xl">
         {/* Success Alert */}
         {showSuccessAlert && (
           <Alert className="mb-6 border-primary/20 bg-primary/5">
@@ -123,33 +123,35 @@ export default function DashboardPage() {
         )}
 
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
             Welcome back, {user.displayName || user.email}!
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Here's your account overview and translation activity.
           </p>
         </div>
 
         {/* Dashboard Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-8">
-            <TabsTrigger value="overview" className="flex items-center space-x-2">
-              <Zap className="w-4 h-4" />
-              <span>Overview</span>
+          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-6 sm:mb-8">
+            <TabsTrigger value="overview" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm">
+              <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Overview</span>
+              <span className="xs:hidden">Stats</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center space-x-2">
-              <BarChart3 className="w-4 h-4" />
-              <span>Analytics</span>
+            <TabsTrigger value="analytics" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm">
+              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Analytics</span>
+              <span className="xs:hidden">Charts</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview">
-            <div className="grid lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Left Column - Credits & Quick Actions */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="xl:col-span-1 space-y-4 sm:space-y-6">
             {/* Credits Card */}
             <CreditsCard />
 
@@ -185,9 +187,9 @@ export default function DashboardPage() {
           </div>
 
           {/* Right Column - Stats & Activity */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="xl:col-span-2 space-y-4 sm:space-y-6">
             {/* Usage Stats */}
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center space-x-2">

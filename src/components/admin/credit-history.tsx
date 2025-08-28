@@ -168,9 +168,9 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center space-x-2">
-          <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 pb-3 sm:pb-6">
+        <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+          <TrendingUp className="w-4 w-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
           <span>Credit History</span>
         </CardTitle>
         <Button
@@ -180,9 +180,11 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
           }}
           variant="outline"
           size="sm"
+          className="self-end sm:self-auto"
         >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
+          <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+          <span className="hidden xs:inline">Refresh</span>
+          <span className="xs:hidden">🔄</span>
         </Button>
       </CardHeader>
       <CardContent>
@@ -191,40 +193,42 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
             No credit transactions found
           </div>
         ) : (
-          <div className="space-y-4 max-h-96 overflow-y-auto">
+          <div className="space-y-3 sm:space-y-4 max-h-80 sm:max-h-96 overflow-y-auto">
             {transactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className="flex items-center justify-between p-4 border border-gray-200 dark:border-border rounded-lg hover:bg-gray-50 dark:hover:bg-card"
+                className="flex items-center justify-between p-3 sm:p-4 border border-gray-200 dark:border-border rounded-lg hover:bg-gray-50 dark:hover:bg-card gap-2 sm:gap-4"
               >
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
                   <div className="flex-shrink-0">
                     {getTransactionIcon(transaction.type)}
                   </div>
-                  <div>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="font-medium text-gray-900 dark:text-foreground">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center space-x-1 sm:space-x-2 mb-1">
+                      <span className="font-medium text-gray-900 dark:text-foreground text-sm sm:text-base truncate">
                         {transaction.userEmail}
                       </span>
-                      {getTransactionBadge(transaction.type)}
+                      <div className="flex-shrink-0">
+                        {getTransactionBadge(transaction.type)}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-muted-foreground">
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground">
                       {transaction.type === 'topup' || transaction.type === 'credit' ? (
                         <div>
-                          <div className="font-medium text-green-700 dark:text-green-300">
+                          <div className="font-medium text-green-700 dark:text-green-300 text-xs sm:text-sm">
                             💳 Credit Purchase: {Math.abs(transaction.amount).toFixed(2)} credits
                           </div>
-                          <div className="text-xs mt-1">
+                          <div className="text-xs mt-1 truncate">
                             Account: {transaction.userEmail}
                           </div>
                           {transaction.reason && transaction.reason !== 'Credit purchase' && (
-                            <div className="text-xs mt-1">
+                            <div className="text-xs mt-1 truncate">
                               {transaction.reason}
                             </div>
                           )}
                         </div>
                       ) : (
-                        <div>
+                        <div className="truncate">
                           {transaction.reason}
                           {transaction.type === 'deduction' && (
                             <div className="text-xs mt-1">
@@ -241,23 +245,27 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
                       )}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-muted-foreground mt-1">
-                      {formatDistanceToNow(new Date(transaction.createdAt), { addSuffix: true })}
+                      <span className="block sm:inline">
+                        {formatDistanceToNow(new Date(transaction.createdAt), { addSuffix: true })}
+                      </span>
                       {transaction.adminEmail && (
-                        <span className="ml-2">by {transaction.adminEmail}</span>
+                        <span className="block sm:inline sm:ml-2">by {transaction.adminEmail}</span>
                       )}
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className={`text-lg font-bold ${
+                <div className="text-right flex-shrink-0">
+                  <div className={`text-sm sm:text-lg font-bold ${
                     transaction.type === 'topup' || transaction.type === 'credit' || transaction.type === 'refund' || transaction.type === 'bonus'
                       ? 'text-green-600 dark:text-green-400'
                       : 'text-red-600 dark:text-red-400'
                   }`}>
-                    {formatAmount(transaction.amount, transaction.type)} credits
+                    <span className="hidden sm:inline">{formatAmount(transaction.amount, transaction.type)} credits</span>
+                    <span className="sm:hidden">{formatAmount(transaction.amount, transaction.type)}</span>
                   </div>
                   <div className="text-xs text-gray-500 dark:text-muted-foreground">
-                    Balance: {transaction.balanceAfter.toFixed(2)} credits
+                    <span className="hidden sm:inline">Balance: {transaction.balanceAfter.toFixed(2)} credits</span>
+                    <span className="sm:hidden">{transaction.balanceAfter.toFixed(2)}</span>
                   </div>
                 </div>
               </div>

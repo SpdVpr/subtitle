@@ -177,17 +177,17 @@ export function AnalyticsDashboard() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-      <div className="space-y-8">
+    <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 max-w-7xl">
+      <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div className="text-center sm:text-left">
-            <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-            <p className="text-gray-600 mt-2">Track your translation usage and performance</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-foreground">Analytics Dashboard</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-muted-foreground mt-2">Track your translation usage and performance</p>
           </div>
-          <div className="flex items-center justify-center sm:justify-end space-x-4">
+          <div className="flex items-center justify-center sm:justify-end space-x-2 sm:space-x-4 w-full sm:w-auto">
             <Select value={period} onValueChange={(value: 'week' | 'month' | 'year') => setPeriod(value)}>
-              <SelectTrigger className="w-36">
+              <SelectTrigger className="w-32 sm:w-36 text-xs sm:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -196,15 +196,16 @@ export function AnalyticsDashboard() {
                 <SelectItem value="year">Last Year</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export
+            <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+              <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden xs:inline">Export</span>
+              <span className="xs:hidden">📊</span>
             </Button>
           </div>
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           <Card className="text-center">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-muted-foreground">Total Translations</CardTitle>
@@ -259,37 +260,37 @@ export function AnalyticsDashboard() {
         </div>
 
       {/* Charts and Details */}
-      <Tabs defaultValue="languages" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="languages">Languages</TabsTrigger>
-          <TabsTrigger value="services">AI Services</TabsTrigger>
-          <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+      <Tabs defaultValue="languages" className="space-y-3 sm:space-y-4">
+        <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
+          <TabsTrigger value="languages" className="text-xs sm:text-sm">Languages</TabsTrigger>
+          <TabsTrigger value="services" className="text-xs sm:text-sm">Services</TabsTrigger>
+          <TabsTrigger value="activity" className="text-xs sm:text-sm">Activity</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="languages" className="space-y-4">
+        <TabsContent value="languages" className="space-y-3 sm:space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Top Translation Languages</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-lg sm:text-xl">Top Translation Languages</CardTitle>
+              <CardDescription className="text-sm">
                 Most frequently translated languages this {period}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {data.topLanguages.map((lang, index) => (
-                  <div key={lang.language} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-blue-600">#{index + 1}</span>
+                  <div key={lang.language} className="flex items-center justify-between gap-2 sm:gap-4">
+                    <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400">#{index + 1}</span>
                       </div>
-                      <div>
-                        <p className="font-medium">{lang.language}</p>
-                        <p className="text-sm text-gray-600">{lang.count} translations</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm sm:text-base truncate">{lang.language}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground">{lang.count} translations</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">{lang.percentage}%</p>
-                      <div className="w-20 h-2 bg-gray-200 dark:bg-muted rounded-full">
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-medium text-sm sm:text-base">{lang.percentage}%</p>
+                      <div className="w-16 sm:w-20 h-2 bg-gray-200 dark:bg-muted rounded-full">
                         <div
                           className="h-2 bg-blue-500 dark:bg-primary rounded-full"
                           style={{ width: `${lang.percentage}%` }}
@@ -303,27 +304,27 @@ export function AnalyticsDashboard() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="services" className="space-y-4">
+        <TabsContent value="services" className="space-y-3 sm:space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>AI Service Usage</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-lg sm:text-xl">AI Service Usage</CardTitle>
+              <CardDescription className="text-sm">
                 Translation service breakdown this {period}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {Object.entries(data.translationsByService).map(([service, count]) => (
-                  <div key={service} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <Zap className="h-5 w-5 text-purple-500" />
-                      <div>
-                        <p className="font-medium">{service}</p>
-                        <p className="text-sm text-gray-600">{count} translations</p>
+                  <div key={service} className="flex items-center justify-between gap-2 sm:gap-4">
+                    <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                      <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm sm:text-base truncate">{service}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground">{count} translations</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-medium text-sm sm:text-base">
                         {Math.round((count / data.totalTranslations) * 100)}%
                       </p>
                     </div>
@@ -334,23 +335,25 @@ export function AnalyticsDashboard() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="activity" className="space-y-4">
+        <TabsContent value="activity" className="space-y-3 sm:space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-lg sm:text-xl">Recent Activity</CardTitle>
+              <CardDescription className="text-sm">
                 Your latest translation activities
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {data.recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      {getActivityIcon(activity.type)}
-                      <div>
-                        <p className="font-medium text-sm">{activity.description}</p>
-                        <p className="text-xs text-gray-600">
+                  <div key={activity.id} className="flex items-center justify-between p-2 sm:p-3 border rounded-lg gap-2 sm:gap-4">
+                    <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                      <div className="flex-shrink-0">
+                        {getActivityIcon(activity.type)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-xs sm:text-sm truncate">{activity.description}</p>
+                        <p className="text-xs text-gray-600 dark:text-muted-foreground">
                           {(() => {
                             const date = typeof activity.timestamp === 'string'
                               ? new Date(activity.timestamp)
@@ -360,7 +363,9 @@ export function AnalyticsDashboard() {
                         </p>
                       </div>
                     </div>
-                    {getStatusBadge(activity.status)}
+                    <div className="flex-shrink-0">
+                      {getStatusBadge(activity.status)}
+                    </div>
                   </div>
                 ))}
               </div>
