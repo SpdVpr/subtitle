@@ -16,6 +16,7 @@ import { CreditsDisplay } from '@/components/ui/credits-display'
 import { TranslationJobService } from '@/lib/database'
 import { Download, Crown, AlertCircle, Eye, Calculator, PictureInPicture2, Star, StarOff } from 'lucide-react'
 import { useFavoriteLanguages } from '@/hooks/use-favorite-languages'
+import { analytics } from '@/lib/analytics'
 import { toast } from 'sonner'
 
 export function TranslationInterface() {
@@ -127,6 +128,9 @@ export function TranslationInterface() {
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file)
 
+    // Track file upload
+    analytics.fileUploaded(file.name.split('.').pop() || 'unknown', file.size)
+
     // Parse subtitle file to count subtitles
     try {
       const text = await file.text()
@@ -160,6 +164,16 @@ export function TranslationInterface() {
     setIsTranslating(true)
     setTranslationResult(null)
     setIsCompleted(false)
+
+    // Track translation start
+    analytics.translationStarted(
+      sourceLanguage === 'auto' ? 'auto' : sourceLanguage,
+      targetLanguage,
+      selectedFile.size
+    )
+
+    // Store start time for duration calculation
+    ;(window as any).translationStartTime = Date.now()
 
     try {
       // Start progress tracking
@@ -204,6 +218,13 @@ export function TranslationInterface() {
 
     } catch (error) {
       console.error('Translation failed:', error)
+
+      // Track translation failure
+      analytics.translationFailed(
+        sourceLanguage === 'auto' ? 'auto' : sourceLanguage,
+        targetLanguage,
+        error instanceof Error ? error.message : 'Unknown error'
+      )
 
       // Automatic retry logic
       if (retryCount < maxRetries && error instanceof Error &&
@@ -435,6 +456,14 @@ export function TranslationInterface() {
 
       setTranslationResult(result)
 
+      // Track successful translation completion
+      analytics.translationCompleted(
+        sourceLanguage === 'auto' ? 'auto' : sourceLanguage,
+        targetLanguage,
+        Date.now() - (window as any).translationStartTime || 0,
+        data.subtitleCount || subtitleCount || 0
+      )
+
       // Store translated content in sessionStorage for video player
       if (translatedContent) {
         sessionStorage.setItem('translatedContent', translatedContent)
@@ -462,6 +491,12 @@ export function TranslationInterface() {
 
   const handleDownload = async () => {
     if (!translationResult?.downloadUrl) return
+
+    // Track file download
+    analytics.fileDownloaded(
+      translationResult.translatedFileName?.split('.').pop() || 'srt',
+      targetLanguage
+    )
 
     try {
       if (translationResult.downloadUrl.startsWith('blob:')) {

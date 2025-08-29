@@ -14,6 +14,7 @@ import {
 import { AuthContextType } from '@/types/auth'
 import { UserService } from '@/lib/database'
 import { UserProfile } from '@/types/database'
+import { analytics } from '@/lib/analytics'
 
 import { doc, getDoc } from 'firebase/firestore'
 
@@ -166,6 +167,8 @@ export function useAuthProvider(): AuthContextType {
     setLoading(true)
     try {
       await signInWithEmailAndPassword(firebaseServices.auth, email, password)
+      // Track user login
+      analytics.userLoggedIn('email')
     } catch (error) {
       setLoading(false)
       throw error
@@ -193,6 +196,9 @@ export function useAuthProvider(): AuthContextType {
         firebaseUser.email!,
         firebaseUser.displayName || undefined
       )
+
+      // Track user registration
+      analytics.userRegistered('email')
 
       // Don't set loading to false here - let onAuthStateChanged handle it
       // This ensures proper redirect flow
@@ -265,6 +271,8 @@ export function useAuthProvider(): AuthContextType {
             result.user.email!,
             result.user.displayName || undefined
           )
+          // Track new user registration
+          analytics.userRegistered('google')
         } else {
           // Update existing user
           console.log('🔄 Updating existing Google user')
@@ -274,6 +282,8 @@ export function useAuthProvider(): AuthContextType {
             emailVerified: result.user.emailVerified,
             updatedAt: new Date() as any
           })
+          // Track user login
+          analytics.userLoggedIn('google')
         }
       }
 

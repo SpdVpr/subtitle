@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer";
 import { Providers } from "@/components/providers/providers"
 import { Toaster } from "sonner"
 import { CookieBannerWrapper } from "@/components/cookie-banner-wrapper"
+import { GoogleAnalytics } from "@/components/analytics/google-analytics"
 
 
 const inter = Inter({
@@ -109,7 +110,11 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         <link rel="dns-prefetch" href="https://api.openai.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="manifest" href="/manifest.json" />
+
+        {/* Google Analytics */}
+        <GoogleAnalytics />
 
         {/* Hreflang tags for SEO */}
         <link rel="alternate" hrefLang="en" href={`${baseUrl}`} />

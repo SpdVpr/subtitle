@@ -87,25 +87,43 @@ export function applyCookiePreferences(preferences: CookiePreferences): void {
   // Analytics cookies
   if (preferences.analytics) {
     console.log('🍪 Analytics cookies enabled')
-    // Example: Enable Google Analytics
-    // gtag('consent', 'update', {
-    //   analytics_storage: 'granted'
-    // })
+    // Enable Google Analytics
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('consent', 'update', {
+        analytics_storage: 'granted'
+      })
+    }
   } else {
     console.log('🍪 Analytics cookies disabled')
-    // gtag('consent', 'update', {
-    //   analytics_storage: 'denied'
-    // })
+    // Disable Google Analytics
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('consent', 'update', {
+        analytics_storage: 'denied'
+      })
+    }
   }
 
   // Marketing cookies
   if (preferences.marketing) {
     console.log('🍪 Marketing cookies enabled')
-    // Example: Enable Facebook Pixel, Google Ads
-    // fbq('consent', 'grant')
+    // Enable marketing tracking
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('consent', 'update', {
+        ad_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted'
+      })
+    }
   } else {
     console.log('🍪 Marketing cookies disabled')
-    // fbq('consent', 'revoke')
+    // Disable marketing tracking
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('consent', 'update', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied'
+      })
+    }
   }
 
   // Functional cookies

@@ -19,6 +19,7 @@ import {
   StarOff
 } from 'lucide-react'
 import { useFavoriteLanguages } from '@/hooks/use-favorite-languages'
+import { analytics } from '@/lib/analytics'
 
 interface BatchUploadProps {
   onJobCreated?: (jobId: string) => void
@@ -73,6 +74,9 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
 
     setIsCreating(true)
     setError(null)
+
+    // Track batch translation start
+    analytics.batchTranslationStarted(files.length, targetLanguage)
 
     try {
       const jobId = await createBatchJob({

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { analytics } from '@/lib/analytics'
 
 const STORAGE_KEY = 'subtitle-favorite-languages'
 
@@ -49,6 +50,7 @@ export function useFavoriteLanguages(): FavoriteLanguagesHook {
   const addFavorite = (languageCode: string) => {
     setFavoriteLanguages(prev => {
       if (!prev.includes(languageCode)) {
+        analytics.favoriteLanguageAdded(languageCode)
         return [...prev, languageCode]
       }
       return prev
@@ -56,7 +58,12 @@ export function useFavoriteLanguages(): FavoriteLanguagesHook {
   }
 
   const removeFavorite = (languageCode: string) => {
-    setFavoriteLanguages(prev => prev.filter(code => code !== languageCode))
+    setFavoriteLanguages(prev => {
+      if (prev.includes(languageCode)) {
+        analytics.favoriteLanguageRemoved(languageCode)
+      }
+      return prev.filter(code => code !== languageCode)
+    })
   }
 
   const isFavorite = (languageCode: string): boolean => {
