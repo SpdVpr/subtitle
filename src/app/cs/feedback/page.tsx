@@ -1,14 +1,3 @@
-import type { Metadata } from 'next'
-
-export const metadata: Metadata = {
-  title: 'Zpětná Vazba - SubtitleBot',
-  description: 'Sdílejte svou zpětnou vazbu a pomozte nám vylepšit SubtitleBot. Anonymní a rychlý formulář pro návrhy, hlášení chyb a požadavky na funkce.',
-  robots: {
-    index: true,
-    follow: true,
-  },
-}
-
 'use client'
 
 import { useState, useEffect } from 'react'

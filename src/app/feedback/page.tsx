@@ -1,14 +1,3 @@
-import type { Metadata } from 'next'
-
-export const metadata: Metadata = {
-  title: 'Feedback - SubtitleBot',
-  description: 'Share your feedback and help us improve SubtitleBot. Anonymous and quick feedback form for suggestions, bug reports, and feature requests.',
-  robots: {
-    index: true,
-    follow: true,
-  },
-}
-
 'use client'
 
 import { useState, useEffect } from 'react'
