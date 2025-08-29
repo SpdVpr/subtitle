@@ -7,6 +7,7 @@ import { Providers } from "@/components/providers/providers"
 import { Toaster } from "sonner"
 import { CookieBannerWrapper } from "@/components/cookie-banner-wrapper"
 import { GoogleAnalytics } from "@/components/analytics/google-analytics"
+import { LocaleAwareLayout } from "@/components/layout/locale-aware-layout"
 
 
 const inter = Inter({
@@ -125,11 +126,9 @@ export default function RootLayout({
 
 
         <Providers>
-          <div className="relative flex min-h-screen flex-col bg-background">
-            <Header />
-            <main className="flex-1 bg-background">{children}</main>
-            <Footer />
-          </div>
+          <LocaleAwareLayout>
+            {children}
+          </LocaleAwareLayout>
           <Toaster
             theme="system"
             className="toaster group"

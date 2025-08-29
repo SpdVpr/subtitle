@@ -2,8 +2,13 @@ import Link from "next/link"
 import Image from "next/image"
 import { Github, Twitter, Mail, Heart, Globe, Zap } from "lucide-react"
 
-export function Footer() {
+interface FooterProps {
+  locale?: 'en' | 'cs'
+}
+
+export function Footer({ locale = 'en' }: FooterProps) {
   const currentYear = new Date().getFullYear()
+  const langPrefix = locale === 'cs' ? '/cs' : ''
 
   return (
     <footer className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -23,7 +28,10 @@ export function Footer() {
               <span className="text-lg sm:text-xl font-bold text-foreground">SubtitleBot</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-              AI-powered subtitle translation and timing adjustment. Fast, accurate, and easy to use for creators worldwide.
+              {locale === 'cs'
+                ? 'AI překladač titulků s úpravou časování. Rychlý, přesný a snadný na použití pro tvůrce po celém světě.'
+                : 'AI-powered subtitle translation and timing adjustment. Fast, accurate, and easy to use for creators worldwide.'
+              }
             </p>
             <div className="flex items-center space-x-4">
               <Link
@@ -45,7 +53,7 @@ export function Footer() {
                 <Twitter className="h-5 w-5" />
               </Link>
               <Link
-                href="/contact"
+                href={`${langPrefix}/contact`}
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Contact"
               >
@@ -56,38 +64,40 @@ export function Footer() {
 
           {/* Product Links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Product</h3>
+            <h3 className="font-semibold text-foreground mb-4">
+              {locale === 'cs' ? 'Produkt' : 'Product'}
+            </h3>
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/translate"
+                  href={`${langPrefix}/translate`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Translate Subtitles
+                  {locale === 'cs' ? 'Přeložit Titulky' : 'Translate Subtitles'}
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/subtitles-search"
+                  href={`${langPrefix}/subtitles-search`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Find Subtitles
+                  {locale === 'cs' ? 'Najít Titulky' : 'Find Subtitles'}
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/video-tools"
+                  href={`${langPrefix}/video-tools`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Video Tools
+                  {locale === 'cs' ? 'Video Nástroje' : 'Video Tools'}
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/buy-credits"
+                  href={`${langPrefix}/buy-credits`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Buy Credits
+                  {locale === 'cs' ? 'Koupit Kredity' : 'Buy Credits'}
                 </Link>
               </li>
             </ul>
@@ -95,46 +105,52 @@ export function Footer() {
 
           {/* Company Links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Company</h3>
+            <h3 className="font-semibold text-foreground mb-4">
+              {locale === 'cs' ? 'Společnost' : 'Company'}
+            </h3>
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/about"
+                  href={`${langPrefix}/about`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  About Us
+                  {locale === 'cs' ? 'O Nás' : 'About Us'}
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/contact"
+                  href={`${langPrefix}/contact`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Contact
+                  {locale === 'cs' ? 'Kontakt' : 'Contact'}
                 </Link>
               </li>
+              {locale === 'en' && (
+                <>
+                  <li>
+                    <Link
+                      href={`${langPrefix}/help`}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Help Center
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href={`${langPrefix}/support`}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Support
+                    </Link>
+                  </li>
+                </>
+              )}
               <li>
                 <Link
-                  href="/help"
+                  href={`${langPrefix}/feedback`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Help Center
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/support"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Support
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/feedback"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Feedback
+                  {locale === 'cs' ? 'Zpětná Vazba' : 'Feedback'}
                 </Link>
               </li>
             </ul>
@@ -142,46 +158,48 @@ export function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Legal</h3>
+            <h3 className="font-semibold text-foreground mb-4">
+              {locale === 'cs' ? 'Právní' : 'Legal'}
+            </h3>
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/privacy"
+                  href={`${langPrefix}/privacy`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Privacy Policy
+                  {locale === 'cs' ? 'Zásady Ochrany Soukromí' : 'Privacy Policy'}
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/terms"
+                  href={`${langPrefix}/terms`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Terms of Service
+                  {locale === 'cs' ? 'Podmínky Služby' : 'Terms of Service'}
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/cookies"
+                  href={`${langPrefix}/cookies`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Cookie Policy
+                  {locale === 'cs' ? 'Zásady Cookies' : 'Cookie Policy'}
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/cookie-settings"
+                  href={`${langPrefix}/cookie-settings`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Cookie Settings
+                  {locale === 'cs' ? 'Nastavení Cookies' : 'Cookie Settings'}
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/gdpr"
+                  href={`${langPrefix}/gdpr`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  GDPR Compliance
+                  {locale === 'cs' ? 'GDPR Compliance' : 'GDPR Compliance'}
                 </Link>
               </li>
             </ul>
@@ -195,11 +213,11 @@ export function Footer() {
               <span>© {currentYear} SubtitleBot. All rights reserved.</span>
             </div>
             <div className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground">
-              <span>Built with</span>
+              <span>{locale === 'cs' ? 'Vytvořeno s' : 'Built with'}</span>
               <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
-              <span>for subtitle creators</span>
+              <span>{locale === 'cs' ? 'pro tvůrce titulků' : 'for subtitle creators'}</span>
               <Globe className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-              <span>worldwide</span>
+              <span>{locale === 'cs' ? 'po celém světě' : 'worldwide'}</span>
             </div>
           </div>
         </div>

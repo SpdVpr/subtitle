@@ -5,6 +5,7 @@ import { analytics } from '@/lib/analytics'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { MessageSquare, Send, Loader2, CheckCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -16,9 +17,24 @@ export default function FeedbackPage() {
   const [honeypot, setHoneypot] = useState('')
   const [startTime] = useState(Date.now())
 
+  // Math CAPTCHA
+  const [mathQuestion, setMathQuestion] = useState({ num1: 0, num2: 0, answer: 0 })
+  const [userAnswer, setUserAnswer] = useState('')
+
+  // Generate new math question
+  const generateMathQuestion = () => {
+    const num1 = Math.floor(Math.random() * 10) + 1
+    const num2 = Math.floor(Math.random() * 10) + 1
+    const answer = num1 + num2
+    setMathQuestion({ num1, num2, answer })
+    setUserAnswer('')
+  }
+
   useEffect(() => {
     // Track feedback page visit
     analytics.feedbackPageVisited('en')
+    // Generate initial math question
+    generateMathQuestion()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,6 +57,13 @@ export default function FeedbackPage() {
       return
     }
 
+    // Check CAPTCHA
+    if (parseInt(userAnswer) !== mathQuestion.answer) {
+      toast.error('Please solve the math problem correctly.')
+      generateMathQuestion() // Generate new question
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -53,7 +76,8 @@ export default function FeedbackPage() {
           feedback: feedback.trim(),
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent,
-          url: window.location.href
+          url: window.location.href,
+          captchaAnswer: userAnswer // Include CAPTCHA answer for server verification
         }),
       })
 
@@ -68,6 +92,7 @@ export default function FeedbackPage() {
       analytics.feedbackSubmitted('en', feedback.length)
 
       setFeedback('')
+      generateMathQuestion() // Generate new question for next use
     } catch (error) {
       console.error('Feedback error:', error)
       toast.error('Failed to send feedback. Please try again.')
@@ -158,10 +183,44 @@ export default function FeedbackPage() {
                 </p>
               </div>
 
+              {/* Math CAPTCHA */}
+              <div className="space-y-2">
+                <label htmlFor="captcha" className="text-sm font-medium">
+                  Security Check
+                </label>
+                <div className="flex items-center gap-3">
+                  <div className="bg-muted/50 px-3 py-2 rounded-lg font-mono text-lg">
+                    {mathQuestion.num1} + {mathQuestion.num2} = ?
+                  </div>
+                  <Input
+                    id="captcha"
+                    type="number"
+                    placeholder="Answer"
+                    value={userAnswer}
+                    onChange={(e) => setUserAnswer(e.target.value)}
+                    disabled={isSubmitting}
+                    className="w-20"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generateMathQuestion}
+                    disabled={isSubmitting}
+                  >
+                    New Question
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Please solve this simple math problem to verify you're human
+                </p>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isSubmitting || feedback.trim().length < 10}
+                disabled={isSubmitting || feedback.trim().length < 10 || !userAnswer}
               >
                 {isSubmitting ? (
                   <>

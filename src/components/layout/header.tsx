@@ -30,7 +30,6 @@ export function Header() {
     subtitleEditor: 'Editor Titulků',
     buyCredits: 'Kredity',
     dashboard: 'Dashboard',
-    feedback: 'Zpětná Vazba',
     signOut: 'Odhlásit se',
     signIn: 'Přihlásit se',
     getStarted: 'Začít'
@@ -41,7 +40,6 @@ export function Header() {
     subtitleEditor: 'Subtitle Editor',
     buyCredits: 'Buy Credits',
     dashboard: 'Dashboard',
-    feedback: 'Feedback',
     signOut: 'Sign Out',
     signIn: 'Sign In',
     getStarted: 'Get Started'
@@ -103,12 +101,6 @@ export function Header() {
               className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               {navLabels.buyCredits}
-            </Link>
-            <Link
-              href={`${langPrefix}/feedback`}
-              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
-            >
-              {navLabels.feedback}
             </Link>
           </nav>
 
@@ -221,13 +213,6 @@ export function Header() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {navLabels.buyCredits}
-                </Link>
-                <Link
-                  href={`${langPrefix}/feedback`}
-                  className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {navLabels.feedback}
                 </Link>
               </nav>
 

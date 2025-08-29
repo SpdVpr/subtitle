@@ -7,7 +7,8 @@ const feedbackSchema = z.object({
   timestamp: z.string(),
   userAgent: z.string().optional(),
   url: z.string().optional(),
-  locale: z.string().optional()
+  locale: z.string().optional(),
+  captchaAnswer: z.string().optional()
 })
 
 // Simple rate limiting using in-memory store
@@ -103,7 +104,16 @@ export async function POST(request: NextRequest) {
     
     // Validate the request body
     const validatedData = feedbackSchema.parse(body)
-    
+
+    // Basic CAPTCHA validation (client-side math is validated client-side)
+    // Server just checks if answer was provided
+    if (!validatedData.captchaAnswer || validatedData.captchaAnswer.trim() === '') {
+      return NextResponse.json(
+        { error: 'Please complete the security check.' },
+        { status: 400 }
+      )
+    }
+
     // Spam detection
     if (isSpam(validatedData.feedback, validatedData.userAgent)) {
       console.log('Spam detected:', {
