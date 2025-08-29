@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     // Calculate and deduct credits
     const chunksNeeded = Math.ceil((subtitleCount || 20) / 20)
-    const creditsUsed = chunksNeeded * 0.4
+    const creditsUsed = chunksNeeded * 0.7
 
     await UserService.adjustCredits(
       userId,

@@ -113,12 +113,12 @@ export function BatchTranslationInterface() {
       const lines = text.split('\n')
       const subtitleBlocks = lines.filter(line => line.trim() && !line.match(/^\d+$/) && !line.match(/^\d{2}:\d{2}:\d{2}/))
       const subtitleCount = Math.max(1, subtitleBlocks.length)
-      const cost = Math.ceil(subtitleCount / 20) * 0.4
+      const cost = Math.ceil(subtitleCount / 20) * 0.7
       
       return { cost, subtitleCount }
     } catch (error) {
       console.error('Error estimating credits for file:', file.name, error)
-      return { cost: 0.4, subtitleCount: 20 } // Default estimate
+      return { cost: 0.7, subtitleCount: 20 } // Default estimate
     }
   }
 

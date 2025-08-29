@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     // Calculate and deduct credits upfront
     const batchSize = 20
     const totalBatches = Math.ceil(entries.length / batchSize)
-    const totalCredits = totalBatches * 0.4
+    const totalCredits = totalBatches * 0.7
 
     console.log(`💰 Credit calculation: ${entries.length} subtitles, ${totalBatches} batches, ${totalCredits} credits`)
 

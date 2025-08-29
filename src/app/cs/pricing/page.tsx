@@ -40,7 +40,7 @@ function getPackageDescription(credits: number): string {
 function getPackageFeatures(credits: number): string[] {
   const features = [
     `${credits.toLocaleString()} kreditů`,
-    `~${(credits * 5).toLocaleString()} řádků překladu`,
+    `~${Math.floor(credits / 0.7 * 20).toLocaleString()} řádků překladu`,
     'Kredity nevyprší',
     'Prémiový AI překlad',
     'Všechny jazykové páry',

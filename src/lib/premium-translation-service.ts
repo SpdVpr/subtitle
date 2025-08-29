@@ -37,7 +37,7 @@ export class PremiumTranslationService {
 
     try {
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
@@ -416,7 +416,7 @@ export class PremiumTranslationService {
 
       console.log('🤖 Querying OpenAI for show research...')
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -535,7 +535,7 @@ Be thorough but concise. If you don't know the show, provide generic guidelines.
       }
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -984,7 +984,7 @@ CONTENT ANALYSIS:`
     }).join('\n')
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Fast and high-quality model
+      model: "gpt-4o", // High-quality model for testing
       messages: [
         {
           role: "system",
@@ -1102,7 +1102,7 @@ TECHNICAL REQUIREMENTS:
       console.log('🔁 Retrying', missingOrUntranslated.length, 'untranslated lines')
       const userList = missingOrUntranslated.map(item => `${item.absNum}. ${item.text}`).join('\n')
       const fix = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: 'system',

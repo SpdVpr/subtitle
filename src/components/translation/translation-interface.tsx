@@ -119,7 +119,7 @@ export function TranslationInterface() {
   useEffect(() => {
     if (selectedFile && subtitleCount) {
       const chunksNeeded = Math.ceil(subtitleCount / 20)
-      const costPerChunk = 0.4 // Premium AI service rate
+      const costPerChunk = 0.7 // Premium AI service rate (GPT-4o)
       const estimated = chunksNeeded * costPerChunk
       setEstimatedCost(estimated)
     }
@@ -707,7 +707,7 @@ export function TranslationInterface() {
                     : 'text-primary/80'
                 }`}>
                   <span>✨ Premium AI with context research</span>
-                  <span>Rate: 0.4 credits per 20 subtitles</span>
+                  <span>Rate: 0.7 credits per 20 subtitles</span>
                 </div>
               </div>
             </div>

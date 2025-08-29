@@ -324,7 +324,7 @@ Complete payment in the new window.`, {
                   <span>Premium Translation (OpenAI GPT-4)</span>
                 </h4>
                 <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
-                  <li>• ~0.4 credits per 20 lines</li>
+                  <li>• ~0.7 credits per 20 lines</li>
                   <li>• Context-aware translation with show research</li>
                   <li>• Natural dialogue adaptation</li>
                   <li>• Cultural context understanding</li>

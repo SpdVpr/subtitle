@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         // Calculate credits (for display only in development)
         const batchSize = 20
         const totalBatches = Math.ceil(entries.length / batchSize)
-        const totalCredits = totalBatches * 0.4
+        const totalCredits = totalBatches * 0.7
 
         console.log(`💰 Premium translation: ${entries.length} subtitles, ${totalBatches} batches, ${totalCredits} credits`)
 
@@ -367,7 +367,7 @@ export async function POST(request: NextRequest) {
               const { UserService } = await import('@/lib/database-admin')
               const batchSize = 20
               const totalBatches = Math.ceil(entries.length / batchSize)
-              const totalCredits = totalBatches * 0.4
+              const totalCredits = totalBatches * 0.7
 
               await UserService.adjustCredits(userId, totalCredits, `Refund for failed translation: ${file.name}`)
               console.log(`💰 Refunded ${totalCredits} credits due to translation failure`)

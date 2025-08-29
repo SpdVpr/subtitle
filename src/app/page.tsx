@@ -566,7 +566,7 @@ export default function Home() {
                 <CardDescription>OpenAI GPT-4 with context research</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-3xl font-bold">~0.4</div>
+                <div className="text-3xl font-bold">~0.7</div>
                 <div className="text-sm text-muted-foreground">credits per 20 lines</div>
               </CardContent>
               <CardContent className="space-y-2">

@@ -32,7 +32,7 @@ function getPackageName(credits: number): string {
 function getPackageFeatures(credits: number): string[] {
   const features = [
     `${credits.toLocaleString()} credits`,
-    `~${(credits * 5).toLocaleString()} lines of translation`,
+    `~${Math.floor(credits / 0.7 * 20).toLocaleString()} lines of translation`,
     'No expiration',
     'Premium AI translation',
     'All language pairs supported',
