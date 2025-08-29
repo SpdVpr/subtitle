@@ -14,8 +14,11 @@ import {
   X,
   FileText,
   AlertCircle,
-  Zap
+  Zap,
+  Star,
+  StarOff
 } from 'lucide-react'
+import { useFavoriteLanguages } from '@/hooks/use-favorite-languages'
 
 interface BatchUploadProps {
   onJobCreated?: (jobId: string) => void
@@ -23,11 +26,12 @@ interface BatchUploadProps {
 
 export function BatchUpload({ onJobCreated }: BatchUploadProps) {
   const { createBatchJob } = useBatch()
+  const { isFavorite, toggleFavorite } = useFavoriteLanguages()
   const [files, setFiles] = useState<File[]>([])
   const [jobName, setJobName] = useState('')
   const [sourceLanguage, setSourceLanguage] = useState<string>('')
   const [targetLanguage, setTargetLanguage] = useState<string>('')
-  const [aiService, setAiService] = useState<'google' | 'openai'>('google')
+  const [aiService] = useState<'premium'>('premium')
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -182,25 +186,61 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
               <label className="block text-sm font-medium mb-2">
                 Source Language (Optional)
               </label>
-              <LanguageSelector
-                value={sourceLanguage}
-                onValueChange={setSourceLanguage}
-                placeholder="Auto-detect"
-                disabled={isCreating}
-                excludeLanguage={targetLanguage}
-              />
+              <div className="flex gap-2">
+                <LanguageSelector
+                  value={sourceLanguage}
+                  onValueChange={setSourceLanguage}
+                  placeholder="Auto-detect"
+                  disabled={isCreating}
+                  excludeLanguage={targetLanguage}
+                />
+                {sourceLanguage && sourceLanguage !== 'auto' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="px-2"
+                    onClick={() => toggleFavorite(sourceLanguage)}
+                    disabled={isCreating}
+                    title={isFavorite(sourceLanguage) ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    {isFavorite(sourceLanguage) ? (
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ) : (
+                      <StarOff className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">
                 Target Language *
               </label>
-              <LanguageSelector
-                value={targetLanguage}
-                onValueChange={setTargetLanguage}
-                placeholder="Select target language"
-                disabled={isCreating}
-                excludeLanguage={sourceLanguage}
-              />
+              <div className="flex gap-2">
+                <LanguageSelector
+                  value={targetLanguage}
+                  onValueChange={setTargetLanguage}
+                  placeholder="Select target language"
+                  disabled={isCreating}
+                  excludeLanguage={sourceLanguage}
+                />
+                {targetLanguage && targetLanguage !== 'auto' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="px-2"
+                    onClick={() => toggleFavorite(targetLanguage)}
+                    disabled={isCreating}
+                    title={isFavorite(targetLanguage) ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    {isFavorite(targetLanguage) ? (
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ) : (
+                      <StarOff className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -209,21 +249,15 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
             <label className="block text-sm font-medium mb-2">
               AI Translation Service
             </label>
-            <Select value={aiService} onValueChange={(value: 'google' | 'openai') => setAiService(value)} disabled={isCreating}>
+            <Select value="premium" onValueChange={() => {}} disabled={true}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="google">
+                <SelectItem value="premium">
                   <div className="flex flex-col">
-                    <span>Google Translate (Free)</span>
-                    <span className="text-xs text-green-600">✓ Fast batch processing</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="openai">
-                  <div className="flex flex-col">
-                    <span>OpenAI GPT (Premium)</span>
-                    <span className="text-xs text-blue-600">✓ Context-aware translation</span>
+                    <span>🎬 Premium AI Context (OpenAI)</span>
+                    <span className="text-xs text-blue-600">✓ Context-aware translation with timing optimization</span>
                   </div>
                 </SelectItem>
               </SelectContent>

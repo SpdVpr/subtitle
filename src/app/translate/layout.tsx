@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: 'Translate Subtitles',
-  description: 'Translate your subtitle files using AI-powered translation services. Support for 100+ languages with context-aware translation and automatic timing adjustment.',
+  description: 'Translate your subtitle files using AI-powered translation services. Support for 60+ languages with context-aware translation and automatic timing adjustment.',
   keywords: [
     'subtitle translation',
     'AI subtitle translator',
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     'video subtitle converter',
     'multilingual subtitles',
     'OpenAI translation',
-    'Google Translate subtitles',
+    'premium AI translation',
     'subtitle localization'
   ],
   openGraph: {

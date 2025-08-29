@@ -109,7 +109,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         <link rel="dns-prefetch" href="https://api.openai.com" />
-        <link rel="dns-prefetch" href="https://translate.googleapis.com" />
+        <link rel="manifest" href="/manifest.json" />
 
         {/* Hreflang tags for SEO */}
         <link rel="alternate" hrefLang="en" href={`${baseUrl}`} />

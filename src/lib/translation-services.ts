@@ -6,103 +6,7 @@ export interface TranslationService {
   ): Promise<string[]>
 }
 
-export class GoogleTranslateService implements TranslationService {
-  private apiKey: string
-
-  constructor(apiKey: string) {
-    this.apiKey = apiKey
-  }
-
-  async translate(
-    texts: string[],
-    targetLanguage: string,
-    sourceLanguage?: string
-  ): Promise<string[]> {
-    // Use free Google Translate (without API key) via public endpoint
-    return this.translateWithFreeService(texts, targetLanguage, sourceLanguage)
-  }
-
-  private async translateWithFreeService(
-    texts: string[],
-    targetLanguage: string,
-    sourceLanguage?: string
-  ): Promise<string[]> {
-    const translatedTexts: string[] = []
-
-    try {
-      // Process texts in smaller batches to avoid rate limits
-      const batchSize = 5
-      for (let i = 0; i < texts.length; i += batchSize) {
-        const batch = texts.slice(i, i + batchSize)
-        const batchResults = await Promise.all(
-          batch.map(text => this.translateSingleText(text, targetLanguage, sourceLanguage))
-        )
-        translatedTexts.push(...batchResults)
-
-        // Add small delay between batches to be respectful
-        if (i + batchSize < texts.length) {
-          await new Promise(resolve => setTimeout(resolve, 100))
-        }
-      }
-
-      return translatedTexts
-    } catch (error) {
-      console.error('Google Translate error:', error)
-      // Fallback to mock translation if real translation fails
-      return this.mockTranslate(texts, targetLanguage)
-    }
-  }
-
-  private async translateSingleText(
-    text: string,
-    targetLanguage: string,
-    sourceLanguage?: string
-  ): Promise<string> {
-    try {
-      // Use Google Translate's public endpoint (no API key required)
-      const sourceLang = sourceLanguage || 'auto'
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLanguage}&dt=t&q=${encodeURIComponent(text)}`
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error(`Translation failed: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      // Parse Google Translate response format
-      if (data && data[0] && Array.isArray(data[0])) {
-        const translatedText = data[0]
-          .map((item: any) => item[0])
-          .filter((text: string) => text)
-          .join('')
-
-        return translatedText || text // Return original if translation failed
-      }
-
-      return text
-    } catch (error) {
-      console.warn(`Failed to translate "${text}":`, error)
-      return text // Return original text if translation fails
-    }
-  }
-
-  private mockTranslate(texts: string[], targetLanguage: string): Promise<string[]> {
-    // Mock translation for demo purposes when real translation fails
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const translated = texts.map(text => `[${targetLanguage.toUpperCase()}] ${text}`)
-        resolve(translated)
-      }, 500 + Math.random() * 1000) // Simulate API delay
-    })
-  }
-}
+// Google Translate service removed - using only OpenAI Premium service
 
 export class OpenAITranslateService implements TranslationService {
   private apiKey: string
@@ -139,29 +43,33 @@ export class OpenAITranslateService implements TranslationService {
 
       // Language mapping for better prompts
       const languageNames: Record<string, string> = {
-        'cs': 'Czech',
-        'sk': 'Slovak',
-        'de': 'German',
-        'fr': 'French',
-        'es': 'Spanish',
-        'it': 'Italian',
-        'pl': 'Polish',
-        'ru': 'Russian',
-        'en': 'English',
-        'pt': 'Portuguese',
-        'nl': 'Dutch',
-        'sv': 'Swedish',
-        'da': 'Danish',
-        'no': 'Norwegian',
-        'fi': 'Finnish',
-        'hu': 'Hungarian',
-        'ro': 'Romanian',
-        'bg': 'Bulgarian',
-        'hr': 'Croatian',
-        'sl': 'Slovenian',
-        'et': 'Estonian',
-        'lv': 'Latvian',
-        'lt': 'Lithuanian'
+        // Evropské jazyky
+        'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German', 'it': 'Italian',
+        'pt': 'Portuguese', 'ru': 'Russian', 'cs': 'Czech', 'pl': 'Polish', 'nl': 'Dutch',
+        'sv': 'Swedish', 'da': 'Danish', 'no': 'Norwegian', 'fi': 'Finnish', 'tr': 'Turkish',
+        'sk': 'Slovak', 'hu': 'Hungarian', 'ro': 'Romanian', 'bg': 'Bulgarian', 'hr': 'Croatian',
+        'sl': 'Slovenian', 'et': 'Estonian', 'lv': 'Latvian', 'lt': 'Lithuanian', 'uk': 'Ukrainian',
+        'be': 'Belarusian', 'mk': 'Macedonian', 'sr': 'Serbian', 'bs': 'Bosnian', 'mt': 'Maltese',
+        'is': 'Icelandic', 'ga': 'Irish', 'cy': 'Welsh', 'eu': 'Basque', 'ca': 'Catalan',
+        'gl': 'Galician', 'sq': 'Albanian', 'el': 'Greek', 'lb': 'Luxembourgish',
+
+        // Asijské jazyky
+        'ja': 'Japanese', 'ko': 'Korean', 'zh': 'Chinese', 'th': 'Thai', 'vi': 'Vietnamese',
+        'id': 'Indonesian', 'ms': 'Malay', 'tl': 'Filipino', 'hi': 'Hindi', 'bn': 'Bengali',
+        'ur': 'Urdu', 'fa': 'Persian', 'ar': 'Arabic', 'he': 'Hebrew', 'ta': 'Tamil',
+        'te': 'Telugu', 'ml': 'Malayalam', 'kn': 'Kannada', 'gu': 'Gujarati', 'pa': 'Punjabi',
+        'mr': 'Marathi', 'ne': 'Nepali', 'si': 'Sinhala', 'my': 'Myanmar', 'km': 'Khmer',
+        'lo': 'Lao', 'ka': 'Georgian', 'hy': 'Armenian', 'az': 'Azerbaijani', 'kk': 'Kazakh',
+        'ky': 'Kyrgyz', 'uz': 'Uzbek', 'tg': 'Tajik', 'mn': 'Mongolian',
+
+        // Africké jazyky
+        'sw': 'Swahili', 'am': 'Amharic', 'zu': 'Zulu', 'xh': 'Xhosa', 'af': 'Afrikaans',
+        'yo': 'Yoruba', 'ig': 'Igbo', 'ha': 'Hausa',
+
+        // Oceánské a další jazyky
+        'mi': 'Maori', 'sm': 'Samoan', 'to': 'Tongan', 'fj': 'Fijian', 'jv': 'Javanese',
+        'su': 'Sundanese', 'ceb': 'Cebuano', 'haw': 'Hawaiian', 'mg': 'Malagasy',
+        'qu': 'Quechua', 'gn': 'Guarani', 'eo': 'Esperanto', 'la': 'Latin'
       }
 
       const targetLangName = languageNames[targetLanguage] || targetLanguage
@@ -306,12 +214,33 @@ RULES:
       })
 
       const languageNames: Record<string, string> = {
-        'cs': 'Czech', 'sk': 'Slovak', 'de': 'German', 'fr': 'French',
-        'es': 'Spanish', 'it': 'Italian', 'pl': 'Polish', 'ru': 'Russian',
-        'en': 'English', 'pt': 'Portuguese', 'nl': 'Dutch', 'sv': 'Swedish',
-        'da': 'Danish', 'no': 'Norwegian', 'fi': 'Finnish', 'hu': 'Hungarian',
-        'ro': 'Romanian', 'bg': 'Bulgarian', 'hr': 'Croatian', 'sl': 'Slovenian',
-        'et': 'Estonian', 'lv': 'Latvian', 'lt': 'Lithuanian'
+        // Evropské jazyky
+        'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German', 'it': 'Italian',
+        'pt': 'Portuguese', 'ru': 'Russian', 'cs': 'Czech', 'pl': 'Polish', 'nl': 'Dutch',
+        'sv': 'Swedish', 'da': 'Danish', 'no': 'Norwegian', 'fi': 'Finnish', 'tr': 'Turkish',
+        'sk': 'Slovak', 'hu': 'Hungarian', 'ro': 'Romanian', 'bg': 'Bulgarian', 'hr': 'Croatian',
+        'sl': 'Slovenian', 'et': 'Estonian', 'lv': 'Latvian', 'lt': 'Lithuanian', 'uk': 'Ukrainian',
+        'be': 'Belarusian', 'mk': 'Macedonian', 'sr': 'Serbian', 'bs': 'Bosnian', 'mt': 'Maltese',
+        'is': 'Icelandic', 'ga': 'Irish', 'cy': 'Welsh', 'eu': 'Basque', 'ca': 'Catalan',
+        'gl': 'Galician', 'sq': 'Albanian', 'el': 'Greek', 'lb': 'Luxembourgish',
+
+        // Asijské jazyky
+        'ja': 'Japanese', 'ko': 'Korean', 'zh': 'Chinese', 'th': 'Thai', 'vi': 'Vietnamese',
+        'id': 'Indonesian', 'ms': 'Malay', 'tl': 'Filipino', 'hi': 'Hindi', 'bn': 'Bengali',
+        'ur': 'Urdu', 'fa': 'Persian', 'ar': 'Arabic', 'he': 'Hebrew', 'ta': 'Tamil',
+        'te': 'Telugu', 'ml': 'Malayalam', 'kn': 'Kannada', 'gu': 'Gujarati', 'pa': 'Punjabi',
+        'mr': 'Marathi', 'ne': 'Nepali', 'si': 'Sinhala', 'my': 'Myanmar', 'km': 'Khmer',
+        'lo': 'Lao', 'ka': 'Georgian', 'hy': 'Armenian', 'az': 'Azerbaijani', 'kk': 'Kazakh',
+        'ky': 'Kyrgyz', 'uz': 'Uzbek', 'tg': 'Tajik', 'mn': 'Mongolian',
+
+        // Africké jazyky
+        'sw': 'Swahili', 'am': 'Amharic', 'zu': 'Zulu', 'xh': 'Xhosa', 'af': 'Afrikaans',
+        'yo': 'Yoruba', 'ig': 'Igbo', 'ha': 'Hausa',
+
+        // Oceánské a další jazyky
+        'mi': 'Maori', 'sm': 'Samoan', 'to': 'Tongan', 'fj': 'Fijian', 'jv': 'Javanese',
+        'su': 'Sundanese', 'ceb': 'Cebuano', 'haw': 'Hawaiian', 'mg': 'Malagasy',
+        'qu': 'Quechua', 'gn': 'Guarani', 'eo': 'Esperanto', 'la': 'Latin'
       }
 
       const targetLangName = languageNames[targetLanguage] || targetLanguage
@@ -582,83 +511,7 @@ ${contextAfter ? `CONTEXT AFTER: "${contextAfter}"` : ''}`
   }
 }
 
-// LibreTranslate Service (Free)
-export class LibreTranslateService implements TranslationService {
-  private baseUrl: string
-
-  constructor(baseUrl: string = 'https://libretranslate.de') {
-    this.baseUrl = baseUrl
-  }
-
-  async translate(
-    texts: string[],
-    targetLanguage: string,
-    sourceLanguage?: string
-  ): Promise<string[]> {
-    const translatedTexts: string[] = []
-
-    for (const text of texts) {
-      try {
-        const response = await fetch(`${this.baseUrl}/translate`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            q: text,
-            source: sourceLanguage || 'auto',
-            target: targetLanguage,
-            format: 'text'
-          })
-        })
-
-        if (!response.ok) {
-          throw new Error(`LibreTranslate API error: ${response.status}`)
-        }
-
-        const data = await response.json()
-        translatedTexts.push(data.translatedText || text)
-      } catch (error) {
-        console.warn('LibreTranslate error:', error)
-        translatedTexts.push(text) // Fallback to original text
-      }
-    }
-
-    return translatedTexts
-  }
-}
-
-// MyMemory Service (Free)
-export class MyMemoryService implements TranslationService {
-  async translate(
-    texts: string[],
-    targetLanguage: string,
-    sourceLanguage?: string
-  ): Promise<string[]> {
-    const translatedTexts: string[] = []
-
-    for (const text of texts) {
-      try {
-        const langPair = `${sourceLanguage || 'en'}|${targetLanguage}`
-        const response = await fetch(
-          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`
-        )
-
-        if (!response.ok) {
-          throw new Error(`MyMemory API error: ${response.status}`)
-        }
-
-        const data = await response.json()
-        translatedTexts.push(data.responseData?.translatedText || text)
-      } catch (error) {
-        console.warn('MyMemory error:', error)
-        translatedTexts.push(text) // Fallback to original text
-      }
-    }
-
-    return translatedTexts
-  }
-}
+// LibreTranslate and MyMemory services removed - using only OpenAI Premium service
 
 // Premium Context-Aware Translation Service
 export class PremiumTranslationService implements TranslationService {

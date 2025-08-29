@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/hooks/useAuth'
-import { Chrome, Loader2, AlertCircle } from 'lucide-react'
+import { Chrome, Loader2, AlertCircle, Mail } from 'lucide-react'
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -54,8 +54,8 @@ export function RegisterForm() {
     try {
       await signUp(data.email, data.password)
       setSuccess(true)
-      // Redirect to dashboard after successful registration
-      setTimeout(() => router.push('/dashboard'), 2000)
+      // Redirect to email verification page after successful registration
+      setTimeout(() => router.push('/verify-email'), 2000)
     } catch (error: any) {
       console.error('Registration error:', error)
 
@@ -97,12 +97,27 @@ export function RegisterForm() {
         <CardHeader>
           <CardTitle>Account Created!</CardTitle>
           <CardDescription>
-            Your account has been created successfully. You can now start using SubtitleAI.
+            Your account has been created successfully. Please check your email to verify your account before you can start translating.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <Mail className="h-5 w-5 text-blue-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-blue-800">
+                  Verification email sent!
+                </p>
+                <p className="mt-1 text-sm text-blue-700">
+                  Please check your inbox and click the verification link.
+                </p>
+              </div>
+            </div>
+          </div>
           <Button asChild className="w-full">
-            <Link href="/translate">Start Translating</Link>
+            <Link href="/verify-email">Continue to Email Verification</Link>
           </Button>
         </CardContent>
       </Card>

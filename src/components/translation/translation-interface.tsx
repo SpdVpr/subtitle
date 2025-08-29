@@ -14,12 +14,14 @@ import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { TranslationResult } from '@/types/subtitle'
 import { CreditsDisplay } from '@/components/ui/credits-display'
 import { TranslationJobService } from '@/lib/database'
-import { Download, Crown, AlertCircle, Eye, Calculator, PictureInPicture2 } from 'lucide-react'
+import { Download, Crown, AlertCircle, Eye, Calculator, PictureInPicture2, Star, StarOff } from 'lucide-react'
+import { useFavoriteLanguages } from '@/hooks/use-favorite-languages'
 import { toast } from 'sonner'
 
 export function TranslationInterface() {
   const router = useRouter()
   const { user } = useAuth()
+  const { isFavorite, toggleFavorite } = useFavoriteLanguages()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [sourceLanguage, setSourceLanguage] = useState<string>('auto') // Default to auto-detect
   const [targetLanguage, setTargetLanguage] = useState<string>('')
@@ -42,18 +44,9 @@ export function TranslationInterface() {
   } = useTranslationProgress()
   const originalTitleRef = useRef<string>('')
 
-  // Simple useEffect for testing
-  useEffect(() => {
-    console.log('TranslationInterface mounted - simple useEffect')
-    return () => {
-      console.log('TranslationInterface unmounted - simple useEffect')
-    }
-  }, [])
-
-  // Title useEffect - this was in original code and might be problematic
+  // Title useEffect - store original title for restoration
   useEffect(() => {
     if (!originalTitleRef.current) originalTitleRef.current = document.title
-    console.log('Title useEffect - storing original title:', originalTitleRef.current)
   }, [])
 
   useEffect(() => {
@@ -133,14 +126,12 @@ export function TranslationInterface() {
 
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file)
-    console.log('File selected:', file.name)
 
-    // Parse subtitle file to count subtitles (from original code)
+    // Parse subtitle file to count subtitles
     try {
       const text = await file.text()
       const parsed = SubtitleProcessor.parseSubtitleFile(text, file.name)
       setSubtitleCount(parsed.length)
-      console.log('Subtitle count:', parsed.length)
 
       // Set global variable for adaptive timeout
       ;(window as any).subtitleCount = parsed.length
@@ -159,16 +150,13 @@ export function TranslationInterface() {
     setSelectedFile(null)
     setSubtitleCount(null)
     setEstimatedCost(null)
-    console.log('File removed')
   }
 
   const handleTranslate = async () => {
     if (!selectedFile || !targetLanguage || !user) {
-      console.log('Missing required fields for translation')
       return
     }
 
-    console.log('Starting real translation...')
     setIsTranslating(true)
     setTranslationResult(null)
     setIsCompleted(false)
@@ -183,8 +171,6 @@ export function TranslationInterface() {
       formData.append('sourceLanguage', sourceLanguage === 'auto' ? '' : sourceLanguage)
       formData.append('userId', user.uid)
 
-      console.log('Sending translation request...')
-
       // Try streaming endpoint first, fallback to simple endpoint
       let response
       try {
@@ -194,14 +180,12 @@ export function TranslationInterface() {
         })
 
         if (response.status === 405) {
-          console.log('Streaming endpoint returned 405, trying simple endpoint...')
           response = await fetch('/api/translate-simple', {
             method: 'POST',
             body: formData,
           })
         }
       } catch (error) {
-        console.log('Streaming endpoint failed, trying simple endpoint...', error)
         response = await fetch('/api/translate-simple', {
           method: 'POST',
           body: formData,
@@ -214,12 +198,8 @@ export function TranslationInterface() {
       }
 
       const contentType = response.headers.get('content-type')
-      console.log('🔍 Response content-type:', contentType)
-      console.log('🔍 Response status:', response.status)
-      console.log('🔍 Response headers:', Object.fromEntries(response.headers.entries()))
 
       // Always try streaming first since our API sends streaming data
-      console.log('🌊 Attempting to process as streaming response...')
       await handleStreamingResponse(response)
 
     } catch (error) {
@@ -228,7 +208,6 @@ export function TranslationInterface() {
       // Automatic retry logic
       if (retryCount < maxRetries && error instanceof Error &&
           (error.message.includes('timeout') || error.message.includes('stuck') || error.message.includes('network'))) {
-        console.log(`🔄 Attempting retry ${retryCount + 1}/${maxRetries}`)
         setRetryCount(prev => prev + 1)
 
         // Wait a bit before retrying
@@ -252,10 +231,7 @@ export function TranslationInterface() {
   }
 
   const handleStreamingResponse = async (response: Response) => {
-    console.log('🌊 handleStreamingResponse called')
-
     if (!response.body) {
-      console.error('❌ No response body for streaming')
       throw new Error('No response body')
     }
 
@@ -274,10 +250,7 @@ export function TranslationInterface() {
       290000 // Max 4.83 minutes (under Vercel 5 minute limit)
     )
 
-    console.log(`🕐 Adaptive timeout set: ${Math.round(adaptiveTimeout/1000)}s for ${subtitleCount} subtitles`)
-
     const timeoutId = setTimeout(() => {
-      console.warn(`⏰ Streaming timeout after ${Math.round(adaptiveTimeout/1000)}s - completing translation`)
       reader.cancel()
     }, adaptiveTimeout)
 
@@ -311,7 +284,6 @@ export function TranslationInterface() {
       while (true) {
         const { done, value } = await reader.read()
         if (done) {
-          console.log('🏁 Streaming completed')
           break
         }
 
@@ -331,9 +303,8 @@ export function TranslationInterface() {
               const data = JSON.parse(cleanLine)
 
               if (data.type === 'progress') {
-                // Only log significant progress changes
+                // Track progress changes
                 if (!handleStreamingResponse._lastProgress || Math.abs(data.progress - handleStreamingResponse._lastProgress) > 5) {
-                  console.log('🔄 Frontend received progress:', data.stage, Math.round(data.progress))
                   handleStreamingResponse._lastProgress = data.progress
                 }
                 handleStreamingResponse._lastStage = data.stage // Track current stage
@@ -341,7 +312,7 @@ export function TranslationInterface() {
                 progressStuckCount = 0 // Reset stuck counter
                 updateProgress(data.stage, data.progress, data.details)
               } else if (data.type === 'connected') {
-                console.log('🔗 Frontend connected to stream')
+                // Connection established
               } else if (data.type === 'result' || data.type === 'complete') {
                 await handleTranslationComplete(data)
                 return
@@ -369,7 +340,7 @@ export function TranslationInterface() {
 
               // Special handling for finalizing stage - expect result soon
               if (data.stage === 'finalizing' && data.progress >= 95) {
-                console.log('🏁 Finalizing stage reached - expecting result soon')
+                // Finalizing stage reached
               }
             } else if (data.type === 'result' || data.type === 'complete') {
               await handleTranslationComplete(data)
@@ -390,8 +361,6 @@ export function TranslationInterface() {
   }
 
   const handleJsonResponse = async (result: any) => {
-    console.log('JSON response:', result)
-
     if (result.jobId) {
       // Poll for job completion
       await pollJobStatus(result.jobId)
@@ -404,7 +373,6 @@ export function TranslationInterface() {
   }
 
   const pollJobStatus = async (jobId: string) => {
-    console.log('Polling job status for:', jobId)
 
     const pollInterval = setInterval(async () => {
       try {
@@ -412,7 +380,6 @@ export function TranslationInterface() {
         if (!statusResponse.ok) throw new Error('Failed to fetch job status')
 
         const statusData = await statusResponse.json()
-        console.log('Job status:', statusData)
 
         if (statusData.status === 'completed') {
           clearInterval(pollInterval)
@@ -434,16 +401,13 @@ export function TranslationInterface() {
   }
 
   const handleTranslationComplete = async (data: any) => {
-    console.log('🎉 Translation completed, processing result:', data)
-
     if (!isCompleted) {
       setIsCompleted(true)
 
       try {
         completeProgress()
-        console.log('✅ Progress completed successfully')
       } catch (error) {
-        console.warn('⚠️ Error calling completeProgress:', error)
+        console.warn('Error calling completeProgress:', error)
       }
 
       let downloadUrl = ''
@@ -454,13 +418,10 @@ export function TranslationInterface() {
         translatedContent = data.translatedContent
         const blob = new Blob([translatedContent], { type: 'text/plain; charset=utf-8' })
         downloadUrl = URL.createObjectURL(blob)
-        console.log(`📄 Direct content processed: ${data.subtitleCount} subtitles, ${data.characterCount} characters`)
       } else if (data.translatedFileUrl) {
         // File URL (database result)
         downloadUrl = data.translatedFileUrl
-        console.log(`🔗 File URL processed: ${downloadUrl}`)
       } else {
-        console.error('❌ No translated content or file URL provided:', data)
         throw new Error('No translated content or file URL provided')
       }
 
@@ -473,12 +434,9 @@ export function TranslationInterface() {
       }
 
       setTranslationResult(result)
-      console.log('✅ Translation result set successfully:', result.translatedFileName)
-      console.log('Translation result set:', result)
 
       // Store translated content in sessionStorage for video player
       if (translatedContent) {
-        console.log('💾 Storing translated content in sessionStorage for video player')
         sessionStorage.setItem('translatedContent', translatedContent)
 
         // Also store preview data for compatibility
@@ -490,7 +448,6 @@ export function TranslationInterface() {
           translatedContent: translatedContent
         }
         sessionStorage.setItem('previewData', JSON.stringify(previewData))
-        console.log('💾 Stored preview data in sessionStorage')
       }
 
       // Refresh credits
@@ -499,7 +456,6 @@ export function TranslationInterface() {
       }
 
       // Trigger global credits refresh for header
-      console.log('🔄 Triggering global credits refresh after translation completion')
       window.dispatchEvent(new CustomEvent('refreshCredits'))
     }
   }
@@ -508,8 +464,6 @@ export function TranslationInterface() {
     if (!translationResult?.downloadUrl) return
 
     try {
-      console.log('Starting download...')
-
       if (translationResult.downloadUrl.startsWith('blob:')) {
         // Direct blob download
         const a = document.createElement('a')
@@ -518,7 +472,6 @@ export function TranslationInterface() {
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
-        console.log('Blob download completed')
       } else {
         // File URL download
         const response = await fetch(translationResult.downloadUrl)
@@ -533,7 +486,6 @@ export function TranslationInterface() {
         a.click()
         document.body.removeChild(a)
         URL.revokeObjectURL(url)
-        console.log('File download completed')
       }
     } catch (error) {
       console.error('Download failed:', error)
@@ -590,26 +542,62 @@ export function TranslationInterface() {
               <label className="block text-sm font-medium text-foreground mb-2">
                 Source Language
               </label>
-              <LanguageSelector
-                placeholder="Select source language"
-                value={sourceLanguage}
-                onValueChange={setSourceLanguage}
-                disabled={isTranslating}
-                includeAutoDetect={true}
-                excludeLanguage={targetLanguage}
-              />
+              <div className="flex gap-2">
+                <LanguageSelector
+                  placeholder="Select source language"
+                  value={sourceLanguage}
+                  onValueChange={setSourceLanguage}
+                  disabled={isTranslating}
+                  includeAutoDetect={true}
+                  excludeLanguage={targetLanguage}
+                />
+                {sourceLanguage && sourceLanguage !== 'auto' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="px-2"
+                    onClick={() => toggleFavorite(sourceLanguage)}
+                    disabled={isTranslating}
+                    title={isFavorite(sourceLanguage) ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    {isFavorite(sourceLanguage) ? (
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ) : (
+                      <StarOff className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Target Language
               </label>
-              <LanguageSelector
-                placeholder="Select target language"
-                value={targetLanguage}
-                onValueChange={setTargetLanguage}
-                disabled={isTranslating}
-                excludeLanguage={sourceLanguage === 'auto' ? '' : sourceLanguage}
-              />
+              <div className="flex gap-2">
+                <LanguageSelector
+                  placeholder="Select target language"
+                  value={targetLanguage}
+                  onValueChange={setTargetLanguage}
+                  disabled={isTranslating}
+                  excludeLanguage={sourceLanguage === 'auto' ? '' : sourceLanguage}
+                />
+                {targetLanguage && targetLanguage !== 'auto' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="px-2"
+                    onClick={() => toggleFavorite(targetLanguage)}
+                    disabled={isTranslating}
+                    title={isFavorite(targetLanguage) ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    {isFavorite(targetLanguage) ? (
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ) : (
+                      <StarOff className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -768,12 +756,6 @@ export function TranslationInterface() {
                     }
 
                     if (subtitleContent) {
-                      // Debug: Log the content being stored
-                      console.log('🔍 PiP Overlay - Storing subtitle content:')
-                      console.log('📝 Content length:', subtitleContent.length)
-                      console.log('📝 First 500 chars:', subtitleContent.substring(0, 500))
-                      console.log('📝 Contains timing?', subtitleContent.includes('-->'))
-
                       // Store translated subtitles for Video Tools PiP
                       sessionStorage.setItem('pipSubtitles', subtitleContent)
                       sessionStorage.setItem('pipSubtitleFileName', translationResult.translatedFileName || 'translated.srt')

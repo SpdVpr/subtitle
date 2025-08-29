@@ -3,21 +3,13 @@ import { TranslationServiceFactory } from '@/lib/translation-services'
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url)
-    const service = searchParams.get('service') || 'google'
+    // Only premium service is supported
+    const service = 'premium'
 
-    // Check API keys
-    const googleConfigured = !!process.env.GOOGLE_TRANSLATE_API_KEY
+    // Check OpenAI API key
     const openaiConfigured = !!process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.includes('your_openai_api_key')
 
-    if ((service === 'google') && !googleConfigured) {
-      return NextResponse.json(
-        { error: 'Google Translate API key not configured' },
-        { status: 500 }
-      )
-    }
-
-    if ((service === 'openai' || service === 'premium') && !openaiConfigured) {
+    if (!openaiConfigured) {
       return NextResponse.json(
         { error: 'OpenAI API key not configured' },
         { status: 500 }
@@ -25,16 +17,14 @@ export async function GET(req: NextRequest) {
     }
 
     // Test translation with movie context
-    const testTexts = service === 'premium'
-      ? [
-          "I'll be back.",
-          "May the Force be with you.",
-          "You talking to me?",
-          "Here's looking at you, kid."
-        ]
-      : ['Hello, world!', 'How are you today?']
+    const testTexts = [
+      "I'll be back.",
+      "May the Force be with you.",
+      "You talking to me?",
+      "Here's looking at you, kid."
+    ]
 
-    const translationService = TranslationServiceFactory.create(service as any)
+    const translationService = TranslationServiceFactory.create('premium')
 
     const translatedTexts = await translationService.translate(
       testTexts,
@@ -63,7 +53,6 @@ export async function GET(req: NextRequest) {
       },
       contextAnalysis,
       apiKeys: {
-        google: googleConfigured,
         openai: openaiConfigured
       }
     })
@@ -75,7 +64,6 @@ export async function GET(req: NextRequest) {
       success: false,
       error: error instanceof Error ? error.message : 'Translation test failed',
       apiKeys: {
-        google: !!process.env.GOOGLE_TRANSLATE_API_KEY,
         openai: !!process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.includes('your_openai_api_key')
       }
     }, { status: 500 })
@@ -84,7 +72,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, targetLanguage, sourceLanguage, service = 'google' } = await req.json()
+    const { text, targetLanguage, sourceLanguage, service = 'premium' } = await req.json()
 
     if (!text || !targetLanguage) {
       return NextResponse.json(
@@ -93,25 +81,17 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Check API keys based on service
-    const googleConfigured = !!process.env.GOOGLE_TRANSLATE_API_KEY
+    // Check OpenAI API key
     const openaiConfigured = !!process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.includes('your_openai_api_key')
 
-    if (service === 'google' && !googleConfigured) {
-      return NextResponse.json(
-        { error: 'Google Translate API key not configured' },
-        { status: 500 }
-      )
-    }
-
-    if (service === 'openai' && !openaiConfigured) {
+    if (!openaiConfigured) {
       return NextResponse.json(
         { error: 'OpenAI API key not configured' },
         { status: 500 }
       )
     }
 
-    const translationService = TranslationServiceFactory.create(service as any)
+    const translationService = TranslationServiceFactory.create('premium')
 
     const texts = Array.isArray(text) ? text : [text]
     const translatedTexts = await translationService.translate(
@@ -122,7 +102,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      service,
+      service: 'premium',
       original: texts,
       translated: translatedTexts,
       sourceLanguage: sourceLanguage || 'auto',

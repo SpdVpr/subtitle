@@ -28,7 +28,7 @@ Here's looking at you, kid.
 Elementary, my dear Watson.
 I feel the need... the need for speed!`)
   const [targetLanguage, setTargetLanguage] = useState('cs')
-  const [service, setService] = useState<'google' | 'openai' | 'premium' | 'libretranslate' | 'mymemory'>('google')
+  const [service, setService] = useState<'premium'>('premium')
   const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -120,11 +120,7 @@ I feel the need... the need for speed!`)
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="google">Google Translate (Paid)</SelectItem>
-                  <SelectItem value="openai">OpenAI ChatGPT (Paid)</SelectItem>
-                  <SelectItem value="premium">🎬 Premium AI Context (Premium)</SelectItem>
-                  <SelectItem value="libretranslate">LibreTranslate (Free)</SelectItem>
-                  <SelectItem value="mymemory">MyMemory (Free)</SelectItem>
+                  <SelectItem value="premium">🎬 Premium AI Context (OpenAI)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -300,11 +296,11 @@ I feel the need... the need for speed!`)
           <CardTitle>Setup Instructions</CardTitle>
         </CardHeader>
         <CardContent className="text-sm space-y-2">
-          <p><strong>1.</strong> Create Google Cloud project at console.cloud.google.com</p>
-          <p><strong>2.</strong> Enable Cloud Translation API</p>
-          <p><strong>3.</strong> Create API key in Credentials</p>
-          <p><strong>4.</strong> Add API key to .env.local: <code>GOOGLE_TRANSLATE_API_KEY=your_key</code></p>
-          <p><strong>5.</strong> Restart development server</p>
+          <p><strong>1.</strong> Create OpenAI account at platform.openai.com</p>
+          <p><strong>2.</strong> Generate API key in API Keys section</p>
+          <p><strong>3.</strong> Add API key to .env.local: <code>OPENAI_API_KEY=your_key</code></p>
+          <p><strong>4.</strong> Restart development server</p>
+          <p><strong>Note:</strong> Only Premium AI Context service is supported for best translation quality.</p>
         </CardContent>
       </Card>
     </div>

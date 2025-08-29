@@ -17,11 +17,13 @@ import {
   Loader2
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { EmailVerificationGuard } from '@/components/auth/email-verification-guard'
 import { CreditsCard } from '@/components/ui/credits-display'
 import { HistoryTabs } from '@/components/dashboard/history-tabs'
 import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard'
+import { FavoriteLanguagesManager } from '@/components/translation/favorite-languages-manager'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BarChart3 } from 'lucide-react'
+import { BarChart3, Settings } from 'lucide-react'
 import Link from 'next/link'
 
 export default function DashboardPage() {
@@ -98,8 +100,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8 max-w-7xl">
+    <EmailVerificationGuard>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8 max-w-7xl">
         {/* Success Alert */}
         {showSuccessAlert && (
           <Alert className="mb-6 border-primary/20 bg-primary/5">
@@ -134,7 +137,7 @@ export default function DashboardPage() {
 
         {/* Dashboard Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-6 sm:mb-8">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto mb-6 sm:mb-8">
             <TabsTrigger value="overview" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm">
               <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden xs:inline">Overview</span>
@@ -144,6 +147,11 @@ export default function DashboardPage() {
               <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden xs:inline">Analytics</span>
               <span className="xs:hidden">Charts</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm">
+              <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Settings</span>
+              <span className="xs:hidden">Config</span>
             </TabsTrigger>
           </TabsList>
 
@@ -282,8 +290,16 @@ export default function DashboardPage() {
           <TabsContent value="analytics">
             <AnalyticsDashboard />
           </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <FavoriteLanguagesManager />
+            </div>
+          </TabsContent>
         </Tabs>
+        </div>
       </div>
-    </div>
+    </EmailVerificationGuard>
   )
 }

@@ -6,6 +6,7 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
+  sendEmailVerification,
   onAuthStateChanged,
   signInWithPopup,
   User as FirebaseUser,
@@ -180,6 +181,12 @@ export function useAuthProvider(): AuthContextType {
     try {
       const { user: firebaseUser } = await createUserWithEmailAndPassword(firebaseServices.auth, email, password)
 
+      // Send email verification with custom settings
+      await sendEmailVerification(firebaseUser, {
+        url: `${window.location.origin}/dashboard`,
+        handleCodeInApp: false
+      })
+
       // Create user profile in Firestore
       await UserService.createUser(
         firebaseUser.uid,
@@ -211,6 +218,26 @@ export function useAuthProvider(): AuthContextType {
       throw new Error('Firebase is not configured. Please set up your environment variables.')
     }
     await sendPasswordResetEmail(firebaseServices.auth, email)
+  }
+
+  const sendVerificationEmail = async () => {
+    if (!firebaseServices?.isConfigured || !firebaseServices.auth) {
+      throw new Error('Firebase is not configured. Please set up your environment variables.')
+    }
+
+    const currentUser = firebaseServices.auth.currentUser
+    if (!currentUser) {
+      throw new Error('No user is currently signed in.')
+    }
+
+    if (currentUser.emailVerified) {
+      throw new Error('Email is already verified.')
+    }
+
+    await sendEmailVerification(currentUser, {
+      url: `${window.location.origin}/dashboard`,
+      handleCodeInApp: false
+    })
   }
 
   const signInWithGoogle = async () => {
@@ -266,6 +293,7 @@ export function useAuthProvider(): AuthContextType {
     signOut,
     resetPassword,
     signInWithGoogle,
+    sendVerificationEmail,
   }
 }
 

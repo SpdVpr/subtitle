@@ -47,6 +47,26 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Get user profile to check email verification
+    const userProfile = await UserService.getUser(userId)
+    if (!userProfile) {
+      return NextResponse.json(
+        { error: 'User not found. Please log in again.' },
+        { status: 404 }
+      )
+    }
+
+    // Check if email is verified
+    if (!userProfile.emailVerified) {
+      return NextResponse.json(
+        {
+          error: 'Email verification required. Please verify your email address before using translation services.',
+          code: 'EMAIL_NOT_VERIFIED'
+        },
+        { status: 403 }
+      )
+    }
+
     // Validate file
     const fileValidation = StorageService.validateFile(file)
     if (!fileValidation.valid) {

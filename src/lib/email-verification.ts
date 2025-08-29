@@ -16,8 +16,8 @@ export class EmailVerificationService {
     
     try {
       await firebaseSendEmailVerification(user, {
-        url: `${window.location.origin}/verify-email?continueUrl=${encodeURIComponent(window.location.origin + '/dashboard')}`,
-        handleCodeInApp: true
+        url: `${window.location.origin}/dashboard`,
+        handleCodeInApp: false
       })
       
       console.log('Verification email sent to:', user.email)

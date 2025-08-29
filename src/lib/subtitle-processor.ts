@@ -1,6 +1,100 @@
 import { SubtitleEntry, SubtitleFile } from '@/types/subtitle'
 import { calculateTimingAdjustment, getLanguageCharacteristics } from './language-characteristics'
 
+/**
+ * Utility class for handling different text encodings in subtitle files
+ */
+export class EncodingUtils {
+  /**
+   * Common encodings used in subtitle files by region/language
+   */
+  static readonly ENCODING_BY_LANGUAGE: Record<string, string[]> = {
+    // Západní Evropa
+    'en': ['utf-8', 'windows-1252', 'iso-8859-1'],
+    'fr': ['utf-8', 'windows-1252', 'iso-8859-1'],
+    'de': ['utf-8', 'windows-1252', 'iso-8859-1'],
+    'es': ['utf-8', 'windows-1252', 'iso-8859-1'],
+    'it': ['utf-8', 'windows-1252', 'iso-8859-1'],
+    'pt': ['utf-8', 'windows-1252', 'iso-8859-1'],
+    'nl': ['utf-8', 'windows-1252', 'iso-8859-1'],
+
+    // Střední/Východní Evropa
+    'cs': ['utf-8', 'windows-1250', 'iso-8859-2'],
+    'sk': ['utf-8', 'windows-1250', 'iso-8859-2'],
+    'pl': ['utf-8', 'windows-1250', 'iso-8859-2'],
+    'hu': ['utf-8', 'windows-1250', 'iso-8859-2'],
+    'ro': ['utf-8', 'windows-1250', 'iso-8859-2'],
+    'hr': ['utf-8', 'windows-1250', 'iso-8859-2'],
+    'sl': ['utf-8', 'windows-1250', 'iso-8859-2'],
+    'bg': ['utf-8', 'windows-1251', 'iso-8859-5'],
+    'mk': ['utf-8', 'windows-1251', 'iso-8859-5'],
+    'sr': ['utf-8', 'windows-1251', 'iso-8859-5'],
+    'bs': ['utf-8', 'windows-1250', 'iso-8859-2'],
+
+    // Cyrilice
+    'ru': ['utf-8', 'windows-1251', 'koi8-r'],
+    'uk': ['utf-8', 'windows-1251', 'koi8-u'],
+    'be': ['utf-8', 'windows-1251'],
+
+    // Řečtina
+    'el': ['utf-8', 'windows-1253', 'iso-8859-7'],
+
+    // Turecko
+    'tr': ['utf-8', 'windows-1254', 'iso-8859-9'],
+
+    // Baltské státy
+    'et': ['utf-8', 'windows-1257', 'iso-8859-4'],
+    'lv': ['utf-8', 'windows-1257', 'iso-8859-4'],
+    'lt': ['utf-8', 'windows-1257', 'iso-8859-4'],
+
+    // Asijské jazyky (většinou UTF-8)
+    'ja': ['utf-8', 'shift_jis', 'euc-jp'],
+    'ko': ['utf-8', 'euc-kr'],
+    'zh': ['utf-8', 'gb2312', 'big5'],
+    'th': ['utf-8', 'tis-620'],
+    'vi': ['utf-8', 'windows-1258'],
+
+    // Arabština a hebrejština
+    'ar': ['utf-8', 'windows-1256', 'iso-8859-6'],
+    'he': ['utf-8', 'windows-1255', 'iso-8859-8'],
+
+    // Indické jazyky
+    'hi': ['utf-8'],
+    'bn': ['utf-8'],
+    'ta': ['utf-8'],
+    'te': ['utf-8'],
+    'ml': ['utf-8'],
+    'kn': ['utf-8'],
+    'gu': ['utf-8'],
+    'pa': ['utf-8'],
+    'mr': ['utf-8'],
+    'ne': ['utf-8'],
+    'si': ['utf-8'],
+
+    // Ostatní
+    'default': ['utf-8', 'windows-1252', 'iso-8859-1']
+  }
+
+  /**
+   * Get preferred encodings for a language
+   */
+  static getEncodingsForLanguage(languageCode: string): string[] {
+    return this.ENCODING_BY_LANGUAGE[languageCode] || this.ENCODING_BY_LANGUAGE['default']
+  }
+
+  /**
+   * Detect if text has encoding issues
+   */
+  static hasEncodingIssues(text: string): boolean {
+    // Check for replacement characters
+    if (text.includes('�')) return true
+
+    // Check for common encoding artifacts
+    const artifacts = ['Ã¡', 'Ã©', 'Ã­', 'Ã³', 'Ãº', 'Ã¤', 'Ã¶', 'Ã¼', 'Ã ', 'Ã¨', 'Ã¬', 'Ã²', 'Ã¹']
+    return artifacts.some(artifact => text.includes(artifact))
+  }
+}
+
 export class SubtitleProcessor {
   /**
    * Auto-detect and parse subtitle file based on extension
@@ -261,14 +355,98 @@ export class SubtitleProcessor {
   }
 
   /**
-   * Generate SRT file content from subtitle entries
+   * Generate SRT file content from subtitle entries with proper encoding
    */
   static generateSRT(entries: SubtitleEntry[]): string {
-    return entries
+    const content = entries
       .map(entry => {
         return `${entry.index}\n${entry.startTime} --> ${entry.endTime}\n${entry.text}\n`
       })
       .join('\n')
+
+    return content
+  }
+
+  /**
+   * Generate SRT file as Blob with UTF-8 BOM for better compatibility
+   */
+  static generateSRTBlob(entries: SubtitleEntry[], targetLanguage?: string): Blob {
+    const content = this.generateSRT(entries)
+
+    // Add UTF-8 BOM for better compatibility with various media players and editors
+    // This is especially important for non-Latin scripts (Arabic, Chinese, Japanese, etc.)
+    const utf8BOM = '\uFEFF'
+    const contentWithBOM = utf8BOM + content
+
+    return new Blob([contentWithBOM], {
+      type: 'text/plain;charset=utf-8'
+    })
+  }
+
+  /**
+   * Generate SRT file with specific encoding for legacy compatibility
+   */
+  static generateSRTBlobWithEncoding(entries: SubtitleEntry[], encoding: string = 'utf-8'): Blob {
+    const content = this.generateSRT(entries)
+
+    // For UTF-8, add BOM for better compatibility
+    if (encoding.toLowerCase() === 'utf-8') {
+      const utf8BOM = '\uFEFF'
+      const contentWithBOM = utf8BOM + content
+      return new Blob([contentWithBOM], { type: 'text/plain;charset=utf-8' })
+    }
+
+    // For other encodings, create blob without BOM
+    return new Blob([content], { type: `text/plain;charset=${encoding}` })
+  }
+
+  /**
+   * Generate VTT file content with proper encoding
+   */
+  static generateVTT(entries: SubtitleEntry[]): string {
+    let content = 'WEBVTT\n\n'
+
+    content += entries
+      .map(entry => {
+        // Convert SRT time format to VTT format
+        const startTime = entry.startTime.replace(',', '.')
+        const endTime = entry.endTime.replace(',', '.')
+        return `${startTime} --> ${endTime}\n${entry.text}\n`
+      })
+      .join('\n')
+
+    return content
+  }
+
+  /**
+   * Generate VTT file as Blob with UTF-8 BOM
+   */
+  static generateVTTBlob(entries: SubtitleEntry[], targetLanguage?: string): Blob {
+    const content = this.generateVTT(entries)
+
+    // VTT files should always be UTF-8 according to WebVTT specification
+    const utf8BOM = '\uFEFF'
+    const contentWithBOM = utf8BOM + content
+
+    return new Blob([contentWithBOM], {
+      type: 'text/vtt;charset=utf-8'
+    })
+  }
+
+  /**
+   * Detect optimal encoding for a target language
+   */
+  static getOptimalEncoding(targetLanguage: string): string {
+    const encodings = EncodingUtils.getEncodingsForLanguage(targetLanguage)
+    return encodings[0] // Return the first (preferred) encoding
+  }
+
+  /**
+   * Check if content requires UTF-8 encoding
+   */
+  static requiresUTF8(content: string): boolean {
+    // Check for non-ASCII characters
+    return /[^\x00-\x7F]/.test(content)
   }
 
   /**
@@ -302,15 +480,27 @@ export class SubtitleProcessor {
   }
 
   /**
-   * Process uploaded file and return subtitle data
+   * Process uploaded file and return subtitle data with proper encoding detection
    */
   static async processFile(file: File): Promise<SubtitleFile> {
     return new Promise((resolve, reject) => {
+      // First try to read as UTF-8
       const reader = new FileReader()
-      
+
       reader.onload = (event) => {
         try {
-          const content = event.target?.result as string
+          let content = event.target?.result as string
+
+          // Check if content contains replacement characters (indicates encoding issues)
+          if (content.includes('�')) {
+            console.warn('Detected encoding issues, trying alternative encodings...')
+            // Try reading with different encoding detection
+            this.tryAlternativeEncodings(file, resolve, reject)
+            return
+          }
+
+          // Normalize line endings for cross-platform compatibility
+          content = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 
           // Use auto-detect parser based on file extension
           const entries = this.parseSubtitleFile(content, file.name)
@@ -319,7 +509,7 @@ export class SubtitleProcessor {
             reject(new Error('No valid subtitle entries found'))
             return
           }
-          
+
           resolve({
             name: file.name,
             size: file.size,
@@ -327,7 +517,8 @@ export class SubtitleProcessor {
             entries
           })
         } catch (error) {
-          reject(new Error('Failed to process file'))
+          console.error('Failed to process file:', error)
+          reject(new Error('Failed to process file: ' + (error instanceof Error ? error.message : 'Unknown error')))
         }
       }
 
@@ -335,8 +526,75 @@ export class SubtitleProcessor {
         reject(new Error('Failed to read file'))
       }
 
+      // Start with UTF-8 encoding (works for most modern subtitle files)
       reader.readAsText(file, 'utf-8')
     })
+  }
+
+  /**
+   * Try alternative encodings for files with encoding issues
+   */
+  private static async tryAlternativeEncodings(
+    file: File,
+    resolve: (value: SubtitleFile) => void,
+    reject: (reason: any) => void
+  ): Promise<void> {
+    // Try common encodings in order of likelihood
+    const encodings = [
+      'windows-1252',  // Western European
+      'windows-1250',  // Central European
+      'windows-1251',  // Cyrillic
+      'iso-8859-1',    // Latin-1
+      'iso-8859-2',    // Latin-2 (Central European)
+      'iso-8859-5',    // Cyrillic
+      'windows-1254',  // Turkish
+      'windows-1253',  // Greek
+      'windows-1255',  // Hebrew
+      'windows-1256',  // Arabic
+      'windows-1257',  // Baltic
+      'windows-1258'   // Vietnamese
+    ]
+
+    for (const encoding of encodings) {
+      try {
+        console.log(`Trying encoding: ${encoding}`)
+        const reader = new FileReader()
+
+        const result = await new Promise<string>((resolveRead, rejectRead) => {
+          reader.onload = (event) => {
+            const content = event.target?.result as string
+            resolveRead(content)
+          }
+          reader.onerror = () => rejectRead(new Error(`Failed to read with ${encoding}`))
+          reader.readAsText(file, encoding)
+        })
+
+        // Check if this encoding produces better results
+        if (!result.includes('�') || result.includes('�') < file.size * 0.01) {
+          console.log(`Successfully read file with encoding: ${encoding}`)
+
+          // Normalize line endings
+          const content = result.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+          const entries = this.parseSubtitleFile(content, file.name)
+
+          if (entries.length > 0) {
+            resolve({
+              name: file.name,
+              size: file.size,
+              content,
+              entries
+            })
+            return
+          }
+        }
+      } catch (error) {
+        console.warn(`Encoding ${encoding} failed:`, error)
+        continue
+      }
+    }
+
+    // If all encodings fail, reject with helpful error
+    reject(new Error('Unable to read file with any supported encoding. Please ensure the file is a valid subtitle file with proper character encoding.'))
   }
 
   /**

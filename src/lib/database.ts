@@ -52,7 +52,7 @@ export class UserService {
       displayName: displayName || null, // Convert undefined to null for Firestore
       createdAt: serverTimestamp() as Timestamp,
       updatedAt: serverTimestamp() as Timestamp,
-      emailVerified: false,
+      emailVerified: false, // Always start as false for new users requiring verification
       usage: {
         translationsUsed: 0,
         translationsLimit: -1, // Unlimited with credits

@@ -32,10 +32,8 @@ export function TranslationProgress({ result }: TranslationProgressProps) {
           // Show appropriate service name
           if (result.aiService === 'premium') {
             return 'Translating with Premium Context AI...'
-          } else if (result.aiService === 'openai') {
-            return 'Translating with OpenAI...'
           } else {
-            return 'Translating with Google Translate...'
+            return 'Translating with OpenAI...'
           }
         }
         return 'Finalizing translation...'

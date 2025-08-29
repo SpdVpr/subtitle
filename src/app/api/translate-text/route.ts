@@ -12,53 +12,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get API key based on service
-    let apiKey: string
-    if (aiService === 'openai') {
-      apiKey = process.env.OPENAI_API_KEY || ''
-      if (!apiKey) {
-        return NextResponse.json(
-          { error: 'OpenAI API key not configured' },
-          { status: 500 }
-        )
-      }
-    } else {
-      // Default to Google Translate
-      apiKey = process.env.GOOGLE_TRANSLATE_API_KEY || ''
-      if (!apiKey) {
-        return NextResponse.json(
-          { error: 'Google Translate API key not configured' },
-          { status: 500 }
-        )
-      }
+    // Only OpenAI service is supported
+    const apiKey = process.env.OPENAI_API_KEY || ''
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'OpenAI API key not configured' },
+        { status: 500 }
+      )
     }
 
     console.log(`🔄 Translating single text: "${text.substring(0, 50)}..." from ${sourceLanguage} to ${targetLanguage} using ${aiService}`)
 
     const translationService = new PremiumTranslationService(apiKey)
 
-    let translatedText: string
+    // Use OpenAI for translation with context
+    const contextPrompt = context
+      ? `Context: ${context}\n\nTranslate the following subtitle text from ${sourceLanguage} to ${targetLanguage}. Maintain the original meaning and tone while ensuring natural flow:`
+      : `Translate the following subtitle text from ${sourceLanguage} to ${targetLanguage}. Maintain the original meaning and tone while ensuring natural flow:`
 
-    if (aiService === 'openai') {
-      // Use OpenAI for translation with context
-      const contextPrompt = context
-        ? `Context: ${context}\n\nTranslate the following subtitle text from ${sourceLanguage} to ${targetLanguage}. Maintain the original meaning and tone while ensuring natural flow:`
-        : `Translate the following subtitle text from ${sourceLanguage} to ${targetLanguage}. Maintain the original meaning and tone while ensuring natural flow:`
-
-      translatedText = await translationService.translateWithOpenAI(
-        text,
-        sourceLanguage,
-        targetLanguage,
-        contextPrompt
-      )
-    } else {
-      // Use Google Translate
-      translatedText = await translationService.translateWithGoogle(
-        text,
-        sourceLanguage,
-        targetLanguage
-      )
-    }
+    const translatedText = await translationService.translateWithOpenAI(
+      text,
+      sourceLanguage,
+      targetLanguage,
+      contextPrompt
+    )
 
     console.log(`✅ Translation completed: "${translatedText.substring(0, 50)}..."`)
 

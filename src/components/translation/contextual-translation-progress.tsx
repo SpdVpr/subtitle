@@ -272,7 +272,7 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
   // Clear data immediately when translation starts
   React.useEffect(() => {
     if (progress.stage === 'initializing' && progress.progress === 0) {
-      console.log(`🗑️ NEW TRANSLATION STARTED - Clearing all stored data immediately`)
+      // Clear all stored data for new translation
       setStoredReasoningData({})
       setJsonData({})
       setLastUpdateKey('')
@@ -282,7 +282,6 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
       stages.forEach(stage => {
         try {
           localStorage.removeItem(`translation-reasoning-${stage}`)
-          console.log(`🗑️ Cleared localStorage for ${stage}`)
         } catch (error) {
           console.error(`Failed to clear localStorage for ${stage}:`, error)
         }

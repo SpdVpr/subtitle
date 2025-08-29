@@ -105,26 +105,33 @@ export function TranslationHistory({ className, showHeader = true }: Translation
   const getLanguageName = (code?: string) => {
     if (!code) return 'Unknown'
     const languages: Record<string, string> = {
-      'en': 'English',
-      'cs': 'Czech',
-      'de': 'German',
-      'fr': 'French',
-      'es': 'Spanish',
-      'it': 'Italian',
-      'pt': 'Portuguese',
-      'ru': 'Russian',
-      'ja': 'Japanese',
-      'ko': 'Korean',
-      'zh': 'Chinese',
-      'ar': 'Arabic',
-      'hi': 'Hindi',
-      'pl': 'Polish',
-      'nl': 'Dutch',
-      'sv': 'Swedish',
-      'da': 'Danish',
-      'no': 'Norwegian',
-      'fi': 'Finnish',
-      'tr': 'Turkish',
+      // Evropské jazyky
+      'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German', 'it': 'Italian',
+      'pt': 'Portuguese', 'ru': 'Russian', 'cs': 'Czech', 'pl': 'Polish', 'nl': 'Dutch',
+      'sv': 'Swedish', 'da': 'Danish', 'no': 'Norwegian', 'fi': 'Finnish', 'tr': 'Turkish',
+      'sk': 'Slovak', 'hu': 'Hungarian', 'ro': 'Romanian', 'bg': 'Bulgarian', 'hr': 'Croatian',
+      'sl': 'Slovenian', 'et': 'Estonian', 'lv': 'Latvian', 'lt': 'Lithuanian', 'uk': 'Ukrainian',
+      'be': 'Belarusian', 'mk': 'Macedonian', 'sr': 'Serbian', 'bs': 'Bosnian', 'mt': 'Maltese',
+      'is': 'Icelandic', 'ga': 'Irish', 'cy': 'Welsh', 'eu': 'Basque', 'ca': 'Catalan',
+      'gl': 'Galician', 'sq': 'Albanian', 'el': 'Greek', 'lb': 'Luxembourgish',
+
+      // Asijské jazyky
+      'ja': 'Japanese', 'ko': 'Korean', 'zh': 'Chinese', 'th': 'Thai', 'vi': 'Vietnamese',
+      'id': 'Indonesian', 'ms': 'Malay', 'tl': 'Filipino', 'hi': 'Hindi', 'bn': 'Bengali',
+      'ur': 'Urdu', 'fa': 'Persian', 'ar': 'Arabic', 'he': 'Hebrew', 'ta': 'Tamil',
+      'te': 'Telugu', 'ml': 'Malayalam', 'kn': 'Kannada', 'gu': 'Gujarati', 'pa': 'Punjabi',
+      'mr': 'Marathi', 'ne': 'Nepali', 'si': 'Sinhala', 'my': 'Myanmar', 'km': 'Khmer',
+      'lo': 'Lao', 'ka': 'Georgian', 'hy': 'Armenian', 'az': 'Azerbaijani', 'kk': 'Kazakh',
+      'ky': 'Kyrgyz', 'uz': 'Uzbek', 'tg': 'Tajik', 'mn': 'Mongolian',
+
+      // Africké jazyky
+      'sw': 'Swahili', 'am': 'Amharic', 'zu': 'Zulu', 'xh': 'Xhosa', 'af': 'Afrikaans',
+      'yo': 'Yoruba', 'ig': 'Igbo', 'ha': 'Hausa',
+
+      // Oceánské a další jazyky
+      'mi': 'Maori', 'sm': 'Samoan', 'to': 'Tongan', 'fj': 'Fijian', 'jv': 'Javanese',
+      'su': 'Sundanese', 'ceb': 'Cebuano', 'haw': 'Hawaiian', 'mg': 'Malagasy',
+      'qu': 'Quechua', 'gn': 'Guarani', 'eo': 'Esperanto', 'la': 'Latin'
     }
     return languages[code] || code.toUpperCase()
   }

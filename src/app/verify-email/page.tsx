@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import Head from 'next/head'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
@@ -15,7 +16,7 @@ import {
 } from 'lucide-react'
 
 export default function VerifyEmailPage() {
-  const { user } = useAuth()
+  const { user, sendVerificationEmail } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'pending'>('loading')
@@ -41,11 +42,22 @@ export default function VerifyEmailPage() {
       await EmailVerificationService.verifyEmail(actionCode)
       setStatus('success')
       setMessage('Your email has been verified successfully!')
-      
-      // Redirect after 3 seconds
+
+      // Redirect after 2 seconds with better UX
       setTimeout(() => {
-        router.push(continueUrl || '/dashboard')
-      }, 3000)
+        const redirectUrl = continueUrl || '/dashboard'
+        console.log('Redirecting to:', redirectUrl)
+
+        // Try multiple redirect methods for better compatibility
+        if (window.opener) {
+          // If opened in popup, close and redirect parent
+          window.opener.location.href = redirectUrl
+          window.close()
+        } else {
+          // Normal redirect
+          window.location.href = redirectUrl
+        }
+      }, 2000)
     } catch (error) {
       setStatus('error')
       setMessage(error instanceof Error ? error.message : 'Failed to verify email')
@@ -57,7 +69,7 @@ export default function VerifyEmailPage() {
 
     setIsResending(true)
     try {
-      await EmailVerificationService.resendVerificationEmail()
+      await sendVerificationEmail()
       setMessage('Verification email sent! Check your inbox.')
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Failed to send verification email')
@@ -93,8 +105,14 @@ export default function VerifyEmailPage() {
   }
 
   return (
-    <div className="py-8">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-md">
+    <>
+      {status === 'success' && (
+        <Head>
+          <meta httpEquiv="refresh" content="3;url=/dashboard" />
+        </Head>
+      )}
+      <div className="py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-md">
         <Card>
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
@@ -151,10 +169,21 @@ export default function VerifyEmailPage() {
             {status === 'success' && (
               <div className="text-center">
                 <p className="text-sm text-gray-600 dark:text-muted-foreground mb-4">
-                  Redirecting to dashboard in 3 seconds...
+                  Redirecting to dashboard in 2 seconds...
                 </p>
-                <Button onClick={() => router.push('/dashboard')} className="w-full">
-                  Go to Dashboard
+                <Button
+                  onClick={() => {
+                    const redirectUrl = '/dashboard'
+                    if (window.opener) {
+                      window.opener.location.href = redirectUrl
+                      window.close()
+                    } else {
+                      window.location.href = redirectUrl
+                    }
+                  }}
+                  className="w-full"
+                >
+                  Go to Dashboard Now
                 </Button>
               </div>
             )}
@@ -210,7 +239,8 @@ export default function VerifyEmailPage() {
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

@@ -18,10 +18,13 @@ import {
   BarChart3
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { EmailVerificationGuard } from '@/components/auth/email-verification-guard'
 import { CreditsCard } from '@/components/ui/credits-display'
 import { HistoryTabs } from '@/components/dashboard/history-tabs'
 import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard'
+import { FavoriteLanguagesManager } from '@/components/translation/favorite-languages-manager'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Settings } from 'lucide-react'
 import Link from 'next/link'
 
 export default function CzechDashboardPage() {
@@ -98,8 +101,9 @@ export default function CzechDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <EmailVerificationGuard>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Success Alert */}
         {showSuccessAlert && (
           <Alert className="mb-6 border-primary/20 bg-primary/5">
@@ -134,7 +138,7 @@ export default function CzechDashboardPage() {
 
         {/* Dashboard Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto mb-8">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <Zap className="w-4 h-4" />
               <span>Přehled</span>
@@ -142,6 +146,10 @@ export default function CzechDashboardPage() {
             <TabsTrigger value="analytics" className="flex items-center space-x-2">
               <BarChart3 className="w-4 h-4" />
               <span>Analýzy</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center space-x-2">
+              <Settings className="w-4 h-4" />
+              <span>Nastavení</span>
             </TabsTrigger>
           </TabsList>
 
@@ -280,8 +288,16 @@ export default function CzechDashboardPage() {
           <TabsContent value="analytics">
             <AnalyticsDashboard />
           </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <FavoriteLanguagesManager locale="cs" />
+            </div>
+          </TabsContent>
         </Tabs>
+        </div>
       </div>
-    </div>
+    </EmailVerificationGuard>
   )
 }

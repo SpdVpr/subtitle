@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { TranslationInterface } from '@/components/translation/translation-interface'
 import { BatchTranslationInterface } from '@/components/batch/batch-translation-interface'
+import { EmailVerificationGuard } from '@/components/auth/email-verification-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -13,50 +14,53 @@ export default function TranslatePage() {
 
   if (mode === 'single') {
     return (
-      <div className="py-4 sm:py-6 md:py-8">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-          <div className="mb-6 sm:mb-8">
-            <Button
-              variant="ghost"
-              onClick={() => setMode('select')}
-              className="mb-4"
-            >
-              ← Back to Mode Selection
-            </Button>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Single Translation</h1>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-muted-foreground">
-              Upload one SRT subtitle file and translate it to any language using AI
-            </p>
+      <EmailVerificationGuard>
+        <div className="py-4 sm:py-6 md:py-8">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+            <div className="mb-6 sm:mb-8">
+              <Button
+                variant="ghost"
+                onClick={() => setMode('select')}
+                className="mb-4"
+              >
+                ← Back to Mode Selection
+              </Button>
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Single Translation</h1>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-muted-foreground">
+                Upload one SRT subtitle file and translate it to any language using AI
+              </p>
+            </div>
+            <TranslationInterface />
           </div>
-          <TranslationInterface />
         </div>
-      </div>
+      </EmailVerificationGuard>
     )
   }
 
   if (mode === 'batch') {
     return (
-      <div className="py-8">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-          {/* Back Button */}
-          <Button
-            variant="ghost"
-            onClick={() => setMode('select')}
-            className="mb-6"
-          >
-            ← Back to Mode Selection
-          </Button>
+      <EmailVerificationGuard>
+        <div className="py-8">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+            {/* Back Button */}
+            <Button
+              variant="ghost"
+              onClick={() => setMode('select')}
+              className="mb-6"
+            >
+              ← Back to Mode Selection
+            </Button>
 
-          {/* Header */}
-          <div className="mb-8 text-center">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <Zap className="h-8 w-8 text-blue-600" />
-              <h1 className="text-3xl font-bold">Batch Translation</h1>
+            {/* Header */}
+            <div className="mb-8 text-center">
+              <div className="flex items-center justify-center space-x-3 mb-4">
+                <Zap className="h-8 w-8 text-blue-600" />
+                <h1 className="text-3xl font-bold">Batch Translation</h1>
+              </div>
+              <p className="text-gray-600 text-lg max-w-3xl mx-auto">
+                Upload multiple subtitle files or ZIP archives and translate them all at once with AI
+              </p>
             </div>
-            <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-              Upload multiple subtitle files or ZIP archives and translate them all at once with AI
-            </p>
-          </div>
 
           {/* Features Overview */}
           <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -148,6 +152,7 @@ export default function TranslatePage() {
           </Card>
         </div>
       </div>
+      </EmailVerificationGuard>
     )
   }
 
