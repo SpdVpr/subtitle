@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     // Example with a hypothetical email service:
     /*
     await sendEmail({
-      to: 'support@subtitle-ai.com',
+      to: 'admin@subtitlebot.com',
       from: validatedData.email,
       subject: `[${validatedData.category.toUpperCase()}] ${validatedData.subject}`,
       html: `
@@ -55,17 +55,17 @@ export async function POST(request: NextRequest) {
     // Send confirmation email to user
     await sendEmail({
       to: validatedData.email,
-      from: 'noreply@subtitle-ai.com',
-      subject: 'We received your message - SubtitleAI Support',
+      from: 'noreply@subtitlebot.com',
+      subject: 'We received your message - SubtitleBot Support',
       html: `
-        <h2>Thank you for contacting SubtitleAI!</h2>
+        <h2>Thank you for contacting SubtitleBot!</h2>
         <p>Hi ${validatedData.name},</p>
         <p>We've received your message and will get back to you within 24 hours.</p>
         <p><strong>Your message:</strong></p>
         <p><em>${validatedData.subject}</em></p>
         <p>${validatedData.message.replace(/\n/g, '<br>')}</p>
         <hr>
-        <p>Best regards,<br>The SubtitleAI Team</p>
+        <p>Best regards,<br>The SubtitleBot Team</p>
       `,
     })
     */

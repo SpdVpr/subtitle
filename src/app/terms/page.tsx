@@ -302,9 +302,9 @@ export default function TermsPage() {
                 If you have any questions about these Terms of Service, please contact us:
               </p>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
-                <li>Email: legal@subtitle-ai.com</li>
+                <li>Email: admin@subtitlebot.com</li>
                 <li>Contact Form: <Link href="/contact" className="text-primary hover:underline">Contact Us</Link></li>
-                <li>Address: SubtitleAI, Prague, Czech Republic</li>
+                <li>Address: SubtitleBot, Prague, Czech Republic</li>
               </ul>
             </CardContent>
           </Card>

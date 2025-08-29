@@ -52,7 +52,7 @@ export default function ContactPage() {
                   <Mail className="h-5 w-5 text-primary mt-0.5" />
                   <div>
                     <h4 className="font-medium text-foreground">Email Support</h4>
-                    <p className="text-sm text-muted-foreground">support@subtitle-ai.com</p>
+                    <p className="text-sm text-muted-foreground">admin@subtitlebot.com</p>
                     <p className="text-xs text-muted-foreground mt-1">Best for detailed questions</p>
                   </div>
                 </div>

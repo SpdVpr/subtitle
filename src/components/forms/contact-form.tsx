@@ -233,7 +233,7 @@ export function ContactForm({ className }: ContactFormProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
               <h4 className="font-medium text-foreground mb-2">Email</h4>
-              <p className="text-muted-foreground">support@subtitle-ai.com</p>
+              <p className="text-muted-foreground">admin@subtitlebot.com</p>
             </div>
             <div>
               <h4 className="font-medium text-foreground mb-2">Response Time</h4>

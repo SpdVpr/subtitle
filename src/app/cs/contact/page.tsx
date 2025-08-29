@@ -52,7 +52,7 @@ export default function CzechContactPage() {
                   <Mail className="h-5 w-5 text-primary" />
                   <div>
                     <p className="font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">support@subtitlebot.com</p>
+                    <p className="text-sm text-muted-foreground">admin@subtitlebot.com</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

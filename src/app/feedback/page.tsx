@@ -1,0 +1,206 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Feedback - SubtitleBot',
+  description: 'Share your feedback and help us improve SubtitleBot. Anonymous and quick feedback form for suggestions, bug reports, and feature requests.',
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
+
+'use client'
+
+import { useState, useEffect } from 'react'
+import { analytics } from '@/lib/analytics'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
+import { MessageSquare, Send, Loader2, CheckCircle, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { toast } from 'sonner'
+
+export default function FeedbackPage() {
+  const [feedback, setFeedback] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [honeypot, setHoneypot] = useState('')
+  const [startTime] = useState(Date.now())
+
+  useEffect(() => {
+    // Track feedback page visit
+    analytics.feedbackPageVisited('en')
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Anti-spam checks
+    if (honeypot) {
+      // Bot detected (filled honeypot field)
+      return
+    }
+    
+    if (Date.now() - startTime < 3000) {
+      // Submitted too quickly (less than 3 seconds)
+      toast.error('Please take a moment to write your feedback.')
+      return
+    }
+    
+    if (feedback.trim().length < 10) {
+      toast.error('Please provide more detailed feedback (at least 10 characters).')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          feedback: feedback.trim(),
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          url: window.location.href
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to send feedback')
+      }
+
+      setIsSubmitted(true)
+      toast.success('Thank you for your feedback!')
+
+      // Track successful feedback submission
+      analytics.feedbackSubmitted('en', feedback.length)
+
+      setFeedback('')
+    } catch (error) {
+      console.error('Feedback error:', error)
+      toast.error('Failed to send feedback. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-12 max-w-2xl">
+          <Button variant="ghost" asChild className="mb-4">
+            <Link href="/" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Home
+            </Link>
+          </Button>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+                <h2 className="text-2xl font-bold text-foreground">Thank You!</h2>
+                <p className="text-muted-foreground">
+                  Your feedback has been received. We appreciate you taking the time to help us improve SubtitleBot!
+                </p>
+                <Button asChild>
+                  <Link href="/">Return to Home</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-12 max-w-2xl">
+        <Button variant="ghost" asChild className="mb-4">
+          <Link href="/" className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Link>
+        </Button>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="h-6 w-6 text-primary" />
+              Quick Feedback
+            </CardTitle>
+            <CardDescription>
+              Help us improve SubtitleBot! Share your thoughts, suggestions, or report issues. 
+              Your feedback is anonymous and helps us make the app better for everyone.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Honeypot field - hidden from users, visible to bots */}
+              <input
+                type="text"
+                name="website"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                style={{ display: 'none' }}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+
+              <div className="space-y-2">
+                <label htmlFor="feedback" className="text-sm font-medium">
+                  Your Feedback
+                </label>
+                <Textarea
+                  id="feedback"
+                  placeholder="What would you like to see improved? Any bugs or issues? New features you'd love to have? We'd love to hear from you!"
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  disabled={isSubmitting}
+                  rows={6}
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {feedback.length}/1000 characters • Anonymous submission
+                </p>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting || feedback.trim().length < 10}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending Feedback...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Anonymous Feedback
+                  </>
+                )}
+              </Button>
+            </form>
+
+            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+              <h4 className="text-sm font-medium mb-2">💡 What kind of feedback helps us most:</h4>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                <li>• Bugs or errors you encountered</li>
+                <li>• Features that would make your workflow easier</li>
+                <li>• Languages or formats you'd like to see supported</li>
+                <li>• Performance issues or slow translations</li>
+                <li>• UI/UX improvements that would help you</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}

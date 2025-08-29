@@ -126,9 +126,18 @@ export const analytics = {
   premiumFeatureUsed: (feature: string) => {
     trackEvent('premium_feature_used', 'premium', feature)
   },
-  
+
   creditsUsed: (amount: number, feature: string) => {
     trackEvent('credits_used', 'premium', feature, amount)
+  },
+
+  // Feedback events
+  feedbackSubmitted: (locale: string, feedbackLength: number) => {
+    trackEvent('feedback_submitted', 'feedback', locale, feedbackLength)
+  },
+
+  feedbackPageVisited: (locale: string) => {
+    trackEvent('feedback_page_visited', 'feedback', locale)
   }
 }
 
