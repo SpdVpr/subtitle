@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getServerFirestore } from '@/lib/firebase-admin'
+import { getAdminDb } from '@/lib/firebase-admin'
 
 const feedbackSchema = z.object({
   feedback: z.string().min(10, 'Feedback must be at least 10 characters').max(1000, 'Feedback must be less than 1000 characters'),
@@ -42,44 +42,46 @@ function isRateLimited(key: string): boolean {
 // Simple spam detection
 function isSpam(feedback: string, userAgent?: string): boolean {
   const text = feedback.toLowerCase()
-  
-  // Common spam patterns
+
+  // Only check for obvious spam patterns
   const spamPatterns = [
-    /https?:\/\/[^\s]+/g, // URLs
-    /\b(buy|sell|cheap|free|money|casino|poker|viagra|cialis)\b/g, // Spam keywords
-    /(.)\1{4,}/g, // Repeated characters (aaaaa)
-    /[^\w\s.,!?-]/g, // Unusual characters
+    /https?:\/\/[^\s]+/g, // URLs (multiple)
+    /\b(buy now|click here|casino|poker|viagra|cialis|lottery|winner)\b/g, // Strong spam keywords
+    /(.)\1{6,}/g, // Many repeated characters (aaaaaa+)
   ]
 
   // Check for spam patterns
   for (const pattern of spamPatterns) {
     if (pattern.test(text)) {
+      console.log('Spam pattern detected:', pattern.source)
       return true
     }
   }
 
-  // Check for bot user agents
+  // Check for bot user agents (but be more specific)
   if (userAgent) {
-    const botPatterns = /bot|crawler|spider|scraper|curl|wget/i
+    const botPatterns = /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegram/i
     if (botPatterns.test(userAgent)) {
+      console.log('Bot user agent detected:', userAgent)
       return true
     }
   }
 
-  // Check for too many repeated words
-  const words = text.split(/\s+/)
-  const wordCount = new Map<string, number>()
-  for (const word of words) {
-    if (word.length > 2) {
+  // Check for excessive repeated words (more lenient)
+  const words = text.split(/\s+/).filter(word => word.length > 3)
+  if (words.length > 5) { // Only check if enough words
+    const wordCount = new Map<string, number>()
+    for (const word of words) {
       wordCount.set(word, (wordCount.get(word) || 0) + 1)
     }
-  }
-  
-  // If any word appears more than 30% of the time, it's likely spam
-  const totalWords = words.length
-  for (const [, count] of wordCount) {
-    if (count / totalWords > 0.3) {
-      return true
+
+    // If any word appears more than 50% of the time, it's likely spam
+    const totalWords = words.length
+    for (const [word, count] of wordCount) {
+      if (count / totalWords > 0.5) {
+        console.log('Repeated word spam detected:', word, `${count}/${totalWords}`)
+        return true
+      }
     }
   }
 
@@ -117,42 +119,44 @@ export async function POST(request: NextRequest) {
 
     // Save feedback to Firestore
     try {
-      const db = await getServerFirestore()
-      if (db) {
-        const feedbackData = {
-          feedback: validatedData.feedback,
-          timestamp: new Date(),
-          submittedAt: validatedData.timestamp,
-          locale: validatedData.locale || 'en',
-          url: validatedData.url,
-          ipHash: clientKey, // Store hashed IP for privacy
-          userAgent: validatedData.userAgent,
-          status: 'new', // new, read, resolved
-          priority: 'normal' // low, normal, high
-        }
-
-        // Use Firebase Admin SDK to add document
-        await db.collection('feedback').add(feedbackData)
-        console.log('📝 Feedback saved to Firestore')
-      } else {
-        // Fallback: log to console if Firestore unavailable
-        console.log('📝 New feedback received (Firestore unavailable):', {
-          feedback: validatedData.feedback,
-          timestamp: validatedData.timestamp,
-          locale: validatedData.locale || 'en',
-          url: validatedData.url,
-          ip: clientKey,
-          userAgent: validatedData.userAgent
-        })
+      const db = getAdminDb()
+      const feedbackData = {
+        feedback: validatedData.feedback,
+        timestamp: new Date(),
+        submittedAt: validatedData.timestamp,
+        locale: validatedData.locale || 'en',
+        url: validatedData.url,
+        ipHash: clientKey, // Store hashed IP for privacy
+        userAgent: validatedData.userAgent,
+        status: 'new', // new, read, resolved
+        priority: 'normal' // low, normal, high
       }
+
+      // Use Firebase Admin SDK to add document
+      await db.collection('feedback').add(feedbackData)
+      console.log('📝 Feedback saved to Firestore')
     } catch (dbError) {
       console.error('Failed to save feedback to database:', dbError)
+      // Fallback: log to console if Firestore unavailable
+      console.log('📝 New feedback received (Firestore unavailable):', {
+        feedback: validatedData.feedback,
+        timestamp: validatedData.timestamp,
+        locale: validatedData.locale || 'en',
+        url: validatedData.url,
+        ip: clientKey,
+        userAgent: validatedData.userAgent
+      })
       // Continue anyway - don't fail the request
     }
 
     // Track feedback in analytics
-    const { analytics } = await import('@/lib/analytics')
-    analytics.feedbackSubmitted(validatedData.locale || 'en', validatedData.feedback.length)
+    try {
+      const { analytics } = await import('@/lib/analytics')
+      analytics.feedbackSubmitted(validatedData.locale || 'en', validatedData.feedback.length)
+    } catch (analyticsError) {
+      console.warn('Failed to track feedback analytics:', analyticsError)
+      // Continue anyway - don't fail the request
+    }
 
     return NextResponse.json(
       { 
@@ -164,7 +168,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Feedback API error:', error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid feedback data', details: error.errors },
@@ -173,7 +177,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }

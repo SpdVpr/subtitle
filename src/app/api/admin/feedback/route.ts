@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerFirestore } from '@/lib/firebase-admin'
+import { getAdminDb } from '@/lib/firebase-admin'
 import { isAdminEmail } from '@/lib/admin-auth-email'
 
 export interface FeedbackItem {
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const statusFilter = searchParams.get('status') // 'new', 'read', 'resolved', or null for all
 
     // Get Firestore instance
-    const db = await getServerFirestore()
+    const db = getAdminDb()
     if (!db) {
       // Return demo data if Firestore unavailable
       return NextResponse.json({
@@ -136,7 +136,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Get Firestore instance
-    const db = await getServerFirestore()
+    const db = getAdminDb()
     if (!db) {
       return NextResponse.json({
         error: 'Database unavailable'
