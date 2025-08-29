@@ -13,6 +13,7 @@ import { AdminSetup } from '@/components/admin/admin-setup'
 import { CreditHistory } from '@/components/admin/credit-history'
 import { VoucherGenerator } from '@/components/admin/voucher-generator'
 import { VoucherManagement } from '@/components/admin/voucher-management'
+import { FeedbackManagement } from '@/components/admin/feedback-management'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RefreshCw, Shield, AlertTriangle, Gift } from 'lucide-react'
@@ -26,7 +27,7 @@ export default function AdminDashboard() {
   const [revenueData, setRevenueData] = useState<RevenueData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'security' | 'vouchers' | 'voucher-generator'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'security' | 'vouchers' | 'voucher-generator' | 'feedback'>('overview')
 
   // Check admin access
   useEffect(() => {
@@ -152,6 +153,16 @@ export default function AdminDashboard() {
               >
                 🔐 Security
               </button>
+              <button
+                onClick={() => setActiveTab('feedback')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                  activeTab === 'feedback'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                }`}
+              >
+                💬 Feedback
+              </button>
             </nav>
           </div>
 
@@ -212,6 +223,10 @@ export default function AdminDashboard() {
 
           {activeTab === 'security' && (
             <SecurityDashboard />
+          )}
+
+          {activeTab === 'feedback' && (
+            <FeedbackManagement />
           )}
 
           {/* System Status */}

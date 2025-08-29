@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { getServerFirestore } from '@/lib/firebase-admin'
 
 const feedbackSchema = z.object({
   feedback: z.string().min(10, 'Feedback must be at least 10 characters').max(1000, 'Feedback must be less than 1000 characters'),
@@ -114,44 +115,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Log feedback (in production, you'd save to database or send email)
-    console.log('📝 New feedback received:', {
-      feedback: validatedData.feedback,
-      timestamp: validatedData.timestamp,
-      locale: validatedData.locale || 'en',
-      url: validatedData.url,
-      ip: clientKey,
-      userAgent: validatedData.userAgent
-    })
+    // Save feedback to Firestore
+    try {
+      const db = await getServerFirestore()
+      if (db) {
+        const feedbackData = {
+          feedback: validatedData.feedback,
+          timestamp: new Date(),
+          submittedAt: validatedData.timestamp,
+          locale: validatedData.locale || 'en',
+          url: validatedData.url,
+          ipHash: clientKey, // Store hashed IP for privacy
+          userAgent: validatedData.userAgent,
+          status: 'new', // new, read, resolved
+          priority: 'normal' // low, normal, high
+        }
+
+        // Use Firebase Admin SDK to add document
+        await db.collection('feedback').add(feedbackData)
+        console.log('📝 Feedback saved to Firestore')
+      } else {
+        // Fallback: log to console if Firestore unavailable
+        console.log('📝 New feedback received (Firestore unavailable):', {
+          feedback: validatedData.feedback,
+          timestamp: validatedData.timestamp,
+          locale: validatedData.locale || 'en',
+          url: validatedData.url,
+          ip: clientKey,
+          userAgent: validatedData.userAgent
+        })
+      }
+    } catch (dbError) {
+      console.error('Failed to save feedback to database:', dbError)
+      // Continue anyway - don't fail the request
+    }
 
     // Track feedback in analytics
     const { analytics } = await import('@/lib/analytics')
     analytics.feedbackSubmitted(validatedData.locale || 'en', validatedData.feedback.length)
-
-    // In production, you would:
-    // 1. Save to database
-    // 2. Send email notification to admin@subtitlebot.com
-    // 3. Optionally integrate with tools like Slack, Discord, or Notion
-
-    /*
-    // Example email integration:
-    await sendEmail({
-      to: 'admin@subtitlebot.com',
-      subject: `New Feedback - SubtitleBot ${validatedData.locale === 'cs' ? '(Czech)' : '(English)'}`,
-      html: `
-        <h2>New Anonymous Feedback</h2>
-        <p><strong>Language:</strong> ${validatedData.locale === 'cs' ? 'Czech' : 'English'}</p>
-        <p><strong>Submitted:</strong> ${validatedData.timestamp}</p>
-        <p><strong>Page:</strong> ${validatedData.url}</p>
-        <hr>
-        <p><strong>Feedback:</strong></p>
-        <p>${validatedData.feedback.replace(/\n/g, '<br>')}</p>
-        <hr>
-        <p><small>IP: ${clientKey}</small></p>
-        <p><small>User Agent: ${validatedData.userAgent}</small></p>
-      `
-    })
-    */
 
     return NextResponse.json(
       { 
