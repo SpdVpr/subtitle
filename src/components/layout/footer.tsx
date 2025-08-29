@@ -125,26 +125,6 @@ export function Footer({ locale = 'en' }: FooterProps) {
                   {locale === 'cs' ? 'Kontakt' : 'Contact'}
                 </Link>
               </li>
-              {locale === 'en' && (
-                <>
-                  <li>
-                    <Link
-                      href={`${langPrefix}/help`}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Help Center
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href={`${langPrefix}/support`}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Support
-                    </Link>
-                  </li>
-                </>
-              )}
               <li>
                 <Link
                   href={`${langPrefix}/feedback`}
