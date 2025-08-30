@@ -275,7 +275,7 @@ export async function POST(req: NextRequest) {
             characterCount: translatedContent.length,
             processingTimeMs: Date.now() - Date.now(), // Will be calculated on client
             apiProvider: 'OpenAI',
-            model: 'gpt-4o'
+            model: 'gpt-5'
           })
 
         } catch (error) {
@@ -507,7 +507,7 @@ async function processTranslationJob(
     if (userId !== 'premium-user-demo' && !userId.endsWith('-user-demo')) {
       // Calculate credits based on subtitle count and service
       const chunksNeeded = Math.ceil(subtitleEntries.length / 20)
-      const creditsPerChunk = 0.7 // Premium service only (GPT-4o)
+      const creditsPerChunk = 0.7 // Premium service only (GPT-5)
       const totalCredits = chunksNeeded * creditsPerChunk
 
       console.log(`💰 Deducting ${totalCredits} credits for ${subtitleEntries.length} subtitles (${chunksNeeded} chunks, ${creditsPerChunk} per chunk)`)
@@ -772,7 +772,7 @@ async function processRealPremiumTranslation(
       completedAt: new Date().toISOString(),
       contextualInfo: contextualInfo.substring(0, 200),
       apiProvider: 'OpenAI',
-      model: 'gpt-4o'
+      model: 'gpt-5'
     }
 
     // Final progress update
