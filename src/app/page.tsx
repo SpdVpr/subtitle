@@ -227,9 +227,9 @@ export default function Home() {
                   <Brain className="h-6 w-6 text-blue-600 dark:text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">OpenAI Integration</h3>
+                  <h3 className="text-xl font-semibold mb-2">Dual Model System</h3>
                   <p className="text-gray-600 dark:text-muted-foreground">
-                    Leverages GPT models for natural, human-like translations that capture the original meaning and tone.
+                    Choose between GPT-4o mini (fast & affordable) or GPT-4o (premium quality) for translations that capture meaning and tone.
                   </p>
                 </div>
               </div>
@@ -561,13 +561,22 @@ export default function Home() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-center space-x-2">
                   <span>🎬</span>
-                  <span>Premium Translation</span>
+                  <span>AI Translation</span>
                 </CardTitle>
-                <CardDescription>OpenAI GPT-5 with context research</CardDescription>
+                <CardDescription>Choose between Standard and Premium quality</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-3xl font-bold">~0.7</div>
-                <div className="text-sm text-muted-foreground">credits per 20 lines</div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Standard (GPT-4o mini)</span>
+                    <span className="font-bold">0.4 credits</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Premium (GPT-4o)</span>
+                    <span className="font-bold">1.0 credit</span>
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground mt-2">per 20 lines</div>
               </CardContent>
               <CardContent className="space-y-2">
                 <p>✓ Context-aware translation</p>

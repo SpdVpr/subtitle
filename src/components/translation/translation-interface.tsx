@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useTranslationProgress } from '@/hooks/use-translation-progress'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { FileUpload } from './file-upload'
 import { LanguageSelector } from './language-selector'
 import { ContextualTranslationProgress } from './contextual-translation-progress'
@@ -14,7 +15,7 @@ import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { TranslationResult } from '@/types/subtitle'
 import { CreditsDisplay } from '@/components/ui/credits-display'
 import { TranslationJobService } from '@/lib/database'
-import { Download, Crown, AlertCircle, Eye, Calculator, PictureInPicture2, Star, StarOff } from 'lucide-react'
+import { Download, Crown, AlertCircle, Eye, Calculator, PictureInPicture2, Star, StarOff, Zap } from 'lucide-react'
 import { useFavoriteLanguages } from '@/hooks/use-favorite-languages'
 import { analytics } from '@/lib/analytics'
 import { toast } from 'sonner'
@@ -26,6 +27,7 @@ export function TranslationInterface() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [sourceLanguage, setSourceLanguage] = useState<string>('auto') // Default to auto-detect
   const [targetLanguage, setTargetLanguage] = useState<string>('')
+  const [translationModel, setTranslationModel] = useState<'standard' | 'premium'>('standard') // Default to cheaper option
   const [isTranslating, setIsTranslating] = useState(false)
   const [translationResult, setTranslationResult] = useState<TranslationResult | null>(null)
   const [notifyOnComplete, setNotifyOnComplete] = useState<boolean>(false)
@@ -115,15 +117,15 @@ export function TranslationInterface() {
     fetchCredits()
   }, [user])
 
-  // Recalculate cost when subtitle count changes (premium service only)
+  // Recalculate cost when subtitle count or model changes
   useEffect(() => {
     if (selectedFile && subtitleCount) {
       const chunksNeeded = Math.ceil(subtitleCount / 20)
-      const costPerChunk = 0.7 // Premium AI service rate (GPT-5)
+      const costPerChunk = translationModel === 'premium' ? 1.0 : 0.4 // Premium: 1 credit, Standard: 0.4 credits per 20 lines
       const estimated = chunksNeeded * costPerChunk
       setEstimatedCost(estimated)
     }
-  }, [subtitleCount])
+  }, [subtitleCount, translationModel])
 
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file)
@@ -184,6 +186,7 @@ export function TranslationInterface() {
       formData.append('targetLanguage', targetLanguage)
       formData.append('sourceLanguage', sourceLanguage === 'auto' ? '' : sourceLanguage)
       formData.append('userId', user.uid)
+      formData.append('translationModel', translationModel) // Add model selection
 
       // Try streaming endpoint first, fallback to simple endpoint
       let response
@@ -572,6 +575,72 @@ export function TranslationInterface() {
             disabled={isTranslating}
           />
 
+          {/* Translation Model Selection */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-foreground">
+              Translation Quality
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button
+                variant={translationModel === 'standard' ? 'default' : 'outline'}
+                className={`h-auto p-4 justify-start text-left ${
+                  translationModel === 'standard'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-muted'
+                }`}
+                onClick={() => setTranslationModel('standard')}
+                disabled={isTranslating}
+              >
+                <div className="flex flex-col items-start w-full">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="h-4 w-4" />
+                    <span className="font-medium">Standard</span>
+                    <Badge variant="secondary" className="text-xs">GPT-4o mini</Badge>
+                  </div>
+                  <p className="text-xs opacity-80 mb-2">Fast, reliable translation</p>
+                  <div className="text-sm font-semibold">0.4 credits per 20 lines</div>
+                </div>
+              </Button>
+
+              <Button
+                variant={translationModel === 'premium' ? 'default' : 'outline'}
+                className={`h-auto p-4 justify-start text-left relative overflow-hidden border-2 ${
+                  translationModel === 'premium'
+                    ? 'bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-black border-yellow-400 shadow-lg shadow-yellow-500/25'
+                    : 'bg-white dark:bg-card border-yellow-300 dark:border-yellow-600/50 hover:border-yellow-400 hover:shadow-md hover:shadow-yellow-500/20'
+                }`}
+                onClick={() => setTranslationModel('premium')}
+                disabled={isTranslating}
+              >
+                {translationModel === 'premium' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-amber-300/20 to-yellow-500/20 animate-pulse" />
+                )}
+                <div className="flex flex-col items-start w-full relative z-10">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-yellow-600">👑</span>
+                    <span className="font-medium">Premium</span>
+                    <Badge
+                      variant="secondary"
+                      className="text-xs bg-amber-100 text-amber-800 border border-amber-300"
+                    >
+                      GPT-4o
+                    </Badge>
+                  </div>
+                  <p className={`text-xs mb-2 ${
+                    translationModel === 'premium' ? 'text-amber-900' : 'text-gray-600 dark:text-gray-400'
+                  }`}>
+                    Best quality with context
+                  </p>
+                  <div className={`text-sm font-semibold ${
+                    translationModel === 'premium' ? 'text-amber-900' : 'text-gray-900 dark:text-gray-100'
+                  }`}>
+                    1.0 credit per 20 lines
+                  </div>
+                </div>
+              </Button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
@@ -641,14 +710,18 @@ export function TranslationInterface() {
             <div className={`p-4 border rounded-lg ${
               userCredits !== null && userCredits < estimatedCost
                 ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/30'
-                : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/30'
+                : translationModel === 'premium'
+                  ? 'bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border-2 border-yellow-300 dark:border-yellow-600/30 shadow-lg shadow-yellow-500/10'
+                  : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/30'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Calculator className={`h-5 w-5 ${
                     userCredits !== null && userCredits < estimatedCost
                       ? 'text-destructive'
-                      : 'text-primary'
+                      : translationModel === 'premium'
+                        ? 'text-amber-600'
+                        : 'text-primary'
                   }`} />
                   <div>
                     <h4 className={`font-medium ${
@@ -669,7 +742,9 @@ export function TranslationInterface() {
                   <div className={`text-2xl font-bold ${
                     userCredits !== null && userCredits < estimatedCost
                       ? 'text-destructive'
-                      : 'text-primary'
+                      : translationModel === 'premium'
+                        ? 'text-amber-600'
+                        : 'text-primary'
                   }`}>
                     {estimatedCost.toFixed(1)} credits
                   </div>
@@ -706,8 +781,21 @@ export function TranslationInterface() {
                     ? 'text-destructive/80'
                     : 'text-primary/80'
                 }`}>
-                  <span>✨ Premium AI with context research</span>
-                  <span>Rate: 0.7 credits per 20 subtitles</span>
+                  <span className="flex items-center gap-1">
+                    {translationModel === 'premium' ? (
+                      <>
+                        <Crown className="h-3 w-3 text-yellow-600" />
+                        <span>Premium AI with context research</span>
+                        <span className="text-yellow-600">👑</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="h-3 w-3" />
+                        <span>Standard AI translation</span>
+                      </>
+                    )}
+                  </span>
+                  <span>Rate: {translationModel === 'premium' ? '1.0' : '0.4'} credits per 20 subtitles</span>
                 </div>
               </div>
             </div>

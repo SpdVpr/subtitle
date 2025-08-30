@@ -42,11 +42,15 @@ setTimeout(() => reject(new Error('Timeout')), 60000) // 33% rychlejší
 **Zrychlení:** 33% rychlejší timeout detection
 
 ### 3. **Optimální model selection** 🤖
-**Současný model:** `gpt-4o-mini`
-- ✅ **Rychlý** (2-3x rychlejší než gpt-4)
-- ✅ **Kvalitní** (90%+ kvalita gpt-4)
-- ✅ **Levný** (60x levnější než gpt-4)
-- ✅ **Optimální pro titulky**
+**Analytické úkoly:** `o1-mini` (research, analýza obsahu)
+- ✅ **Levný** pro analytické úkoly
+- ✅ **Rychlý** pro research a context analýzu
+- ✅ **Dostatečně kvalitní** pro pomocné úkoly
+
+**Překlad:** `o1` (samotný překlad titulků)
+- ✅ **Nejvyšší kvalita** překladu
+- ✅ **Kontextové porozumění**
+- ✅ **Optimální pro kritické úkoly**
 
 ### 4. **Inteligentní concurrency scaling** 📊
 ```typescript
@@ -92,7 +96,7 @@ const maxConcurrency = Math.min(
 ### Optimalizované pro rychlost:
 - ⚡ **Paralelní zpracování** - až 4x rychlejší
 - ⚡ **Kratší timeouty** - rychlejší detekce problémů
-- ⚡ **Optimální model** - gpt-4o-mini (rychlý + kvalitní)
+- ⚡ **Optimální modely** - o1-mini pro analýzu, o1 pro překlad (nákladově efektivní)
 - ⚡ **Efektivní prompts** - kratší ale stále kvalitní
 
 ## 🔧 Technické detaily

@@ -14,11 +14,13 @@ type ProgressCallback = (stage: string, progress: number, details?: string) => v
 
 export class PremiumTranslationService {
   private apiKey: string
+  private model: string
   private contextCache: Map<string, string> = new Map()
   private researchCache: Map<string, ResearchData> = new Map()
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, model: 'standard' | 'premium' = 'premium') {
     this.apiKey = apiKey
+    this.model = model === 'premium' ? 'gpt-4o' : 'gpt-4o-mini'
   }
 
   /**
@@ -36,14 +38,23 @@ export class PremiumTranslationService {
     const prompt = contextPrompt || `Translate the following text from ${sourceLanguage} to ${targetLanguage}. Maintain the original meaning and tone:`
 
     try {
-      const response = await openai.responses.create({
-        model: 'gpt-5',
-        input: `${prompt}\n\nText to translate:\n${text}`,
-        reasoning: { effort: "low" },
-        text: { verbosity: "low" }
+      const response = await openai.chat.completions.create({
+        model: this.model,
+        messages: [
+          {
+            role: 'system',
+            content: prompt
+          },
+          {
+            role: 'user',
+            content: text
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 1000
       })
 
-      const translatedText = response.output_text?.trim()
+      const translatedText = response.choices[0]?.message?.content?.trim()
       if (!translatedText) {
         throw new Error('No translation received from OpenAI')
       }
@@ -139,7 +150,7 @@ export class PremiumTranslationService {
       }
 
       // PHASE 2: Research the show/movie
-      console.log('🔍 PHASE 2: Conducting research')
+      console.log(`🔍 PHASE 2: Conducting research (${this.model === 'gpt-4o' ? 'Premium' : 'Standard'} mode)`)
       if (typeof progressCallback === 'function') {
         console.log('📤 Sending researching progress message')
         progressCallback('researching', 20, `**Researching Content**\n\nQuerying OpenAI for: "${showInfo.title}"`)
@@ -406,9 +417,12 @@ export class PremiumTranslationService {
       }
 
       console.log('🤖 Querying OpenAI for show research...')
-      const completion = await openai.responses.create({
-        model: "gpt-5",
-        input: `You are a comprehensive media research assistant. Provide detailed information about TV shows, movies, and anime for subtitle translation purposes.
+      const completion = await openai.chat.completions.create({
+        model: this.model,
+        messages: [
+          {
+            role: "system",
+            content: `You are a comprehensive media research assistant. Provide detailed information about TV shows, movies, and anime for subtitle translation purposes.
 
 RESEARCH AREAS:
 1. Basic Information (genre, target audience, tone)
@@ -428,15 +442,19 @@ FORMAT YOUR RESPONSE AS VALID JSON:
   "translationGuidelines": ["guideline1", "guideline2", "guideline3"]
 }
 
-Be thorough but concise. If you don't know the show, provide generic guidelines.
-
-Research this show/movie for subtitle translation: "${query}"`,
-        reasoning: { effort: "medium" },
-        text: { verbosity: "medium" }
+Be thorough but concise. If you don't know the show, provide generic guidelines.`
+          },
+          {
+            role: "user",
+            content: `Research this show/movie for subtitle translation: "${query}"`
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 800,
       })
       console.log('🤖 OpenAI research query completed')
 
-      const response = completion.output_text || ''
+      const response = completion.choices[0]?.message?.content || ''
       console.log('🎯 Research response received:', response.substring(0, 200) + '...')
 
       // Parse JSON response - handle markdown-wrapped JSON
@@ -518,9 +536,12 @@ Research this show/movie for subtitle translation: "${query}"`,
         return this.contextCache.get(cacheKey)!
       }
 
-      const completion = await openai.responses.create({
-        model: "gpt-5",
-        input: `You are a media expert providing context for subtitle translation. For the given show/movie, provide:
+      const completion = await openai.chat.completions.create({
+        model: this.model,
+        messages: [
+          {
+            role: "system",
+            content: `You are a media expert providing context for subtitle translation. For the given show/movie, provide:
 
 ESSENTIAL INFO:
 - Genre, tone, and style (comedy, drama, thriller, anime, etc.)
@@ -538,14 +559,18 @@ TRANSLATION GUIDANCE:
 - Special terminology or jargon
 - What should stay in original language vs. be translated
 
-Format as clear bullet points. Keep under 250 words. If you don't know the show, say "Unknown show" and provide generic guidance.
-
-Provide translation context for: "${query}"`,
-        reasoning: { effort: "medium" },
-        text: { verbosity: "medium" }
+Format as clear bullet points. Keep under 250 words. If you don't know the show, say "Unknown show" and provide generic guidance.`
+          },
+          {
+            role: "user",
+            content: `Provide translation context for: "${query}"`
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 300,
       })
 
-      const context = completion.output_text || ''
+      const context = completion.choices[0]?.message?.content || ''
       console.log('🎯 Context received:', context.substring(0, 100) + '...')
 
       // Cache the context
@@ -960,9 +985,12 @@ CONTENT ANALYSIS:`
       return `${batchStartIndex + index + 1}. ${entry.text}`
     }).join('\n')
 
-    const completion = await openai.responses.create({
-      model: "gpt-5", // Latest GPT-5 model for best quality
-      input: `You are an expert subtitle translator specializing in ${targetLangName}. You create professional-quality translations that capture the essence of the original content.
+    const completion = await openai.chat.completions.create({
+      model: this.model, // Use selected model (gpt-4o or gpt-4o-mini)
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert subtitle translator specializing in ${targetLangName}. You create professional-quality translations that capture the essence of the original content.
 
 ${contentAnalysis}
 
@@ -988,16 +1016,18 @@ TECHNICAL REQUIREMENTS:
 - Format: "N. translated_text" (where N is the line number)
 - Never skip, merge, or split subtitle entries
 - Maintain exact line breaks within multi-line subtitles
-- Preserve timing-critical elements like pauses (...) and emphasis
-
-Translate these ${batch.length} subtitle entries with perfect accuracy:
-
-${structuredInput}`,
-      reasoning: { effort: "high" }, // High effort for best translation quality
-      text: { verbosity: "low" }
+- Preserve timing-critical elements like pauses (...) and emphasis`
+        },
+        {
+          role: "user",
+          content: `Translate these ${batch.length} subtitle entries with perfect accuracy:\n\n${structuredInput}`
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: Math.min(4000, batch.length * 200),
     })
 
-    const response = completion.output_text || ''
+    const response = completion.choices[0]?.message?.content || ''
     console.log('🤖 OpenAI raw response:', response.substring(0, 500) + '...')
 
     // Parse response - handle multi-line translations properly
@@ -1073,18 +1103,23 @@ ${structuredInput}`,
     if (missingOrUntranslated.length > 0) {
       console.log('🔁 Retrying', missingOrUntranslated.length, 'untranslated lines')
       const userList = missingOrUntranslated.map(item => `${item.absNum}. ${item.text}`).join('\n')
-      const fix = await openai.responses.create({
-        model: "gpt-5",
-        input: `You strictly translate provided subtitle lines to ${targetLangName}. Do not leave any English words unless they are proper names. Return EXACTLY the same indices with format "N. translated_text". Keep multi-line breaks with \n. Use idiomatic ${targetLangName}.
-
-Translate the following lines:
-
-${userList}`,
-        reasoning: { effort: "medium" },
-        text: { verbosity: "low" }
+      const fix = await openai.chat.completions.create({
+        model: this.model,
+        messages: [
+          {
+            role: 'system',
+            content: `You strictly translate provided subtitle lines to ${targetLangName}. Do not leave any English words unless they are proper names. Return EXACTLY the same indices with format "N. translated_text". Keep multi-line breaks with \n. Use idiomatic ${targetLangName}.`
+          },
+          {
+            role: 'user',
+            content: `Translate the following lines:\n\n${userList}`
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: Math.min(2000, missingOrUntranslated.length * 120)
       })
 
-      const fixResp = fix.output_text || ''
+      const fixResp = fix.choices[0]?.message?.content || ''
       const map: Record<number, string[]> = {}
       for (const line of fixResp.split('\n')) {
         const m = line.trim().match(/^(\d+)\.?\s*(.*)$/)

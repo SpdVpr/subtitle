@@ -171,12 +171,17 @@ export default function TranslatePage() {
         {/* Mode Selection Cards */}
         <div className="grid md:grid-cols-2 gap-8 mb-8">
           {/* Single Translation */}
-          <Card className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-200 dark:hover:border-blue-800">
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-200 dark:hover:border-blue-800 hover:scale-[1.02] group"
+            onClick={() => setMode('single')}
+          >
             <CardHeader className="text-center pb-4">
-              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
                 <FileText className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               </div>
-              <CardTitle className="text-2xl">Single Translation</CardTitle>
+              <CardTitle className="text-2xl group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                Single Translation
+              </CardTitle>
               <CardDescription className="text-base">
                 Perfect for one subtitle file
               </CardDescription>
@@ -196,24 +201,25 @@ export default function TranslatePage() {
                   <span>Instant preview & editing</span>
                 </div>
               </div>
-              <Button
-                onClick={() => setMode('single')}
-                className="w-full"
-                size="lg"
-              >
-                Choose Single Translation
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
+              <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 font-medium group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
+                <span>Choose Single Translation</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </div>
             </CardContent>
           </Card>
 
           {/* Batch Translation */}
-          <Card className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-purple-200 dark:hover:border-purple-800">
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-purple-200 dark:hover:border-purple-800 hover:scale-[1.02] group"
+            onClick={() => setMode('batch')}
+          >
             <CardHeader className="text-center pb-4">
-              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 dark:group-hover:bg-purple-800 transition-colors">
                 <Files className="h-8 w-8 text-purple-600 dark:text-purple-400" />
               </div>
-              <CardTitle className="text-2xl">Batch Translation</CardTitle>
+              <CardTitle className="text-2xl group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                Batch Translation
+              </CardTitle>
               <CardDescription className="text-base">
                 For multiple files or ZIP archives
               </CardDescription>
@@ -233,15 +239,10 @@ export default function TranslatePage() {
                   <span>Time saving</span>
                 </div>
               </div>
-              <Button
-                onClick={() => setMode('batch')}
-                variant="outline"
-                className="w-full border-purple-200 hover:bg-purple-50 dark:border-purple-800 dark:hover:bg-purple-950"
-                size="lg"
-              >
-                Choose Batch Translation
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
+              <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 font-medium group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors">
+                <span>Choose Batch Translation</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -22,7 +22,8 @@ import {
   Clock,
   Zap,
   Eye,
-  Edit3
+  Edit3,
+  Crown
 } from 'lucide-react'
 
 interface BatchFile {
@@ -41,6 +42,7 @@ export function BatchTranslationInterface() {
   const router = useRouter()
   const [files, setFiles] = useState<BatchFile[]>([])
   const [targetLanguage, setTargetLanguage] = useState<string>('')
+  const [translationModel, setTranslationModel] = useState<'standard' | 'premium'>('standard') // Default to cheaper option
   const [isProcessing, setIsProcessing] = useState(false)
   const [totalEstimatedCost, setTotalEstimatedCost] = useState<number>(0)
   const [totalSubtitles, setTotalSubtitles] = useState<number>(0)
@@ -113,12 +115,14 @@ export function BatchTranslationInterface() {
       const lines = text.split('\n')
       const subtitleBlocks = lines.filter(line => line.trim() && !line.match(/^\d+$/) && !line.match(/^\d{2}:\d{2}:\d{2}/))
       const subtitleCount = Math.max(1, subtitleBlocks.length)
-      const cost = Math.ceil(subtitleCount / 20) * 0.7
-      
+      const costPerChunk = translationModel === 'premium' ? 1.0 : 0.4
+      const cost = Math.ceil(subtitleCount / 20) * costPerChunk
+
       return { cost, subtitleCount }
     } catch (error) {
       console.error('Error estimating credits for file:', file.name, error)
-      return { cost: 0.7, subtitleCount: 20 } // Default estimate
+      const defaultCostPerChunk = translationModel === 'premium' ? 1.0 : 0.4
+      return { cost: defaultCostPerChunk, subtitleCount: 20 } // Default estimate
     }
   }
 
@@ -172,13 +176,31 @@ export function BatchTranslationInterface() {
     disabled: isProcessing
   })
 
-  // Calculate totals when files change
+  // Calculate totals when files or model change
   useEffect(() => {
     const totalCost = files.reduce((sum, file) => sum + (file.estimatedCost || 0), 0)
     const totalSubs = files.reduce((sum, file) => sum + (file.subtitleCount || 0), 0)
     setTotalEstimatedCost(totalCost)
     setTotalSubtitles(totalSubs)
   }, [files])
+
+  // Recalculate costs when model changes
+  useEffect(() => {
+    const recalculateCosts = async () => {
+      if (files.length === 0) return
+
+      const updatedFiles = await Promise.all(
+        files.map(async (file) => {
+          const { cost } = await estimateFileCredits(file.file)
+          return { ...file, estimatedCost: cost }
+        })
+      )
+
+      setFiles(updatedFiles)
+    }
+
+    recalculateCosts()
+  }, [translationModel])
 
   const removeFile = (id: string) => {
     setFiles(prev => prev.filter(file => file.id !== id))
@@ -270,6 +292,7 @@ export function BatchTranslationInterface() {
           formData.append('sourceLanguage', 'auto')
           formData.append('aiService', 'premium')
           formData.append('userId', user.uid)
+          formData.append('translationModel', translationModel) // Add model selection
 
           console.log('📤 Sending request to /api/translate-stream...')
 
@@ -586,11 +609,84 @@ export function BatchTranslationInterface() {
         </CardContent>
       </Card>
 
+      {/* Translation Model Selection */}
+      {files.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Translation Quality</CardTitle>
+            <CardDescription>
+              Choose between standard and premium AI translation
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button
+                variant={translationModel === 'standard' ? 'default' : 'outline'}
+                className={`h-auto p-4 justify-start text-left ${
+                  translationModel === 'standard'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-muted'
+                }`}
+                onClick={() => setTranslationModel('standard')}
+                disabled={isProcessing}
+              >
+                <div className="flex flex-col items-start w-full">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="h-4 w-4" />
+                    <span className="font-medium">Standard</span>
+                    <Badge variant="secondary" className="text-xs">GPT-4o mini</Badge>
+                  </div>
+                  <p className="text-xs opacity-80 mb-2">Fast, reliable translation</p>
+                  <div className="text-sm font-semibold">0.4 credits per 20 lines</div>
+                </div>
+              </Button>
+
+              <Button
+                variant={translationModel === 'premium' ? 'default' : 'outline'}
+                className={`h-auto p-4 justify-start text-left relative overflow-hidden border-2 ${
+                  translationModel === 'premium'
+                    ? 'bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-black border-yellow-400 shadow-lg shadow-yellow-500/25'
+                    : 'bg-white dark:bg-card border-yellow-300 dark:border-yellow-600/50 hover:border-yellow-400 hover:shadow-md hover:shadow-yellow-500/20'
+                }`}
+                onClick={() => setTranslationModel('premium')}
+                disabled={isProcessing}
+              >
+                {translationModel === 'premium' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-amber-300/20 to-yellow-500/20 animate-pulse" />
+                )}
+                <div className="flex flex-col items-start w-full relative z-10">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-yellow-600">👑</span>
+                    <span className="font-medium">Premium</span>
+                    <Badge
+                      variant="secondary"
+                      className="text-xs bg-amber-100 text-amber-800 border border-amber-300"
+                    >
+                      GPT-4o
+                    </Badge>
+                  </div>
+                  <p className={`text-xs mb-2 ${
+                    translationModel === 'premium' ? 'text-amber-900' : 'text-gray-600 dark:text-gray-400'
+                  }`}>
+                    Best quality with context
+                  </p>
+                  <div className={`text-sm font-semibold ${
+                    translationModel === 'premium' ? 'text-amber-900' : 'text-gray-900 dark:text-gray-100'
+                  }`}>
+                    1.0 credit per 20 lines
+                  </div>
+                </div>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Language Selection */}
       {files.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Translation Settings</CardTitle>
+            <CardTitle>Target Language</CardTitle>
             <CardDescription>
               Choose the target language for all files
             </CardDescription>
@@ -607,11 +703,14 @@ export function BatchTranslationInterface() {
 
       {/* Cost Estimation */}
       {files.length > 0 && (
-        <Card>
+        <Card className={translationModel === 'premium' ? 'border-2 border-yellow-300 bg-gradient-to-br from-amber-50/50 to-yellow-50/50 shadow-lg shadow-yellow-500/10' : ''}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5" />
+              <Calculator className={`h-5 w-5 ${translationModel === 'premium' ? 'text-amber-600' : ''}`} />
               Cost Estimation
+              {translationModel === 'premium' && (
+                <Crown className="h-4 w-4 text-amber-600" />
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -625,7 +724,9 @@ export function BatchTranslationInterface() {
                 <div className="text-sm text-gray-600">Subtitles</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{totalEstimatedCost.toFixed(1)}</div>
+                <div className={`text-2xl font-bold ${translationModel === 'premium' ? 'text-amber-600' : 'text-purple-600'}`}>
+                  {totalEstimatedCost.toFixed(1)}
+                </div>
                 <div className="text-sm text-gray-600">Credits</div>
               </div>
               <div className="text-center">
@@ -633,6 +734,29 @@ export function BatchTranslationInterface() {
                   {userCredits !== null ? userCredits.toFixed(1) : '...'}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-muted-foreground">Available</div>
+              </div>
+            </div>
+
+            {/* Model Info */}
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-border">
+              <div className="flex justify-between items-center text-sm">
+                <span className="flex items-center gap-2">
+                  {translationModel === 'premium' ? (
+                    <>
+                      <Crown className="h-4 w-4 text-yellow-600" />
+                      <span>Premium AI with context research</span>
+                      <span className="text-yellow-600">👑</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="h-4 w-4" />
+                      Standard AI translation
+                    </>
+                  )}
+                </span>
+                <span className="text-muted-foreground">
+                  Rate: {translationModel === 'premium' ? '1.0' : '0.4'} credits per 20 subtitles
+                </span>
               </div>
             </div>
 

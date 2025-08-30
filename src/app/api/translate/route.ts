@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     const aiService: 'google' | 'openai' = aiServiceRaw === 'premium' ? 'openai' : aiServiceRaw as 'google' | 'openai'
     const userId = formData.get('userId') as string
     const sessionId = formData.get('sessionId') as string || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const translationModel = formData.get('translationModel') as string || 'standard'
 
     console.log('📋 Request params:', {
       fileName: file?.name,
@@ -237,8 +238,8 @@ export async function POST(req: NextRequest) {
         console.log('📊 Processing', subtitleEntries.length, 'subtitle entries with OpenAI API')
 
         try {
-          // Initialize premium service
-          const premiumService = new PremiumTranslationService(apiKey)
+          // Initialize premium service with model selection
+          const premiumService = new PremiumTranslationService(apiKey, translationModel as 'standard' | 'premium')
 
           // Progress callback for real-time updates
           const progressCallback = (stage: string, progress: number, details?: string) => {
@@ -275,7 +276,7 @@ export async function POST(req: NextRequest) {
             characterCount: translatedContent.length,
             processingTimeMs: Date.now() - Date.now(), // Will be calculated on client
             apiProvider: 'OpenAI',
-            model: 'gpt-5'
+            model: translationModel === 'premium' ? 'gpt-4o' : 'gpt-4o-mini'
           })
 
         } catch (error) {
@@ -400,7 +401,7 @@ async function processTranslationJob(
       const currentBalance = (user as any)?.creditsBalance || 0
 
       const chunksNeeded = Math.ceil(subtitleEntries.length / 20)
-      const creditsPerChunk = 0.7 // Premium service only (GPT-4o)
+      const creditsPerChunk = translationModel === 'premium' ? 1.0 : 0.4
       const requiredCredits = chunksNeeded * creditsPerChunk
 
       console.log(`💰 Required credits: ${requiredCredits}, Current balance: ${currentBalance}`)
@@ -413,8 +414,8 @@ async function processTranslationJob(
     let translatedEntries
 
     if (aiServiceRaw === 'premium') {
-      // Use new Premium Context AI service for best quality
-      const premiumService = new PremiumTranslationService(process.env.OPENAI_API_KEY || 'demo_key')
+      // Use Premium Context AI service with model selection
+      const premiumService = new PremiumTranslationService(process.env.OPENAI_API_KEY || 'demo_key', translationModel as 'standard' | 'premium')
 
       // Progress callback for real-time updates
       const progressCallback = (stage: string, progress: number, details?: string) => {
@@ -505,9 +506,9 @@ async function processTranslationJob(
     // Calculate and deduct credits (skip for demo user)
     console.log('💰 Checking if credits should be deducted for user:', userId)
     if (userId !== 'premium-user-demo' && !userId.endsWith('-user-demo')) {
-      // Calculate credits based on subtitle count and service
+      // Calculate credits based on subtitle count and model
       const chunksNeeded = Math.ceil(subtitleEntries.length / 20)
-      const creditsPerChunk = 0.7 // Premium service only (GPT-5)
+      const creditsPerChunk = translationModel === 'premium' ? 1.0 : 0.4
       const totalCredits = chunksNeeded * creditsPerChunk
 
       console.log(`💰 Deducting ${totalCredits} credits for ${subtitleEntries.length} subtitles (${chunksNeeded} chunks, ${creditsPerChunk} per chunk)`)
@@ -677,9 +678,9 @@ async function processRealPremiumTranslation(
     console.log('🎬 Starting real premium translation with OpenAI API:', jobId)
     console.log('🔧 Translation details:', { userId, sourceLanguage, targetLanguage, sessionId, fileName: file.name })
 
-    // Initialize premium service
-    console.log('🔑 Initializing PremiumTranslationService with API key')
-    const premiumService = new PremiumTranslationService(apiKey)
+    // Initialize premium service with model selection
+    console.log('🔑 Initializing PremiumTranslationService with API key and model:', translationModel)
+    const premiumService = new PremiumTranslationService(apiKey, translationModel as 'standard' | 'premium')
     console.log('✅ PremiumTranslationService initialized')
 
     // Initial progress
@@ -772,11 +773,11 @@ async function processRealPremiumTranslation(
       completedAt: new Date().toISOString(),
       contextualInfo: contextualInfo.substring(0, 200),
       apiProvider: 'OpenAI',
-      model: 'gpt-5'
+      model: translationModel === 'premium' ? 'gpt-4o' : 'gpt-4o-mini'
     }
 
     // Final progress update
-    updateTranslationProgress(sessionId, 'completed', 100, 'Premium translation completed successfully with OpenAI!')
+    updateTranslationProgress(sessionId, 'completed', 100, `${translationModel === 'premium' ? 'Premium' : 'Standard'} translation completed successfully with OpenAI!`)
 
   } catch (error) {
     const processingTime = Date.now() - startTime

@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
     const targetLanguage = (formData.get('targetLanguage') as string) || 'cs'
     const sourceLanguage = (formData.get('sourceLanguage') as string) || 'en'
     const userId = (formData.get('userId') as string) || ''
+    const translationModel = (formData.get('translationModel') as string) || 'standard'
 
     // Check if user is logged in
     if (!userId) {
@@ -71,12 +72,13 @@ export async function POST(request: NextRequest) {
           return
         }
 
-        // Calculate credits (for display only in development)
+        // Calculate credits based on selected model
         const batchSize = 20
         const totalBatches = Math.ceil(entries.length / batchSize)
-        const totalCredits = totalBatches * 0.7
+        const creditsPerBatch = translationModel === 'premium' ? 1.0 : 0.4
+        const totalCredits = totalBatches * creditsPerBatch
 
-        console.log(`💰 Premium translation: ${entries.length} subtitles, ${totalBatches} batches, ${totalCredits} credits`)
+        console.log(`💰 ${translationModel} translation: ${entries.length} subtitles, ${totalBatches} batches, ${totalCredits} credits (${creditsPerBatch} per batch)`)
 
         const startTime = Date.now()
 
@@ -100,8 +102,8 @@ export async function POST(request: NextRequest) {
 
             // Deduct all credits upfront
             console.log(`💳 PRODUCTION: About to deduct ${totalCredits} credits for user ${userId}`)
-            await UserService.adjustCredits(userId, -totalCredits, `Premium translation: ${entries.length} subtitles (${totalBatches} batches)`)
-            console.log(`✅ PRODUCTION: Successfully deducted ${totalCredits} credits for premium translation`)
+            await UserService.adjustCredits(userId, -totalCredits, `${translationModel} translation: ${entries.length} subtitles (${totalBatches} batches)`)
+            console.log(`✅ PRODUCTION: Successfully deducted ${totalCredits} credits for ${translationModel} translation`)
           } catch (err) {
             console.error('❌ PRODUCTION: Credit deduction failed:', err)
             console.error('❌ PRODUCTION: Error details:', err instanceof Error ? err.message : String(err))
@@ -112,7 +114,8 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        const premium = new PremiumTranslationService(apiKey)
+        // Always use PremiumTranslationService but with different models
+        const premium = new PremiumTranslationService(apiKey, translationModel as 'standard' | 'premium')
 
         let lastProgressTime = Date.now()
 
@@ -367,7 +370,8 @@ export async function POST(request: NextRequest) {
               const { UserService } = await import('@/lib/database-admin')
               const batchSize = 20
               const totalBatches = Math.ceil(entries.length / batchSize)
-              const totalCredits = totalBatches * 0.7
+              const creditsPerBatch = translationModel === 'premium' ? 1.0 : 0.4
+              const totalCredits = totalBatches * creditsPerBatch
 
               await UserService.adjustCredits(userId, totalCredits, `Refund for failed translation: ${file.name}`)
               console.log(`💰 Refunded ${totalCredits} credits due to translation failure`)

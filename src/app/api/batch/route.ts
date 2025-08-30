@@ -4,6 +4,7 @@ import { StorageService } from '@/lib/storage'
 import { ErrorTracker } from '@/lib/error-tracking'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { TranslationServiceFactory } from '@/lib/translation-services'
+import { PremiumTranslationService } from '@/lib/premium-translation-service'
 import JSZip from 'jszip'
 
 export async function POST(req: NextRequest) {
@@ -17,6 +18,7 @@ export async function POST(req: NextRequest) {
     const aiService: 'google' | 'openai' = aiServiceRaw === 'premium' ? 'openai' : aiServiceRaw as 'google' | 'openai'
     const userId = formData.get('userId') as string
     const jobName = formData.get('jobName') as string
+    const translationModel = formData.get('translationModel') as string || 'standard'
 
     // Validate inputs
     if (!files.length || !targetLanguage || !userId || !jobName) {
@@ -119,14 +121,16 @@ async function processBatchJob(
       startedAt: new Date() as any
     })
 
-    // Build-safe: only create translation service at runtime
-    let translationService
-    try {
-      translationService = TranslationServiceFactory.create(aiService)
-    } catch (error) {
-      console.warn('Translation service creation failed, using fallback:', error)
-      translationService = TranslationServiceFactory.create('google') // Safe fallback
+    // Create translation service based on model selection
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey || !apiKey.startsWith('sk-')) {
+      return NextResponse.json(
+        { error: 'OpenAI API key not configured' },
+        { status: 500 }
+      )
     }
+
+    const translationService = new PremiumTranslationService(apiKey, translationModel as 'standard' | 'premium')
     const translatedFiles: { name: string; content: string }[] = []
     let processedFiles = 0
     let failedFiles = 0
@@ -168,25 +172,15 @@ async function processBatchJob(
 
         updatedFiles[i].subtitleCount = subtitleEntries.length
 
-        // Translate file
-        const textChunks = SubtitleProcessor.splitTextForTranslation(subtitleEntries)
-        const translatedChunks: string[][] = []
-
-        for (const chunk of textChunks) {
-          const translatedChunk = await translationService.translate(
-            chunk,
-            targetLanguage,
-            sourceLanguage || 'en'
-          )
-          translatedChunks.push(translatedChunk)
-        }
-
-        // Merge translated chunks
-        const translatedEntries = SubtitleProcessor.mergeTranslatedChunks(
+        // Translate file using PremiumTranslationService
+        const translatedEntries = await translationService.translateSubtitles(
           subtitleEntries,
-          translatedChunks,
+          targetLanguage,
           sourceLanguage || 'en',
-          targetLanguage
+          file.name,
+          (stage: string, progress: number, details?: string) => {
+            console.log(`📊 File ${i + 1}/${files.length} - ${stage}: ${progress}% - ${details || ''}`)
+          }
         )
 
         // Generate translated content

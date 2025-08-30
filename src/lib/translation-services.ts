@@ -84,9 +84,12 @@ export class OpenAITranslateService implements TranslationService {
           // Simple, direct prompt without numbering to avoid [AI-CS] issues
           const textsToTranslate = batch.join('\n')
 
-          const completion = await openai.responses.create({
-            model: "gpt-5",
-            input: `Translate the following subtitle text from ${sourceLangName} to ${targetLangName}.
+          const completion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: `You are a professional subtitle translator. Translate text from ${sourceLangName} to ${targetLangName}.
 
 RULES:
 - Return ONLY the translated text
@@ -94,15 +97,18 @@ RULES:
 - Keep subtitle length appropriate
 - Preserve formatting like [MUSIC], [SOUND], speaker names
 - Do NOT add prefixes, suffixes, or explanations
-- Translate line by line, maintaining the same number of lines
-
-Text to translate:
-${textsToTranslate}`,
-            reasoning: { effort: "low" },
-            text: { verbosity: "low" }
+- Translate line by line, maintaining the same number of lines`
+              },
+              {
+                role: "user",
+                content: textsToTranslate
+              }
+            ],
+            temperature: 0.2,
+            max_tokens: 1000,
           })
 
-          const response = completion.output_text || ''
+          const response = completion.choices[0]?.message?.content || ''
 
           // Split response into lines and clean up
           const responseLines = response.split('\n')
@@ -278,9 +284,12 @@ ${textsToTranslate}`,
           `${i + index + 1}. ${text}`
         ).join('\n')
 
-        const completion = await openai.responses.create({
-          model: "gpt-5",
-          input: `You are an expert subtitle translator specializing in ${targetLangName}. Your translations are indistinguishable from human work.
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `You are an expert subtitle translator specializing in ${targetLangName}. Your translations are indistinguishable from human work.
 
 TRANSLATION PRINCIPLES:
 - Translate from ${sourceLangName} to ${targetLangName} with perfect accuracy
@@ -298,16 +307,18 @@ CRITICAL REQUIREMENTS:
 - Use appropriate ${targetLangName} cultural context and idioms
 
 ${contextBefore ? `CONTEXT BEFORE: "${contextBefore}"` : ''}
-${contextAfter ? `CONTEXT AFTER: "${contextAfter}"` : ''}
-
-Translate these ${batch.length} subtitle lines with perfect accuracy:
-
-${numberedBatch}`,
-          reasoning: { effort: "medium" }, // Medium for better quality
-          text: { verbosity: "low" }
+${contextAfter ? `CONTEXT AFTER: "${contextAfter}"` : ''}`
+            },
+            {
+              role: "user",
+              content: `Translate these ${batch.length} subtitle lines with perfect accuracy:\n\n${numberedBatch}`
+            }
+          ],
+          temperature: 0.05, // Very low for consistency
+          max_tokens: Math.min(3000, batch.length * 150),
         })
 
-        const response = completion.output_text || ''
+        const response = completion.choices[0]?.message?.content || ''
 
         // Advanced response parsing with validation
         const responseLines = response.split('\n')

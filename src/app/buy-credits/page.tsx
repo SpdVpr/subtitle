@@ -321,7 +321,7 @@ Complete payment in the new window.`, {
               <div className="space-y-3">
                 <h4 className="font-semibold flex items-center justify-center space-x-2">
                   <Crown className="w-4 h-4 text-primary" />
-                  <span>Premium Translation (OpenAI GPT-5)</span>
+                  <span>Premium Translation (OpenAI GPT-4)</span>
                 </h4>
                 <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
                   <li>• ~0.7 credits per 20 lines</li>
