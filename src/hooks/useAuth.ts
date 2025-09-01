@@ -70,44 +70,56 @@ export function useAuthProvider(): AuthContextType {
           }
         }
 
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+          console.log('🔥 Auth state changed:', !!firebaseUser)
+
           if (firebaseUser) {
-            // Create or update user profile in Firestore if it doesn't exist
-            try {
-              const existingUser = await UserService.getUser(firebaseUser.uid)
-              if (!existingUser) {
-                await UserService.createUser(
-                  firebaseUser.uid,
-                  firebaseUser.email!,
-                  firebaseUser.displayName || undefined
-                )
-              } else {
-                // Ensure welcome credits for legacy accounts without creditsBalance
-                if ((existingUser as any).creditsBalance == null) {
-                  try {
-                    await UserService.updateUser(firebaseUser.uid, {
-                      creditsBalance: 200,
-                      creditsTotalPurchased: ((existingUser as any).creditsTotalPurchased || 0) + 200,
-                      updatedAt: new Date() as any
-                    } as any)
-                  } catch (e) {
-                    console.warn('Failed to set welcome credits for legacy user:', e)
-                  }
-                } else {
-                  // Update last login time
-                  await UserService.updateUser(firebaseUser.uid, {
-                    updatedAt: new Date() as any
-                  })
-                }
-              }
-            } catch (error) {
-              console.warn('Failed to update user profile:', error)
-            }
+            // Set user immediately to prevent loading screen hang
             setUser(firebaseUser)
+            setLoading(false)
+
+            // Handle user profile asynchronously (don't block UI)
+            const handleUserProfile = async () => {
+              try {
+                const existingUser = await UserService.getUser(firebaseUser.uid)
+                if (!existingUser) {
+                  console.log('👤 Creating new user profile')
+                  await UserService.createUser(
+                    firebaseUser.uid,
+                    firebaseUser.email!,
+                    firebaseUser.displayName || undefined
+                  )
+                } else {
+                  // Ensure welcome credits for legacy accounts without creditsBalance
+                  if ((existingUser as any).creditsBalance == null) {
+                    console.log('💰 Adding welcome credits to legacy user')
+                    try {
+                      await UserService.updateUser(firebaseUser.uid, {
+                        creditsBalance: 200,
+                        creditsTotalPurchased: ((existingUser as any).creditsTotalPurchased || 0) + 200,
+                        updatedAt: new Date() as any
+                      } as any)
+                    } catch (e) {
+                      console.warn('Failed to set welcome credits for legacy user:', e)
+                    }
+                  } else {
+                    // Update last login time
+                    await UserService.updateUser(firebaseUser.uid, {
+                      updatedAt: new Date() as any
+                    })
+                  }
+                }
+              } catch (error) {
+                console.warn('Failed to update user profile:', error)
+              }
+            }
+
+            // Run profile handling in background
+            handleUserProfile()
           } else {
             setUser(null)
+            setLoading(false)
           }
-          setLoading(false)
         })
 
         // Safety timeout: prevent stuck loading states if onAuthStateChanged is delayed

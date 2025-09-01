@@ -35,6 +35,7 @@ import { SubtitlePreviewTable } from './subtitle-preview-table'
 import { SubtitleStyleBar } from './subtitle-style-bar'
 import { TranslationSelectorDialog } from './translation-selector-dialog'
 import { PictureInPictureSubtitles } from './picture-in-picture-subtitles'
+import { usePathname } from 'next/navigation'
 
 interface VideoSource {
   url: string
@@ -43,6 +44,9 @@ interface VideoSource {
 }
 
 export function VideoPlayerWithSubtitles() {
+  const pathname = usePathname()
+  const isCzech = pathname.startsWith('/cs')
+
   const [videoUrl, setVideoUrl] = useState('')
   const [videoSource, setVideoSource] = useState<VideoSource | null>(null)
   const [configuration, setConfiguration] = useState<OverlayConfiguration>(DEFAULT_OVERLAY_CONFIGURATION)
@@ -474,10 +478,13 @@ export function VideoPlayerWithSubtitles() {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Upload className="h-5 w-5 text-green-600" />
-              <span>📝 Subtitle Tools</span>
+              <span>📝 {isCzech ? 'Plovoucí titulky' : 'PiP Overlay'}</span>
             </CardTitle>
             <CardDescription>
-              Use Picture-in-Picture with any video source
+              {isCzech
+                ? 'Použijte plovoucí titulky s jakýmkoli video zdrojem'
+                : 'Use Picture-in-Picture with any video source'
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -134,7 +134,7 @@ export function Header() {
             ) : user ? (
               <div className="flex items-center space-x-1">
                 <Button variant="ghost" size="sm" asChild className="hidden 2xl:inline-flex px-2">
-                  <Link href="/dashboard">{navLabels.dashboard}</Link>
+                  <Link href={`${langPrefix}/dashboard`}>{navLabels.dashboard}</Link>
                 </Button>
                 {user && isAdmin(user) && (
                   <Button variant="ghost" size="sm" asChild className="text-destructive hover:text-destructive/80 px-2">
@@ -224,7 +224,7 @@ export function Header() {
                   <div className="space-y-3">
                     <div className="flex flex-col space-y-2">
                       <Button variant="ghost" size="sm" asChild className="justify-start">
-                        <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Link href={`${langPrefix}/dashboard`} onClick={() => setIsMobileMenuOpen(false)}>
                           {navLabels.dashboard}
                         </Link>
                       </Button>

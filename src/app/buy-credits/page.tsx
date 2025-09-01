@@ -13,18 +13,20 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { STRIPE_PAYMENT_LINKS, createPaymentUrl, formatPrice, getPricePerCredit } from '@/lib/stripe-payment-links'
 
-// Enhanced credit packages with Stripe Payment Links
-const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS.map((link, index) => ({
-  id: `package-${index}`,
-  name: getPackageName(link.credits),
-  credits: link.credits,
-  price: link.price,
-  pricePerCredit: getPricePerCredit(link),
-  popular: link.popular || false,
-  description: link.description,
-  paymentLink: link.link,
-  features: getPackageFeatures(link.credits)
-}))
+// Enhanced credit packages with Stripe Payment Links (excluding $1 packages)
+const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS
+  .filter(link => link.price > 1) // Hide $1 packages
+  .map((link, index) => ({
+    id: `package-${index}`,
+    name: getPackageName(link.credits),
+    credits: link.credits,
+    price: link.price,
+    pricePerCredit: getPricePerCredit(link),
+    popular: link.popular || false,
+    description: link.description,
+    paymentLink: link.link,
+    features: getPackageFeatures(link.credits)
+  }))
 
 function getPackageName(credits: number): string {
   if (credits <= 100) return 'Trial Pack'
@@ -190,7 +192,7 @@ Complete payment in the new window.`, {
         </div>
 
         {/* Credit Packages */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
           {CREDIT_PACKAGES.map((pkg) => (
             <Card
               key={pkg.id}
@@ -318,25 +320,43 @@ Complete payment in the new window.`, {
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <div className="space-y-3">
-                <h4 className="font-semibold flex items-center justify-center space-x-2">
-                  <Crown className="w-4 h-4 text-primary" />
-                  <span>Premium Translation (OpenAI GPT-4)</span>
-                </h4>
-                <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
-                  <li>• ~0.7 credits per 20 lines</li>
-                  <li>• Context-aware translation with show research</li>
-                  <li>• Natural dialogue adaptation</li>
-                  <li>• Cultural context understanding</li>
-                  <li>• Professional quality results</li>
-                </ul>
+              <div className="space-y-6">
+                {/* Standard Translation */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center justify-center space-x-2">
+                    <Zap className="w-4 h-4 text-blue-600" />
+                    <span>Standard Translation (GPT-4o mini)</span>
+                  </h4>
+                  <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
+                    <li>• 0.4 credits per 20 lines</li>
+                    <li>• Fast, reliable translation</li>
+                    <li>• Context-aware with show research</li>
+                    <li>• Natural dialogue adaptation</li>
+                    <li>• Great quality results</li>
+                  </ul>
+                </div>
+
+                {/* Premium Translation */}
+                <div className="space-y-3 p-4 border-2 border-yellow-300 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20">
+                  <h4 className="font-semibold flex items-center justify-center space-x-2">
+                    <span className="text-yellow-600">👑</span>
+                    <span>Premium Translation (GPT-4o)</span>
+                  </h4>
+                  <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
+                    <li>• 1.0 credit per 20 lines</li>
+                    <li>• Best quality translation</li>
+                    <li>• Advanced context research</li>
+                    <li>• Superior dialogue adaptation</li>
+                    <li>• Professional-grade results</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-300">
-                <strong>Example:</strong> A 100-line subtitle file costs ~2.0 credits with Premium AI.
-                Your 200 welcome credits can translate ~100 files with full context research!
+                <strong>Example:</strong> A 100-line subtitle file costs 2.0 credits (Standard) or 5.0 credits (Premium).
+                Your 200 welcome credits can translate ~250 files (Standard) or ~40 files (Premium) with full context research!
               </p>
             </div>
           </CardContent>

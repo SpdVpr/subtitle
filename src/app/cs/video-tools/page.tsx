@@ -3,12 +3,12 @@ import { VideoPlayerWithSubtitles } from '@/components/video/video-player-with-s
 
 export const metadata: Metadata = {
   title: 'Video Nástroje',
-  description: 'Pokročilý video přehrávač a nástroje pro titulky. Sledujte videa s vlastními titulky nebo použijte Picture-in-Picture overlay pro streamovací služby jako Netflix, YouTube a další.',
+  description: 'Pokročilý video přehrávač a nástroje pro titulky. Sledujte videa s vlastními titulky nebo použijte plovoucí titulky pro streamovací služby jako Netflix, YouTube a další.',
   keywords: [
     'video nástroje',
     'video přehrávač',
     'titulkový overlay',
-    'Picture-in-Picture',
+    'plovoucí titulky',
     'streamovací titulky',
     'YouTube titulky',
     'Netflix titulky',
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Video Nástroje - SubtitleBot',
-    description: 'Pokročilý video přehrávač a nástroje pro titulky. Sledujte videa s vlastními titulky nebo použijte Picture-in-Picture overlay.',
+    description: 'Pokročilý video přehrávač a nástroje pro titulky. Sledujte videa s vlastními titulky nebo použijte plovoucí titulky.',
     url: '/cs/video-tools',
     type: 'website',
     images: [

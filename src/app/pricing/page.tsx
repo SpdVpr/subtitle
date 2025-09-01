@@ -8,18 +8,20 @@ import { useAuth } from '@/hooks/useAuth'
 import Link from 'next/link'
 import { STRIPE_PAYMENT_LINKS, getPricePerCredit } from '@/lib/stripe-payment-links'
 
-// Enhanced credit packages with current Stripe Payment Links
-const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS.map((link, index) => ({
-  id: `package-${index}`,
-  name: getPackageName(link.credits),
-  credits: link.credits,
-  price: link.price,
-  pricePerCredit: getPricePerCredit(link),
-  popular: link.popular || false,
-  description: link.description,
-  paymentLink: link.link,
-  features: getPackageFeatures(link.credits)
-}))
+// Enhanced credit packages with current Stripe Payment Links (excluding $1 packages)
+const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS
+  .filter(link => link.price > 1) // Hide $1 packages
+  .map((link, index) => ({
+    id: `package-${index}`,
+    name: getPackageName(link.credits),
+    credits: link.credits,
+    price: link.price,
+    pricePerCredit: getPricePerCredit(link),
+    popular: link.popular || false,
+    description: link.description,
+    paymentLink: link.link,
+    features: getPackageFeatures(link.credits)
+  }))
 
 function getPackageName(credits: number): string {
   if (credits <= 100) return 'Trial Pack'
@@ -94,7 +96,7 @@ export default function PricingPage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
           {CREDIT_PACKAGES.map((pkg) => (
             <Card 
               key={pkg.id} 

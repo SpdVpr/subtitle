@@ -2,23 +2,23 @@ import { Metadata } from 'next'
 import { SubtitlePopupController } from '@/components/popup/subtitle-popup-controller'
 
 export const metadata: Metadata = {
-  title: 'Titulkové Popup Okno',
-  description: 'Otevřete titulkové overlay okno, které funguje nad jakýmkoli video obsahem. Perfektní pro streamovací služby jako Netflix, YouTube a online videa. Nevyžaduje instalaci.',
+  title: 'Plovoucí titulky',
+  description: 'Otevřete plovoucí titulkové okno, které funguje nad jakýmkoli video obsahem. Perfektní pro streamovací služby jako Netflix, YouTube a online videa. Nevyžaduje instalaci.',
   keywords: [
-    'titulkové popup',
+    'plovoucí titulky',
     'video overlay',
     'streamovací titulky',
     'externí titulky',
     'titulkové okno',
     'Netflix titulky',
     'YouTube overlay',
-    'plovoucí titulky',
+    'titulkové popup',
     'průhledný overlay',
     'zobrazení titulků'
   ],
   openGraph: {
-    title: 'Titulkové Popup Okno - SubtitleBot',
-    description: 'Otevřete titulkové overlay okno, které funguje nad jakýmkoli video obsahem. Perfektní pro streamovací služby a online videa.',
+    title: 'Plovoucí titulky - SubtitleBot',
+    description: 'Otevřete plovoucí titulkové okno, které funguje nad jakýmkoli video obsahem. Perfektní pro streamovací služby a online videa.',
     url: '/cs/subtitle-popup',
     type: 'website',
     images: [
@@ -26,14 +26,14 @@ export const metadata: Metadata = {
         url: '/og-popup.jpg',
         width: 1200,
         height: 630,
-        alt: 'SubtitleBot Popup - Titulkové Overlay Okno',
+        alt: 'SubtitleBot - Plovoucí titulkové okno',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Titulkové Popup Okno - SubtitleBot',
-    description: 'Titulkové overlay okno, které funguje nad jakýmkoli video obsahem.',
+    title: 'Plovoucí titulky - SubtitleBot',
+    description: 'Plovoucí titulkové okno, které funguje nad jakýmkoli video obsahem.',
     images: ['/twitter-popup.jpg'],
   },
   alternates: {
@@ -50,10 +50,10 @@ export default function CzechSubtitlePopupPage() {
           {/* Header */}
           <div className="text-center mb-6 sm:mb-8 md:mb-12">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-              Titulkové Popup Okno
+              Plovoucí titulky
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Otevřete titulkové okno, které zůstává nad všemi ostatními okny. 
+              Otevřete plovoucí titulkové okno, které zůstává nad všemi ostatními okny.
               Perfektní pro Netflix, YouTube nebo jakékoli video!
             </p>
           </div>
@@ -117,7 +117,7 @@ export default function CzechSubtitlePopupPage() {
           {/* How to Use */}
           <div className="mt-8 sm:mt-12 md:mt-16 bg-muted/50 rounded-xl p-6 sm:p-8">
             <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-center">
-              🚀 Jak Používat Popup Okno
+              🚀 Jak Používat Plovoucí titulky
             </h3>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center">
@@ -133,7 +133,7 @@ export default function CzechSubtitlePopupPage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
                   <span className="text-xl font-bold text-primary">2</span>
                 </div>
-                <h4 className="font-semibold mb-2">Otevřete Popup</h4>
+                <h4 className="font-semibold mb-2">Otevřete Plovoucí okno</h4>
                 <p className="text-sm text-muted-foreground">
                   Klikněte na tlačítko pro otevření plovoucího titulkového okna
                 </p>

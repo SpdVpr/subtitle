@@ -13,18 +13,20 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { STRIPE_PAYMENT_LINKS, createPaymentUrl, formatPrice, getPricePerCredit } from '@/lib/stripe-payment-links'
 
-// Enhanced credit packages with Stripe Payment Links
-const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS.map((link, index) => ({
-  id: `package-${index}`,
-  name: getPackageName(link.credits),
-  credits: link.credits,
-  price: link.price,
-  pricePerCredit: getPricePerCredit(link),
-  popular: link.popular || false,
-  description: link.description,
-  paymentLink: link.link,
-  features: getPackageFeatures(link.credits)
-}))
+// Enhanced credit packages with Stripe Payment Links (excluding $1 packages)
+const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS
+  .filter(link => link.price > 1) // Hide $1 packages
+  .map((link, index) => ({
+    id: `package-${index}`,
+    name: getPackageName(link.credits),
+    credits: link.credits,
+    price: link.price,
+    pricePerCredit: getPricePerCredit(link),
+    popular: link.popular || false,
+    description: link.description,
+    paymentLink: link.link,
+    features: getPackageFeatures(link.credits)
+  }))
 
 function getPackageName(credits: number): string {
   if (credits <= 100) return 'Zkušební Balíček'
@@ -198,7 +200,7 @@ Dokončete platbu v novém okně.`, {
         </div>
 
         {/* Credit Packages */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
           {CREDIT_PACKAGES.map((pkg) => (
             <Card
               key={pkg.id}
@@ -326,25 +328,43 @@ Dokončete platbu v novém okně.`, {
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <div className="space-y-3">
-                <h4 className="font-semibold flex items-center justify-center space-x-2">
-                  <Crown className="w-4 h-4 text-primary" />
-                  <span>Prémiový Překlad (OpenAI GPT-4)</span>
-                </h4>
-                <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
-                  <li>• ~0,4 kreditů za 20 řádků</li>
-                  <li>• Kontextový překlad s výzkumem seriálu</li>
-                  <li>• Přirozená adaptace dialogů</li>
-                  <li>• Porozumění kulturnímu kontextu</li>
-                  <li>• Profesionální kvalita výsledků</li>
-                </ul>
+              <div className="space-y-6">
+                {/* Standard Translation */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center justify-center space-x-2">
+                    <Zap className="w-4 h-4 text-blue-600" />
+                    <span>Standardní Překlad (GPT-4o mini)</span>
+                  </h4>
+                  <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
+                    <li>• 0,4 kreditů za 20 řádků</li>
+                    <li>• Rychlý, spolehlivý překlad</li>
+                    <li>• Kontextový překlad s výzkumem</li>
+                    <li>• Přirozená adaptace dialogů</li>
+                    <li>• Skvělá kvalita výsledků</li>
+                  </ul>
+                </div>
+
+                {/* Premium Translation */}
+                <div className="space-y-3 p-4 border-2 border-yellow-300 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20">
+                  <h4 className="font-semibold flex items-center justify-center space-x-2">
+                    <span className="text-yellow-600">👑</span>
+                    <span>Prémiový Překlad (GPT-4o)</span>
+                  </h4>
+                  <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
+                    <li>• 1,0 kredit za 20 řádků</li>
+                    <li>• Nejlepší kvalita překladu</li>
+                    <li>• Pokročilý kontextový výzkum</li>
+                    <li>• Vynikající adaptace dialogů</li>
+                    <li>• Profesionální výsledky</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-300">
-                <strong>Příklad:</strong> Soubor s 100 řádky titulků stojí ~2,0 kreditů s Prémiovým AI.
-                Vašich 200 uvítacích kreditů může přeložit ~100 souborů s plným kontextovým výzkumem!
+                <strong>Příklad:</strong> Soubor s 100 řádky titulků stojí 2,0 kreditů (Standardní) nebo 5,0 kreditů (Prémiový).
+                Vašich 200 uvítacích kreditů může přeložit ~250 souborů (Standardní) nebo ~40 souborů (Prémiový) s plným kontextovým výzkumem!
               </p>
             </div>
           </CardContent>

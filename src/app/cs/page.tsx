@@ -408,7 +408,7 @@ export default function CzechHome() {
               <Link href="/cs/subtitle-editor">Vyzkoušet Editor Titulků</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/cs/video-tools">Vyzkoušet Picture-in-Picture</Link>
+              <Link href="/cs/video-tools">Vyzkoušet Plovoucí titulky</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="/cs/video-tools">Vyzkoušet Video Přehrávač</Link>
@@ -599,7 +599,7 @@ export default function CzechHome() {
                 ŽÁDNÁ INSTALACE POTŘEBA
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent" style={{ lineHeight: '1.4' }}>
-                Řešení Popup Okna
+                Plovoucí titulky
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                 Otevřete titulkové okno, které zůstává nad jakýmkoli videem. Žádná rozšíření prohlížeče,
@@ -667,7 +667,7 @@ export default function CzechHome() {
                   <Button size="lg" className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white" asChild>
                     <Link href="/cs/video-tools" className="flex items-center gap-2">
                       <span className="text-xl">🪟</span>
-                      Vyzkoušet Picture-in-Picture Nyní
+                      Vyzkoušet Plovoucí titulky Nyní
                       <ArrowRight className="h-5 w-5" />
                     </Link>
                   </Button>
