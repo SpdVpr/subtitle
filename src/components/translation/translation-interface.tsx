@@ -20,7 +20,11 @@ import { useFavoriteLanguages } from '@/hooks/use-favorite-languages'
 import { analytics } from '@/lib/analytics'
 import { toast } from 'sonner'
 
-export function TranslationInterface() {
+interface TranslationInterfaceProps {
+  locale?: 'en' | 'cs'
+}
+
+export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProps) {
   const router = useRouter()
   const { user } = useAuth()
   const { isFavorite, toggleFavorite } = useFavoriteLanguages()
@@ -843,7 +847,7 @@ export function TranslationInterface() {
                       }
 
                       // Navigate to preview page
-                      router.push('/preview')
+                      router.push(locale === 'cs' ? '/cs/preview' : '/preview')
                     }
                   }}
                   variant="outline"
@@ -884,7 +888,7 @@ export function TranslationInterface() {
                       sessionStorage.setItem('pipSubtitleFileName', translationResult.translatedFileName || 'translated.srt')
 
                       // Navigate to Video Tools
-                      router.push('/video-tools')
+                      router.push(locale === 'cs' ? '/cs/video-tools' : '/video-tools')
                     } else {
                       toast.error('No subtitle content available for PiP overlay')
                     }

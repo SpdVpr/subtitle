@@ -14,7 +14,7 @@ export default function CzechTranslatePage() {
 
   if (mode === 'single') {
     return (
-      <EmailVerificationGuard>
+      <EmailVerificationGuard locale="cs">
         <div className="py-4 sm:py-6 md:py-8">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
             <div className="mb-6 sm:mb-8">
@@ -30,7 +30,7 @@ export default function CzechTranslatePage() {
                 Nahrajte jeden SRT soubor s titulky a přeložte ho do jakéhokoli jazyka pomocí AI
               </p>
             </div>
-            <TranslationInterface />
+            <TranslationInterface locale="cs" />
           </div>
         </div>
       </EmailVerificationGuard>
@@ -39,7 +39,7 @@ export default function CzechTranslatePage() {
 
   if (mode === 'batch') {
     return (
-      <EmailVerificationGuard>
+      <EmailVerificationGuard locale="cs">
         <div className="py-8">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
             {/* Back Button */}

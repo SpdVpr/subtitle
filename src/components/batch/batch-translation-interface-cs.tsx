@@ -176,7 +176,7 @@ export function BatchTranslationInterfaceCS() {
     }).catch(console.error)
 
     // Open preview page in new tab
-    window.open('/preview', '_blank')
+    window.open('/cs/preview', '_blank')
   }
 
   // Start batch translation

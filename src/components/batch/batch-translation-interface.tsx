@@ -37,7 +37,11 @@ interface BatchFile {
   subtitleCount?: number
 }
 
-export function BatchTranslationInterface() {
+interface BatchTranslationInterfaceProps {
+  locale?: 'en' | 'cs'
+}
+
+export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInterfaceProps) {
   const { user } = useAuth()
   const router = useRouter()
   const [files, setFiles] = useState<BatchFile[]>([])
@@ -231,7 +235,7 @@ export function BatchTranslationInterface() {
     }).catch(console.error)
 
     // Open preview page in new tab
-    window.open('/preview', '_blank')
+    window.open(locale === 'cs' ? '/cs/preview' : '/preview', '_blank')
   }
 
 
@@ -533,8 +537,8 @@ export function BatchTranslationInterface() {
           <CardDescription>Please log in to use batch translation</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => router.push('/login')}>
-            Log In
+          <Button onClick={() => router.push(locale === 'cs' ? '/cs/login' : '/login')}>
+            {locale === 'cs' ? 'Přihlásit se' : 'Log In'}
           </Button>
         </CardContent>
       </Card>

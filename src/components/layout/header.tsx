@@ -25,7 +25,7 @@ export function Header() {
   // Get navigation labels based on language
   const navLabels = isCzech ? {
     translate: 'Překlad',
-    findSubtitles: 'Hledat',
+    findSubtitles: 'Hledat titulky',
     videoTools: 'Nástroje',
     subtitleEditor: 'Editor Titulků',
     buyCredits: 'Kredity',

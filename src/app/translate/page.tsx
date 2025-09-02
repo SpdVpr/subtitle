@@ -30,7 +30,7 @@ export default function TranslatePage() {
                 Upload one SRT subtitle file and translate it to any language using AI
               </p>
             </div>
-            <TranslationInterface />
+            <TranslationInterface locale="en" />
           </div>
         </div>
       </EmailVerificationGuard>
@@ -96,7 +96,7 @@ export default function TranslatePage() {
           </div>
 
           {/* Main Content */}
-          <BatchTranslationInterface />
+          <BatchTranslationInterface locale="en" />
 
           {/* Help Section */}
           <Card className="mt-8">
