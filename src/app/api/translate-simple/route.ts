@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       )
       console.log('✅ PremiumTranslationService completed, got', translatedEntries.length, 'entries')
 
-      const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
+      const translatedContent = SubtitleProcessor.generateSRT(translatedEntries, targetLanguage)
       const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
 
       console.log('✅ Translation completed successfully')

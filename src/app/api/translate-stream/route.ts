@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
           clearTimeout(progressTimeoutId)
         }
 
-        const translatedContent = SubtitleProcessor.generateSRT(translated)
+        const translatedContent = SubtitleProcessor.generateSRT(translated, targetLanguage)
         const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
 
         // Check if controller is still open before sending result

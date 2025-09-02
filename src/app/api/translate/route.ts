@@ -186,7 +186,7 @@ export async function POST(req: NextRequest) {
             targetLanguage,
             false
           )
-          const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
+          const translatedContent = SubtitleProcessor.generateSRT(translatedEntries, targetLanguage)
           const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
 
           return NextResponse.json({
@@ -260,7 +260,7 @@ export async function POST(req: NextRequest) {
           )
 
           // Generate final content
-          const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
+          const translatedContent = SubtitleProcessor.generateSRT(translatedEntries, targetLanguage)
           const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
 
           console.log('✅ Premium translation completed successfully')
@@ -466,7 +466,7 @@ async function processTranslationJob(
     }
 
     // Generate translated SRT content
-    const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
+    const translatedContent = SubtitleProcessor.generateSRT(translatedEntries, targetLanguage)
     
     // Upload translated file
     const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
@@ -757,7 +757,7 @@ async function processRealPremiumTranslation(
     await new Promise(resolve => setTimeout(resolve, 500))
 
     // Generate final content
-    const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
+    const translatedContent = SubtitleProcessor.generateSRT(translatedEntries, targetLanguage)
     const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
 
     console.log('✅ Premium translation completed successfully with OpenAI API')

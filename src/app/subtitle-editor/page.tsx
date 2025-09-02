@@ -9,8 +9,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/hooks/useAuth'
+import { auth } from '@/lib/firebase'
 import { SubtitleEntry } from '@/types/preview'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
+import { TranslationSelectorDialog } from '@/components/video/translation-selector-dialog'
 import { toast } from 'sonner'
 import {
   Upload,
@@ -128,6 +130,176 @@ export default function SubtitleEditorPage() {
     const file = event.target.files?.[0]
     if (!file) return
     await processFile(file)
+  }
+
+  // Load specific translation from selection
+  const loadSelectedTranslation = async (job: any) => {
+    try {
+      console.log('🔍 Loading selected translation:', job.id)
+
+      const user = auth.currentUser
+      if (!user) {
+        toast.error('Please log in to load translation results')
+        return
+      }
+
+      let translatedContent = ''
+
+      // Try to get content from job data first
+      if (job.translatedContent) {
+        console.log('✅ Found translated content in job data')
+        translatedContent = job.translatedContent
+      } else {
+        // Fallback: try to download from storage
+        console.log('📥 Downloading translated content from storage...')
+        const downloadResponse = await fetch('/api/translation-history/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId: job.id, userId: user.uid })
+        })
+
+        if (!downloadResponse.ok) {
+          throw new Error(`Failed to download: ${downloadResponse.statusText}`)
+        }
+
+        translatedContent = await downloadResponse.text()
+      }
+
+      if (!translatedContent) {
+        toast.error('No translated content available')
+        return
+      }
+
+      console.log(`📄 Content preview:`, translatedContent.substring(0, 200) + '...')
+
+      // Parse subtitle content
+      try {
+        console.log('🎬 Parsing subtitle content...')
+        const fileName = job.translatedFileName || job.originalFileName || 'subtitles.srt'
+        const entries = SubtitleProcessor.parseSubtitleFile(translatedContent, fileName)
+        console.log(`✅ Successfully parsed ${entries.length} subtitle entries`)
+
+        setEntries(entries)
+        setOriginalEntries([...entries])
+        setFileName(fileName)
+        setEditorMode('single')
+
+        toast.success(`Loaded ${entries.length} subtitles from "${job.translatedFileName || job.originalFileName}"`)
+      } catch (srtError) {
+        console.error('❌ Failed to parse SRT content:', srtError)
+        toast.error('Invalid SRT format in translation results')
+      }
+
+    } catch (error) {
+      console.error('❌ Failed to load selected translation:', error)
+      toast.error('Failed to load translation results')
+    }
+  }
+
+  // Load subtitles from translation session storage (fallback)
+  const loadFromTranslation = () => {
+    try {
+      console.log('🔍 Checking sessionStorage for translation data...')
+
+      // Debug: List all sessionStorage keys
+      const allKeys = Object.keys(sessionStorage)
+      console.log('📦 Available sessionStorage keys:', allKeys)
+
+      // Try multiple possible keys for translated content
+      const translatedContent = sessionStorage.getItem('translatedContent') ||
+                               sessionStorage.getItem('translatedSubtitles') ||
+                               sessionStorage.getItem('pipSubtitles')
+
+      console.log('📝 translatedContent found:', !!translatedContent)
+      console.log('📝 translatedContent length:', translatedContent?.length || 0)
+
+      // Try to get filename from previewData or other sources
+      let translatedFileName = 'translated_subtitles.srt'
+      try {
+        const previewData = sessionStorage.getItem('previewData')
+        console.log('📋 previewData found:', !!previewData)
+        if (previewData) {
+          const parsed = JSON.parse(previewData)
+          console.log('📋 previewData content:', parsed)
+          translatedFileName = parsed.translatedFileName || parsed.originalFileName || translatedFileName
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to parse previewData:', e)
+        // Fallback to direct filename storage
+        translatedFileName = sessionStorage.getItem('translatedFileName') ||
+                           sessionStorage.getItem('pipSubtitleFileName') ||
+                           translatedFileName
+      }
+
+      if (!translatedContent) {
+        console.log('❌ No translated content found in sessionStorage, trying localStorage...')
+
+        // Try localStorage as fallback
+        const localStorageKeys = Object.keys(localStorage).filter(key =>
+          key.includes('subtitle') || key.includes('translation') || key.includes('srt')
+        )
+        console.log('💾 Available localStorage keys:', localStorageKeys)
+
+        // Try to find any recent translation data in localStorage
+        let foundInLocalStorage = false
+        for (const key of localStorageKeys) {
+          try {
+            const data = localStorage.getItem(key)
+            if (data && data.includes('-->') && data.includes('\n')) {
+              console.log('✅ Found SRT-like data in localStorage key:', key)
+              const parsedEntries = SubtitleProcessor.parseSRT(data)
+              if (parsedEntries.length > 0) {
+                setEntries(parsedEntries)
+                setOriginalEntries([...parsedEntries])
+                setFileName(key.replace('subtitle-editor-autosave-', '') || 'recovered_subtitles.srt')
+                setEditorMode('single')
+
+                toast.success(`Recovered ${parsedEntries.length} subtitles from local storage`, {
+                  description: 'Found previously saved subtitle data.'
+                })
+                foundInLocalStorage = true
+                break
+              }
+            }
+          } catch (e) {
+            console.log('⚠️ Failed to parse localStorage key:', key, e)
+          }
+        }
+
+        if (!foundInLocalStorage) {
+          toast.error('No translation found', {
+            description: 'Please translate subtitles first, then load them here for editing. Or try the "Recent Translations" feature in the dashboard.'
+          })
+        }
+        return
+      }
+
+      // Parse the translated content
+      const parsedEntries = SubtitleProcessor.parseSRT(translatedContent)
+
+      if (parsedEntries.length === 0) {
+        toast.error('Invalid translation data', {
+          description: 'The translation data appears to be corrupted or empty.'
+        })
+        return
+      }
+
+      // Load the entries
+      setEntries(parsedEntries)
+      setOriginalEntries([...parsedEntries])
+      setFileName(translatedFileName)
+      setEditorMode('single')
+
+      toast.success(`Loaded ${parsedEntries.length} translated subtitles`, {
+        description: 'You can now edit the translated subtitles.'
+      })
+
+    } catch (error) {
+      console.error('Failed to load translation:', error)
+      toast.error('Failed to load translation', {
+        description: 'There was an error loading the translated subtitles.'
+      })
+    }
   }
 
   // Handle drag and drop
@@ -388,24 +560,41 @@ export default function SubtitleEditorPage() {
                   }
                 </p>
 
-                <Button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading}
-                  size="lg"
-                  className="text-lg px-10 py-6 h-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
-                      <span>Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-6 w-6 mr-3" />
-                      <span>Choose SRT File</span>
-                    </>
-                  )}
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isLoading}
+                    size="lg"
+                    className="text-lg px-10 py-6 h-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-6 w-6 mr-3" />
+                        <span>Choose SRT File</span>
+                      </>
+                    )}
+                  </Button>
+
+                  <TranslationSelectorDialog
+                    onTranslationSelect={loadSelectedTranslation}
+                    trigger={
+                      <Button
+                        disabled={isLoading}
+                        size="lg"
+                        variant="outline"
+                        className="text-lg px-10 py-6 h-auto border-2 border-green-500 text-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-950/20 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                      >
+                        <RefreshCw className="h-6 w-6 mr-3" />
+                        <span>Load From Translation</span>
+                      </Button>
+                    }
+                  />
+                </div>
 
                 <div className="mt-8 flex items-center justify-center space-x-6 text-sm text-muted-foreground">
                   <div className="flex items-center space-x-2">

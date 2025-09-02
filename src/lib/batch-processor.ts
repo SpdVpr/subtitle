@@ -179,7 +179,7 @@ export class BatchProcessor {
           )
 
           // Generate translated content
-          const translatedContent = SubtitleProcessor.generateSRT(translatedEntries)
+          const translatedContent = SubtitleProcessor.generateSRT(translatedEntries, job.targetLanguage)
           const translatedFileName = file.name.replace('.srt', `_${job.targetLanguage}.srt`)
           
           translatedFiles.push({

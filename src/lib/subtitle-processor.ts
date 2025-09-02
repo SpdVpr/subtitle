@@ -357,21 +357,72 @@ export class SubtitleProcessor {
   /**
    * Generate SRT file content from subtitle entries with proper encoding
    */
-  static generateSRT(entries: SubtitleEntry[]): string {
+  static generateSRT(entries: SubtitleEntry[], targetLanguage?: string): string {
     const content = entries
       .map(entry => {
         return `${entry.index}\n${entry.startTime} --> ${entry.endTime}\n${entry.text}\n`
       })
       .join('\n')
 
+    // Add promotional subtitle at the end if we have entries
+    if (entries.length > 0 && targetLanguage) {
+      const lastEntry = entries[entries.length - 1]
+      const lastEndTimeMs = this.timeToMilliseconds(lastEntry.endTime)
+      const promoStartTime = this.millisecondsToTime(lastEndTimeMs + 2000) // 2 seconds after last subtitle
+      const promoEndTime = this.millisecondsToTime(lastEndTimeMs + 7000) // 5 seconds duration
+
+      const promoText = this.getPromotionalText(targetLanguage)
+      const promoSubtitle = `\n${entries.length + 1}\n${promoStartTime} --> ${promoEndTime}\n${promoText}\n`
+
+      return content + promoSubtitle
+    }
+
     return content
+  }
+
+  /**
+   * Get promotional text in target language
+   */
+  static getPromotionalText(targetLanguage: string): string {
+    const promoTexts: Record<string, string> = {
+      'cs': 'Děkujeme za podporu, přeloženo přes www.subtitlebot.com',
+      'sk': 'Ďakujeme za podporu, preložené cez www.subtitlebot.com',
+      'de': 'Danke für die Unterstützung, übersetzt über www.subtitlebot.com',
+      'fr': 'Merci pour votre soutien, traduit via www.subtitlebot.com',
+      'es': 'Gracias por el apoyo, traducido a través de www.subtitlebot.com',
+      'it': 'Grazie per il supporto, tradotto tramite www.subtitlebot.com',
+      'pt': 'Obrigado pelo apoio, traduzido via www.subtitlebot.com',
+      'ru': 'Спасибо за поддержку, переведено через www.subtitlebot.com',
+      'pl': 'Dziękujemy za wsparcie, przetłumaczone przez www.subtitlebot.com',
+      'nl': 'Bedankt voor de steun, vertaald via www.subtitlebot.com',
+      'sv': 'Tack för stödet, översatt via www.subtitlebot.com',
+      'no': 'Takk for støtten, oversatt via www.subtitlebot.com',
+      'da': 'Tak for støtten, oversat via www.subtitlebot.com',
+      'fi': 'Kiitos tuesta, käännetty www.subtitlebot.com kautta',
+      'hu': 'Köszönjük a támogatást, fordítva a www.subtitlebot.com-on keresztül',
+      'tr': 'Desteğiniz için teşekkürler, www.subtitlebot.com üzerinden çevrildi',
+      'ar': 'شكراً لدعمكم، مترجم عبر www.subtitlebot.com',
+      'ja': 'ご支援ありがとうございます。www.subtitlebot.com で翻訳されました',
+      'ko': '지원해 주셔서 감사합니다. www.subtitlebot.com을 통해 번역되었습니다',
+      'zh': '感谢您的支持，通过 www.subtitlebot.com 翻译',
+      'zh-cn': '感谢您的支持，通过 www.subtitlebot.com 翻译',
+      'zh-tw': '感謝您的支持，透過 www.subtitlebot.com 翻譯',
+      'hi': 'आपके समर्थन के लिए धन्यवाद, www.subtitlebot.com के माध्यम से अनुवादित',
+      'th': 'ขอบคุณสำหรับการสนับสนุน แปลผ่าน www.subtitlebot.com',
+      'vi': 'Cảm ơn sự hỗ trợ của bạn, được dịch qua www.subtitlebot.com',
+      'id': 'Terima kasih atas dukungannya, diterjemahkan melalui www.subtitlebot.com',
+      'ms': 'Terima kasih atas sokongan, diterjemahkan melalui www.subtitlebot.com',
+      'en': 'Thank you for your support, translated via www.subtitlebot.com'
+    }
+
+    return promoTexts[targetLanguage] || promoTexts['en']
   }
 
   /**
    * Generate SRT file as Blob with UTF-8 BOM for better compatibility
    */
   static generateSRTBlob(entries: SubtitleEntry[], targetLanguage?: string): Blob {
-    const content = this.generateSRT(entries)
+    const content = this.generateSRT(entries, targetLanguage)
 
     // Add UTF-8 BOM for better compatibility with various media players and editors
     // This is especially important for non-Latin scripts (Arabic, Chinese, Japanese, etc.)
@@ -403,7 +454,7 @@ export class SubtitleProcessor {
   /**
    * Generate VTT file content with proper encoding
    */
-  static generateVTT(entries: SubtitleEntry[]): string {
+  static generateVTT(entries: SubtitleEntry[], targetLanguage?: string): string {
     let content = 'WEBVTT\n\n'
 
     content += entries
@@ -415,6 +466,17 @@ export class SubtitleProcessor {
       })
       .join('\n')
 
+    // Add promotional subtitle at the end if we have entries
+    if (entries.length > 0 && targetLanguage) {
+      const lastEntry = entries[entries.length - 1]
+      const lastEndTimeMs = this.timeToMilliseconds(lastEntry.endTime)
+      const promoStartTime = this.millisecondsToTime(lastEndTimeMs + 2000).replace(',', '.') // VTT format
+      const promoEndTime = this.millisecondsToTime(lastEndTimeMs + 7000).replace(',', '.') // VTT format
+
+      const promoText = this.getPromotionalText(targetLanguage)
+      content += `\n${promoStartTime} --> ${promoEndTime}\n${promoText}\n`
+    }
+
     return content
   }
 
@@ -422,7 +484,7 @@ export class SubtitleProcessor {
    * Generate VTT file as Blob with UTF-8 BOM
    */
   static generateVTTBlob(entries: SubtitleEntry[], targetLanguage?: string): Blob {
-    const content = this.generateVTT(entries)
+    const content = this.generateVTT(entries, targetLanguage)
 
     // VTT files should always be UTF-8 according to WebVTT specification
     const utf8BOM = '\uFEFF'
