@@ -4,15 +4,18 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Edit3, 
-  Copy, 
-  Monitor, 
-  FileText, 
+import {
+  Edit3,
+  Copy,
+  Monitor,
+  FileText,
   ArrowRight,
   Users,
   GitCompare,
-  Layers
+  Layers,
+  Search,
+  Clock,
+  Zap
 } from 'lucide-react'
 
 interface EditorModeSelectorProps {
@@ -28,9 +31,8 @@ export function EditorModeSelector({ onModeSelect }: EditorModeSelectorProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-
-      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
         {/* Single Editor Mode - Large Button Style */}
         <div
           className={`relative bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-blue-950/50 dark:via-background dark:to-blue-900/50 rounded-3xl p-12 border-2 transition-all duration-300 cursor-pointer group ${
@@ -137,6 +139,66 @@ export function EditorModeSelector({ onModeSelect }: EditorModeSelectorProps) {
               Great for comparison & correction
             </Badge>
           </div>
+        </div>
+      </div>
+
+      {/* Feature Showcase */}
+      <div className="text-center mt-16">
+        <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          ✨ What You Can Do
+        </h2>
+        <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
+          Powerful subtitle editing features at your fingertips
+        </p>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Edit3 className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="font-semibold mb-2 text-blue-900 dark:text-blue-100">Precise Editing</h3>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                Edit text, timing, and formatting with pixel-perfect precision
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Zap className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="font-semibold mb-2 text-purple-900 dark:text-purple-100">Quick Navigation</h3>
+              <p className="text-sm text-purple-700 dark:text-purple-300">
+                Jump between subtitles with smart pagination
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Search className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="font-semibold mb-2 text-green-900 dark:text-green-100">Smart Search</h3>
+              <p className="text-sm text-green-700 dark:text-green-300">
+                Find and replace text across all entries
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Clock className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="font-semibold mb-2 text-orange-900 dark:text-orange-100">Perfect Timing</h3>
+              <p className="text-sm text-orange-700 dark:text-orange-300">
+                Sync and adjust timing with millisecond precision
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

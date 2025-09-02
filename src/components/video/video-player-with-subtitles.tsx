@@ -478,7 +478,7 @@ export function VideoPlayerWithSubtitles() {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Upload className="h-5 w-5 text-green-600" />
-              <span>📝 {isCzech ? 'Plovoucí titulky' : 'PiP Overlay'}</span>
+              <span>📝 {isCzech ? 'Plovoucí titulky' : 'Subtitle Overlay'}</span>
             </CardTitle>
             <CardDescription>
               {isCzech

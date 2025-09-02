@@ -13,38 +13,101 @@ import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/hooks/useAuth'
 import { Chrome, Loader2, AlertCircle, Mail } from 'lucide-react'
 
-const registerSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-})
+const createRegisterSchema = (locale: 'en' | 'cs' = 'en') => {
+  const messages = {
+    en: {
+      invalidEmail: 'Invalid email address',
+      passwordMin: 'Password must be at least 6 characters',
+      passwordsDontMatch: "Passwords don't match"
+    },
+    cs: {
+      invalidEmail: 'Neplatná emailová adresa',
+      passwordMin: 'Heslo musí mít alespoň 6 znaků',
+      passwordsDontMatch: 'Hesla se neshodují'
+    }
+  }
 
-type RegisterFormData = z.infer<typeof registerSchema>
+  const m = messages[locale]
 
-export function RegisterForm() {
+  return z.object({
+    email: z.string().email(m.invalidEmail),
+    password: z.string().min(6, m.passwordMin),
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: m.passwordsDontMatch,
+    path: ["confirmPassword"],
+  })
+}
+
+type RegisterFormData = z.infer<ReturnType<typeof createRegisterSchema>>
+
+interface RegisterFormProps {
+  locale?: 'en' | 'cs'
+}
+
+export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const { signUp, signInWithGoogle, user } = useAuth()
   const router = useRouter()
 
+  // Localized texts
+  const texts = {
+    en: {
+      title: 'Create Account',
+      description: 'Get started with your free account and 200 welcome credits',
+      email: 'Email',
+      password: 'Password',
+      confirmPassword: 'Confirm Password',
+      createAccount: 'Create Account',
+      signUpWithGoogle: 'Sign up with Google',
+      alreadyHaveAccount: 'Already have an account?',
+      signIn: 'Sign in',
+      accountCreated: 'Account Created!',
+      accountCreatedDesc: 'Your account has been created successfully. Please check your email to verify your account before you can start translating.',
+      verificationSent: 'Verification email sent!',
+      checkInbox: 'Please check your inbox and click the verification link.',
+      invalidEmail: 'Invalid email address',
+      passwordMin: 'Password must be at least 6 characters',
+      passwordsDontMatch: "Passwords don't match"
+    },
+    cs: {
+      title: 'Vytvořit Účet',
+      description: 'Začněte se svým zdarma účtem a 200 uvítacími kredity',
+      email: 'Email',
+      password: 'Heslo',
+      confirmPassword: 'Potvrdit Heslo',
+      createAccount: 'Vytvořit Účet',
+      signUpWithGoogle: 'Registrovat se přes Google',
+      alreadyHaveAccount: 'Už máte účet?',
+      signIn: 'Přihlásit se',
+      accountCreated: 'Účet Vytvořen!',
+      accountCreatedDesc: 'Váš účet byl úspěšně vytvořen. Prosím zkontrolujte svůj email a ověřte účet před začátkem překládání.',
+      verificationSent: 'Ověřovací email odeslán!',
+      checkInbox: 'Prosím zkontrolujte svou schránku a klikněte na ověřovací odkaz.',
+      invalidEmail: 'Neplatná emailová adresa',
+      passwordMin: 'Heslo musí mít alespoň 6 znaků',
+      passwordsDontMatch: 'Hesla se neshodují'
+    }
+  }
+
+  const t = texts[locale]
+
   // Redirect to homepage if already logged in and reset loading state
   useEffect(() => {
     if (user) {
       setIsLoading(false) // Reset loading state when user is authenticated
-      router.push('/')
+      router.push(locale === 'cs' ? '/cs' : '/')
     }
-  }, [user, router])
+  }, [user, router, locale])
 
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(createRegisterSchema(locale)),
   })
 
   const onSubmit = async (data: RegisterFormData) => {
@@ -95,9 +158,9 @@ export function RegisterForm() {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <CardTitle>Account Created!</CardTitle>
+          <CardTitle>{t.accountCreated}</CardTitle>
           <CardDescription>
-            Your account has been created successfully. Please check your email to verify your account before you can start translating.
+            {t.accountCreatedDesc}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -108,10 +171,10 @@ export function RegisterForm() {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-blue-800">
-                  Verification email sent!
+                  {t.verificationSent}
                 </p>
                 <p className="mt-1 text-sm text-blue-700">
-                  Please check your inbox and click the verification link.
+                  {t.checkInbox}
                 </p>
               </div>
             </div>
@@ -127,9 +190,9 @@ export function RegisterForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Create Account</CardTitle>
+        <CardTitle>{t.title}</CardTitle>
         <CardDescription>
-          Sign up for SubtitleAI to start translating your subtitles
+          {t.description}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -146,7 +209,7 @@ export function RegisterForm() {
           ) : (
             <Chrome className="h-4 w-4 mr-2" />
           )}
-          Continue with Google
+{t.signUpWithGoogle}
         </Button>
 
         <div className="relative">
@@ -178,12 +241,12 @@ export function RegisterForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
-              Email
+              {t.email}
             </label>
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder={locale === 'cs' ? 'Zadejte váš email' : 'Enter your email'}
               {...register('email')}
               disabled={isLoading}
             />
@@ -194,12 +257,12 @@ export function RegisterForm() {
 
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium">
-              Password
+              {t.password}
             </label>
             <Input
               id="password"
               type="password"
-              placeholder="Create a password"
+              placeholder={locale === 'cs' ? 'Vytvořte heslo' : 'Create a password'}
               {...register('password')}
               disabled={isLoading}
             />
@@ -210,12 +273,12 @@ export function RegisterForm() {
 
           <div className="space-y-2">
             <label htmlFor="confirmPassword" className="text-sm font-medium">
-              Confirm Password
+              {t.confirmPassword}
             </label>
             <Input
               id="confirmPassword"
               type="password"
-              placeholder="Confirm your password"
+              placeholder={locale === 'cs' ? 'Potvrďte heslo' : 'Confirm your password'}
               {...register('confirmPassword')}
               disabled={isLoading}
             />
@@ -231,13 +294,16 @@ export function RegisterForm() {
           )}
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Creating account...' : 'Create Account'}
+            {isLoading
+              ? (locale === 'cs' ? 'Vytvářím účet...' : 'Creating account...')
+              : t.createAccount
+            }
           </Button>
 
           <p className="text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link href="/login" className="text-blue-600 hover:underline">
-              Sign in
+            {t.alreadyHaveAccount}{' '}
+            <Link href={locale === 'cs' ? '/cs/login' : '/login'} className="text-blue-600 hover:underline">
+              {t.signIn}
             </Link>
           </p>
         </form>

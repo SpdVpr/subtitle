@@ -630,62 +630,6 @@ export default function CzechSubtitleEditorPage() {
           <DualSubtitleEditor onBack={() => setEditorMode('select')} />
         ) : editorMode === 'single' && entries.length === 0 ? (
           <div className="max-w-5xl mx-auto">
-            {/* Feature Showcase */}
-            <div className="text-center mb-12">
-              <h2 className="text-2xl font-bold mb-8 text-muted-foreground">
-                ✨ Co Můžete Dělat
-              </h2>
-
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Edit3 className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="font-semibold mb-2 text-blue-900 dark:text-blue-100">Přesná Editace</h3>
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
-                      Upravujte text, časování a formátování s pixelovou přesností
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Zap className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="font-semibold mb-2 text-purple-900 dark:text-purple-100">Rychlá Navigace</h3>
-                    <p className="text-sm text-purple-700 dark:text-purple-300">
-                      Přeskakujte mezi titulky pomocí chytré navigace
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Search className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="font-semibold mb-2 text-green-900 dark:text-green-100">Chytré Vyhledávání</h3>
-                    <p className="text-sm text-green-700 dark:text-green-300">
-                      Najděte a nahraďte text ve všech titulcích
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Clock className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="font-semibold mb-2 text-orange-900 dark:text-orange-100">Perfektní Časování</h3>
-                    <p className="text-sm text-orange-700 dark:text-orange-300">
-                      Synchronizujte a upravujte časování s milisekundovou přesností
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
 
             {/* Getting Started Guide */}
             <Card className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900 dark:to-gray-900 border-0">

@@ -434,7 +434,7 @@ export function PictureInPictureSubtitles({
             </>
           ) : pipSupported ? (
             <>
-              Open a floating subtitle window that stays on top of any content.
+              Open a floating subtitle overlay window that stays on top of any content.
               Perfect for watching videos on any website while having subtitles always visible.
             </>
           ) : (
@@ -580,17 +580,21 @@ export function PictureInPictureSubtitles({
           <Button
             onClick={isPipActive ? stopPictureInPicture : startPictureInPicture}
             disabled={!isClient || !pipSupported || entries.length === 0}
-            className={isPipActive ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}
+            size="lg"
+            className={isPipActive
+              ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg'
+              : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 animate-pulse hover:animate-none border-2 border-green-400'
+            }
           >
             {isPipActive ? (
               <>
-                <X className="h-4 w-4 mr-2" />
-                Close PiP Window
+                <X className="h-5 w-5 mr-2" />
+                Close Overlay Window
               </>
             ) : (
               <>
-                <PictureInPicture2 className="h-4 w-4 mr-2" />
-                Open PiP Window
+                <PictureInPicture2 className="h-5 w-5 mr-2" />
+                🚀 Open Overlay Window
               </>
             )}
           </Button>

@@ -152,10 +152,10 @@ export function Header() {
             ) : (
               <div className="flex items-center space-x-2">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href="/login">{navLabels.signIn}</Link>
+                  <Link href={`${langPrefix}/login`}>{navLabels.signIn}</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link href="/register">{navLabels.getStarted}</Link>
+                  <Link href={`${langPrefix}/register`}>{navLabels.getStarted}</Link>
                 </Button>
               </div>
             )}
@@ -244,12 +244,12 @@ export function Header() {
                 ) : (
                   <div className="flex flex-col space-y-2">
                     <Button variant="ghost" size="sm" asChild className="justify-start">
-                      <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Link href={`${langPrefix}/login`} onClick={() => setIsMobileMenuOpen(false)}>
                         {navLabels.signIn}
                       </Link>
                     </Button>
                     <Button size="sm" asChild className="justify-start">
-                      <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Link href={`${langPrefix}/register`} onClick={() => setIsMobileMenuOpen(false)}>
                         {navLabels.getStarted}
                       </Link>
                     </Button>

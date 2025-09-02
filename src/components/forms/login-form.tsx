@@ -13,26 +13,77 @@ import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/hooks/useAuth'
 import { Chrome, Loader2, AlertCircle } from 'lucide-react'
 
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-})
+const createLoginSchema = (locale: 'en' | 'cs' = 'en') => {
+  const messages = {
+    en: {
+      invalidEmail: 'Invalid email address',
+      passwordMin: 'Password must be at least 6 characters'
+    },
+    cs: {
+      invalidEmail: 'Neplatná emailová adresa',
+      passwordMin: 'Heslo musí mít alespoň 6 znaků'
+    }
+  }
 
-type LoginFormData = z.infer<typeof loginSchema>
+  const m = messages[locale]
 
-export function LoginForm() {
+  return z.object({
+    email: z.string().email(m.invalidEmail),
+    password: z.string().min(6, m.passwordMin),
+  })
+}
+
+type LoginFormData = z.infer<ReturnType<typeof createLoginSchema>>
+
+interface LoginFormProps {
+  locale?: 'en' | 'cs'
+}
+
+export function LoginForm({ locale = 'en' }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { signIn, signInWithGoogle, user } = useAuth()
   const router = useRouter()
 
+  // Localized texts
+  const texts = {
+    en: {
+      title: 'Welcome Back',
+      description: 'Sign in to your account to continue translating',
+      email: 'Email',
+      password: 'Password',
+      signIn: 'Sign In',
+      signInWithGoogle: 'Continue with Google',
+      dontHaveAccount: "Don't have an account?",
+      signUp: 'Sign up',
+      signingIn: 'Signing in...',
+      forgotPassword: 'Forgot your password?',
+      resetPassword: 'Reset password'
+    },
+    cs: {
+      title: 'Vítejte zpět',
+      description: 'Přihlaste se do svého účtu a pokračujte v překládání',
+      email: 'Email',
+      password: 'Heslo',
+      signIn: 'Přihlásit se',
+      signInWithGoogle: 'Pokračovat přes Google',
+      dontHaveAccount: 'Nemáte účet?',
+      signUp: 'Registrovat se',
+      signingIn: 'Přihlašuji...',
+      forgotPassword: 'Zapomněli jste heslo?',
+      resetPassword: 'Obnovit heslo'
+    }
+  }
+
+  const t = texts[locale]
+
   // Redirect to homepage if already logged in and reset loading state
   useEffect(() => {
     if (user) {
       setIsLoading(false) // Reset loading state when user is authenticated
-      router.push('/')
+      router.push(locale === 'cs' ? '/cs' : '/')
     }
-  }, [user, router])
+  }, [user, router, locale])
 
   const {
     register,
@@ -40,7 +91,7 @@ export function LoginForm() {
     formState: { errors },
     setValue,
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(createLoginSchema(locale)),
   })
 
   const onSubmit = async (data: LoginFormData) => {
@@ -99,9 +150,9 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Sign In</CardTitle>
+        <CardTitle>{t.title}</CardTitle>
         <CardDescription>
-          Enter your email and password to access your account
+          {t.description}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -118,7 +169,7 @@ export function LoginForm() {
           ) : (
             <Chrome className="h-4 w-4 mr-2" />
           )}
-          Continue with Google
+{t.signInWithGoogle}
         </Button>
 
         <div className="relative">
@@ -126,7 +177,9 @@ export function LoginForm() {
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-gray-500">Or continue with email</span>
+            <span className="bg-white px-2 text-gray-500">
+              {locale === 'cs' ? 'Nebo pokračujte s emailem' : 'Or continue with email'}
+            </span>
           </div>
         </div>
 
@@ -141,12 +194,12 @@ export function LoginForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
-              Email
+              {t.email}
             </label>
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder={locale === 'cs' ? 'Zadejte váš email' : 'Enter your email'}
               {...register('email')}
               disabled={isLoading}
             />
@@ -157,12 +210,12 @@ export function LoginForm() {
 
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium">
-              Password
+              {t.password}
             </label>
             <Input
               id="password"
               type="password"
-              placeholder="Enter your password"
+              placeholder={locale === 'cs' ? 'Zadejte heslo' : 'Enter your password'}
               {...register('password')}
               disabled={isLoading}
             />
@@ -178,20 +231,20 @@ export function LoginForm() {
           )}
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? t.signingIn : t.signIn}
           </Button>
 
           <div className="text-center space-y-2">
             <Link
-              href="/forgot-password"
+              href={locale === 'cs' ? '/cs/forgot-password' : '/forgot-password'}
               className="text-sm text-blue-600 hover:underline"
             >
-              Forgot your password?
+              {t.forgotPassword}
             </Link>
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link href="/register" className="text-blue-600 hover:underline">
-                Sign up
+              {t.dontHaveAccount}{' '}
+              <Link href={locale === 'cs' ? '/cs/register' : '/register'} className="text-blue-600 hover:underline">
+                {t.signUp}
               </Link>
             </p>
           </div>
