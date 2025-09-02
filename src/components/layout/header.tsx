@@ -70,7 +70,7 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-6">
+          <nav className="hidden lg:flex items-center space-x-4">
             <Link
               href={`${langPrefix}/translate`}
               className="text-muted-foreground hover:text-foreground transition-colors font-medium"
@@ -124,7 +124,7 @@ export function Header() {
           </div>
 
           {/* Desktop User Menu */}
-          <div className="hidden lg:flex items-center space-x-3">
+          <div className="hidden lg:flex items-center space-x-2">
             {/* Language Switcher and Theme Toggle - always visible */}
             <LanguageSwitcher />
             <ThemeToggle />
@@ -132,15 +132,15 @@ export function Header() {
             {loading ? (
               <div className="h-8 w-20 bg-muted animate-pulse rounded" />
             ) : user ? (
-              <div className="flex items-center space-x-1">
-                <Button variant="ghost" size="sm" asChild className="hidden 2xl:inline-flex px-2">
+              <div className="flex items-center space-x-0.5">
+                <Button variant="ghost" size="sm" asChild className="px-2">
                   <Link href={`${langPrefix}/dashboard`}>{navLabels.dashboard}</Link>
                 </Button>
                 {user && isAdmin(user) && (
                   <Button variant="ghost" size="sm" asChild className="text-destructive hover:text-destructive/80 px-2">
                     <Link href="/admin" className="flex items-center space-x-1">
                       <Shield className="h-3 w-3" />
-                      <span className="hidden 2xl:inline">Admin</span>
+                      <span className="hidden xl:inline">Admin</span>
                     </Link>
                   </Button>
                 )}
