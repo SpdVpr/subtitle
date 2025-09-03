@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     siteName: "SubtitleBot",
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-image-en.png',
         width: 1200,
         height: 630,
         alt: "SubtitleBot - AI-Powered Subtitle Translation",
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "SubtitleBot - AI-Powered Subtitle Translation",
     description: "Translate and retime your subtitles with AI. Fast, accurate, and easy to use.",
-    images: ['/twitter-image.jpg'],
+    images: ['/og-image-en.png'],
     creator: '@SubtitleBot',
   },
   robots: {
