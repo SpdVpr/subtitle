@@ -253,10 +253,13 @@ export default function CzechTranslatePage() {
               <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">SRT</Badge>
               <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">VTT</Badge>
               <Badge variant="secondary" className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300">ASS</Badge>
-              <span>a další formáty</span>
+              <Badge variant="secondary" className="bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300">SSA</Badge>
+              <Badge variant="secondary" className="bg-pink-50 text-pink-700 dark:bg-pink-950 dark:text-pink-300">SUB</Badge>
+              <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">SBV</Badge>
+              <Badge variant="secondary" className="bg-gray-50 text-gray-700 dark:bg-gray-950 dark:text-gray-300">TXT</Badge>
             </div>
             <span>•</span>
-            <span>50+ jazyků podporováno</span>
+            <span>50+ podporovaných jazyků</span>
           </div>
         </div>
       </div>

@@ -301,7 +301,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="text-center pb-4">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -332,6 +332,32 @@ export default function Home() {
             <CardContent>
               <p className="text-muted-foreground text-center">
                 Advanced AI models consider dialogue flow, character emotions, and cultural nuances.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader className="text-center pb-4">
+              <div className="bg-green-100 dark:bg-accent w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="h-8 w-8 text-green-600 dark:text-primary" />
+              </div>
+              <CardTitle className="text-xl">7 File Formats</CardTitle>
+              <CardDescription className="text-base">
+                Support for all major subtitle formats
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap justify-center gap-1 mb-3">
+                <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 text-xs">SRT</Badge>
+                <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 text-xs">VTT</Badge>
+                <Badge variant="secondary" className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 text-xs">ASS</Badge>
+                <Badge variant="secondary" className="bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300 text-xs">SSA</Badge>
+                <Badge variant="secondary" className="bg-pink-50 text-pink-700 dark:bg-pink-950 dark:text-pink-300 text-xs">SUB</Badge>
+                <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 text-xs">SBV</Badge>
+                <Badge variant="secondary" className="bg-gray-50 text-gray-700 dark:bg-gray-950 dark:text-gray-300 text-xs">TXT</Badge>
+              </div>
+              <p className="text-muted-foreground text-center text-sm">
+                Auto-detection • UTF-8 & legacy encoding • Up to 10MB
               </p>
             </CardContent>
           </Card>

@@ -84,7 +84,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
 
   // Helper function to check supported subtitle formats
   const isSupportedSubtitleFile = (fileName: string): boolean => {
-    const supportedExtensions = ['.srt', '.vtt', '.ass', '.ssa', '.sub', '.sbv']
+    const supportedExtensions = ['.srt', '.vtt', '.ass', '.ssa', '.sub', '.sbv', '.txt']
     return supportedExtensions.some(ext => fileName.toLowerCase().endsWith(ext))
   }
 
@@ -171,7 +171,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'text/plain': ['.srt', '.vtt', '.ass', '.ssa', '.sub', '.sbv'],
+      'text/plain': ['.srt', '.vtt', '.ass', '.ssa', '.sub', '.sbv', '.txt'],
       'text/vtt': ['.vtt'],
       'application/x-subrip': ['.srt'],
       'application/zip': ['.zip'],
@@ -566,7 +566,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
             Upload Subtitle Files
           </CardTitle>
           <CardDescription>
-            Upload multiple subtitle files (SRT, VTT, ASS, SSA) or a ZIP archive containing subtitle files
+            Upload multiple subtitle files (SRT, VTT, ASS, SSA, SUB, SBV, TXT) or a ZIP archive containing subtitle files
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -604,6 +604,9 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
                     <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">.vtt</Badge>
                     <Badge variant="secondary" className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300">.ass</Badge>
                     <Badge variant="secondary" className="bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300">.ssa</Badge>
+                    <Badge variant="secondary" className="bg-pink-50 text-pink-700 dark:bg-pink-950 dark:text-pink-300">.sub</Badge>
+                    <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">.sbv</Badge>
+                    <Badge variant="secondary" className="bg-slate-50 text-slate-700 dark:bg-slate-950 dark:text-slate-300">.txt</Badge>
                     <Badge variant="secondary" className="bg-gray-50 text-gray-700 dark:bg-gray-950 dark:text-gray-300">.zip</Badge>
                   </div>
                 </>
