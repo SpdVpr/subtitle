@@ -1,24 +1,69 @@
 import type { Metadata } from "next";
+import { StructuredData } from "@/components/seo/structured-data";
 
 export const metadata: Metadata = {
   title: {
     default: "SubtitleBot - AI Překlad Titulků",
     template: "%s | SubtitleBot"
   },
-  description: "Překládejte a upravujte titulky pomocí AI. Rychlé, přesné a jednoduché použití. Podpora 100+ jazyků s kontextovým překladem.",
+  description: "Profesionální AI služba pro překlad titulků s podporou 100+ jazyků. Rychlé, přesné, kontextové překlady pro filmy, seriály a videa. Zdarma kredity v ceně. Bez předplatného.",
   keywords: [
+    // Základní překladové termíny
     "překlad titulků",
-    "AI překlad",
-    "SubtitleBot",
-    "SRT překlad", 
-    "VTT překlad",
-    "automatický překlad",
-    "titulky česky",
-    "překladač titulků",
+    "AI překladač titulků",
+    "SRT překladač",
+    "VTT překladač",
+    "překlad video titulků",
+    "konvertor titulků",
+    "vícejazyčné titulky",
+    "automatický překlad titulků",
+
+    // AI a technologie
+    "OpenAI překlad",
+    "GPT překlad titulků",
     "AI titulky",
-    "video titulky",
-    "film titulky",
-    "YouTube titulky"
+    "strojový překlad titulků",
+    "kontextový překlad",
+    "neuronový překlad titulků",
+
+    // Formáty souborů
+    "SRT soubor překladač",
+    "VTT konvertor",
+    "ASS překlad titulků",
+    "SSA konvertor titulků",
+    "formáty titulků",
+    "úprava časování titulků",
+    "synchronizace titulků",
+
+    // Video a média
+    "lokalizace videa",
+    "překlad filmových titulků",
+    "TV seriálové titulky",
+    "YouTube překlad titulků",
+    "překlad video obsahu",
+    "lokalizace médií",
+
+    // Nástroje a funkce
+    "editor titulků",
+    "dávkový překlad titulků",
+    "vyhledávač titulků",
+    "plovoucí titulky",
+    "overlay titulků",
+    "video přehrávač s titulky",
+
+    // Jazykově specifické
+    "přeložit titulky do češtiny",
+    "přeložit titulky do angličtiny",
+    "přeložit titulky do němčiny",
+    "přeložit titulky do francouzštiny",
+    "přeložit titulky do španělštiny",
+
+    // Obchodní termíny
+    "profesionální překlad titulků",
+    "služba překladu titulků",
+    "online překladač titulků",
+    "zdarma překlad titulků",
+    "prémiový překlad titulků"
   ],
   authors: [{ name: "SubtitleBot Team" }],
   creator: "SubtitleBot",
@@ -85,5 +130,10 @@ export default function CsLayout({
 }: {
   children: React.ReactNode
 }) {
-  return children
+  return (
+    <>
+      <StructuredData locale="cs" page="home" />
+      {children}
+    </>
+  )
 }

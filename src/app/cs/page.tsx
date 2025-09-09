@@ -1,6 +1,7 @@
 'use client'
 
 import Link from "next/link";
+import { StructuredData } from "@/components/seo/structured-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +36,9 @@ export default function CzechHome() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
+      <StructuredData locale="cs" page="home" />
+      <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-background dark:via-card dark:to-background">
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
@@ -863,5 +866,6 @@ export default function CzechHome() {
         </div>
       </section>
     </div>
+    </>
   );
 }

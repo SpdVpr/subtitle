@@ -8,6 +8,8 @@ import { Toaster } from "sonner"
 import { CookieBannerWrapper } from "@/components/cookie-banner-wrapper"
 import { GoogleAnalytics } from "@/components/analytics/google-analytics"
 import { LocaleAwareLayout } from "@/components/layout/locale-aware-layout"
+import { StructuredData } from "@/components/seo/structured-data"
+import { PerformanceOptimizer, defaultCriticalResources } from "@/components/seo/performance-optimizer"
 
 
 const inter = Inter({
@@ -19,21 +21,71 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "SubtitleBot - AI-Powered Subtitle Translation",
-    template: "%s | SubtitleBot"
+    default: "SubtitleBot - AI-Powered Subtitle Translation | 100+ Languages",
+    template: "%s | SubtitleBot - AI Subtitle Translation"
   },
-  description: "Translate and retime your subtitles with AI. Fast, accurate, and easy to use. Support for 100+ languages with context-aware translation.",
+  description: "Professional AI subtitle translation service supporting 100+ languages. Fast, accurate, context-aware translations for movies, TV shows, and videos. Free credits included. No subscription required.",
   keywords: [
+    // Core translation terms
     "subtitle translation",
-    "AI subtitles",
+    "AI subtitle translator",
     "SRT translator",
-    "video subtitles",
+    "VTT translator",
+    "video subtitle translation",
     "subtitle converter",
     "multilingual subtitles",
+    "automatic subtitle translation",
+
+    // AI and technology terms
     "OpenAI translation",
-    "subtitle timing",
+    "GPT subtitle translation",
+    "AI-powered subtitles",
+    "machine translation subtitles",
+    "contextual translation",
+    "neural subtitle translation",
+
+    // File formats and technical
+    "SRT file translator",
+    "VTT file converter",
+    "ASS subtitle translation",
+    "SSA subtitle converter",
+    "subtitle file formats",
+    "subtitle timing adjustment",
+    "subtitle synchronization",
+
+    // Video and media terms
     "video localization",
-    "subtitle editor"
+    "movie subtitle translation",
+    "TV show subtitles",
+    "YouTube subtitle translation",
+    "video content translation",
+    "media localization",
+    "film subtitle converter",
+
+    // Tools and features
+    "subtitle editor",
+    "batch subtitle translation",
+    "subtitle search engine",
+    "floating subtitles",
+    "subtitle overlay",
+    "video player with subtitles",
+
+    // Language specific
+    "translate subtitles to English",
+    "translate subtitles to Spanish",
+    "translate subtitles to French",
+    "translate subtitles to German",
+    "translate subtitles to Chinese",
+    "translate subtitles to Japanese",
+    "translate subtitles to Korean",
+    "translate subtitles to Arabic",
+
+    // Business terms
+    "professional subtitle translation",
+    "subtitle translation service",
+    "online subtitle translator",
+    "free subtitle translation",
+    "premium subtitle translation"
   ],
   authors: [{ name: "SubtitleBot Team" }],
   creator: "SubtitleBot",
@@ -48,8 +100,8 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: "SubtitleBot - AI-Powered Subtitle Translation",
-    description: "Translate and retime your subtitles with AI. Fast, accurate, and easy to use. Support for 100+ languages with context-aware translation.",
+    title: "SubtitleBot - AI-Powered Subtitle Translation | 100+ Languages",
+    description: "Professional AI subtitle translation service supporting 100+ languages. Fast, accurate, context-aware translations for movies, TV shows, and videos. Free credits included.",
     url: '/',
     siteName: "SubtitleBot",
     images: [
@@ -57,7 +109,7 @@ export const metadata: Metadata = {
         url: '/og-image-en.png',
         width: 1200,
         height: 630,
-        alt: "SubtitleBot - AI-Powered Subtitle Translation",
+        alt: "SubtitleBot - AI-Powered Subtitle Translation with 100+ Language Support",
       },
     ],
     locale: 'en_US',
@@ -65,10 +117,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "SubtitleBot - AI-Powered Subtitle Translation",
-    description: "Translate and retime your subtitles with AI. Fast, accurate, and easy to use.",
+    title: "SubtitleBot - AI-Powered Subtitle Translation | 100+ Languages",
+    description: "Professional AI subtitle translation service. Fast, accurate, context-aware translations for movies, TV shows, and videos. Free credits included.",
     images: ['/og-image-en.png'],
     creator: '@SubtitleBot',
+    site: '@SubtitleBot',
   },
   robots: {
     index: true,
@@ -116,6 +169,16 @@ export default function RootLayout({
 
         {/* Google Analytics */}
         <GoogleAnalytics />
+
+        {/* Structured Data */}
+        <StructuredData locale="en" page="home" />
+
+        {/* Performance Optimization */}
+        <PerformanceOptimizer
+          enablePreloading={true}
+          enablePrefetching={true}
+          criticalResources={defaultCriticalResources}
+        />
 
         {/* Hreflang tags for SEO */}
         <link rel="alternate" hrefLang="en" href={`${baseUrl}`} />

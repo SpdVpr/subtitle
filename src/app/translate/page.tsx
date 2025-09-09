@@ -8,15 +8,20 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { FileText, Files, Zap, Clock, Users, ArrowRight, Archive, Download } from 'lucide-react'
+import { Breadcrumbs, breadcrumbConfigs } from '@/components/seo/breadcrumbs'
+import { StructuredData } from '@/components/seo/structured-data'
 
 export default function TranslatePage() {
   const [mode, setMode] = useState<'select' | 'single' | 'batch'>('select')
 
   if (mode === 'single') {
     return (
-      <EmailVerificationGuard>
+      <>
+        <StructuredData locale="en" page="translate" />
+        <EmailVerificationGuard>
         <div className="py-4 sm:py-6 md:py-8">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+            <Breadcrumbs items={breadcrumbConfigs.en.translate} locale="en" />
             <div className="mb-6 sm:mb-8">
               <Button
                 variant="ghost"
@@ -34,12 +39,15 @@ export default function TranslatePage() {
           </div>
         </div>
       </EmailVerificationGuard>
+      </>
     )
   }
 
   if (mode === 'batch') {
     return (
-      <EmailVerificationGuard>
+      <>
+        <StructuredData locale="en" page="translate" />
+        <EmailVerificationGuard>
         <div className="py-8">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
             {/* Back Button */}
@@ -153,13 +161,17 @@ export default function TranslatePage() {
         </div>
       </div>
       </EmailVerificationGuard>
+      </>
     )
   }
 
   // Mode selection
   return (
-    <div className="py-8">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+    <>
+      <StructuredData locale="en" page="translate" />
+      <div className="py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+          <Breadcrumbs items={breadcrumbConfigs.en.translate} locale="en" />
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold text-foreground mb-4">AI Subtitle Translation</h1>
@@ -265,6 +277,7 @@ export default function TranslatePage() {
         </div>
       </div>
     </div>
+    </>
   )
 }
 
