@@ -48,7 +48,7 @@ export default function CzechHome() {
             <Link href="/cs/register" className="inline-block">
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-full mb-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105">
                 <Gift className="h-5 w-5" />
-                <span className="font-semibold">🎉 Noví uživatelé získají 200 ZDARMA kreditů na začátek!</span>
+                <span className="font-semibold">🎉 Noví uživatelé získají 100 ZDARMA kreditů na začátek!</span>
                 <Sparkles className="h-5 w-5" />
               </div>
             </Link>
@@ -577,11 +577,11 @@ export default function CzechHome() {
                 <CardDescription>Začněte zdarma</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-3xl font-bold text-primary">200 Kreditů</div>
+                <div className="text-3xl font-bold text-primary">100 Kreditů</div>
                 <div className="text-sm text-muted-foreground">Zdarma při registraci</div>
               </CardContent>
               <CardContent className="space-y-2">
-                <p>✓ ~500 řádků překladu</p>
+                <p>✓ ~250 řádků překladu</p>
                 <p>✓ Prémiový AI překlad</p>
                 <p>✓ Žádný časový limit</p>
                 <p>✓ Přístup ke všem funkcím</p>
@@ -614,7 +614,7 @@ export default function CzechHome() {
               💡 <strong>1 USD = 100 kreditů</strong> • Kupte kredity podle potřeby • Bez vypršení
             </div>
             <Button size="lg" asChild>
-              <Link href="/cs/register">Získat 200 Zdarma Kreditů</Link>
+              <Link href="/cs/register">Získat 100 Zdarma Kreditů</Link>
             </Button>
           </div>
         </div>

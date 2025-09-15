@@ -62,8 +62,8 @@ export class UserService {
         batchJobsLimit: -1, // Unlimited with credits
         resetDate: serverTimestamp() as Timestamp
       },
-      creditsBalance: 200, // Welcome credits for new users
-      creditsTotalPurchased: 200,
+      creditsBalance: 100, // Welcome credits for new users
+      creditsTotalPurchased: 100,
       preferences: {
         defaultAiService: 'google',
         emailNotifications: true,

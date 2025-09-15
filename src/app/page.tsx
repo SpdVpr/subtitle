@@ -45,7 +45,7 @@ export default function Home() {
             <Link href="/register" className="inline-block">
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-full mb-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105">
                 <Gift className="h-5 w-5" />
-                <span className="font-semibold">🎉 New users get 200 FREE credits to start!</span>
+                <span className="font-semibold">🎉 New users get 100 FREE credits to start!</span>
                 <Sparkles className="h-5 w-5" />
               </div>
             </Link>
@@ -574,11 +574,11 @@ export default function Home() {
                 <CardDescription>Get started for free</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-3xl font-bold text-primary">200 Credits</div>
+                <div className="text-3xl font-bold text-primary">100 Credits</div>
                 <div className="text-sm text-muted-foreground">Free on signup</div>
               </CardContent>
               <CardContent className="space-y-2">
-                <p>✓ ~500 lines of translation</p>
+                <p>✓ ~250 lines of translation</p>
                 <p>✓ Premium AI translation</p>
                 <p>✓ No time limit</p>
                 <p>✓ Full feature access</p>
@@ -620,7 +620,7 @@ export default function Home() {
               💡 <strong>1 USD = 100 credits</strong> • Buy credits as needed • No expiration
             </div>
             <Button size="lg" asChild>
-              <Link href="/register">Get 200 Free Credits</Link>
+              <Link href="/register">Get 100 Free Credits</Link>
             </Button>
           </div>
         </div>

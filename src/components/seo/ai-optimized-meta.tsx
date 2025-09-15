@@ -82,7 +82,7 @@ export function AIOptimizedMeta({
       },
       pricing: {
         title: "Ceník | AI Překlad Titulků Kredity | Bez Předplatného | SubtitleBot",
-        description: "Jednoduchý kreditový ceník pro AI překlad titulků. Bez měsíčních předplatných, kredity nikdy nevyprší. Začněte s 200 kredity zdarma. Plaťte jen za to, co použijete.",
+        description: "Jednoduchý kreditový ceník pro AI překlad titulků. Bez měsíčních předplatných, kredity nikdy nevyprší. Začněte se 100 kredity zdarma. Plaťte jen za to, co použijete.",
         keywords: "ceník překladu titulků, AI překladové kredity, bez předplatného, platba za použití, zdarma kredity, cena překladu titulků"
       },
       about: {

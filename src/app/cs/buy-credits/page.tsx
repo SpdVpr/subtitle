@@ -364,7 +364,7 @@ Dokončete platbu v novém okně.`, {
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-300">
                 <strong>Příklad:</strong> Soubor s 100 řádky titulků stojí 2,0 kreditů (Standardní) nebo 5,0 kreditů (Prémiový).
-                Vašich 200 uvítacích kreditů může přeložit ~250 souborů (Standardní) nebo ~40 souborů (Prémiový) s plným kontextovým výzkumem!
+                Vašich 100 uvítacích kreditů může přeložit ~125 souborů (Standardní) nebo ~20 souborů (Prémiový) s plným kontextovým výzkumem!
               </p>
             </div>
           </CardContent>

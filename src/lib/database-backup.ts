@@ -45,8 +45,8 @@ export class UserService {
         batchJobsLimit: -1, // Unlimited with credits
         resetDate: serverTimestamp() as Timestamp
       },
-      creditsBalance: 200, // Welcome credits for new users
-      creditsTotalPurchased: 200,
+      creditsBalance: 100, // Welcome credits for new users
+      creditsTotalPurchased: 100,
       preferences: {
         defaultAiService: 'google',
         emailNotifications: true,
@@ -145,9 +145,9 @@ export class UserService {
     // Only set createdAt and welcome credits for new users
     if (!existingUser) {
       updateData.createdAt = serverTimestamp()
-      updateData.creditsBalance = 200 // Welcome credits
-      updateData.creditsTotalPurchased = 200
-      console.log('👤 Setting createdAt and 200 welcome credits for new user')
+      updateData.creditsBalance = 100 // Welcome credits
+      updateData.creditsTotalPurchased = 100
+      console.log('👤 Setting createdAt and 100 welcome credits for new user')
     }
 
     await setDoc(doc(db, COLLECTIONS.USERS, uid), updateData, { merge: true })
