@@ -14,6 +14,7 @@ import { CreditHistory } from '@/components/admin/credit-history'
 import { VoucherGenerator } from '@/components/admin/voucher-generator'
 import { VoucherManagement } from '@/components/admin/voucher-management'
 import { FeedbackManagement } from '@/components/admin/feedback-management'
+import { RecentTranslations } from '@/components/admin/recent-translations'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RefreshCw, Shield, AlertTriangle, Gift } from 'lucide-react'
@@ -27,7 +28,7 @@ export default function AdminDashboard() {
   const [revenueData, setRevenueData] = useState<RevenueData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'security' | 'vouchers' | 'voucher-generator' | 'feedback'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'security' | 'vouchers' | 'voucher-generator' | 'feedback' | 'recent-translations'>('overview')
 
   // Check admin access
   useEffect(() => {
@@ -122,6 +123,16 @@ export default function AdminDashboard() {
                 }`}
               >
                 📊 Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('recent-translations')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                  activeTab === 'recent-translations'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                }`}
+              >
+                📄 Poslední překlady
               </button>
               <button
                 onClick={() => setActiveTab('voucher-generator')}
@@ -227,6 +238,10 @@ export default function AdminDashboard() {
 
           {activeTab === 'feedback' && (
             <FeedbackManagement />
+          )}
+
+          {activeTab === 'recent-translations' && (
+            <RecentTranslations onRefresh={loadAdminData} />
           )}
 
           {/* System Status */}

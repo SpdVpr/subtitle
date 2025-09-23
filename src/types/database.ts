@@ -72,7 +72,7 @@ export interface TranslationJob {
   // Translation settings
   sourceLanguage?: string
   targetLanguage: string
-  aiService: 'google' | 'openai'
+  aiService: 'google' | 'openai' | 'premium'
   
   // Processing info
   createdAt: Timestamp

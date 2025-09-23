@@ -21,6 +21,15 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid;
       allow create: if request.auth != null &&
         request.resource.data.userId == request.auth.uid;
+      // Allow admin users to read and write all translation jobs
+      allow read, write: if request.auth != null &&
+        request.auth.token.email in [
+          'premium@test.com',
+          'admin@subtitlebot.com',
+          'admin@subtitle-ai.com',
+          'ceo@subtitle-ai.com',
+          'manager@subtitle-ai.com'
+        ];
     }
 
     // Batch jobs - users can only access their own
@@ -29,6 +38,15 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid;
       allow create: if request.auth != null &&
         request.resource.data.userId == request.auth.uid;
+      // Allow admin users to read and write all batch jobs
+      allow read, write: if request.auth != null &&
+        request.auth.token.email in [
+          'premium@test.com',
+          'admin@subtitlebot.com',
+          'admin@subtitle-ai.com',
+          'ceo@subtitle-ai.com',
+          'manager@subtitle-ai.com'
+        ];
     }
     
     // Analytics - users can only access their own

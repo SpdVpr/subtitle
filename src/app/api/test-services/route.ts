@@ -23,7 +23,7 @@ export async function GET() {
       originalFileName: 'test.srt',
       originalFileSize: 100,
       targetLanguage: 'cs',
-      aiService: 'premium'
+      aiService: 'openai'
     })
     console.log('✅ TranslationJobService: Job created:', testJob)
     

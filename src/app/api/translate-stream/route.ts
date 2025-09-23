@@ -233,7 +233,7 @@ export async function POST(request: NextRequest) {
             originalFileSize: file.size,
             sourceLanguage: sourceLanguage || undefined,
             targetLanguage,
-            aiService: 'premium',
+            aiService: 'openai',
             translatedFileName,
             translatedContent, // Store content directly in job
             subtitleCount: translated.length,

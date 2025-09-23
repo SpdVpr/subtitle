@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookieConsentLogger } from '@/lib/cookie-consent-logger'
-import { verifyAdminAuth } from '@/lib/admin-auth'
+import { isAdminEmail } from '@/lib/admin-auth-email'
 
 export async function GET(req: NextRequest) {
   try {
     // Verify admin authentication
-    const authResult = await verifyAdminAuth(req)
-    if (!authResult.success) {
+    const adminEmail = req.headers.get('x-admin-email')
+    if (!adminEmail || !isAdminEmail(adminEmail)) {
       return NextResponse.json({
         success: false,
         error: 'Unauthorized'

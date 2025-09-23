@@ -242,6 +242,117 @@ export class TranslationJobService {
       throw error
     }
   }
+
+  static async getRecentTranslations(limitCount = 20, offset = 0): Promise<{
+    translations: (TranslationJob & { userEmail?: string, userDisplayName?: string })[]
+    totalCount: number
+    hasMore: boolean
+  }> {
+    try {
+      const db = getAdminDb()
+
+      // First get total count of completed translations
+      const totalCountSnapshot = await db.collection(COLLECTIONS.TRANSLATION_JOBS)
+        .where('status', '==', 'completed')
+        .get()
+      const totalCount = totalCountSnapshot.size
+
+      // First try with the optimized query (requires index)
+      try {
+        // For pagination, we need to get all results and slice them
+        // This is not ideal but Firebase doesn't support offset directly
+        const allJobsSnapshot = await db.collection(COLLECTIONS.TRANSLATION_JOBS)
+          .where('status', '==', 'completed')
+          .orderBy('completedAt', 'desc')
+          .limit(Math.min(1000, offset + limitCount)) // Limit to reasonable number
+          .get()
+
+        const allJobs = allJobsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TranslationJob))
+        const jobs = allJobs.slice(offset, offset + limitCount)
+
+        // Get user information for each job
+        const jobsWithUserInfo = await Promise.all(
+          jobs.map(async (job) => {
+            try {
+              const userDoc = await db.collection(COLLECTIONS.USERS).doc(job.userId).get()
+              const userData = userDoc.exists ? userDoc.data() : null
+
+              return {
+                ...job,
+                userEmail: userData?.email || 'Unknown',
+                userDisplayName: userData?.displayName || null
+              }
+            } catch (error) {
+              console.error('❌ Error getting user data for job:', job.id, error)
+              return {
+                ...job,
+                userEmail: 'Unknown',
+                userDisplayName: null
+              }
+            }
+          })
+        )
+
+        return {
+          translations: jobsWithUserInfo,
+          totalCount,
+          hasMore: offset + limitCount < totalCount
+        }
+      } catch (indexError) {
+        console.log('⚠️ Index not available, falling back to less efficient query')
+
+        // Fallback: Get all completed jobs and sort in memory
+        const jobsSnapshot = await db.collection(COLLECTIONS.TRANSLATION_JOBS)
+          .where('status', '==', 'completed')
+          .limit(Math.min(1000, offset + limitCount + 100)) // Get more to sort and paginate in memory
+          .get()
+
+        let jobs = jobsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TranslationJob))
+
+        // Sort by completedAt in memory and paginate
+        jobs = jobs
+          .filter(job => job.completedAt) // Only jobs with completedAt
+          .sort((a, b) => {
+            const aTime = a.completedAt?.seconds || a.completedAt?.getTime?.() || 0
+            const bTime = b.completedAt?.seconds || b.completedAt?.getTime?.() || 0
+            return bTime - aTime // Descending order
+          })
+          .slice(offset, offset + limitCount)
+
+        // Get user information for each job
+        const jobsWithUserInfo = await Promise.all(
+          jobs.map(async (job) => {
+            try {
+              const userDoc = await db.collection(COLLECTIONS.USERS).doc(job.userId).get()
+              const userData = userDoc.exists ? userDoc.data() : null
+
+              return {
+                ...job,
+                userEmail: userData?.email || 'Unknown',
+                userDisplayName: userData?.displayName || null
+              }
+            } catch (error) {
+              console.error('❌ Error getting user data for job:', job.id, error)
+              return {
+                ...job,
+                userEmail: 'Unknown',
+                userDisplayName: null
+              }
+            }
+          })
+        )
+
+        return {
+          translations: jobsWithUserInfo,
+          totalCount,
+          hasMore: offset + limitCount < totalCount
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error getting recent translations:', error)
+      throw error
+    }
+  }
 }
 
 // Analytics Operations
