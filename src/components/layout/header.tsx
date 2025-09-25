@@ -28,6 +28,7 @@ export function Header() {
     findSubtitles: 'Hledat titulky',
     videoTools: 'Nástroje',
     subtitleEditor: 'Editor Titulků',
+    statistics: 'Statistiky',
     buyCredits: 'Kredity',
     dashboard: 'Dashboard',
     signOut: 'Odhlásit se',
@@ -38,6 +39,7 @@ export function Header() {
     findSubtitles: 'Find Subtitles',
     videoTools: 'Video Tools',
     subtitleEditor: 'Subtitle Editor',
+    statistics: 'Statistics',
     buyCredits: 'Buy Credits',
     dashboard: 'Dashboard',
     signOut: 'Sign Out',
@@ -95,6 +97,12 @@ export function Header() {
               className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               {navLabels.subtitleEditor}
+            </Link>
+            <Link
+              href={`${langPrefix}/statistics`}
+              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+            >
+              {navLabels.statistics}
             </Link>
             <Link
               href={`${langPrefix}/buy-credits`}
@@ -196,6 +204,13 @@ export function Header() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {navLabels.subtitleEditor}
+                </Link>
+                <Link
+                  href={`${langPrefix}/statistics`}
+                  className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {navLabels.statistics}
                 </Link>
                 {user && isAdmin(user) && (
                   <Link

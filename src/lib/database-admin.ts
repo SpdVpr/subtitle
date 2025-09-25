@@ -243,6 +243,22 @@ export class TranslationJobService {
     }
   }
 
+  static async getAllJobs(limitCount = 1000): Promise<TranslationJob[]> {
+    try {
+      const db = getAdminDb()
+
+      const snapshot = await db.collection(COLLECTIONS.TRANSLATION_JOBS)
+        .orderBy('createdAt', 'desc')
+        .limit(limitCount)
+        .get()
+
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TranslationJob))
+    } catch (error) {
+      console.error('❌ Error getting all jobs:', error)
+      throw error
+    }
+  }
+
   static async getRecentTranslations(limitCount = 20, offset = 0): Promise<{
     translations: (TranslationJob & { userEmail?: string, userDisplayName?: string })[]
     totalCount: number
