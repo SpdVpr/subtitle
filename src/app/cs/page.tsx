@@ -17,7 +17,8 @@ import {
   ArrowRight,
   ArrowDown,
   Languages,
-  Star
+  Star,
+  MessageSquare
 } from "lucide-react";
 
 export default function CzechHome() {
@@ -443,6 +444,12 @@ export default function CzechHome() {
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="/cs/video-tools">Vyzkoušet Video Přehrávač</Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild className="bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 border-blue-200 text-blue-700 hover:text-blue-800 dark:from-blue-950 dark:to-purple-950 dark:border-blue-800 dark:text-blue-300 dark:hover:text-blue-200">
+              <Link href="/cs/feedback" className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Sdílet Zpětnou Vazbu
+              </Link>
             </Button>
           </div>
         </div>

@@ -141,6 +141,23 @@ export default function FeedbackPage() {
           </Link>
         </Button>
 
+        {/* Motivational Banner */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-lg p-6 mb-6 border border-blue-200 dark:border-blue-800">
+          <div className="text-center">
+            <div className="flex justify-center mb-3">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-500 w-12 h-12 rounded-full flex items-center justify-center">
+                <MessageSquare className="h-6 w-6 text-white" />
+              </div>
+            </div>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              Your Voice Matters! 🎯
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Every piece of feedback helps us build better features. Join thousands of users who've helped shape SubtitleBot!
+            </p>
+          </div>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -148,7 +165,7 @@ export default function FeedbackPage() {
               Quick Feedback
             </CardTitle>
             <CardDescription>
-              Help us improve SubtitleBot! Share your thoughts, suggestions, or report issues. 
+              Help us improve SubtitleBot! Share your thoughts, suggestions, or report issues.
               Your feedback is anonymous and helps us make the app better for everyone.
             </CardDescription>
           </CardHeader>
@@ -171,7 +188,7 @@ export default function FeedbackPage() {
                 </label>
                 <Textarea
                   id="feedback"
-                  placeholder="What would you like to see improved? Any bugs or issues? New features you'd love to have? We'd love to hear from you!"
+                  placeholder=""
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   disabled={isSubmitting}

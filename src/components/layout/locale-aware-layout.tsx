@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { Header } from './header'
 import { Footer } from './footer'
+import { FloatingFeedbackButton } from '@/components/ui/floating-feedback-button'
 
 interface LocaleAwareLayoutProps {
   children: React.ReactNode
@@ -20,6 +21,7 @@ export function LocaleAwareLayout({ children }: LocaleAwareLayoutProps) {
       <Header />
       <main className="flex-1 bg-background">{children}</main>
       <Footer locale={locale} />
+      <FloatingFeedbackButton />
     </div>
   )
 }

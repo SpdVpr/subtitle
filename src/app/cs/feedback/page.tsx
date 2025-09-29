@@ -142,6 +142,23 @@ export default function CzechFeedbackPage() {
           </Link>
         </Button>
 
+        {/* Motivační Banner */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-lg p-6 mb-6 border border-blue-200 dark:border-blue-800">
+          <div className="text-center">
+            <div className="flex justify-center mb-3">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-500 w-12 h-12 rounded-full flex items-center justify-center">
+                <MessageSquare className="h-6 w-6 text-white" />
+              </div>
+            </div>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              Váš hlas je důležitý! 🎯
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Každá zpětná vazba nám pomáhá vytvářet lepší funkce. Připojte se k tisícům uživatelů, kteří pomohli formovat SubtitleBot!
+            </p>
+          </div>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -149,7 +166,7 @@ export default function CzechFeedbackPage() {
               Rychlá Zpětná Vazba
             </CardTitle>
             <CardDescription>
-              Pomozte nám vylepšit SubtitleBot! Sdílejte své myšlenky, návrhy nebo nahlaste problémy. 
+              Pomozte nám vylepšit SubtitleBot! Sdílejte své myšlenky, návrhy nebo nahlaste problémy.
               Vaše zpětná vazba je anonymní a pomáhá nám udělat aplikaci lepší pro všechny.
             </CardDescription>
           </CardHeader>
@@ -172,7 +189,7 @@ export default function CzechFeedbackPage() {
                 </label>
                 <Textarea
                   id="feedback"
-                  placeholder="Co byste chtěli vidět vylepšené? Nějaké chyby nebo problémy? Nové funkce, které byste milovali? Rádi uslyšíme váš názor!"
+                  placeholder=""
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   disabled={isSubmitting}

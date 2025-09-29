@@ -15,13 +15,15 @@ import {
   Coins,
   ArrowRight,
   Loader2,
-  BarChart3
+  BarChart3,
+  MessageSquare
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { EmailVerificationGuard } from '@/components/auth/email-verification-guard'
 import { CreditsCard } from '@/components/ui/credits-display'
 import { HistoryTabs } from '@/components/dashboard/history-tabs'
 import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard'
+import { FeedbackWidget } from '@/components/dashboard/feedback-widget'
 import { FavoriteLanguagesManager } from '@/components/translation/favorite-languages-manager'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Settings } from 'lucide-react'
@@ -188,6 +190,15 @@ export default function CzechDashboardPage() {
                         <ArrowRight className="w-4 h-4" />
                       </Link>
                     </Button>
+                    <Button variant="outline" asChild className="w-full justify-between bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 border-blue-200 text-blue-700 hover:text-blue-800 dark:from-blue-950 dark:to-purple-950 dark:border-blue-800 dark:text-blue-300 dark:hover:text-blue-200">
+                      <Link href="/cs/feedback">
+                        <span className="flex items-center gap-2">
+                          <MessageSquare className="w-4 h-4" />
+                          Sdílet Zpětnou Vazbu
+                        </span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
                   </CardContent>
                 </Card>
               </div>
@@ -241,6 +252,9 @@ export default function CzechDashboardPage() {
 
                 {/* History Tabs - Translation & Credit History */}
                 <HistoryTabs />
+
+                {/* Feedback Widget */}
+                <FeedbackWidget locale="cs" />
 
                 {/* Getting Started Guide */}
                 <Card className="border-primary/20 bg-primary/5">
