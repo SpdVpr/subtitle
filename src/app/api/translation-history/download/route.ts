@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getFirestore } from 'firebase-admin/firestore'
 import { getAdminApp } from '@/lib/firebase-admin'
+import { encodeContentDisposition } from '@/lib/filename-encoder'
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,12 +40,17 @@ export async function POST(request: NextRequest) {
 
     console.log('Serving download for job:', jobId)
 
-    // Return the file as a download
+    // Encode filename for Content-Disposition header to support non-ASCII characters
+    // This fixes issues with Vietnamese, Czech, Chinese, and other non-ASCII filenames
+    const fileName = job.translatedFileName || 'translation.srt'
+    const contentDisposition = encodeContentDisposition(fileName)
+
+    // Return the file as a download with proper encoding
     return new NextResponse(job.translatedContent, {
       status: 200,
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
-        'Content-Disposition': `attachment; filename="${job.translatedFileName || 'translation.srt'}"`,
+        'Content-Disposition': contentDisposition,
       },
     })
 
