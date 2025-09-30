@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 
 export default function CzechFeedbackPage() {
+  const { user } = useAuth()
   const [feedback, setFeedback] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -35,7 +36,15 @@ export default function CzechFeedbackPage() {
     analytics.feedbackPageVisited('cs')
     // Generate initial math question
     generateMathQuestion()
-  }, [])
+
+    // Debug: Log user info on page load
+    console.log('👤 Feedback page loaded - User info:', {
+      uid: user?.uid,
+      email: user?.email,
+      displayName: user?.displayName,
+      isLoggedIn: !!user
+    })
+  }, [user])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,20 +75,35 @@ export default function CzechFeedbackPage() {
 
     setIsSubmitting(true)
 
+    // Debug: Log user info
+    console.log('👤 User info when submitting feedback:', {
+      uid: user?.uid,
+      email: user?.email,
+      displayName: user?.displayName,
+      isLoggedIn: !!user
+    })
+
     try {
+      const payload = {
+        feedback: feedback.trim(),
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+        locale: 'cs',
+        captchaAnswer: userAnswer, // Include CAPTCHA answer for server verification
+        userId: user?.uid,
+        userEmail: user?.email,
+        userName: user?.displayName
+      }
+
+      console.log('📤 Sending feedback payload:', payload)
+
       const response = await fetch('/api/feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          feedback: feedback.trim(),
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          url: window.location.href,
-          locale: 'cs',
-          captchaAnswer: userAnswer // Include CAPTCHA answer for server verification
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
@@ -142,6 +166,43 @@ export default function CzechFeedbackPage() {
           </Link>
         </Button>
 
+        {/* User Status Banner */}
+        {user && (
+          <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4 mb-4 border border-green-200 dark:border-green-800">
+            <div className="flex items-center gap-3">
+              <div className="bg-green-500 w-10 h-10 rounded-full flex items-center justify-center">
+                <span className="text-white text-lg">✓</span>
+              </div>
+              <div>
+                <p className="font-medium text-green-900 dark:text-green-100">
+                  Jste přihlášeni jako {user.displayName || user.email}
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Můžeme vám odpovědět na vaši zpětnou vazbu
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!user && (
+          <div className="bg-yellow-50 dark:bg-yellow-950/30 rounded-lg p-4 mb-4 border border-yellow-200 dark:border-yellow-800">
+            <div className="flex items-center gap-3">
+              <div className="bg-yellow-500 w-10 h-10 rounded-full flex items-center justify-center">
+                <span className="text-white text-lg">⚠</span>
+              </div>
+              <div>
+                <p className="font-medium text-yellow-900 dark:text-yellow-100">
+                  Nejste přihlášeni
+                </p>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  Přihlaste se, pokud chcete dostat odpověď na vaši zpětnou vazbu
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Motivační Banner */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-lg p-6 mb-6 border border-blue-200 dark:border-blue-800">
           <div className="text-center">
@@ -197,8 +258,45 @@ export default function CzechFeedbackPage() {
                   className="resize-none"
                 />
                 <p className="text-xs text-muted-foreground">
-                  {feedback.length}/1000 znaků • Anonymní odeslání
+                  {feedback.length}/1000 znaků
                 </p>
+              </div>
+
+              {/* Optional email for reply */}
+              <div className="space-y-3 border rounded-lg p-4 bg-muted/20">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="wantsReply"
+                    checked={wantsReply}
+                    onChange={(e) => setWantsReply(e.target.checked)}
+                    disabled={isSubmitting}
+                    className="rounded"
+                  />
+                  <label htmlFor="wantsReply" className="text-sm font-medium cursor-pointer">
+                    Chci dostat odpověď na můj feedback
+                  </label>
+                </div>
+
+                {wantsReply && (
+                  <div className="space-y-2 pl-6">
+                    <label htmlFor="userEmail" className="text-sm font-medium">
+                      Váš Email
+                    </label>
+                    <Input
+                      id="userEmail"
+                      type="email"
+                      placeholder="vas@email.cz"
+                      value={userEmail}
+                      onChange={(e) => setUserEmail(e.target.value)}
+                      disabled={isSubmitting}
+                      required={wantsReply}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      💡 Pokud zadáte email, budeme vás moci kontaktovat s odpovědí na váš feedback
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Math CAPTCHA */}

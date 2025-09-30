@@ -12,6 +12,7 @@ import { Shield, Menu, X } from "lucide-react"
 
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
+import NotificationsBell from "@/components/notifications-bell"
 
 export function Header() {
   const { user, signOut, loading } = useAuth()
@@ -136,6 +137,9 @@ export function Header() {
             {/* Language Switcher and Theme Toggle - always visible */}
             <LanguageSwitcher />
             <ThemeToggle />
+
+            {/* Notifications Bell - only for logged in users */}
+            {user && <NotificationsBell />}
 
             {loading ? (
               <div className="h-8 w-20 bg-muted animate-pulse rounded" />

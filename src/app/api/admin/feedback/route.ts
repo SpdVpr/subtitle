@@ -11,8 +11,32 @@ export interface FeedbackItem {
   url?: string
   ipHash: string
   userAgent?: string
-  status: 'new' | 'read' | 'resolved'
+  status: 'new' | 'read' | 'resolved' | 'replied'
   priority: 'low' | 'normal' | 'high'
+
+  // User identification (if logged in)
+  userId?: string
+  userEmail?: string
+  userName?: string
+
+  // Admin response - New format
+  adminReply?: string
+  adminId?: string
+  adminName?: string
+
+  // Admin response - Old format (backward compatibility)
+  adminResponse?: {
+    message: string
+    respondedBy: string
+    respondedAt: any
+    notificationSent: boolean
+  }
+
+  // Metadata
+  updatedAt?: any
+  readAt?: any
+  resolvedAt?: any
+  repliedAt?: string
 }
 
 export async function GET(request: NextRequest) {
@@ -75,7 +99,7 @@ export async function GET(request: NextRequest) {
       .limit(limitParam)
 
     // Add status filter if specified
-    if (statusFilter && ['new', 'read', 'resolved'].includes(statusFilter)) {
+    if (statusFilter && ['new', 'read', 'resolved', 'replied'].includes(statusFilter)) {
       feedbackRef = db.collection('feedback')
         .where('status', '==', statusFilter)
         .orderBy('timestamp', 'desc')
@@ -97,7 +121,22 @@ export async function GET(request: NextRequest) {
         ipHash: data.ipHash,
         userAgent: data.userAgent,
         status: data.status || 'new',
-        priority: data.priority || 'normal'
+        priority: data.priority || 'normal',
+        // User identification
+        userId: data.userId,
+        userEmail: data.userEmail,
+        userName: data.userName,
+        // Admin response - New format
+        adminReply: data.adminReply,
+        adminId: data.adminId,
+        adminName: data.adminName,
+        // Admin response - Old format
+        adminResponse: data.adminResponse,
+        // Metadata
+        updatedAt: data.updatedAt,
+        readAt: data.readAt,
+        resolvedAt: data.resolvedAt,
+        repliedAt: data.repliedAt
       })
     })
 

@@ -201,6 +201,15 @@ export default function DashboardPage() {
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 </Button>
+                <Button variant="outline" asChild className="w-full justify-between">
+                  <Link href="/my-feedback">
+                    <span className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" />
+                      My Feedback
+                    </span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 import { analytics } from '@/lib/analytics'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,6 +12,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 
 export default function FeedbackPage() {
+  const { user } = useAuth()
   const [feedback, setFeedback] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -35,7 +37,15 @@ export default function FeedbackPage() {
     analytics.feedbackPageVisited('en')
     // Generate initial math question
     generateMathQuestion()
-  }, [])
+
+    // Debug: Log user info on page load
+    console.log('👤 Feedback page loaded - User info:', {
+      uid: user?.uid,
+      email: user?.email,
+      displayName: user?.displayName,
+      isLoggedIn: !!user
+    })
+  }, [user])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,19 +76,35 @@ export default function FeedbackPage() {
 
     setIsSubmitting(true)
 
+    // Debug: Log user info
+    console.log('👤 User info when submitting feedback:', {
+      uid: user?.uid,
+      email: user?.email,
+      displayName: user?.displayName,
+      isLoggedIn: !!user
+    })
+
     try {
+      const payload = {
+        feedback: feedback.trim(),
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+        locale: 'en',
+        captchaAnswer: userAnswer, // Include CAPTCHA answer for server verification
+        userId: user?.uid,
+        userEmail: user?.email,
+        userName: user?.displayName
+      }
+
+      console.log('📤 Sending feedback payload:', payload)
+
       const response = await fetch('/api/feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          feedback: feedback.trim(),
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          url: window.location.href,
-          captchaAnswer: userAnswer // Include CAPTCHA answer for server verification
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
@@ -140,6 +166,43 @@ export default function FeedbackPage() {
             Back to Home
           </Link>
         </Button>
+
+        {/* User Status Banner */}
+        {user && (
+          <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4 mb-4 border border-green-200 dark:border-green-800">
+            <div className="flex items-center gap-3">
+              <div className="bg-green-500 w-10 h-10 rounded-full flex items-center justify-center">
+                <span className="text-white text-lg">✓</span>
+              </div>
+              <div>
+                <p className="font-medium text-green-900 dark:text-green-100">
+                  Logged in as {user.displayName || user.email}
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  We can respond to your feedback
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!user && (
+          <div className="bg-yellow-50 dark:bg-yellow-950/30 rounded-lg p-4 mb-4 border border-yellow-200 dark:border-yellow-800">
+            <div className="flex items-center gap-3">
+              <div className="bg-yellow-500 w-10 h-10 rounded-full flex items-center justify-center">
+                <span className="text-white text-lg">⚠</span>
+              </div>
+              <div>
+                <p className="font-medium text-yellow-900 dark:text-yellow-100">
+                  Not logged in
+                </p>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  Log in if you want to receive a response to your feedback
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Motivational Banner */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-lg p-6 mb-6 border border-blue-200 dark:border-blue-800">

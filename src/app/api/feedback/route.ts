@@ -8,7 +8,10 @@ const feedbackSchema = z.object({
   userAgent: z.string().optional(),
   url: z.string().optional(),
   locale: z.string().optional(),
-  captchaAnswer: z.string().optional()
+  captchaAnswer: z.string().optional(),
+  userId: z.string().nullable().optional(),
+  userEmail: z.string().email().nullable().optional(),
+  userName: z.string().nullable().optional()
 })
 
 // Simple rate limiting using in-memory store
@@ -138,13 +141,24 @@ export async function POST(request: NextRequest) {
         url: validatedData.url,
         ipHash: clientKey, // Store hashed IP for privacy
         userAgent: validatedData.userAgent,
-        status: 'new', // new, read, resolved
-        priority: 'normal' // low, normal, high
+        status: 'new', // new, read, resolved, replied
+        priority: 'normal', // low, normal, high
+        // User identification (if logged in)
+        userId: validatedData.userId || null,
+        userEmail: validatedData.userEmail || null,
+        userName: validatedData.userName || null
       }
+
+      console.log('📝 Feedback API - Received data:', {
+        userId: validatedData.userId,
+        userEmail: validatedData.userEmail,
+        userName: validatedData.userName
+      })
+      console.log('📝 Feedback API - Saving to Firestore:', feedbackData)
 
       // Use Firebase Admin SDK to add document
       await db.collection('feedback').add(feedbackData)
-      console.log('📝 Feedback saved to Firestore')
+      console.log('📝 Feedback saved to Firestore successfully')
     } catch (dbError) {
       console.error('Failed to save feedback to database:', dbError)
       // Fallback: log to console if Firestore unavailable

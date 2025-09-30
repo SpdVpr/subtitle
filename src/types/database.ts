@@ -330,3 +330,36 @@ export interface RegistrationStats {
   creditsSaved: number // Credits not given due to detection
   lastUpdated: Timestamp
 }
+
+// Feedback System
+export interface FeedbackItem {
+  id: string
+  feedback: string
+  timestamp: Timestamp
+  submittedAt: string
+  locale: string
+  url?: string
+  ipHash: string
+  userAgent?: string
+  status: 'new' | 'read' | 'resolved' | 'replied'
+  priority: 'low' | 'normal' | 'high'
+
+  // Optional user identification for replies
+  userEmail?: string
+  userId?: string
+  userName?: string
+
+  // Admin response
+  adminResponse?: {
+    message: string
+    respondedBy: string // admin email
+    respondedAt: Timestamp
+    notificationSent: boolean
+  }
+
+  // Metadata
+  updatedAt?: Timestamp
+  readAt?: Timestamp
+  resolvedAt?: Timestamp
+  repliedAt?: Timestamp
+}

@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { MessageSquare, RefreshCw, Clock, CheckCircle, AlertTriangle, Flag } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
+import { MessageSquare, RefreshCw, Clock, CheckCircle, AlertTriangle, Flag, Reply, Send, User } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 
@@ -18,8 +19,21 @@ interface FeedbackItem {
   url?: string
   ipHash: string
   userAgent?: string
-  status: 'new' | 'read' | 'resolved'
+  status: 'new' | 'read' | 'resolved' | 'replied'
   priority: 'low' | 'normal' | 'high'
+  userId?: string
+  userEmail?: string
+  userName?: string
+  adminReply?: string
+  adminId?: string
+  adminName?: string
+  repliedAt?: string
+  adminResponse?: {
+    message: string
+    respondedBy: string
+    respondedAt: any
+    notificationSent: boolean
+  }
 }
 
 export function FeedbackManagement() {
@@ -27,6 +41,9 @@ export function FeedbackManagement() {
   const [feedback, setFeedback] = useState<FeedbackItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [replyMessage, setReplyMessage] = useState('')
+  const [isSendingReply, setIsSendingReply] = useState(false)
 
   const loadFeedback = async () => {
     if (!user?.email) return
@@ -88,6 +105,51 @@ export function FeedbackManagement() {
     }
   }
 
+  const sendReply = async (feedbackId: string) => {
+    if (!user?.email || !user?.uid) return
+    if (replyMessage.trim().length < 10) {
+      toast.error('Reply must be at least 10 characters')
+      return
+    }
+
+    setIsSendingReply(true)
+    try {
+      const response = await fetch(`/api/feedback/${feedbackId}/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reply: replyMessage.trim(),
+          adminId: user.uid,
+          adminName: user.displayName || user.email || 'Admin'
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to send reply')
+      }
+
+      const result = await response.json()
+
+      if (result.notificationSent) {
+        toast.success('Reply sent and user notified!')
+      } else {
+        toast.success('Reply sent successfully!')
+      }
+
+      setReplyingTo(null)
+      setReplyMessage('')
+      loadFeedback() // Reload data
+    } catch (error) {
+      console.error('Failed to send reply:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to send reply')
+    } finally {
+      setIsSendingReply(false)
+    }
+  }
+
   useEffect(() => {
     loadFeedback()
   }, [user, statusFilter])
@@ -97,6 +159,7 @@ export function FeedbackManagement() {
       case 'new': return <Clock className="h-4 w-4" />
       case 'read': return <MessageSquare className="h-4 w-4" />
       case 'resolved': return <CheckCircle className="h-4 w-4" />
+      case 'replied': return <Reply className="h-4 w-4" />
       default: return <MessageSquare className="h-4 w-4" />
     }
   }
@@ -106,6 +169,7 @@ export function FeedbackManagement() {
       case 'new': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       case 'read': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
       case 'resolved': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+      case 'replied': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
     }
   }
@@ -208,6 +272,7 @@ export function FeedbackManagement() {
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="new">New</SelectItem>
                   <SelectItem value="read">Read</SelectItem>
+                  <SelectItem value="replied">Replied</SelectItem>
                   <SelectItem value="resolved">Resolved</SelectItem>
                 </SelectContent>
               </Select>
@@ -257,10 +322,89 @@ export function FeedbackManagement() {
                         </div>
                       </div>
 
+                      {/* User info (if available) */}
+                      {(item.userId || item.userEmail) && (
+                        <div className="flex items-center gap-2 text-xs">
+                          <User className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">
+                            {item.userName && <span className="font-medium">{item.userName}</span>}
+                            {item.userEmail && <span className="ml-1">({item.userEmail})</span>}
+                            {!item.userName && !item.userEmail && item.userId && <span>User ID: {item.userId.substring(0, 8)}...</span>}
+                          </span>
+                          <Badge variant="secondary" className="text-xs">Registered User</Badge>
+                        </div>
+                      )}
+
                       {/* Feedback content */}
                       <div className="bg-muted/50 p-3 rounded-lg">
                         <p className="text-sm whitespace-pre-wrap">{item.feedback}</p>
                       </div>
+
+                      {/* Admin Response - New format */}
+                      {item.adminReply && (
+                        <div className="border-l-2 border-purple-500 pl-3 py-2 bg-purple-50 dark:bg-purple-950/20 rounded">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Reply className="h-4 w-4 text-purple-600" />
+                            <span className="text-xs font-medium text-purple-600">Admin Response</span>
+                            <span className="text-xs text-muted-foreground">
+                              by {item.adminName || 'Admin'} • {formatDate(item.repliedAt, '')}
+                            </span>
+                          </div>
+                          <p className="text-sm whitespace-pre-wrap">{item.adminReply}</p>
+                        </div>
+                      )}
+
+                      {/* Admin Response - Old format (backward compatibility) */}
+                      {!item.adminReply && item.adminResponse && (
+                        <div className="border-l-2 border-purple-500 pl-3 py-2 bg-purple-50 dark:bg-purple-950/20 rounded">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Reply className="h-4 w-4 text-purple-600" />
+                            <span className="text-xs font-medium text-purple-600">Admin Response</span>
+                            <span className="text-xs text-muted-foreground">
+                              by {item.adminResponse.respondedBy} • {formatDate(item.adminResponse.respondedAt, '')}
+                            </span>
+                          </div>
+                          <p className="text-sm whitespace-pre-wrap">{item.adminResponse.message}</p>
+                        </div>
+                      )}
+
+                      {/* Reply Form */}
+                      {(item.userId || item.userEmail) && !item.adminReply && !item.adminResponse && replyingTo === item.id && (
+                        <div className="space-y-2 border rounded-lg p-3 bg-muted/20">
+                          <label className="text-sm font-medium">Your Reply</label>
+                          <Textarea
+                            placeholder="Write your response to the user..."
+                            value={replyMessage}
+                            onChange={(e) => setReplyMessage(e.target.value)}
+                            rows={4}
+                            disabled={isSendingReply}
+                          />
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => sendReply(item.id)}
+                              disabled={isSendingReply || replyMessage.trim().length < 10}
+                            >
+                              <Send className="h-4 w-4 mr-2" />
+                              {isSendingReply ? 'Sending...' : 'Send Reply'}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setReplyingTo(null)
+                                setReplyMessage('')
+                              }}
+                              disabled={isSendingReply}
+                            >
+                              Cancel
+                            </Button>
+                            <span className="text-xs text-muted-foreground ml-auto">
+                              {replyMessage.length}/2000 characters
+                            </span>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Metadata */}
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -282,6 +426,7 @@ export function FeedbackManagement() {
                               <SelectItem value="new">New</SelectItem>
                               <SelectItem value="read">Read</SelectItem>
                               <SelectItem value="resolved">Resolved</SelectItem>
+                              <SelectItem value="replied">Replied</SelectItem>
                             </SelectContent>
                           </Select>
                           <Select
@@ -297,6 +442,25 @@ export function FeedbackManagement() {
                               <SelectItem value="high">High</SelectItem>
                             </SelectContent>
                           </Select>
+                          {/* Reply button (only for registered users without response) */}
+                          {(item.userId || item.userEmail) && !item.adminReply && !item.adminResponse && (
+                            <Button
+                              size="sm"
+                              variant={replyingTo === item.id ? "secondary" : "outline"}
+                              onClick={() => {
+                                if (replyingTo === item.id) {
+                                  setReplyingTo(null)
+                                  setReplyMessage('')
+                                } else {
+                                  setReplyingTo(item.id)
+                                  setReplyMessage('')
+                                }
+                              }}
+                            >
+                              <Reply className="h-4 w-4 mr-1" />
+                              Reply
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
