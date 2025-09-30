@@ -24,10 +24,28 @@ const COLLECTIONS = {
 
 // User Profile Operations
 export class UserService {
-  static async createUser(uid: string, email: string, displayName?: string): Promise<void> {
+  static async createUser(
+    uid: string,
+    email: string,
+    displayName?: string,
+    options?: {
+      creditsBalance?: number
+      registrationTracking?: {
+        ipAddress?: string
+        browserFingerprint?: string
+        userAgent?: string
+        suspiciousScore?: number
+        duplicateDetected?: boolean
+        registrationMethod?: 'email' | 'google'
+      }
+    }
+  ): Promise<void> {
     if (!db) throw new Error('Firestore not initialized')
 
     console.log('👤 Creating new user in Firestore:', uid, email)
+
+    const creditsBalance = options?.creditsBalance ?? 100
+    const creditsTotalPurchased = options?.creditsBalance ?? 100
 
     const userProfile: UserProfile = {
       uid,
@@ -45,8 +63,9 @@ export class UserService {
         batchJobsLimit: -1, // Unlimited with credits
         resetDate: serverTimestamp() as Timestamp
       },
-      creditsBalance: 100, // Welcome credits for new users
-      creditsTotalPurchased: 100,
+      creditsBalance,
+      creditsTotalPurchased,
+      registrationTracking: options?.registrationTracking,
       preferences: {
         defaultAiService: 'google',
         emailNotifications: true,
@@ -55,7 +74,10 @@ export class UserService {
     }
 
     await setDoc(doc(db, COLLECTIONS.USERS, uid), userProfile)
-    console.log('✅ User created successfully in Firestore')
+    console.log('✅ User created successfully in Firestore', {
+      creditsBalance,
+      suspiciousScore: options?.registrationTracking?.suspiciousScore
+    })
   }
 
   static async getUser(uid: string): Promise<UserProfile | null> {

@@ -194,6 +194,34 @@ export function useAuthProvider(): AuthContextType {
 
     setLoading(true)
     try {
+      // Generate browser fingerprint for anti-abuse tracking
+      const { getOrGenerateFingerprint } = await import('@/lib/browser-fingerprint')
+      const browserFingerprint = await getOrGenerateFingerprint()
+
+      // Check registration with anti-abuse system
+      const checkResponse = await fetch('/api/registration/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ browserFingerprint })
+      })
+
+      let creditsToAward = 100 // Default
+      let suspiciousScore = 0
+      let duplicateDetected = false
+
+      if (checkResponse.ok) {
+        const checkResult = await checkResponse.json()
+        creditsToAward = checkResult.creditsToAward
+        suspiciousScore = checkResult.suspiciousScore
+        duplicateDetected = checkResult.duplicateIpCount > 0 || checkResult.duplicateFingerprintCount > 0
+
+        console.log('🔍 Registration check:', {
+          suspiciousScore,
+          creditsToAward,
+          reasons: checkResult.reasons
+        })
+      }
+
       const { user: firebaseUser } = await createUserWithEmailAndPassword(firebaseServices.auth, email, password)
 
       // Send email verification with custom settings
@@ -202,12 +230,49 @@ export function useAuthProvider(): AuthContextType {
         handleCodeInApp: false
       })
 
-      // Create user profile in Firestore
+      // Create user profile in Firestore with tracking data
       await UserService.createUser(
         firebaseUser.uid,
         firebaseUser.email!,
-        firebaseUser.displayName || undefined
+        firebaseUser.displayName || undefined,
+        {
+          creditsBalance: creditsToAward,
+          registrationTracking: {
+            browserFingerprint,
+            userAgent: navigator.userAgent,
+            suspiciousScore,
+            duplicateDetected,
+            registrationMethod: 'email'
+          }
+        }
       )
+
+      // Record registration in tracking system
+      try {
+        const recordResponse = await fetch('/api/registration/record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: firebaseUser.uid,
+            email: firebaseUser.email,
+            browserFingerprint,
+            registrationMethod: 'email',
+            creditsAwarded: creditsToAward,
+            suspiciousScore
+          })
+        })
+
+        if (recordResponse.ok) {
+          const recordResult = await recordResponse.json()
+          console.log('✅ Registration recorded:', recordResult)
+        } else {
+          const errorData = await recordResponse.json()
+          console.error('❌ Failed to record registration:', errorData)
+        }
+      } catch (recordError) {
+        console.error('❌ Error recording registration:', recordError)
+        // Don't throw - registration should succeed even if tracking fails
+      }
 
       // Track user registration
       analytics.userRegistered('email')
@@ -276,13 +341,79 @@ export function useAuthProvider(): AuthContextType {
         const existingUser = await UserService.getUser(result.user.uid)
 
         if (!existingUser) {
-          // Create new user with full profile and welcome credits
-          console.log('👤 Creating new Google user in Firestore with 100 welcome credits')
+          // Generate browser fingerprint for anti-abuse tracking
+          const { getOrGenerateFingerprint } = await import('@/lib/browser-fingerprint')
+          const browserFingerprint = await getOrGenerateFingerprint()
+
+          // Check registration with anti-abuse system
+          const checkResponse = await fetch('/api/registration/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ browserFingerprint })
+          })
+
+          let creditsToAward = 100 // Default
+          let suspiciousScore = 0
+          let duplicateDetected = false
+
+          if (checkResponse.ok) {
+            const checkResult = await checkResponse.json()
+            creditsToAward = checkResult.creditsToAward
+            suspiciousScore = checkResult.suspiciousScore
+            duplicateDetected = checkResult.duplicateIpCount > 0 || checkResult.duplicateFingerprintCount > 0
+
+            console.log('🔍 Google registration check:', {
+              suspiciousScore,
+              creditsToAward,
+              reasons: checkResult.reasons
+            })
+          }
+
+          // Create new user with full profile and adjusted credits
+          console.log(`👤 Creating new Google user in Firestore with ${creditsToAward} welcome credits`)
           await UserService.createUser(
             result.user.uid,
             result.user.email!,
-            result.user.displayName || undefined
+            result.user.displayName || undefined,
+            {
+              creditsBalance: creditsToAward,
+              registrationTracking: {
+                browserFingerprint,
+                userAgent: navigator.userAgent,
+                suspiciousScore,
+                duplicateDetected,
+                registrationMethod: 'google'
+              }
+            }
           )
+
+          // Record registration in tracking system
+          try {
+            const recordResponse = await fetch('/api/registration/record', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: result.user.uid,
+                email: result.user.email,
+                browserFingerprint,
+                registrationMethod: 'google',
+                creditsAwarded: creditsToAward,
+                suspiciousScore
+              })
+            })
+
+            if (recordResponse.ok) {
+              const recordResult = await recordResponse.json()
+              console.log('✅ Registration recorded:', recordResult)
+            } else {
+              const errorData = await recordResponse.json()
+              console.error('❌ Failed to record registration:', errorData)
+            }
+          } catch (recordError) {
+            console.error('❌ Error recording registration:', recordError)
+            // Don't throw - registration should succeed even if tracking fails
+          }
+
           // Track new user registration
           analytics.userRegistered('google')
         } else {

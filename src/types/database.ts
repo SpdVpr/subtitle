@@ -9,14 +9,14 @@ export interface UserProfile {
   createdAt: Timestamp
   updatedAt: Timestamp
   emailVerified: boolean
-  
+
   // Subscription info
   subscriptionId?: string
   subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'unpaid'
   subscriptionPlan?: 'free' | 'premium' | 'pro'
   subscriptionPeriodEnd?: Timestamp
   stripeCustomerId?: string
-  
+
   // Usage tracking
   usage: {
     translationsUsed: number
@@ -31,6 +31,16 @@ export interface UserProfile {
   // Credits wallet
   creditsBalance?: number // in credits (e.g., 1 USD = 100 credits)
   creditsTotalPurchased?: number // lifetime purchased credits
+
+  // Registration tracking (anti-abuse)
+  registrationTracking?: {
+    ipAddress?: string
+    browserFingerprint?: string
+    userAgent?: string
+    suspiciousScore?: number // 0-100, higher = more suspicious
+    duplicateDetected?: boolean
+    registrationMethod?: 'email' | 'google' // How they registered
+  }
 
   // Preferences
   preferences: {
@@ -256,20 +266,67 @@ export interface ErrorLog {
   id: string
   userId?: string
   jobId?: string
-  
+
   // Error details
   error: string
   stack?: string
   context?: Record<string, any>
-  
+
   // Request info
   userAgent?: string
   ipAddress?: string
   url?: string
   method?: string
-  
+
   // Timing
   timestamp: Timestamp
   resolved: boolean
   resolvedAt?: Timestamp
+}
+
+// Registration Tracking (Anti-abuse system)
+export interface RegistrationTracking {
+  id: string
+  userId: string
+  email: string
+
+  // Tracking data
+  ipAddress: string
+  browserFingerprint: string
+  userAgent: string
+
+  // Detection results
+  suspiciousScore: number // 0-100
+  duplicateIpCount: number // How many accounts from this IP
+  duplicateFingerprintCount: number // How many accounts with this fingerprint
+
+  // Credits awarded
+  creditsAwarded: number // Actual credits given (may be reduced if suspicious)
+  creditsReduced: boolean // Was the amount reduced due to suspicion?
+
+  // Registration details
+  registrationMethod: 'email' | 'google'
+  emailVerified: boolean
+
+  // Timestamps
+  createdAt: Timestamp
+
+  // Admin actions
+  flaggedByAdmin?: boolean
+  adminNotes?: string
+  reviewedAt?: Timestamp
+  reviewedBy?: string
+}
+
+// Registration Statistics (for admin dashboard)
+export interface RegistrationStats {
+  totalRegistrations: number
+  suspiciousRegistrations: number
+  blockedRegistrations: number
+  uniqueIPs: number
+  uniqueFingerprints: number
+  averageSuspiciousScore: number
+  creditsAwarded: number
+  creditsSaved: number // Credits not given due to detection
+  lastUpdated: Timestamp
 }

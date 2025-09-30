@@ -107,5 +107,20 @@ service cloud.firestore {
     match /systemSettings/{settingId} {
       allow read, write: if false; // Only server-side access
     }
+
+    // Registration tracking - only admins can read, only server can write
+    match /registration_tracking/{trackingId} {
+      // Allow admin users to read all registration tracking data
+      allow read: if request.auth != null &&
+        request.auth.token.email in [
+          'premium@test.com',
+          'admin@subtitlebot.com',
+          'admin@subtitle-ai.com',
+          'ceo@subtitle-ai.com',
+          'manager@subtitle-ai.com'
+        ];
+      // Only server-side writes (from API endpoints)
+      allow write: if false;
+    }
   }
 }
