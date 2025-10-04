@@ -12,8 +12,9 @@ Systém je **automaticky aktivní** při každé registraci. Není potřeba nic 
 3. ✅ Zkontroluje duplicitní browser fingerprints
 4. ✅ Vypočítá suspicious score (0-100)
 5. ✅ Upraví počet kreditů podle skóre:
-   - **Normální**: 100 kreditů
-   - **Podezřelé**: 20 kreditů
+   - **Normální (0-49)**: 100 kreditů
+   - **Podezřelé (50-79)**: 20 kreditů
+   - **Velmi podezřelé (80+)**: 0 kreditů
 6. ✅ Zaznamená vše do databáze
 
 ## 📊 Jak to funguje
@@ -69,14 +70,16 @@ Pokud chcete upravit prahy, editujte `src/lib/registration-tracking.ts`:
 
 ```typescript
 export const TRACKING_CONFIG = {
-  DEFAULT_CREDITS: 100,        // Normální kredity
-  SUSPICIOUS_CREDITS: 20,      // Snížené kredity
-  
-  MAX_ACCOUNTS_PER_IP: 3,      // Max účtů z jedné IP
+  DEFAULT_CREDITS: 100,                    // Normální kredity
+  SUSPICIOUS_CREDITS: 20,                  // Snížené kredity (score 50-79)
+  VERY_HIGH_SUSPICIOUS_CREDITS: 0,         // Žádné kredity (score 80+)
+
+  MAX_ACCOUNTS_PER_IP: 3,                  // Max účtů z jedné IP
   MAX_ACCOUNTS_PER_FINGERPRINT: 2,
-  
-  SUSPICIOUS_THRESHOLD: 50,    // Práh pro snížení kreditů
-  BLOCK_THRESHOLD: 80,         // Práh pro blokování (neaktivní)
+
+  SUSPICIOUS_THRESHOLD: 50,                // Práh pro snížení kreditů na 20
+  VERY_HIGH_THRESHOLD: 80,                 // Práh pro snížení kreditů na 0
+  BLOCK_THRESHOLD: 100,                    // Práh pro blokování (neaktivní)
 }
 ```
 

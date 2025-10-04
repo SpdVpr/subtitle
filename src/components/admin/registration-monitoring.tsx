@@ -73,8 +73,9 @@ export function RegistrationMonitoring() {
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          <strong>Anti-Abuse System:</strong> Automaticky detekuje podezřelé registrace na základě IP adresy a browser fingerprinting. 
-          Podezřelé účty dostávají jen 20 kreditů místo 100.
+          <strong>Anti-Abuse System:</strong> Automaticky detekuje podezřelé registrace na základě IP adresy a browser fingerprinting.
+          <br />
+          <strong>Kredity:</strong> Normální (100) • Podezřelé 50-79 (20) • Velmi podezřelé 80+ (0)
         </AlertDescription>
       </Alert>
 

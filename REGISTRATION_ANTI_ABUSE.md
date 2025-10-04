@@ -37,16 +37,18 @@ Systém pro detekci a prevenci zneužívání registračních kreditů. Kombinuj
 
 ### Kredity
 ```typescript
-DEFAULT_CREDITS: 100        // Normální registrace
-SUSPICIOUS_CREDITS: 20      // Podezřelá registrace
+DEFAULT_CREDITS: 100                    // Normální registrace
+SUSPICIOUS_CREDITS: 20                  // Podezřelá registrace (score 50-79)
+VERY_HIGH_SUSPICIOUS_CREDITS: 0         // Velmi podezřelá registrace (score 80+)
 ```
 
 ### Prahy pro detekci
 ```typescript
 MAX_ACCOUNTS_PER_IP: 3              // Max účtů z jedné IP
 MAX_ACCOUNTS_PER_FINGERPRINT: 2     // Max účtů s jedním fingerprintem
-SUSPICIOUS_THRESHOLD: 50            // Skóre pro snížení kreditů
-BLOCK_THRESHOLD: 80                 // Skóre pro blokování (zatím neaktivní)
+SUSPICIOUS_THRESHOLD: 50            // Skóre pro snížení kreditů na 20
+VERY_HIGH_THRESHOLD: 80             // Skóre pro snížení kreditů na 0
+BLOCK_THRESHOLD: 100                // Skóre pro blokování (zatím neaktivní)
 ```
 
 ### Časová okna
@@ -69,7 +71,8 @@ Suspicious score se počítá na základě:
 ### Akce podle skóre:
 - **0-49**: Plné kredity (100)
 - **50-79**: Snížené kredity (20)
-- **80-100**: Blokování (zatím neimplementováno)
+- **80-99**: Žádné kredity (0)
+- **100**: Blokování (zatím neimplementováno)
 
 ## 🔄 Proces registrace
 

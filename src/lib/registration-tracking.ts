@@ -16,18 +16,20 @@ export const TRACKING_CONFIG = {
   // Credits
   DEFAULT_CREDITS: 100,
   SUSPICIOUS_CREDITS: 20, // Reduced credits for suspicious registrations
-  
+  VERY_HIGH_SUSPICIOUS_CREDITS: 0, // No credits for very high suspicious registrations
+
   // Thresholds for suspicion scoring
   MAX_ACCOUNTS_PER_IP: 3,
   MAX_ACCOUNTS_PER_FINGERPRINT: 2,
-  
+
   // Time windows (in days)
   IP_CHECK_WINDOW_DAYS: 30,
   FINGERPRINT_CHECK_WINDOW_DAYS: 90,
-  
+
   // Suspicious score thresholds
-  SUSPICIOUS_THRESHOLD: 50, // Above this = reduce credits
-  BLOCK_THRESHOLD: 80, // Above this = block registration (future feature)
+  SUSPICIOUS_THRESHOLD: 50, // Above this = reduce credits to 20
+  VERY_HIGH_THRESHOLD: 80, // Above this = reduce credits to 0
+  BLOCK_THRESHOLD: 100, // Above this = block registration (future feature)
 }
 
 export interface RegistrationCheckResult {
@@ -108,9 +110,12 @@ export async function checkRegistration(
 
     // Determine credits to award
     let creditsToAward = TRACKING_CONFIG.DEFAULT_CREDITS
-    if (suspiciousScore >= TRACKING_CONFIG.SUSPICIOUS_THRESHOLD) {
+    if (suspiciousScore >= TRACKING_CONFIG.VERY_HIGH_THRESHOLD) {
+      creditsToAward = TRACKING_CONFIG.VERY_HIGH_SUSPICIOUS_CREDITS
+      reasons.push(`Credits reduced to ${creditsToAward} due to very high suspicious activity (score: ${suspiciousScore})`)
+    } else if (suspiciousScore >= TRACKING_CONFIG.SUSPICIOUS_THRESHOLD) {
       creditsToAward = TRACKING_CONFIG.SUSPICIOUS_CREDITS
-      reasons.push(`Credits reduced to ${creditsToAward} due to suspicious activity`)
+      reasons.push(`Credits reduced to ${creditsToAward} due to suspicious activity (score: ${suspiciousScore})`)
     }
 
     // Determine if registration should be blocked (future feature)

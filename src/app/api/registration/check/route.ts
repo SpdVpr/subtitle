@@ -86,9 +86,12 @@ export async function POST(request: NextRequest) {
 
     // Determine credits to award
     let creditsToAward = TRACKING_CONFIG.DEFAULT_CREDITS
-    if (suspiciousScore >= TRACKING_CONFIG.SUSPICIOUS_THRESHOLD) {
+    if (suspiciousScore >= TRACKING_CONFIG.VERY_HIGH_THRESHOLD) {
+      creditsToAward = TRACKING_CONFIG.VERY_HIGH_SUSPICIOUS_CREDITS
+      reasons.push(`Credits reduced to ${creditsToAward} due to very high suspicious activity (score: ${suspiciousScore})`)
+    } else if (suspiciousScore >= TRACKING_CONFIG.SUSPICIOUS_THRESHOLD) {
       creditsToAward = TRACKING_CONFIG.SUSPICIOUS_CREDITS
-      reasons.push(`Credits reduced to ${creditsToAward} due to suspicious activity`)
+      reasons.push(`Credits reduced to ${creditsToAward} due to suspicious activity (score: ${suspiciousScore})`)
     }
 
     // Determine if registration should be blocked (future feature)
