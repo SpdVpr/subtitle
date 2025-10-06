@@ -691,6 +691,7 @@ export default function CzechSubtitleEditorPage() {
             originalEntries={originalEntries}
             onEntriesChange={handleEntriesChange}
             fileName={fileName}
+            locale="cs"
           />
         ) : null}
       </div>

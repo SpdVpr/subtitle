@@ -691,6 +691,7 @@ export default function SubtitleEditorPage() {
             originalEntries={originalEntries}
             onEntriesChange={handleEntriesChange}
             fileName={fileName}
+            locale="en"
           />
         ) : null}
       </div>

@@ -43,6 +43,8 @@ import {
 
 import { SubtitleEntryEditor } from './subtitle-entry-editor'
 import { SearchAndReplacePanel } from './search-and-replace-panel'
+import { SubtitleSyncPanel } from './subtitle-sync-panel'
+import { SubtitleSyncPanelEn } from './subtitle-sync-panel-en'
 
 interface AdvancedSubtitleEditorProps {
   entries: SubtitleEntry[]
@@ -53,6 +55,7 @@ interface AdvancedSubtitleEditorProps {
   initialFloating?: boolean
   initialPosition?: { x: number; y: number }
   onSave?: () => void
+  locale?: 'en' | 'cs'
 }
 
 export function AdvancedSubtitleEditor({
@@ -63,7 +66,8 @@ export function AdvancedSubtitleEditor({
   editorId = 'default',
   initialFloating = false,
   initialPosition = { x: 0, y: 0 },
-  onSave
+  onSave,
+  locale = 'en'
 }: AdvancedSubtitleEditorProps) {
   const [selectedEntries, setSelectedEntries] = useState<Set<number>>(new Set())
   const [editingEntry, setEditingEntry] = useState<number | null>(null)
@@ -714,24 +718,60 @@ export function AdvancedSubtitleEditor({
         {/* Tab Navigation */}
         <Tabs defaultValue="editor" className={`w-full ${isFloating ? 'flex-1 flex flex-col' : ''}`}>
           <div className={`flex justify-center ${isFloating ? 'mb-2 px-4 flex-shrink-0' : 'mb-6'}`}>
-            <TabsList className="grid grid-cols-2 bg-muted/50 p-1 rounded-xl">
+            <TabsList className="grid grid-cols-3 gap-3 bg-transparent p-0">
               <TabsTrigger
                 value="editor"
-                className={`flex items-center space-x-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all duration-200 ${
-                  isFloating ? 'px-4 py-2 text-sm' : 'px-8 py-3'
-                }`}
+                className={`flex items-center justify-center space-x-2 rounded-xl font-bold transition-all duration-300 cursor-pointer
+                  border-2 shadow-lg hover:shadow-2xl active:scale-95
+                  data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:via-blue-600 data-[state=active]:to-blue-700
+                  data-[state=active]:text-white data-[state=active]:border-blue-700 data-[state=active]:shadow-blue-500/60
+                  data-[state=active]:ring-4 data-[state=active]:ring-blue-300 data-[state=active]:dark:ring-blue-800
+                  data-[state=inactive]:bg-white data-[state=inactive]:dark:bg-slate-800
+                  data-[state=inactive]:border-blue-300 data-[state=inactive]:dark:border-blue-700
+                  data-[state=inactive]:text-blue-700 data-[state=inactive]:dark:text-blue-300
+                  data-[state=inactive]:hover:bg-gradient-to-br data-[state=inactive]:hover:from-blue-400 data-[state=inactive]:hover:to-blue-500
+                  data-[state=inactive]:hover:text-white data-[state=inactive]:hover:border-blue-500
+                  data-[state=inactive]:hover:scale-105
+                  ${isFloating ? 'px-4 py-3 text-sm' : 'px-8 py-4 text-base'}`}
               >
-                <Edit3 className="h-4 w-4" />
-                <span className="font-medium">Editor</span>
+                <Edit3 className={isFloating ? "h-5 w-5" : "h-6 w-6"} />
+                <span>Editor</span>
               </TabsTrigger>
               <TabsTrigger
                 value="search-replace"
-                className={`flex items-center space-x-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all duration-200 ${
-                  isFloating ? 'px-4 py-2 text-sm' : 'px-8 py-3'
-                }`}
+                className={`flex items-center justify-center space-x-2 rounded-xl font-bold transition-all duration-300 cursor-pointer
+                  border-2 shadow-lg hover:shadow-2xl active:scale-95
+                  data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-500 data-[state=active]:via-purple-600 data-[state=active]:to-purple-700
+                  data-[state=active]:text-white data-[state=active]:border-purple-700 data-[state=active]:shadow-purple-500/60
+                  data-[state=active]:ring-4 data-[state=active]:ring-purple-300 data-[state=active]:dark:ring-purple-800
+                  data-[state=inactive]:bg-white data-[state=inactive]:dark:bg-slate-800
+                  data-[state=inactive]:border-purple-300 data-[state=inactive]:dark:border-purple-700
+                  data-[state=inactive]:text-purple-700 data-[state=inactive]:dark:text-purple-300
+                  data-[state=inactive]:hover:bg-gradient-to-br data-[state=inactive]:hover:from-purple-400 data-[state=inactive]:hover:to-purple-500
+                  data-[state=inactive]:hover:text-white data-[state=inactive]:hover:border-purple-500
+                  data-[state=inactive]:hover:scale-105
+                  ${isFloating ? 'px-4 py-3 text-sm' : 'px-8 py-4 text-base'}`}
               >
-                <Replace className="h-4 w-4" />
-                <span className="font-medium">Find & Replace</span>
+                <Replace className={isFloating ? "h-5 w-5" : "h-6 w-6"} />
+                <span>Find & Replace</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="sync"
+                className={`flex items-center justify-center space-x-2 rounded-xl font-bold transition-all duration-300 cursor-pointer
+                  border-2 shadow-lg hover:shadow-2xl active:scale-95
+                  data-[state=active]:bg-gradient-to-br data-[state=active]:from-green-500 data-[state=active]:via-emerald-600 data-[state=active]:to-green-700
+                  data-[state=active]:text-white data-[state=active]:border-green-700 data-[state=active]:shadow-green-500/60
+                  data-[state=active]:ring-4 data-[state=active]:ring-green-300 data-[state=active]:dark:ring-green-800
+                  data-[state=inactive]:bg-white data-[state=inactive]:dark:bg-slate-800
+                  data-[state=inactive]:border-green-300 data-[state=inactive]:dark:border-green-700
+                  data-[state=inactive]:text-green-700 data-[state=inactive]:dark:text-green-300
+                  data-[state=inactive]:hover:bg-gradient-to-br data-[state=inactive]:hover:from-green-400 data-[state=inactive]:hover:to-emerald-500
+                  data-[state=inactive]:hover:text-white data-[state=inactive]:hover:border-green-500
+                  data-[state=inactive]:hover:scale-105
+                  ${isFloating ? 'px-4 py-3 text-sm' : 'px-8 py-4 text-base'}`}
+              >
+                <Clock className={isFloating ? "h-5 w-5" : "h-6 w-6"} />
+                <span>{locale === 'cs' ? 'Synchronizace' : 'Sync'}</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -761,6 +801,24 @@ export function AdvancedSubtitleEditor({
                 entries={entries}
                 onEntriesChange={onEntriesChange}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="sync" className={`${isFloating ? 'flex-1 overflow-hidden' : ''}`}>
+            <div
+              className={`${isFloating ? 'h-full overflow-y-auto bg-background/50 p-4' : ''}`}
+            >
+              {locale === 'cs' ? (
+                <SubtitleSyncPanel
+                  entries={entries}
+                  onEntriesChange={onEntriesChange}
+                />
+              ) : (
+                <SubtitleSyncPanelEn
+                  entries={entries}
+                  onEntriesChange={onEntriesChange}
+                />
+              )}
             </div>
           </TabsContent>
       </Tabs>
