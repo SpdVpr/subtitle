@@ -144,10 +144,8 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 };
 
-// Force dynamic rendering to avoid prerender-time side effects
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export const fetchCache = 'force-no-store'
+// Enable ISR (Incremental Static Regeneration) for better performance
+export const revalidate = 3600 // Revalidate every hour
 
 export default function RootLayout({
   children,
@@ -160,12 +158,30 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Preload critical resources */}
-        <link rel="preload" href="/logo-sub.png" as="image" type="image/png" />
+        <link rel="preload" href="/logo-sub.png" as="image" type="image/png" fetchPriority="high" />
+
+        {/* DNS Prefetch for external domains */}
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         <link rel="dns-prefetch" href="https://api.openai.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://firebaseapp.com" />
+
+        {/* Preconnect to critical origins */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/* PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />
+
+        {/* Theme color for mobile browsers */}
+        <meta name="theme-color" content="#3b82f6" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#1e40af" media="(prefers-color-scheme: dark)" />
+
+        {/* Mobile web app capable */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
         {/* Google Analytics */}
         <GoogleAnalytics />
