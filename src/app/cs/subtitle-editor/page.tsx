@@ -368,16 +368,19 @@ export default function CzechSubtitleEditorPage() {
         fileInputRef.current?.click()
       }
 
-      // Ctrl+Z - Reset (when no entries are being edited)
-      if (e.ctrlKey && e.key === 'z' && hasUnsavedChanges) {
+      // Note: Ctrl+Z for undo is now handled by AdvancedSubtitleEditor component
+      // Ctrl+R - Reset to original (alternative to avoid conflict with undo)
+      if (e.ctrlKey && e.key === 'r' && hasUnsavedChanges && editorMode !== 'select') {
         e.preventDefault()
-        handleReset()
+        if (confirm('Opravdu chcete obnovit titulky na původní verzi? Všechny změny budou ztraceny.')) {
+          handleReset()
+        }
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [entries.length, hasUnsavedChanges])
+  }, [entries.length, hasUnsavedChanges, editorMode])
 
   // Cleanup auto-save timeout
   useEffect(() => {
@@ -676,8 +679,18 @@ export default function CzechSubtitleEditorPage() {
                         <Badge variant="outline" className="font-mono">Ctrl+S</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span>Obnovit změny</span>
+                        <span>Obnovit na původní</span>
+                        <Badge variant="outline" className="font-mono">Ctrl+R</Badge>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs mt-4">
+                      <div className="flex items-center justify-between">
+                        <span>Vrátit zpět (Undo)</span>
                         <Badge variant="outline" className="font-mono">Ctrl+Z</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Znovu (Redo)</span>
+                        <Badge variant="outline" className="font-mono">Ctrl+Y</Badge>
                       </div>
                     </div>
                   </div>

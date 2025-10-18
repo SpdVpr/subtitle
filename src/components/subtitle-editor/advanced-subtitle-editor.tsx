@@ -445,6 +445,31 @@ export function AdvancedSubtitleEditor({
     }
   }, [historyIndex, editHistory, entries, onEntriesChange])
 
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if not typing in an input/textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return
+      }
+
+      // Ctrl+Z - Undo
+      if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        undo()
+      }
+
+      // Ctrl+Y or Ctrl+Shift+Z - Redo
+      if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
+        e.preventDefault()
+        redo()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [undo, redo])
+
   // Memoized helper functions for better performance
   const timeToSeconds = useCallback((timeStr: string): number => {
     const [hours, minutes, seconds] = timeStr.split(':')
