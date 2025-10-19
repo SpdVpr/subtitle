@@ -67,7 +67,7 @@ export default function CzechHome() {
             <div className="flex flex-wrap justify-center gap-3 mb-10">
               <Badge variant="secondary" className="px-4 py-2 text-sm">
                 <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                100+ Jazykových Párů
+                100+ jazykových párů
               </Badge>
               <Badge variant="secondary" className="px-4 py-2 text-sm">
                 <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
@@ -75,11 +75,11 @@ export default function CzechHome() {
               </Badge>
               <Badge variant="secondary" className="px-4 py-2 text-sm">
                 <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                Žádné Předplatné
+                Žádné předplatné
               </Badge>
               <Badge variant="secondary" className="px-4 py-2 text-sm">
                 <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                Kredity Nikdy Nevyprší
+                Kredity nikdy nevyprší
               </Badge>
             </div>
 
@@ -194,15 +194,15 @@ export default function CzechHome() {
             <div className="mt-12 flex flex-wrap justify-center items-center gap-8 text-gray-600 dark:text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Star className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm">Prémiová AI Kvalita</span>
+                <span className="text-sm">Prémiová AI kvalita</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
-                <span className="text-sm">Okamžité Zpracování</span>
+                <span className="text-sm">Okamžité zpracování</span>
               </div>
               <div className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                <span className="text-sm">Globální Jazyková Podpora</span>
+                <span className="text-sm">Globální jazyková podpora</span>
               </div>
             </div>
           </div>
@@ -215,10 +215,10 @@ export default function CzechHome() {
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-purple-100 dark:bg-accent text-purple-700 dark:text-primary border-purple-200 dark:border-border">
               <Brain className="h-4 w-4 mr-2" />
-              Proprietární AI Technologie
+              Proprietární AI technologie
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent" style={{ lineHeight: '1.4' }}>
-              Pokročilý Překladový Engine
+              Pokročilý překladový engine
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Náš vlastní AI kombinuje sílu OpenAI se specializovaným kontextovým výzkumem
@@ -233,7 +233,7 @@ export default function CzechHome() {
                   <Brain className="h-6 w-6 text-blue-600 dark:text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">OpenAI Integrace</h3>
+                  <h3 className="text-xl font-semibold mb-2">OpenAI integrace</h3>
                   <p className="text-gray-600 dark:text-muted-foreground">
                     Využívá GPT modely pro přirozené, lidské překlady, které zachycují původní význam a tón.
                   </p>
@@ -245,7 +245,7 @@ export default function CzechHome() {
                   <FileText className="h-6 w-6 text-purple-600 dark:text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Kontextový Výzkum</h3>
+                  <h3 className="text-xl font-semibold mb-2">Kontextový výzkum</h3>
                   <p className="text-gray-600 dark:text-muted-foreground">
                     Analyzuje kontext titulků, vztahy mezi postavami a dynamiku scén pro přesnější překlady.
                   </p>
@@ -257,7 +257,7 @@ export default function CzechHome() {
                   <Zap className="h-6 w-6 text-green-600 dark:text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Zpracování v Reálném Čase</h3>
+                  <h3 className="text-xl font-semibold mb-2">Zpracování v reálném čase</h3>
                   <p className="text-gray-600 dark:text-muted-foreground">
                     Bleskově rychlý překlad s inteligentním úpravou časování pro perfektní synchronizaci titulků.
                   </p>
@@ -270,17 +270,17 @@ export default function CzechHome() {
                 <div className="bg-gradient-to-r from-primary to-primary/80 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Sparkles className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <h3 className="text-2xl font-bold mb-2">Kvalita Překladu</h3>
+                <h3 className="text-2xl font-bold mb-2">Kvalita překladu</h3>
                 <p className="text-muted-foreground">Uvidíte rozdíl, který naše AI dělá</p>
               </div>
 
               <div className="space-y-4">
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-                  <p className="text-sm text-destructive font-medium mb-1">Základní Překlad:</p>
+                  <p className="text-sm text-destructive font-medium mb-1">Základní překlad:</p>
                   <p className="text-sm text-muted-foreground">"I am very happy to see you"</p>
                 </div>
                 <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                  <p className="text-sm text-primary font-medium mb-1">Náš AI Překlad:</p>
+                  <p className="text-sm text-primary font-medium mb-1">Náš AI překlad:</p>
                   <p className="text-sm text-muted-foreground">"Jsem naprosto nadšený, že tě vidím!"</p>
                 </div>
               </div>
@@ -288,7 +288,7 @@ export default function CzechHome() {
               <div className="mt-6 text-center">
                 <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                   <Star className="h-4 w-4 mr-1" />
-                  95% Míra Přesnosti
+                  95% míra přesnosti
                 </Badge>
               </div>
             </div>
@@ -311,7 +311,7 @@ export default function CzechHome() {
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Zap className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-xl">Bleskově Rychlé</CardTitle>
+              <CardTitle className="text-xl">Bleskově rychlé</CardTitle>
               <CardDescription className="text-base">
                 Přeložte celé soubory s titulky za méně než 30 sekund
               </CardDescription>
@@ -345,7 +345,7 @@ export default function CzechHome() {
               <div className="bg-green-100 dark:bg-accent w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FileText className="h-8 w-8 text-green-600 dark:text-primary" />
               </div>
-              <CardTitle className="text-xl">7 Formátů Souborů</CardTitle>
+              <CardTitle className="text-xl">7 formátů souborů</CardTitle>
               <CardDescription className="text-base">
                 Podpora všech hlavních formátů titulků
               </CardDescription>
@@ -371,7 +371,7 @@ export default function CzechHome() {
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Gift className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-xl">Platba za Použití</CardTitle>
+              <CardTitle className="text-xl">Platba za použití</CardTitle>
               <CardDescription className="text-base">
                 Jednoduchý kreditový systém - žádné předplatné
               </CardDescription>
@@ -388,7 +388,7 @@ export default function CzechHome() {
       {/* Powerful Features Section */}
       <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-muted dark:to-accent">
         <div className="container px-4 mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">🚀 Výkonné Funkce</h2>
+          <h2 className="text-3xl font-bold mb-4">🚀 Výkonné funkce</h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Vše, co potřebujete pro profesionální překlad titulků
           </p>
@@ -398,7 +398,7 @@ export default function CzechHome() {
               <div className="w-12 h-12 bg-blue-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">📊</span>
               </div>
-              <h3 className="font-semibold mb-2">Dávkové Zpracování</h3>
+              <h3 className="font-semibold mb-2">Dávkové zpracování</h3>
               <p className="text-sm text-muted-foreground">
                 Nahrajte více souborů a přeložte je všechny najednou
               </p>
@@ -407,7 +407,7 @@ export default function CzechHome() {
               <div className="w-12 h-12 bg-green-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">📺</span>
               </div>
-              <h3 className="font-semibold mb-2">Titulkový Overlay</h3>
+              <h3 className="font-semibold mb-2">Titulkový overlay</h3>
               <p className="text-sm text-muted-foreground">
                 Zobrazujte titulky nad jakýmkoli videem s plným přizpůsobením
               </p>
@@ -416,7 +416,7 @@ export default function CzechHome() {
               <div className="w-12 h-12 bg-purple-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🌍</span>
               </div>
-              <h3 className="font-semibold mb-2">100+ Jazyků</h3>
+              <h3 className="font-semibold mb-2">100+ jazyků</h3>
               <p className="text-sm text-muted-foreground">
                 Podpora všech hlavních světových jazyků a dialektů
               </p>
@@ -425,7 +425,7 @@ export default function CzechHome() {
               <div className="w-12 h-12 bg-orange-100 dark:bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">⚡</span>
               </div>
-              <h3 className="font-semibold mb-2">Okamžitý Překlad</h3>
+              <h3 className="font-semibold mb-2">Okamžitý překlad</h3>
               <p className="text-sm text-muted-foreground">
                 Rychlý AI překlad s kontextovým povědomím
               </p>
@@ -440,10 +440,10 @@ export default function CzechHome() {
               <Link href="/cs/subtitle-editor">Vyzkoušet Editor Titulků</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/cs/video-tools">Vyzkoušet Plovoucí titulky</Link>
+              <Link href="/cs/video-tools">Vyzkoušet plovoucí titulky</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/cs/video-tools">Vyzkoušet Video Přehrávač</Link>
+              <Link href="/cs/video-tools">Vyzkoušet video přehrávač</Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 border-blue-200 text-blue-700 hover:text-blue-800 dark:from-blue-950 dark:to-purple-950 dark:border-blue-800 dark:text-blue-300 dark:hover:text-blue-200">
               <Link href="/cs/feedback" className="flex items-center gap-2">
@@ -465,7 +465,7 @@ export default function CzechHome() {
                 NOVÁ FUNKCE
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent" style={{ lineHeight: '1.4' }}>
-                Titulkový Overlay
+                Titulkový overlay
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                 Zobrazujte titulky nad jakýmkoli video obsahem s plným přizpůsobením. Perfektní pro streamovací služby,
@@ -507,7 +507,7 @@ export default function CzechHome() {
                       <span className="text-2xl">ÔĆ▒´ŞĆ</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Perfektní Synchronizace</h3>
+                      <h3 className="text-xl font-semibold mb-2">Perfektní synchronizace</h3>
                       <p className="text-muted-foreground">
                         Dolaďte časování pomocí ovládání offsetu a rychlostních multiplikátorů.
                         Získejte perfektní synchronizaci s jakýmkoli video obsahem.
@@ -579,7 +579,7 @@ export default function CzechHome() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-center space-x-2">
                   <span>🎁</span>
-                  <span>Uvítací Bonus</span>
+                  <span>Uvítací bonus</span>
                 </CardTitle>
                 <CardDescription>Začněte zdarma</CardDescription>
               </CardHeader>
@@ -599,7 +599,7 @@ export default function CzechHome() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-center space-x-2">
                   <span>🎬</span>
-                  <span>Prémiový Překlad</span>
+                  <span>Prémiový překlad</span>
                 </CardTitle>
                 <CardDescription>OpenAI GPT-4 s kontextovým výzkumem</CardDescription>
               </CardHeader>
@@ -653,7 +653,7 @@ export default function CzechHome() {
                       <span className="text-2xl">⚡</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Okamžité Nastavení</h3>
+                      <h3 className="text-xl font-semibold mb-2">Okamžité nastavení</h3>
                       <p className="text-muted-foreground">
                         žádná rozšíření prohlížeče nebo software k instalaci. Funguje okamžitě
                         v jakémkoli moderním webovém prohlížeči.
@@ -666,7 +666,7 @@ export default function CzechHome() {
                       <span className="text-2xl">��</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Vždy Nahoře</h3>
+                      <h3 className="text-xl font-semibold mb-2">Vždy nahoře</h3>
                       <p className="text-muted-foreground">
                         Titulkové okno zůstává nad všemi ostatními okny, perfektní pro
                         Netflix, YouTube nebo jakýkoli video přehrávač.
@@ -679,7 +679,7 @@ export default function CzechHome() {
                       <span className="text-2xl">🎨</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Průhledné Pozadí</h3>
+                      <h3 className="text-xl font-semibold mb-2">Průhledné pozadí</h3>
                       <p className="text-muted-foreground">
                         Čistý, průhledný overlay, který neruší vaše video.
                         Přizpůsobte barvy, písma a umístění.
@@ -692,7 +692,7 @@ export default function CzechHome() {
                       <span className="text-2xl">⚡</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Snadné Umístění</h3>
+                      <h3 className="text-xl font-semibold mb-2">Snadné umístění</h3>
                       <p className="text-muted-foreground">
                         Přetáhněte okno kamkoli na obrazovku. Pozice si pamatuje
                         vaše preference pro příště.
@@ -705,7 +705,7 @@ export default function CzechHome() {
                   <Button size="lg" className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white" asChild>
                     <Link href="/cs/video-tools" className="flex items-center gap-2">
                       <span className="text-xl">🖥️</span>
-                      Vyzkoušet Plovoucí titulky Nyní
+                      Vyzkoušet plovoucí titulky nyní
                       <ArrowRight className="h-5 w-5" />
                     </Link>
                   </Button>
@@ -759,7 +759,7 @@ export default function CzechHome() {
                 VŠE-V-JEDNOM ŘEŠENÍ
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent" style={{ lineHeight: '1.4' }}>
-                Integrovaný Video Přehrávač
+                Integrovaný video přehrávač
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                 Sledujte jakékoli video s vlastními titulky na jednom místě. Perfektní synchronizace,
@@ -775,7 +775,7 @@ export default function CzechHome() {
                       <span className="text-2xl">🔗</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Univerzální Video Podpora</h3>
+                      <h3 className="text-xl font-semibold mb-2">Univerzální video podpora</h3>
                       <p className="text-muted-foreground">
                         Funguje s YouTube, Vimeo, přímými video odkazy a jakýmkoli vložitelným
                         video obsahem. Stačí vložit URL a začít sledovat.
@@ -788,7 +788,7 @@ export default function CzechHome() {
                       <span className="text-2xl">⚡</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Perfektní Synchronizace</h3>
+                      <h3 className="text-xl font-semibold mb-2">Perfektní synchronizace</h3>
                       <p className="text-muted-foreground">
                         Titulky jsou perfektně synchronizovány s přehráváním videa. Automatické časování
                         s možností ručního doladění pro perfektní zarovnání.
@@ -801,7 +801,7 @@ export default function CzechHome() {
                       <span className="text-2xl">🎨</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Kompletní Přizpůsobení</h3>
+                      <h3 className="text-xl font-semibold mb-2">Kompletní přizpůsobení</h3>
                       <p className="text-muted-foreground">
                         Plná kontrola nad vzhledem titulků - písma, barvy, umístění,
                         průhlednost a efekty. Udělejte si je přesně podle svých představ.
@@ -814,7 +814,7 @@ export default function CzechHome() {
                       <span className="text-2xl">��</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Vše-v-Jednom Rozhraní</h3>
+                      <h3 className="text-xl font-semibold mb-2">Vše-v-jednom rozhraní</h3>
                       <p className="text-muted-foreground">
                         Vše na jednom místě - video přehrávač, ovládání titulků a
                         možnosti přizpůsobení. Není potřeba žonglovat s více okny.
