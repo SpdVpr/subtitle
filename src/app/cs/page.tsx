@@ -194,7 +194,7 @@ export default function CzechHome() {
             <div className="mt-12 flex flex-wrap justify-center items-center gap-8 text-gray-600 dark:text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Star className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm">Prémiová AI kvalita</span>
+                <span className="text-sm">Prémiová AI kvalita - gpt-4o model</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
