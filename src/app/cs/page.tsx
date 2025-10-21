@@ -93,7 +93,7 @@ export default function CzechHome() {
             <Link href="/cs/register" className="inline-block group">
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-full mb-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 hover:-rotate-1">
                 <Gift className="h-5 w-5 animate-bounce" />
-                <span className="font-semibold">🎁 Noví uživatelé získají 100 ZDARMA kreditů na začátek!</span>
+                <span className="font-semibold">Noví uživatelé získají 100 kreditů ZDARMA pro první překlady</span>
                 <Sparkles className="h-5 w-5 animate-spin-slow" />
               </div>
             </Link>
@@ -104,7 +104,7 @@ export default function CzechHome() {
 
             <p className="text-xl md:text-2xl text-gray-600 dark:text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
               Přeložte své titulky pomocí našeho <span className="font-semibold text-blue-600 dark:text-primary">proprietárního AI enginu</span>, který kombinuje
-              <span className="font-semibold text-purple-600 dark:text-primary"> OpenAI + Kontextový Výzkum</span> pro maximální kvalitu překladu.
+              <span className="font-semibold text-purple-600 dark:text-primary"> OpenAI + Kontextové porozumění</span> pro maximální kvalitu překladu.
             </p>
 
             {/* Key Features Pills */}
@@ -299,7 +299,7 @@ export default function CzechHome() {
                   <FileText className="h-6 w-6 text-purple-600 dark:text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Kontextový výzkum</h3>
+                  <h3 className="text-xl font-semibold mb-2">Kontextové porozumění</h3>
                   <p className="text-gray-600 dark:text-muted-foreground">
                     Analyzuje kontext titulků, vztahy mezi postavami a dynamiku scén pro přesnější překlady.
                   </p>
@@ -632,7 +632,6 @@ export default function CzechHome() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-center space-x-2">
-                  <span>🎁</span>
                   <span>Uvítací bonus</span>
                 </CardTitle>
                 <CardDescription>Začněte zdarma</CardDescription>
@@ -653,13 +652,22 @@ export default function CzechHome() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-center space-x-2">
                   <span>🎬</span>
-                  <span>Prémiový překlad</span>
+                  <span>AI Překlad</span>
                 </CardTitle>
-                <CardDescription>OpenAI GPT-4 s kontextovým výzkumem</CardDescription>
+                <CardDescription>Vyberte si mezi Standard a Premium kvalitou</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-3xl font-bold">~0,4</div>
-                <div className="text-sm text-muted-foreground">kreditů za 20 řádků</div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Standard (GPT-4o mini)</span>
+                    <span className="font-bold">0,8 kreditů</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Premium (GPT-4o)</span>
+                    <span className="font-bold">2,0 kreditů</span>
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground mt-2">za 20 řádků</div>
               </CardContent>
               <CardContent className="space-y-2">
                 <p>Ôťô Kontextový překlad</p>

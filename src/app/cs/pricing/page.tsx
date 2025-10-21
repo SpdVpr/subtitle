@@ -40,11 +40,13 @@ function getPackageDescription(credits: number): string {
 }
 
 function getPackageFeatures(credits: number): string[] {
+  // Average cost: (0.8 + 2.0) / 2 = 1.4 credits per 20 lines
+  const avgCostPer20Lines = 1.4
   const features = [
     `${credits.toLocaleString()} kreditů`,
-    `~${Math.floor(credits / 0.7 * 20).toLocaleString()} řádků překladu`,
+    `~${Math.floor(credits / avgCostPer20Lines * 20).toLocaleString()} řádků překladu (průměr)`,
     'Kredity nevyprší',
-    'Prémiový AI překlad',
+    'Standard i Premium AI překlad',
     'Všechny jazykové páry',
     'Stažení přeložených souborů',
     'Historie překladů'

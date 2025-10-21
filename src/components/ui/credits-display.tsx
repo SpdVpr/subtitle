@@ -186,7 +186,8 @@ export function CreditsCard() {
               </Button>
               
               <div className="text-xs text-muted-foreground space-y-1">
-                <div>• Premium translation: ~0.7 credits per 20 lines</div>
+                <div>• Standard: 0.8 credits per 20 lines</div>
+                <div>• Premium: 2.0 credits per 20 lines</div>
                 <div>• Includes context research & cultural adaptation</div>
                 <div>• 1 USD = 100 credits</div>
               </div>

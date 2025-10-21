@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
         // Calculate credits based on selected model
         const batchSize = 20
         const totalBatches = Math.ceil(entries.length / batchSize)
-        const creditsPerBatch = translationModel === 'premium' ? 1.0 : 0.4
+        const creditsPerBatch = translationModel === 'premium' ? 2.0 : 0.8
         const totalCredits = totalBatches * creditsPerBatch
 
         console.log(`💰 ${translationModel} translation: ${entries.length} subtitles, ${totalBatches} batches, ${totalCredits} credits (${creditsPerBatch} per batch)`)

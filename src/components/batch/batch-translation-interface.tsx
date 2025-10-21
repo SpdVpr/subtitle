@@ -119,13 +119,13 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
       const lines = text.split('\n')
       const subtitleBlocks = lines.filter(line => line.trim() && !line.match(/^\d+$/) && !line.match(/^\d{2}:\d{2}:\d{2}/))
       const subtitleCount = Math.max(1, subtitleBlocks.length)
-      const costPerChunk = translationModel === 'premium' ? 1.0 : 0.4
+      const costPerChunk = translationModel === 'premium' ? 2.0 : 0.8
       const cost = Math.ceil(subtitleCount / 20) * costPerChunk
 
       return { cost, subtitleCount }
     } catch (error) {
       console.error('Error estimating credits for file:', file.name, error)
-      const defaultCostPerChunk = translationModel === 'premium' ? 1.0 : 0.4
+      const defaultCostPerChunk = translationModel === 'premium' ? 2.0 : 0.8
       return { cost: defaultCostPerChunk, subtitleCount: 20 } // Default estimate
     }
   }
@@ -644,7 +644,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
                     <Badge variant="secondary" className="text-xs">GPT-4o mini</Badge>
                   </div>
                   <p className="text-xs opacity-80 mb-2">Fast, reliable translation</p>
-                  <div className="text-sm font-semibold">0.4 credits per 20 lines</div>
+                  <div className="text-sm font-semibold">0.8 credits per 20 lines</div>
                 </div>
               </Button>
 
@@ -680,7 +680,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
                   <div className={`text-sm font-semibold ${
                     translationModel === 'premium' ? 'text-amber-900' : 'text-gray-900 dark:text-gray-100'
                   }`}>
-                    1.0 credit per 20 lines
+                    2.0 credits per 20 lines
                   </div>
                 </div>
               </Button>
@@ -762,7 +762,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
                   )}
                 </span>
                 <span className="text-muted-foreground">
-                  Rate: {translationModel === 'premium' ? '1.0' : '0.4'} credits per 20 subtitles
+                  Rate: {translationModel === 'premium' ? '2.0' : '0.8'} credits per 20 subtitles
                 </span>
               </div>
             </div>

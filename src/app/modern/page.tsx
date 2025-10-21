@@ -366,12 +366,12 @@ export default function EnglishHomeModern() {
               {/* Premium Translation */}
               <Card className="relative overflow-hidden border-2 border-black dark:border-white bg-white dark:bg-black rounded-none shadow-2xl">
                 <CardHeader className="pt-12">
-                  <div className="text-6xl font-black text-black dark:text-white mb-4">~0.4</div>
+                  <div className="text-6xl font-black text-black dark:text-white mb-4">0.8-2.0</div>
                   <CardTitle className="text-3xl font-black text-black dark:text-white">
                     Credits per 20 lines
                   </CardTitle>
                   <CardDescription className="text-lg text-gray-600 dark:text-gray-400 mt-2">
-                    Professional quality translation
+                    Standard (0.8) or Premium (2.0) quality
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 pb-12">

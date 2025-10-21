@@ -401,7 +401,7 @@ async function processTranslationJob(
       const currentBalance = (user as any)?.creditsBalance || 0
 
       const chunksNeeded = Math.ceil(subtitleEntries.length / 20)
-      const creditsPerChunk = translationModel === 'premium' ? 1.0 : 0.4
+      const creditsPerChunk = translationModel === 'premium' ? 2.0 : 0.8
       const requiredCredits = chunksNeeded * creditsPerChunk
 
       console.log(`💰 Required credits: ${requiredCredits}, Current balance: ${currentBalance}`)
@@ -508,7 +508,7 @@ async function processTranslationJob(
     if (userId !== 'premium-user-demo' && !userId.endsWith('-user-demo')) {
       // Calculate credits based on subtitle count and model
       const chunksNeeded = Math.ceil(subtitleEntries.length / 20)
-      const creditsPerChunk = translationModel === 'premium' ? 1.0 : 0.4
+      const creditsPerChunk = translationModel === 'premium' ? 2.0 : 0.8
       const totalCredits = chunksNeeded * creditsPerChunk
 
       console.log(`💰 Deducting ${totalCredits} credits for ${subtitleEntries.length} subtitles (${chunksNeeded} chunks, ${creditsPerChunk} per chunk)`)

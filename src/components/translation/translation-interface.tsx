@@ -125,7 +125,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
   useEffect(() => {
     if (selectedFile && subtitleCount) {
       const chunksNeeded = Math.ceil(subtitleCount / 20)
-      const costPerChunk = translationModel === 'premium' ? 1.0 : 0.4 // Premium: 1 credit, Standard: 0.4 credits per 20 lines
+      const costPerChunk = translationModel === 'premium' ? 2.0 : 0.8 // Premium: 2.0 credits, Standard: 0.8 credits per 20 lines
       const estimated = chunksNeeded * costPerChunk
       setEstimatedCost(estimated)
     }
@@ -602,7 +602,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                     <Badge variant="secondary" className="text-xs">GPT-4o mini</Badge>
                   </div>
                   <p className="text-xs opacity-80 mb-2">Fast, reliable translation</p>
-                  <div className="text-sm font-semibold">0.4 credits per 20 lines</div>
+                  <div className="text-sm font-semibold">0.8 credits per 20 lines</div>
                 </div>
               </Button>
 
@@ -638,7 +638,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                   <div className={`text-sm font-semibold ${
                     translationModel === 'premium' ? 'text-amber-900' : 'text-gray-900 dark:text-gray-100'
                   }`}>
-                    1.0 credit per 20 lines
+                    2.0 credits per 20 lines
                   </div>
                 </div>
               </Button>
@@ -799,7 +799,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                       </>
                     )}
                   </span>
-                  <span>Rate: {translationModel === 'premium' ? '1.0' : '0.4'} credits per 20 subtitles</span>
+                  <span>Rate: {translationModel === 'premium' ? '2.0' : '0.8'} credits per 20 subtitles</span>
                 </div>
               </div>
             </div>

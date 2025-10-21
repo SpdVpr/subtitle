@@ -622,11 +622,11 @@ export default function Home() {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Standard (GPT-4o mini)</span>
-                    <span className="font-bold">0.4 credits</span>
+                    <span className="font-bold">0.8 credits</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Premium (GPT-4o)</span>
-                    <span className="font-bold">1.0 credit</span>
+                    <span className="font-bold">2.0 credits</span>
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground mt-2">per 20 lines</div>

@@ -32,11 +32,13 @@ function getPackageName(credits: number): string {
 }
 
 function getPackageFeatures(credits: number): string[] {
+  // Average cost: (0.8 + 2.0) / 2 = 1.4 credits per 20 lines
+  const avgCostPer20Lines = 1.4
   const features = [
     `${credits.toLocaleString()} credits`,
-    `~${Math.floor(credits / 0.7 * 20).toLocaleString()} lines of translation`,
+    `~${Math.floor(credits / avgCostPer20Lines * 20).toLocaleString()} lines of translation (avg)`,
     'No expiration',
-    'Premium AI translation',
+    'Standard & Premium AI translation',
     'All language pairs supported',
     'Download translated files',
     'Translation history'
@@ -186,8 +188,8 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold mb-2">How do credits work?</h3>
               <p className="text-muted-foreground">
-                Each credit allows you to translate approximately 5 lines of subtitles. 
-                Credits are deducted based on the actual number of lines processed.
+                Standard translation costs 0.8 credits per 20 lines, Premium costs 2.0 credits per 20 lines.
+                Credits are deducted based on the actual number of lines processed and the model you choose.
               </p>
             </div>
             <div>

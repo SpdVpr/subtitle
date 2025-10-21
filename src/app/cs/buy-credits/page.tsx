@@ -336,7 +336,7 @@ Dokončete platbu v novém okně.`, {
                     <span>Standardní Překlad (GPT-4o mini)</span>
                   </h4>
                   <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
-                    <li>• 0,4 kreditů za 20 řádků</li>
+                    <li>• 0,8 kreditů za 20 řádků</li>
                     <li>• Rychlý, spolehlivý překlad</li>
                     <li>• Kontextový překlad s výzkumem</li>
                     <li>• Přirozená adaptace dialogů</li>
@@ -351,7 +351,7 @@ Dokončete platbu v novém okně.`, {
                     <span>Prémiový Překlad (GPT-4o)</span>
                   </h4>
                   <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
-                    <li>• 1,0 kredit za 20 řádků</li>
+                    <li>• 2,0 kreditů za 20 řádků</li>
                     <li>• Nejlepší kvalita překladu</li>
                     <li>• Pokročilý kontextový výzkum</li>
                     <li>• Vynikající adaptace dialogů</li>
@@ -363,8 +363,8 @@ Dokončete platbu v novém okně.`, {
 
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-300">
-                <strong>Příklad:</strong> Soubor s 100 řádky titulků stojí 2,0 kreditů (Standardní) nebo 5,0 kreditů (Prémiový).
-                Vašich 100 uvítacích kreditů může přeložit ~125 souborů (Standardní) nebo ~20 souborů (Prémiový) s plným kontextovým výzkumem!
+                <strong>Příklad:</strong> Soubor s 100 řádky titulků stojí 4,0 kreditů (Standardní) nebo 10,0 kreditů (Prémiový).
+                Vašich 100 uvítacích kreditů může přeložit ~62 souborů (Standardní) nebo ~10 souborů (Prémiový) s plným kontextovým výzkumem!
               </p>
             </div>
           </CardContent>

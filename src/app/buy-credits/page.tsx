@@ -328,7 +328,7 @@ Complete payment in the new window.`, {
                     <span>Standard Translation (GPT-4o mini)</span>
                   </h4>
                   <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
-                    <li>• 0.4 credits per 20 lines</li>
+                    <li>• 0.8 credits per 20 lines</li>
                     <li>• Fast, reliable translation</li>
                     <li>• Context-aware with show research</li>
                     <li>• Natural dialogue adaptation</li>
@@ -343,7 +343,7 @@ Complete payment in the new window.`, {
                     <span>Premium Translation (GPT-4o)</span>
                   </h4>
                   <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
-                    <li>• 1.0 credit per 20 lines</li>
+                    <li>• 2.0 credits per 20 lines</li>
                     <li>• Best quality translation</li>
                     <li>• Advanced context research</li>
                     <li>• Superior dialogue adaptation</li>
@@ -355,8 +355,8 @@ Complete payment in the new window.`, {
 
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-300">
-                <strong>Example:</strong> A 100-line subtitle file costs 2.0 credits (Standard) or 5.0 credits (Premium).
-                Your 200 welcome credits can translate ~250 files (Standard) or ~40 files (Premium) with full context research!
+                <strong>Example:</strong> A 100-line subtitle file costs 4.0 credits (Standard) or 10.0 credits (Premium).
+                Your 200 welcome credits can translate ~125 files (Standard) or ~20 files (Premium) with full context research!
               </p>
             </div>
           </CardContent>
