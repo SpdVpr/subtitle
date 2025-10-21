@@ -79,18 +79,26 @@ export default function CzechHome() {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-background dark:via-card dark:to-background">
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+
+        {/* Animated background blobs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-blob"></div>
+          <div className="absolute top-40 right-20 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-20 left-1/3 w-96 h-96 bg-green-400/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+        </div>
+
         <div className="container px-4 py-24 mx-auto text-center relative">
           <div className="max-w-5xl mx-auto">
             {/* Free Credits Badge */}
-            <Link href="/cs/register" className="inline-block">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-full mb-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105">
-                <Gift className="h-5 w-5" />
+            <Link href="/cs/register" className="inline-block group">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-full mb-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 hover:-rotate-1">
+                <Gift className="h-5 w-5 animate-bounce" />
                 <span className="font-semibold">🎁 Noví uživatelé získají 100 ZDARMA kreditů na začátek!</span>
-                <Sparkles className="h-5 w-5" />
+                <Sparkles className="h-5 w-5 animate-spin-slow" />
               </div>
             </Link>
 
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent animate-fade-in-up">
               AI Překlad Titulků
             </h1>
 
@@ -120,10 +128,14 @@ export default function CzechHome() {
             </div>
 
             {/* Live Translation Demo */}
-            <div className="bg-white/80 backdrop-blur-sm border border-blue-200 rounded-2xl p-6 mb-10 max-w-4xl mx-auto shadow-xl dark:bg-card/80 dark:border-border dark:backdrop-blur-sm">
+            <div className="bg-white/80 backdrop-blur-sm border border-blue-200 rounded-2xl p-6 mb-10 max-w-4xl mx-auto shadow-xl dark:bg-card/80 dark:border-border dark:backdrop-blur-sm hover:shadow-2xl transition-shadow duration-300 animate-fade-in-up animation-delay-300">
               <div className="flex items-center justify-center gap-2 mb-6">
                 <Languages className="h-5 w-5 text-blue-600 dark:text-primary" />
                 <span className="font-semibold text-gray-800 dark:text-card-foreground">Podívejte se na překlad v akci</span>
+                <Badge className="ml-2 bg-green-500 text-white animate-pulse">
+                  <div className="w-2 h-2 bg-white rounded-full mr-2"></div>
+                  LIVE
+                </Badge>
               </div>
 
               {/* Translation Demo */}
@@ -210,15 +222,15 @@ export default function CzechHome() {
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg" asChild>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up animation-delay-300">
+              <Button size="lg" className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300" asChild>
                 <Link href="/cs/translate" className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5" />
                   Začít Překládat ZDARMA
-                  <ArrowRight className="h-5 w-5" />
+                  <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" asChild>
+              <Button variant="outline" size="lg" className="hover:scale-105 transition-all duration-300" asChild>
                 <Link href="/cs/pricing" className="flex items-center gap-2">
                   <Gift className="h-5 w-5" />
                   Zobrazit Balíčky Kreditů
@@ -227,16 +239,16 @@ export default function CzechHome() {
             </div>
 
             {/* Trust Indicators */}
-            <div className="mt-12 flex flex-wrap justify-center items-center gap-8 text-gray-600 dark:text-muted-foreground">
-              <div className="flex items-center gap-2">
+            <div className="mt-12 flex flex-wrap justify-center items-center gap-8 text-gray-600 dark:text-muted-foreground animate-fade-in-up animation-delay-300">
+              <div className="flex items-center gap-2 hover:scale-110 transition-transform duration-300">
                 <Star className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <span className="text-sm">Prémiová AI kvalita - gpt-4o model</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 hover:scale-110 transition-transform duration-300">
                 <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
                 <span className="text-sm">Okamžité zpracování</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 hover:scale-110 transition-transform duration-300">
                 <Globe className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 <span className="text-sm">Globální jazyková podpora</span>
               </div>
@@ -246,10 +258,16 @@ export default function CzechHome() {
       </section>
 
       {/* AI Engine Section */}
-      <section className="py-20 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-secondary dark:to-card">
-        <div className="container px-4 mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-purple-100 dark:bg-accent text-purple-700 dark:text-primary border-purple-200 dark:border-border">
+      <section className="py-20 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-secondary dark:to-card relative overflow-hidden">
+        {/* Subtle animated background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
+          <div className="absolute top-20 right-20 w-64 h-64 bg-purple-400/20 rounded-full blur-3xl animate-blob"></div>
+          <div className="absolute bottom-20 left-20 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+        </div>
+
+        <div className="container px-4 mx-auto relative z-10">
+          <div className="text-center mb-16 animate-fade-in-up">
+            <Badge className="mb-4 bg-purple-100 dark:bg-accent text-purple-700 dark:text-primary border-purple-200 dark:border-border hover:scale-105 transition-transform duration-300">
               <Brain className="h-4 w-4 mr-2" />
               Proprietární AI technologie
             </Badge>
@@ -342,9 +360,9 @@ export default function CzechHome() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105 animate-fade-in-up">
             <CardHeader className="text-center pb-4">
-              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                 <Zap className="h-8 w-8 text-primary" />
               </div>
               <CardTitle className="text-xl">Bleskově rychlé</CardTitle>
@@ -359,9 +377,9 @@ export default function CzechHome() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105 animate-fade-in-up animation-delay-300">
             <CardHeader className="text-center pb-4">
-              <div className="bg-purple-100 dark:bg-accent w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-purple-100 dark:bg-accent w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                 <Brain className="h-8 w-8 text-purple-600 dark:text-primary" />
               </div>
               <CardTitle className="text-xl">Kontextové AI</CardTitle>
@@ -376,9 +394,9 @@ export default function CzechHome() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105 animate-fade-in-up animation-delay-300">
             <CardHeader className="text-center pb-4">
-              <div className="bg-green-100 dark:bg-accent w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-green-100 dark:bg-accent w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                 <FileText className="h-8 w-8 text-green-600 dark:text-primary" />
               </div>
               <CardTitle className="text-xl">7 formátů souborů</CardTitle>
@@ -402,9 +420,9 @@ export default function CzechHome() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105 animate-fade-in-up animation-delay-300">
             <CardHeader className="text-center pb-4">
-              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                 <Gift className="h-8 w-8 text-primary" />
               </div>
               <CardTitle className="text-xl">Platba za použití</CardTitle>
