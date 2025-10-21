@@ -1,11 +1,10 @@
-﻿'use client'
-
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { StructuredData } from "@/components/seo/structured-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/useAuth";
+import { CzechHomeClient } from "./page-client";
 import {
   Sparkles,
   Zap,
@@ -21,23 +20,60 @@ import {
   MessageSquare
 } from "lucide-react";
 
+export const metadata: Metadata = {
+  title: "SubtitleBot - AI Překlad Titulků | 100+ Jazyků | Zdarma Kredity",
+  description: "Profesionální AI překladač titulků s podporou 100+ jazyků. Rychlé, přesné, kontextové překlady pro filmy, seriály a videa. 100 kreditů zdarma. Žádné předplatné. Vyzkoušejte nyní!",
+  keywords: [
+    "AI překlad titulků",
+    "SRT překladač",
+    "video titulky",
+    "OpenAI překlad",
+    "vícejazyčné titulky",
+    "převodník titulků",
+    "překlad titulků zdarma",
+    "profesionální překladač titulků",
+    "přeložit titulky do češtiny",
+    "přeložit titulky do angličtiny",
+    "kontextový překlad",
+    "AI titulky",
+    "automatický překlad titulků"
+  ],
+  openGraph: {
+    title: "SubtitleBot - AI Překlad Titulků | 100+ Jazyků",
+    description: "Profesionální AI překladač titulků s podporou 100+ jazyků. Rychlé, přesné, kontextové překlady. 100 kreditů zdarma při registraci.",
+    url: '/cs',
+    siteName: "SubtitleBot",
+    images: [
+      {
+        url: '/og-image-cs.png',
+        width: 1200,
+        height: 630,
+        alt: "SubtitleBot - AI Překlad Titulků s podporou 100+ jazyků",
+      },
+    ],
+    locale: 'cs_CZ',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "SubtitleBot - AI Překlad Titulků | 100+ Jazyků",
+    description: "Profesionální AI překladač titulků. Rychlé, přesné, kontextové překlady. 100 kreditů zdarma.",
+    images: ['/og-image-cs.png'],
+    creator: '@SubtitleBot',
+    site: '@SubtitleBot',
+  },
+  alternates: {
+    canonical: '/cs',
+    languages: {
+      'en': '/',
+      'cs': '/cs',
+    },
+  },
+};
+
 export default function CzechHome() {
-  const { loading } = useAuth()
-
-  // Show loading state while checking auth
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Načítání...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <>
+    <CzechHomeClient>
       <StructuredData locale="cs" page="home" />
       <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -873,6 +909,6 @@ export default function CzechHome() {
         </div>
       </section>
     </div>
-    </>
+    </CzechHomeClient>
   );
 }
