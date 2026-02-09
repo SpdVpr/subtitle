@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     'SRT translation',
     'video subtitle converter',
     'multilingual subtitles',
-    'OpenAI translation',
+    'Google Gemini AI translation',
     'premium AI translation',
     'subtitle localization'
   ],

@@ -275,8 +275,8 @@ export async function POST(req: NextRequest) {
             subtitleCount: translatedEntries.length,
             characterCount: translatedContent.length,
             processingTimeMs: Date.now() - Date.now(), // Will be calculated on client
-            apiProvider: 'OpenAI',
-            model: translationModel === 'premium' ? 'gpt-5.2' : 'gpt-5-mini'
+            apiProvider: 'Google AI',
+            model: translationModel === 'premium' ? 'gemini-3-pro' : 'gemini-3-flash'
           })
 
         } catch (error) {
@@ -772,8 +772,8 @@ async function processRealPremiumTranslation(
         processingTimeMs: Date.now() - startTime,
         completedAt: new Date().toISOString(),
         contextualInfo: contextualInfo.substring(0, 200),
-        apiProvider: 'OpenAI',
-        model: translationModel === 'premium' ? 'gpt-5.2' : 'gpt-5-mini'
+        apiProvider: 'Google AI',
+        model: translationModel === 'premium' ? 'gemini-3-pro' : 'gemini-3-flash'
       }
 
     // Final progress update

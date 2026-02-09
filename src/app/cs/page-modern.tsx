@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     "AI překlad titulků",
     "SRT překladač",
     "video titulky",
-    "OpenAI překlad",
+    "Google AI překlad",
     "vícejazyčné titulky",
     "převodník titulků",
     "překlad titulků zdarma",
@@ -119,7 +119,7 @@ export default function CzechHomeModern() {
 
                   <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 leading-relaxed max-w-2xl">
                     Proprietární <span className="font-bold text-blue-600 dark:text-blue-400">AI engine</span> kombinující
-                    <span className="font-bold text-purple-600 dark:text-purple-400"> OpenAI + Kontextový výzkum</span> pro maximální kvalitu
+                    <span className="font-bold text-purple-600 dark:text-purple-400"> Google Gemini + Kontextový výzkum</span> pro maximální kvalitu
                   </p>
 
                   {/* Key Features Pills - Animated */}
@@ -287,7 +287,7 @@ export default function CzechHomeModern() {
               </h2>
 
               <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
-                Kombinace <span className="font-bold text-purple-600 dark:text-purple-400">OpenAI</span> se specializovaným
+                Kombinace <span className="font-bold text-purple-600 dark:text-purple-400">Google Gemini</span> se specializovaným
                 <span className="font-bold text-pink-600 dark:text-pink-400"> kontextovým výzkumem</span>
               </p>
             </div>
@@ -296,8 +296,8 @@ export default function CzechHomeModern() {
               {[
                 {
                   icon: Brain,
-                  title: "OpenAI Integrace",
-                  description: "GPT modely pro přirozené, lidské překlady zachycující původní význam a tón",
+                  title: "Google Gemini Integrace",
+                  description: "Gemini AI modely pro přirozené, lidské překlady zachycující původní význam a tón",
                   gradient: "from-blue-500 to-cyan-500",
                   delay: "0"
                 },
@@ -634,7 +634,7 @@ export default function CzechHomeModern() {
                     Prémiový Překlad
                   </CardTitle>
                   <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
-                    OpenAI GPT-4 + Kontextový výzkum
+                    Google Gemini + Kontextový výzkum
                   </CardDescription>
                 </CardHeader>
 

@@ -37,8 +37,8 @@ export const metadata: Metadata = {
     "automatic subtitle translation",
 
     // AI and technology terms
-    "OpenAI translation",
-    "GPT subtitle translation",
+    "Google AI translation",
+    "Gemini AI subtitle translation",
     "AI-powered subtitles",
     "machine translation subtitles",
     "contextual translation",

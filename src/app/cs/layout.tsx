@@ -19,8 +19,8 @@ export const metadata: Metadata = {
     "automatický překlad titulků",
 
     // AI a technologie
-    "OpenAI překlad",
-    "GPT překlad titulků",
+    "Google AI překlad",
+    "Gemini AI překlad titulků",
     "AI titulky",
     "strojový překlad titulků",
     "kontextový překlad",

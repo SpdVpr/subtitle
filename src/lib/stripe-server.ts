@@ -44,7 +44,7 @@ export const SUBSCRIPTION_PLANS = {
     stripePriceId: process.env.STRIPE_PREMIUM_PRICE_ID || 'price_demo_premium',
     features: [
       'Unlimited translations',
-      'OpenAI GPT-4 AI',
+      'Google Gemini AI',
       '🎬 Premium Context AI',
       'Advanced export options',
       '10MB file limit',

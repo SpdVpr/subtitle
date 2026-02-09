@@ -36,8 +36,8 @@ export default function CzechAboutPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground leading-relaxed">
-              V SubtitleBot věříme, že jazyk by nikdy neměl být překážkou pro sdílení skvělého obsahu. 
-              Naším posláním je učinit překlad titulků rychlým, přesným a dostupným pro tvůrce po celém světě, 
+              V SubtitleBot věříme, že jazyk by nikdy neměl být překážkou pro sdílení skvělého obsahu.
+              Naším posláním je učinit překlad titulků rychlým, přesným a dostupným pro tvůrce po celém světě,
               což jim umožní snadno oslovit globální publikum.
             </p>
           </CardContent>
@@ -53,13 +53,13 @@ export default function CzechAboutPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              SubtitleBot vznikl z frustrace s pomalými a nepřesnými nástroji pro překlad titulků. 
-              Jako tvůrci obsahu jsme sami zažili bolest čekání hodin na překlad titulků, 
+              SubtitleBot vznikl z frustrace s pomalými a nepřesnými nástroji pro překlad titulků.
+              Jako tvůrci obsahu jsme sami zažili bolest čekání hodin na překlad titulků,
               jen abychom dostali výsledky, které vyžadovaly rozsáhlé ruční úpravy.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              Rozhodli jsme se vybudovat něco lepšího. Kombinací nejmodernější AI technologie 
-              s hlubokým porozuměním kontextu jsme vytvořili platformu, která poskytuje 
+              Rozhodli jsme se vybudovat něco lepšího. Kombinací nejmodernější AI technologie
+              s hlubokým porozuměním kontextu jsme vytvořili platformu, která poskytuje
               rychlé, přesné překlady, které skutečně rozumí nuancím lidského jazyka.
             </p>
           </CardContent>
@@ -78,7 +78,7 @@ export default function CzechAboutPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground text-sm">
-                  Váš čas je cenný. Naše AI zpracuje titulky za sekundy, ne hodiny, 
+                  Váš čas je cenný. Naše AI zpracuje titulky za sekundy, ne hodiny,
                   takže se můžete soustředit na tvorbu skvělého obsahu.
                 </p>
               </CardContent>
@@ -93,7 +93,7 @@ export default function CzechAboutPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground text-sm">
-                  Používáme proprietární AI engine, který kombinuje OpenAI s kontextovým výzkumem 
+                  Používáme proprietární AI engine, který kombinuje Google Gemini s kontextovým výzkumem
                   pro dosažení překladů profesionální kvality.
                 </p>
               </CardContent>
@@ -108,7 +108,7 @@ export default function CzechAboutPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground text-sm">
-                  Podporujeme více než 100 jazyků a neustále přidáváme další, 
+                  Podporujeme více než 100 jazyků a neustále přidáváme další,
                   abychom pomohli tvůrcům oslovit publikum po celém světě.
                 </p>
               </CardContent>
@@ -123,7 +123,7 @@ export default function CzechAboutPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground text-sm">
-                  Každá funkce je navržena s ohledem na uživatele. Žádné složité rozhraní, 
+                  Každá funkce je navržena s ohledem na uživatele. Žádné složité rozhraní,
                   žádné skryté poplatky - jen jednoduché, výkonné nástroje.
                 </p>
               </CardContent>
@@ -144,21 +144,21 @@ export default function CzechAboutPage() {
               <div>
                 <h4 className="font-semibold mb-2">Proprietární AI Engine</h4>
                 <p className="text-muted-foreground text-sm">
-                  Náš vlastní AI engine kombinuje sílu OpenAI GPT modelů se specializovaným 
+                  Náš vlastní AI engine kombinuje sílu Google Gemini modelů se specializovaným
                   kontextovým výzkumem pro dosažení překladů, které rozumí nuancím, emocím a kulturnímu kontextu.
                 </p>
               </div>
               <div>
                 <h4 className="font-semibold mb-2">Kontextové Porozumění</h4>
                 <p className="text-muted-foreground text-sm">
-                  Na rozdíl od základních překladačů, naše AI analyzuje celý kontext titulků, 
+                  Na rozdíl od základních překladačů, naše AI analyzuje celý kontext titulků,
                   vztahy mezi postavami a dynamiku scén pro přesnější překlady.
                 </p>
               </div>
               <div>
                 <h4 className="font-semibold mb-2">Inteligentní Časování</h4>
                 <p className="text-muted-foreground text-sm">
-                  Automaticky upravujeme časování titulků pro různé jazyky, 
+                  Automaticky upravujeme časování titulků pro různé jazyky,
                   zajišťujeme perfektní synchronizaci s vaším video obsahem.
                 </p>
               </div>
@@ -176,9 +176,9 @@ export default function CzechAboutPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground leading-relaxed">
-              Jsme malý, ale vášnivý tým vývojářů, lingvistů a tvůrců obsahu, 
-              kteří sdílejí vizi světa bez jazykových bariér. Náš rozmanitý tým 
-              přináší zkušenosti z technologie, překladatelství a tvorby obsahu, 
+              Jsme malý, ale vášnivý tým vývojářů, lingvistů a tvůrců obsahu,
+              kteří sdílejí vizi světa bez jazykových bariér. Náš rozmanitý tým
+              přináší zkušenosti z technologie, překladatelství a tvorby obsahu,
               což nám umožňuje vybudovat nástroje, které skutečně rozumí potřebám našich uživatelů.
             </p>
           </CardContent>

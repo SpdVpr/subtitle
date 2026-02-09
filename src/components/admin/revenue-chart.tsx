@@ -37,7 +37,7 @@ export function RevenueChart({ revenueData, stats }: RevenueChartProps) {
   // Service usage data
   const serviceData = [
     { name: 'Google Translate', value: stats.googleTranslateUsage, color: '#10b981' },
-    { name: 'OpenAI GPT', value: stats.openaiUsage, color: '#f59e0b' },
+    { name: 'Google Gemini', value: stats.openaiUsage, color: '#f59e0b' },
     { name: 'Premium AI', value: stats.premiumAiUsage, color: '#8b5cf6' }
   ]
 

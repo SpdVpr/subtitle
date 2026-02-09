@@ -3,7 +3,6 @@ import { BatchJobService, UserService, AnalyticsService } from '@/lib/database'
 import { StorageService } from '@/lib/storage'
 import { ErrorTracker } from '@/lib/error-tracking'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
-import { TranslationServiceFactory } from '@/lib/translation-services'
 import { PremiumTranslationService } from '@/lib/premium-translation-service'
 import JSZip from 'jszip'
 
@@ -80,7 +79,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Start processing in background
-    processBatchJob(jobId, files, userId, sourceLanguage, targetLanguage, aiServiceRaw)
+    processBatchJob(jobId, files, userId, sourceLanguage, targetLanguage, aiServiceRaw, translationModel as 'standard' | 'premium')
 
     return NextResponse.json({
       jobId,
@@ -108,11 +107,10 @@ async function processBatchJob(
   userId: string,
   sourceLanguage: string | null,
   targetLanguage: string,
-  aiServiceRaw: 'google' | 'openai' | 'premium'
+  aiServiceRaw: 'google' | 'openai' | 'premium',
+  translationModel: 'standard' | 'premium' = 'standard'
 ) {
   const startTime = Date.now()
-  // Map premium to openai for service creation
-  const aiService: 'google' | 'openai' = aiServiceRaw === 'premium' ? 'openai' : aiServiceRaw as 'google' | 'openai'
 
   try {
     // Update job status
@@ -121,16 +119,14 @@ async function processBatchJob(
       startedAt: new Date() as any
     })
 
-    // Create translation service based on model selection
+    // Create translation service with Gemini models
     const apiKey = process.env.OPENAI_API_KEY
-    if (!apiKey || !apiKey.startsWith('sk-')) {
-      return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
-        { status: 500 }
-      )
+    if (!apiKey) {
+      console.error('❌ API key not configured for batch translation')
+      throw new Error('API key not configured')
     }
 
-    const translationService = new PremiumTranslationService(apiKey, translationModel as 'standard' | 'premium')
+    const translationService = new PremiumTranslationService(apiKey, translationModel)
     const translatedFiles: { name: string; content: string }[] = []
     let processedFiles = 0
     let failedFiles = 0
@@ -147,7 +143,7 @@ async function processBatchJob(
         // Update file status to processing
         const updatedFiles = [...job.files]
         updatedFiles[i].status = 'processing'
-        
+
         await BatchJobService.updateJob(jobId, {
           files: updatedFiles
         })
@@ -228,7 +224,7 @@ async function processBatchJob(
           const updatedFiles = [...job.files]
           updatedFiles[i].status = 'failed'
           updatedFiles[i].errorMessage = error instanceof Error ? error.message : 'Processing failed'
-          
+
           failedFiles++
           processedFiles++
 
@@ -259,21 +255,21 @@ async function processBatchJob(
 
     if (translatedFiles.length > 0) {
       const zip = new JSZip()
-      
+
       translatedFiles.forEach(file => {
         zip.file(file.name, file.content)
       })
 
       const zipBlob = await zip.generateAsync({ type: 'blob' })
       const zipFileName = `batch_translation_${targetLanguage}_${Date.now()}.zip`
-      
+
       const { url } = await StorageService.uploadBatchZip(
         zipBlob,
         userId,
         jobId,
         zipFileName
       )
-      
+
       downloadUrl = url
     }
 
@@ -339,7 +335,7 @@ export async function GET(req: NextRequest) {
     }
 
     const job = await BatchJobService.getJob(jobId)
-    
+
     if (!job) {
       return NextResponse.json(
         { error: 'Job not found' },

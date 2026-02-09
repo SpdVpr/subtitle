@@ -56,7 +56,7 @@ export const SUBSCRIPTION_PLANS = {
     stripePriceId: process.env.STRIPE_PREMIUM_PRICE_ID || 'price_demo_premium',
     features: [
       'Unlimited translations',
-      'OpenAI GPT-4 AI',
+      'Google Gemini AI',
       'Advanced export options',
       '10MB file limit',
       'Intelligent timing adjustment',
@@ -126,27 +126,27 @@ export function canPerformAction(
         return { allowed: true }
       }
       if (currentUsage && currentUsage.translationsThisMonth >= plan.limits.translationsPerMonth) {
-        return { 
-          allowed: false, 
-          reason: `Monthly limit of ${plan.limits.translationsPerMonth} translations reached` 
+        return {
+          allowed: false,
+          reason: `Monthly limit of ${plan.limits.translationsPerMonth} translations reached`
         }
       }
       return { allowed: true }
 
     case 'batch':
-      return { 
+      return {
         allowed: plan.limits.batchProcessing,
         reason: plan.limits.batchProcessing ? undefined : 'Batch processing requires Premium plan'
       }
 
     case 'api':
-      return { 
+      return {
         allowed: plan.limits.apiAccess || false,
         reason: plan.limits.apiAccess ? undefined : 'API access requires Professional plan'
       }
 
     case 'whiteLabel':
-      return { 
+      return {
         allowed: plan.limits.whiteLabel || false,
         reason: plan.limits.whiteLabel ? undefined : 'White-label solution requires Professional plan'
       }

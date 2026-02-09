@@ -45,7 +45,7 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
     const subtitleFiles = acceptedFiles.filter(file =>
       isSupportedSubtitleFile(file.name) && file.size <= 10 * 1024 * 1024 // 10MB limit
     )
-    
+
     setFiles(prev => [...prev, ...subtitleFiles])
 
     // Auto-generate job name if not set
@@ -92,7 +92,7 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
       setJobName('')
       setSourceLanguage('')
       setTargetLanguage('')
-      
+
       onJobCreated?.(jobId)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create batch job')
@@ -253,14 +253,14 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
             <label className="block text-sm font-medium mb-2">
               AI Translation Service
             </label>
-            <Select value="premium" onValueChange={() => {}} disabled={true}>
+            <Select value="premium" onValueChange={() => { }} disabled={true}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="premium">
                   <div className="flex flex-col">
-                    <span>🎬 Premium AI Context (OpenAI)</span>
+                    <span>🎬 Premium AI Context (Google Gemini)</span>
                     <span className="text-xs text-blue-600">✓ Context-aware translation with timing optimization</span>
                   </div>
                 </SelectItem>
@@ -276,8 +276,8 @@ export function BatchUpload({ onJobCreated }: BatchUploadProps) {
           )}
 
           {/* Create Job Button */}
-          <Button 
-            onClick={handleCreateJob} 
+          <Button
+            onClick={handleCreateJob}
             disabled={!canCreate}
             className="w-full"
             size="lg"

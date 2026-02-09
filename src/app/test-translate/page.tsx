@@ -79,7 +79,7 @@ I feel the need... the need for speed!`)
       })
 
       const data = await response.json()
-      
+
       if (response.ok) {
         setResult(data)
       } else {
@@ -120,7 +120,7 @@ I feel the need... the need for speed!`)
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="premium">🎬 Premium AI Context (OpenAI)</SelectItem>
+                  <SelectItem value="premium">🎬 Premium AI Context (Google Gemini)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -196,8 +196,8 @@ I feel the need... the need for speed!`)
               </Select>
             </div>
 
-            <Button 
-              onClick={testCustomTranslation} 
+            <Button
+              onClick={testCustomTranslation}
               disabled={loading || !text.trim()}
               className="w-full"
             >
@@ -244,7 +244,7 @@ I feel the need... the need for speed!`)
                   <p className="font-medium text-green-800 dark:text-green-300 mb-2">
                     ✅ {result.message || 'Translation successful!'}
                   </p>
-                  
+
                   {result.test && (
                     <div className="text-sm text-green-700">
                       <p><strong>Original:</strong> {result.test.original.join(', ')}</p>
@@ -296,7 +296,7 @@ I feel the need... the need for speed!`)
           <CardTitle>Setup Instructions</CardTitle>
         </CardHeader>
         <CardContent className="text-sm space-y-2">
-          <p><strong>1.</strong> Create OpenAI account at platform.openai.com</p>
+          <p><strong>1.</strong> Create Google AI account at aistudio.google.com</p>
           <p><strong>2.</strong> Generate API key in API Keys section</p>
           <p><strong>3.</strong> Add API key to .env.local: <code>OPENAI_API_KEY=your_key</code></p>
           <p><strong>4.</strong> Restart development server</p>

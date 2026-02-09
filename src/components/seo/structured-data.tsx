@@ -18,7 +18,7 @@ export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataP
     "alternateName": "SubtitleAI",
     "url": baseUrl,
     "logo": `${baseUrl}/logo-sub.png`,
-    "description": isCs 
+    "description": isCs
       ? "Pokročilý AI překladač titulků s podporou 100+ jazyků. Rychlé, přesné a kontextové překlady pro filmy, seriály a video obsah."
       : "Advanced AI subtitle translator supporting 100+ languages. Fast, accurate, and context-aware translations for movies, TV shows, and video content.",
     "foundingDate": "2024",
@@ -72,7 +72,7 @@ export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataP
     },
     "featureList": [
       isCs ? "AI překlad titulků" : "AI subtitle translation",
-      isCs ? "Podpora 100+ jazyků" : "100+ language support", 
+      isCs ? "Podpora 100+ jazyků" : "100+ language support",
       isCs ? "Kontextový překlad" : "Contextual translation",
       isCs ? "Více formátů souborů" : "Multiple file formats",
       isCs ? "Dávkové zpracování" : "Batch processing",
@@ -99,11 +99,11 @@ export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataP
         "name": "Jak funguje AI překlad titulků?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Náš AI engine kombinuje OpenAI GPT modely s kontextovým výzkumem pro přesné překlady. Analyzuje kontext filmu/seriálu, vztahy mezi postavami a kulturní nuance pro nejlepší možnou kvalitu překladu."
+          "text": "Náš AI engine kombinuje Google Gemini modely s kontextovým výzkumem pro přesné překlady. Analyzuje kontext filmu/seriálu, vztahy mezi postavami a kulturní nuance pro nejlepší možnou kvalitu překladu."
         }
       },
       {
-        "@type": "Question", 
+        "@type": "Question",
         "name": "Jaké formáty titulků podporujete?",
         "acceptedAnswer": {
           "@type": "Answer",
@@ -132,7 +132,7 @@ export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataP
         "name": "How does AI subtitle translation work?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Our AI engine combines OpenAI GPT models with contextual research for accurate translations. It analyzes movie/show context, character relationships, and cultural nuances for the best possible translation quality."
+          "text": "Our AI engine combines Google Gemini models with contextual research for accurate translations. It analyzes movie/show context, character relationships, and cultural nuances for the best possible translation quality."
         }
       },
       {

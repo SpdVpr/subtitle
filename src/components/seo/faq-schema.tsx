@@ -40,7 +40,7 @@ export const defaultFAQs = {
   en: [
     {
       question: "How does AI subtitle translation work?",
-      answer: "Our AI engine combines OpenAI GPT models with contextual research for accurate translations. It analyzes movie/show context, character relationships, and cultural nuances for the best possible translation quality."
+      answer: "Our AI engine combines Google Gemini models with contextual research for accurate translations. It analyzes movie/show context, character relationships, and cultural nuances for the best possible translation quality."
     },
     {
       question: "What subtitle formats do you support?",
@@ -74,7 +74,7 @@ export const defaultFAQs = {
   cs: [
     {
       question: "Jak funguje AI překlad titulků?",
-      answer: "Náš AI engine kombinuje OpenAI GPT modely s kontextovým výzkumem pro přesné překlady. Analyzuje kontext filmu/seriálu, vztahy mezi postavami a kulturní nuance pro nejlepší možnou kvalitu překladu."
+      answer: "Náš AI engine kombinuje Google Gemini modely s kontextovým výzkumem pro přesné překlady. Analyzuje kontext filmu/seriálu, vztahy mezi postavami a kulturní nuance pro nejlepší možnou kvalitu překladu."
     },
     {
       question: "Jaké formáty titulků podporujete?",

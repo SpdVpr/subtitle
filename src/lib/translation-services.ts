@@ -85,7 +85,7 @@ export class OpenAITranslateService implements TranslationService {
           const textsToTranslate = batch.join('\n')
 
           const completion = await openai.chat.completions.create({
-            model: "gpt-5-nano",
+            model: "gemini-3-flash",
             messages: [
               {
                 role: "system",
@@ -284,7 +284,7 @@ RULES:
         ).join('\n')
 
         const completion = await openai.chat.completions.create({
-          model: "gpt-5-nano",
+          model: "gemini-3-flash",
           messages: [
             {
               role: "system",

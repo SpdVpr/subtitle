@@ -38,7 +38,7 @@ export default function PreviewPage() {
       if (translatedContent) {
         try {
           const translatedEntries = SubtitleProcessor.parseSRT(translatedContent)
-          const baseOriginalEntries = originalContent ? SubtitleProcessor.parseSRT(originalContent) : translatedEntries.map(e => ({...e}))
+          const baseOriginalEntries = originalContent ? SubtitleProcessor.parseSRT(originalContent) : translatedEntries.map(e => ({ ...e }))
           setOriginalEntries(baseOriginalEntries)
           setEntries(translatedEntries.map((e, idx) => ({ ...e, originalText: baseOriginalEntries[idx]?.text })))
           return
@@ -95,7 +95,7 @@ export default function PreviewPage() {
     // Mock translated entries based on target language
     const mockTranslatedEntries: SubtitleEntry[] = mockOriginalEntries.map(entry => {
       let translatedText = entry.text
-      
+
       // Simple mock translation based on target language
       switch (data.targetLanguage) {
         case 'es': // Spanish
@@ -131,7 +131,7 @@ export default function PreviewPage() {
             .replace('The timing will be intelligently adjusted based on language characteristics.', 'Časování bude inteligentně upraveno na základě charakteristik jazyka.')
           break
       }
-      
+
       return {
         ...entry,
         text: translatedText,
@@ -158,10 +158,10 @@ export default function PreviewPage() {
 
   const handleDownload = () => {
     // Generate SRT content
-    const srtContent = entries.map(entry => 
+    const srtContent = entries.map(entry =>
       `${entry.index}\n${entry.startTime} --> ${entry.endTime}\n${entry.text}\n`
     ).join('\n')
-    
+
     // Create download
     const blob = new Blob([srtContent], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
@@ -285,7 +285,7 @@ export default function PreviewPage() {
                 <span className="text-gray-500 dark:text-muted-foreground">AI Service:</span>
                 <div className="font-medium flex items-center">
                   <Zap className="h-3 w-3 mr-1" />
-                  {previewData.aiService === 'google' ? 'Google Translate' : 'OpenAI GPT'}
+                  {previewData.aiService === 'google' ? 'Google Translate' : 'Google Gemini'}
                 </div>
               </div>
               <div>

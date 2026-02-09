@@ -1176,7 +1176,7 @@ CONTENT ANALYSIS:`
     }).join('\n')
 
     const completion = await openai.chat.completions.create({
-      model: this.model, // Use selected model (gpt-5.2 or gpt-5-mini)
+      model: this.model, // Use selected model (gemini-3-pro or gemini-3-flash)
       messages: [
         {
           role: "system",
@@ -1213,7 +1213,7 @@ TECHNICAL REQUIREMENTS:
           content: `Translate these ${batch.length} subtitle entries with perfect accuracy:\n\n${structuredInput}`
         }
       ],
-      // GPT-5.2/GPT-5-mini: no temperature, use max_completion_tokens
+      // Gemini models: no temperature, use max_completion_tokens
       max_completion_tokens: Math.min(8000, batch.length * 200),
     })
 

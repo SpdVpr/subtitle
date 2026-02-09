@@ -38,8 +38,8 @@ export default function CzechPrivacyPage() {
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none dark:prose-invert">
             <p>
-              SubtitleBot ("my", "nás", "naše") se zavazuje chránit vaše soukromí. 
-              Tyto Zásady ochrany osobních údajů vysvětlují, jak shromažďujeme, 
+              SubtitleBot ("my", "nás", "naše") se zavazuje chránit vaše soukromí.
+              Tyto Zásady ochrany osobních údajů vysvětlují, jak shromažďujeme,
               používáme a chráníme vaše informace při používání naší služby.
             </p>
           </CardContent>
@@ -61,7 +61,7 @@ export default function CzechPrivacyPage() {
               <li>Datum vytvoření účtu</li>
               <li>Stav kreditů</li>
             </ul>
-            
+
             <h4>Informace o používání:</h4>
             <ul>
               <li>Nahrané soubory s titulky (dočasně)</li>
@@ -174,7 +174,7 @@ export default function CzechPrivacyPage() {
               <li><strong>Firebase:</strong> Autentifikace a databáze</li>
               <li><strong>Stripe:</strong> Zpracování plateb</li>
               <li><strong>OpenNode:</strong> Bitcoin platby</li>
-              <li><strong>OpenAI:</strong> AI překlady</li>
+              <li><strong>Google Gemini:</strong> AI překlady</li>
               <li><strong>Google Analytics:</strong> Analýzy webu</li>
             </ul>
             <p>
@@ -205,7 +205,7 @@ export default function CzechPrivacyPage() {
         {/* Footer */}
         <div className="text-center">
           <p className="text-sm text-muted-foreground mb-6">
-            Přečtěte si také naše <Link href="/cs/terms" className="text-primary hover:underline">Obchodní podmínky</Link> 
+            Přečtěte si také naše <Link href="/cs/terms" className="text-primary hover:underline">Obchodní podmínky</Link>
             a <Link href="/cs/cookies" className="text-primary hover:underline">Zásady cookies</Link>.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

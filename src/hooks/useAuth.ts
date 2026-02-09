@@ -289,11 +289,15 @@ export function useAuthProvider(): AuthContextType {
     // Clear demo user from localStorage
     localStorage.removeItem('demoUser')
     setUser(null)
+    setLoading(false)
 
-    if (!firebaseServices?.isConfigured || !firebaseServices.auth) {
-      return
+    if (firebaseServices?.isConfigured && firebaseServices.auth) {
+      await firebaseSignOut(firebaseServices.auth)
     }
-    await firebaseSignOut(firebaseServices.auth)
+
+    // Force redirect to homepage after sign out
+    // Use window.location for a clean state reset
+    window.location.href = '/'
   }
 
   const resetPassword = async (email: string) => {
@@ -430,8 +434,8 @@ export function useAuthProvider(): AuthContextType {
         }
       }
 
-      // Don't set loading to false here - let onAuthStateChanged handle it
-      // This ensures proper redirect flow
+      // Set loading to false to let onAuthStateChanged + React re-render handle the flow
+      setLoading(false)
     } catch (error) {
       setLoading(false)
       throw error

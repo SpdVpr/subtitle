@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     "AI překlad titulků",
     "SRT překladač",
     "video titulky",
-    "OpenAI překlad",
+    "Google AI překlad",
     "vícejazyčné titulky",
     "převodník titulků",
     "překlad titulků zdarma",
@@ -104,7 +104,7 @@ export default function CzechHome() {
 
               <p className="text-xl md:text-2xl text-gray-600 dark:text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
                 Přeložte své titulky pomocí našeho <span className="font-semibold text-blue-600 dark:text-primary">proprietárního AI enginu</span>, který kombinuje
-                <span className="font-semibold text-purple-600 dark:text-primary"> OpenAI + Kontextové porozumění</span> pro maximální kvalitu překladu.
+                <span className="font-semibold text-purple-600 dark:text-primary"> Google Gemini + Kontextové porozumění</span> pro maximální kvalitu překladu.
               </p>
 
               {/* Key Features Pills */}
@@ -275,7 +275,7 @@ export default function CzechHome() {
                 Pokročilý překladový engine
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Náš vlastní AI kombinuje sílu OpenAI se specializovaným kontextovým výzkumem
+                Náš vlastní AI kombinuje sílu Google Gemini se specializovaným kontextovým výzkumem
                 pro překlady, které rozumí nuancím, emocím a kulturnímu kontextu.
               </p>
             </div>
@@ -287,9 +287,9 @@ export default function CzechHome() {
                     <Brain className="h-6 w-6 text-blue-600 dark:text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">OpenAI integrace</h3>
+                    <h3 className="text-xl font-semibold mb-2">Google Gemini integrace</h3>
                     <p className="text-gray-600 dark:text-muted-foreground">
-                      Využívá GPT modely pro přirozené, lidské překlady, které zachycují původní význam a tón.
+                      Využívá Gemini AI modely pro přirozené, lidské překlady, které zachycují původní význam a tón.
                     </p>
                   </div>
                 </div>

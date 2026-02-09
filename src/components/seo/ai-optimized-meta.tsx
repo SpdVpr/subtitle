@@ -7,21 +7,21 @@ interface AIOptimizedMetaProps {
   customDescription?: string
 }
 
-export function AIOptimizedMeta({ 
-  page, 
-  locale = 'en', 
-  customTitle, 
-  customDescription 
+export function AIOptimizedMeta({
+  page,
+  locale = 'en',
+  customTitle,
+  customDescription
 }: AIOptimizedMetaProps) {
   const isCs = locale === 'cs'
-  
+
   // AI-optimized content for different pages and locales
   const content = {
     en: {
       home: {
         title: "SubtitleBot - AI Subtitle Translation | 100+ Languages | Free Credits",
         description: "Professional AI subtitle translator supporting 100+ languages. Fast, accurate, context-aware translations for movies, TV shows, videos. Free 200 credits. No subscription required. Try now!",
-        keywords: "AI subtitle translation, SRT translator, video subtitles, OpenAI translation, multilingual subtitles, subtitle converter, free subtitle translation, professional subtitle service"
+        keywords: "AI subtitle translation, SRT translator, video subtitles, Google Gemini AI translation, multilingual subtitles, subtitle converter, free subtitle translation, professional subtitle service"
       },
       translate: {
         title: "AI Subtitle Translation Tool | Translate SRT, VTT Files | SubtitleBot",
@@ -58,7 +58,7 @@ export function AIOptimizedMeta({
       home: {
         title: "SubtitleBot - AI Překlad Titulků | 100+ Jazyků | Zdarma Kredity",
         description: "Profesionální AI překladač titulků s podporou 100+ jazyků. Rychlé, přesné, kontextové překlady pro filmy, seriály, videa. 200 kreditů zdarma. Bez předplatného. Vyzkoušejte nyní!",
-        keywords: "AI překlad titulků, SRT překladač, video titulky, OpenAI překlad, vícejazyčné titulky, konvertor titulků, zdarma překlad titulků, profesionální služba titulků"
+        keywords: "AI překlad titulků, SRT překladač, video titulky, Google Gemini AI překlad, vícejazyčné titulky, konvertor titulků, zdarma překlad titulků, profesionální služba titulků"
       },
       translate: {
         title: "AI Nástroj pro Překlad Titulků | Přeložte SRT, VTT Soubory | SubtitleBot",
@@ -103,33 +103,33 @@ export function AIOptimizedMeta({
       <meta name="title" content={title} />
       <meta name="description" content={description} />
       <meta name="keywords" content={pageContent.keywords} />
-      
+
       {/* AI crawler specific tags */}
       <meta name="ai-content-type" content="subtitle-translation-service" />
       <meta name="ai-primary-function" content="translate-subtitles" />
       <meta name="ai-supported-languages" content="100+" />
       <meta name="ai-service-category" content="multimedia-translation" />
-      
+
       {/* Semantic tags for AI understanding */}
       <meta name="content-category" content="software-application" />
       <meta name="service-type" content="ai-translation" />
       <meta name="target-audience" content="content-creators,translators,video-editors" />
       <meta name="use-case" content="subtitle-translation,video-localization,accessibility" />
-      
+
       {/* Language and localization */}
       <meta name="content-language" content={locale === 'cs' ? 'cs-CZ' : 'en-US'} />
       <meta name="geo.region" content={locale === 'cs' ? 'CZ' : 'US'} />
-      
+
       {/* Technical specifications for AI crawlers */}
       <meta name="supported-formats" content="SRT,VTT,ASS,SSA,SUB,SBV,TXT" />
       <meta name="processing-method" content="ai-contextual-translation" />
       <meta name="accuracy-rate" content="95%" />
       <meta name="processing-speed" content="real-time" />
-      
+
       {/* Accessibility and compliance */}
       <meta name="accessibility-features" content="screen-reader-compatible,keyboard-navigation" />
       <meta name="compliance" content="GDPR,WCAG-2.1" />
-      
+
       {/* Performance hints for AI crawlers */}
       <meta name="performance-score" content="95" />
       <meta name="mobile-friendly" content="true" />

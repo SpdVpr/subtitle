@@ -33,7 +33,7 @@ export function TranslationProgress({ result }: TranslationProgressProps) {
           if (result.aiService === 'premium') {
             return 'Translating with Premium Context AI...'
           } else {
-            return 'Translating with OpenAI...'
+            return 'Translating with Gemini AI...'
           }
         }
         return 'Finalizing translation...'

@@ -38,8 +38,8 @@ export default function CzechGDPRPage() {
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none dark:prose-invert">
             <p>
-              Obecné nařízení o ochraně údajů (GDPR) je evropský zákon, který vám dává 
-              kontrolu nad vašimi osobními údaji. SubtitleBot plně dodržuje GDPR 
+              Obecné nařízení o ochraně údajů (GDPR) je evropský zákon, který vám dává
+              kontrolu nad vašimi osobními údaji. SubtitleBot plně dodržuje GDPR
               a zavazuje se chránit vaše soukromí.
             </p>
           </CardContent>
@@ -49,7 +49,7 @@ export default function CzechGDPRPage() {
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-6 text-center">Vaše Práva Podle GDPR</h2>
           <div className="grid md:grid-cols-2 gap-6">
-            
+
             {/* Right to Access */}
             <Card>
               <CardHeader>
@@ -146,7 +146,7 @@ export default function CzechGDPRPage() {
             <p>
               Pro uplatnění jakéhokoli z vašich práv podle GDPR:
             </p>
-            
+
             <h4>1. Kontaktujte nás:</h4>
             <ul>
               <li><strong>Email:</strong> privacy@subtitlebot.com</li>
@@ -177,7 +177,7 @@ export default function CzechGDPRPage() {
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none dark:prose-invert">
             <p>Vaše údaje zpracováváme na základě:</p>
-            
+
             <h4>Smlouva:</h4>
             <ul>
               <li>Poskytování služeb překladu</li>
@@ -211,7 +211,7 @@ export default function CzechGDPRPage() {
               Některé naše služby třetích stran mohou zpracovávat data mimo EU:
             </p>
             <ul>
-              <li><strong>OpenAI (USA):</strong> Standardní smluvní doložky</li>
+              <li><strong>Google (USA):</strong> Standardní smluvní doložky</li>
               <li><strong>Google Analytics (USA):</strong> Adequacy decision</li>
               <li><strong>Stripe (USA):</strong> Standardní smluvní doložky</li>
             </ul>
@@ -231,7 +231,7 @@ export default function CzechGDPRPage() {
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none dark:prose-invert">
             <p>
-              Pokud se domníváte, že zpracováváme vaše údaje nezákonně, 
+              Pokud se domníváte, že zpracováváme vaše údaje nezákonně,
               máte právo podat stížnost u dozorového úřadu:
             </p>
             <ul>
@@ -245,7 +245,7 @@ export default function CzechGDPRPage() {
         {/* Footer */}
         <div className="text-center">
           <p className="text-sm text-muted-foreground mb-6">
-            Přečtěte si také naše <Link href="/cs/privacy" className="text-primary hover:underline">Zásady ochrany osobních údajů</Link> 
+            Přečtěte si také naše <Link href="/cs/privacy" className="text-primary hover:underline">Zásady ochrany osobních údajů</Link>
             a <Link href="/cs/terms" className="text-primary hover:underline">Obchodní podmínky</Link>.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

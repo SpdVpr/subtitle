@@ -65,7 +65,7 @@ export default function Home() {
 
             <p className="text-xl md:text-2xl text-gray-600 dark:text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
               Translate your subtitles with our <span className="font-semibold text-blue-600 dark:text-primary">proprietary AI engine</span> that combines
-              <span className="font-semibold text-purple-600 dark:text-primary"> OpenAI + Context Research</span> for maximum translation quality.
+              <span className="font-semibold text-purple-600 dark:text-primary"> Google Gemini + Context Research</span> for maximum translation quality.
             </p>
 
             {/* Key Features Pills */}
@@ -236,7 +236,7 @@ export default function Home() {
               Advanced Translation Engine
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our custom-built AI combines the power of OpenAI with specialized context research
+              Our custom-built AI combines the power of Google Gemini with specialized context research
               to deliver translations that understand nuance, emotion, and cultural context.
             </p>
           </div>

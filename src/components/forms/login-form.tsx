@@ -77,11 +77,11 @@ export function LoginForm({ locale = 'en' }: LoginFormProps) {
 
   const t = texts[locale]
 
-  // Redirect to homepage if already logged in and reset loading state
+  // Redirect to dashboard if already logged in and reset loading state
   useEffect(() => {
     if (user) {
       setIsLoading(false) // Reset loading state when user is authenticated
-      router.push(locale === 'cs' ? '/cs' : '/')
+      router.push(locale === 'cs' ? '/cs/dashboard' : '/dashboard')
     }
   }, [user, router, locale])
 
@@ -100,8 +100,8 @@ export function LoginForm({ locale = 'en' }: LoginFormProps) {
 
     try {
       await signIn(data.email, data.password)
-      // Redirect to homepage after successful login
-      router.push('/')
+      // Redirect to dashboard after successful login
+      router.push('/dashboard')
     } catch (error: any) {
       console.error('Login error:', error)
 
@@ -169,7 +169,7 @@ export function LoginForm({ locale = 'en' }: LoginFormProps) {
           ) : (
             <Chrome className="h-4 w-4 mr-2" />
           )}
-{t.signInWithGoogle}
+          {t.signInWithGoogle}
         </Button>
 
         <div className="relative">

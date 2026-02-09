@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -32,7 +32,7 @@ import { BarChart3, Settings } from 'lucide-react'
 import Link from 'next/link'
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
   const [dashboardStats, setDashboardStats] = useState({
     totalTranslations: 0,
@@ -93,7 +93,16 @@ export default function DashboardPage() {
     }
   }, [searchParams])
 
-  if (!user) {
+  const router = useRouter()
+
+  // Redirect to login if not authenticated (after auth check completes)
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login')
+    }
+  }, [authLoading, user, router])
+
+  if (authLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
