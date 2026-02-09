@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-02-09T19:56:38.267Z",
+  "exists": true,
+  "length": 164,
+  "prefix": "sk-proj-Yg",
+  "containsPlaceholder": false,
+  "containsDemo": false,
+  "tooShort": false,
+  "willUseMock": false,
+  "envKeyExists": true,
+  "envKeyLength": 164,
+  "envKeyPrefix": "sk-proj-Yg"
+}

@@ -1,0 +1,310 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light mode - original colors */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+  }
+
+  .dark {
+    /* Dark mode - comfortable dark colors, much lighter and more pleasant */
+    --background: 220 13% 15%;
+    --foreground: 220 9% 82%;
+    --card: 220 13% 20%;
+    --card-foreground: 220 9% 82%;
+    --popover: 220 13% 22%;
+    --popover-foreground: 220 9% 82%;
+    --primary: 217 91% 58%;
+    --primary-foreground: 220 13% 15%;
+    --secondary: 220 13% 25%;
+    --secondary-foreground: 220 9% 82%;
+    --muted: 220 13% 25%;
+    --muted-foreground: 220 9% 62%;
+    --accent: 220 13% 28%;
+    --accent-foreground: 220 9% 82%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 220 9% 82%;
+    --border: 220 13% 30%;
+    --input: 220 13% 26%;
+    --ring: 217 91% 58%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: system-ui, -apple-system, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Smooth transitions for theme switching */
+  * {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Better focus states for dark mode */
+  .dark *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Softer shadows for dark mode */
+  .dark .shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .shadow {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Better text contrast in dark mode */
+  .dark {
+    color-scheme: dark;
+  }
+
+  /* Reduce brightness of images in dark mode */
+  .dark img {
+    opacity: 0.9;
+  }
+
+  /* Better selection colors */
+  .dark ::selection {
+    background-color: hsl(var(--primary) / 0.3);
+    color: hsl(var(--primary-foreground));
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary) / 0.2);
+    color: hsl(var(--primary-foreground));
+  }
+}
+
+/* Grid pattern background */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Sonner toast styling for dark mode */
+.dark [data-sonner-toast] {
+  background-color: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--card-foreground)) !important;
+}
+
+.dark [data-sonner-toast][data-type="success"] {
+  background-color: hsl(142 76% 36% / 0.1) !important;
+  border-color: hsl(142 76% 36% / 0.3) !important;
+  color: hsl(142 76% 36%) !important;
+}
+
+.dark [data-sonner-toast][data-type="error"] {
+  background-color: hsl(var(--destructive) / 0.1) !important;
+  border-color: hsl(var(--destructive) / 0.3) !important;
+  color: hsl(var(--destructive)) !important;
+}
+
+.dark [data-sonner-toast][data-type="info"] {
+  background-color: hsl(var(--primary) / 0.1) !important;
+  border-color: hsl(var(--primary) / 0.3) !important;
+  color: hsl(var(--primary)) !important;
+}
+
+.dark .bg-grid-pattern {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Gradient text utilities */
+.text-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Modern 2025 Design Animations */
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(20px, -50px) scale(1.1);
+  }
+  50% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  75% {
+    transform: translate(50px, 50px) scale(1.05);
+  }
+}
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes tilt {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(1deg);
+  }
+  75% {
+    transform: rotate(-1deg);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(15px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animation utility classes */
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 3s ease infinite;
+}
+
+.animate-tilt {
+  animation: tilt 10s infinite linear;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-scroll {
+  animation: scroll 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for modern design */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #667eea, #764ba2);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #5568d3, #63408b);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob,
+  .animate-gradient-x,
+  .animate-tilt,
+  .animate-fade-in-up,
+  .animate-scroll,
+  .animate-spin-slow {
+    animation: none;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}

@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can access their own profile, admins can read and write all
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Allow admin users to read and write all user profiles
+      allow read, write: if request.auth != null &&
+        request.auth.token.email in [
+          'premium@test.com',
+          'admin@subtitlebot.com',
+          'admin@subtitle-ai.com',
+          'ceo@subtitle-ai.com',
+          'manager@subtitle-ai.com'
+        ];
+    }
+    
+    // Translation jobs - users can only access their own
+    match /translation_jobs/{jobId} {
+      allow read, write: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+      // Allow admin users to read and write all translation jobs
+      allow read, write: if request.auth != null &&
+        request.auth.token.email in [
+          'premium@test.com',
+          'admin@subtitlebot.com',
+          'admin@subtitle-ai.com',
+          'ceo@subtitle-ai.com',
+          'manager@subtitle-ai.com'
+        ];
+    }
+
+    // Batch jobs - users can only access their own
+    match /batch_jobs/{jobId} {
+      allow read, write: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+      // Allow admin users to read and write all batch jobs
+      allow read, write: if request.auth != null &&
+        request.auth.token.email in [
+          'premium@test.com',
+          'admin@subtitlebot.com',
+          'admin@subtitle-ai.com',
+          'ceo@subtitle-ai.com',
+          'manager@subtitle-ai.com'
+        ];
+    }
+    
+    // Analytics - users can only access their own
+    match /analytics/{entryId} {
+      allow read, write: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Files - users can only access their own
+    match /files/{fileId} {
+      allow read, write: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Subscriptions - users can only read their own
+    match /subscriptions/{subscriptionId} {
+      allow read: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      // Only server can write subscriptions
+      allow write: if false;
+    }
+    
+    // Error logs - users can read their own, only server can write
+    match /error_logs/{logId} {
+      allow read: if request.auth != null &&
+        (resource.data.userId == request.auth.uid || !exists(/databases/$(database)/documents/error_logs/$(logId)));
+      allow write: if false; // Only server-side writes
+    }
+
+    // Credit transactions - users can read their own, admins can read all and write
+    match /credit_transactions/{transactionId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Allow admin users to read all transactions
+      allow read: if request.auth != null &&
+        request.auth.token.email in [
+          'premium@test.com',
+          'admin@subtitlebot.com',
+          'admin@subtitle-ai.com',
+          'ceo@subtitle-ai.com',
+          'manager@subtitle-ai.com'
+        ];
+      // Allow admin users to write transactions
+      allow write: if request.auth != null &&
+        request.auth.token.email in [
+          'premium@test.com',
+          'admin@subtitlebot.com',
+          'admin@subtitle-ai.com',
+          'ceo@subtitle-ai.com',
+          'manager@subtitle-ai.com'
+        ];
+    }
+
+    // System settings - only admins can access
+    match /systemSettings/{settingId} {
+      allow read, write: if false; // Only server-side access
+    }
+
+    // Registration tracking - only admins can read, only server can write
+    match /registration_tracking/{trackingId} {
+      // Allow admin users to read all registration tracking data
+      allow read: if request.auth != null &&
+        request.auth.token.email in [
+          'premium@test.com',
+          'admin@subtitlebot.com',
+          'admin@subtitle-ai.com',
+          'ceo@subtitle-ai.com',
+          'manager@subtitle-ai.com'
+        ];
+      // Only server-side writes (from API endpoints)
+      allow write: if false;
+    }
+  }
+}

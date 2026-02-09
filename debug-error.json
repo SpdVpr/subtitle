@@ -1,0 +1,7 @@
+{
+  "timestamp": "2026-02-09T20:01:40.834Z",
+  "message": "Too many Gemini Pro failures",
+  "name": "Error",
+  "stack": "Error: Too many Gemini Pro failures\n    at D:\\subtitle\\.next\\server\\chunks\\[root-of-the-server]__84c71840._.js:2520:65\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Promise.all (index 1)\n    at async PremiumTranslationService.translateSubtitles (D:\\subtitle\\.next\\server\\chunks\\[root-of-the-server]__84c71840._.js:2529:33)\n    at async Object.start (D:\\subtitle\\.next\\server\\chunks\\[root-of-the-server]__84c71840._.js:3770:40)",
+  "fullError": "Error: Too many Gemini Pro failures"
+}

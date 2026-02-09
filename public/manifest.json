@@ -1,0 +1,16 @@
+{
+  "name": "SubtitleBot - AI Subtitle Translator",
+  "short_name": "SubtitleBot",
+  "description": "AI-powered subtitle translation with context awareness and timing optimization",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/logo-sub.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
