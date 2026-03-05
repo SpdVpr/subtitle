@@ -163,18 +163,21 @@ export class PremiumTranslationService {
               const batchIdx = Math.floor(batchStart / batchSize)
 
               const batchPromise = (async () => {
-                const numberedInput = batch.map((entry, idx) => `${idx + 1}. ${entry.text}`).join('\n')
+                // Replace newlines within subtitle text with placeholder to keep each entry on one line
+                const numberedInput = batch.map((entry, idx) => `${idx + 1}. ${entry.text.replace(/\n/g, '<NEWLINE>')}`).join('\n')
                 try {
                   const prompt = `You are a professional subtitle translator. Translate from ${sourceLangName} to ${targetLangName}.
 
 CRITICAL RULES:
 1. Return EXACTLY ${batch.length} numbered lines, format: "N. translated text"
 2. Translate the COMPLETE text of every line - do NOT shorten, truncate, or omit any part
-3. When a line has [Speaker Name] followed by dialogue, translate the ENTIRE dialogue after the bracket
-4. Preserve [sound effects] and ♪ music ♪ markers (translate sound descriptions inside brackets)
-5. Speaker names in brackets stay in original form
-6. Use natural, idiomatic ${targetLangName}
-7. Do NOT add any explanations or comments
+3. Some lines contain <NEWLINE> markers - these represent line breaks within a single subtitle. PRESERVE all <NEWLINE> markers in the exact same positions in your translation
+4. When a line has [Speaker Name] followed by dialogue, translate the ENTIRE dialogue after the bracket
+5. Preserve ALL formatting tags exactly as-is: {\\an8}, <i>...</i>, <b>...</b>, (parentheses), etc. - copy them to the translation
+6. Preserve [sound effects] and ♪ music ♪ markers (translate sound descriptions inside brackets)
+7. Speaker names in brackets stay in original form
+8. Use natural, idiomatic ${targetLangName}
+9. Do NOT add any explanations or comments
 
 ${numberedInput}`
 
@@ -198,10 +201,13 @@ ${numberedInput}`
                     })
                     if (matchLine) {
                       const m = matchLine.match(/^(\d+)[\.:\)]\s*(.*)$/)
-                      translated.push({ ...batch[k], text: m![2] })
+                      // Restore newlines from placeholder
+                      const translatedText = m![2].replace(/<NEWLINE>/g, '\n')
+                      translated.push({ ...batch[k], text: translatedText })
                     } else if (responseLines[k]) {
                       const cleaned = responseLines[k].replace(/^\d+[\.:\)]\s*/, '')
-                      translated.push({ ...batch[k], text: cleaned || batch[k].text })
+                      const restoredText = (cleaned || batch[k].text).replace(/<NEWLINE>/g, '\n')
+                      translated.push({ ...batch[k], text: restoredText })
                     } else {
                       translated.push(batch[k])
                     }
@@ -397,20 +403,23 @@ Return ONLY valid JSON, no markdown or explanations.`
           const batchIdx = Math.floor(batchStart / batchSize)
 
           const batchPromise = (async () => {
-            const numberedInput = batch.map((entry, idx) => `${idx + 1}. ${entry.text}`).join('\n')
+            // Replace newlines within subtitle text with placeholder to keep each entry on one line
+            const numberedInput = batch.map((entry, idx) => `${idx + 1}. ${entry.text.replace(/\n/g, '<NEWLINE>')}`).join('\n')
             try {
               const prompt = `You are an expert subtitle translator. Translate from ${sourceLangName} to ${targetLangName}.${contextInfo}
 
 CRITICAL RULES:
 1. Return EXACTLY ${batch.length} numbered lines, format: "N. translated text"
 2. Translate the COMPLETE text of every line - do NOT shorten, truncate, or omit any part
-3. When a line has [Speaker Name] followed by dialogue, translate the ENTIRE dialogue after the bracket
+3. Some lines contain <NEWLINE> markers - these represent line breaks within a single subtitle. PRESERVE all <NEWLINE> markers in the exact same positions in your translation
+4. When a line has [Speaker Name] followed by dialogue, translate the ENTIRE dialogue after the bracket
    WRONG: "[Lucy] Unesla ho" (truncated)
    RIGHT: "[Lucy] Unesl ji tenhle člověk jménem Moldaver." (complete)
-4. Preserve [sound effects] and ♪ music ♪ markers exactly as-is (only translate sound effect descriptions inside brackets)
-5. Speaker names in brackets stay in original language: [Lucy], [Ghoul], [Barb] etc.
-6. Use natural, idiomatic ${targetLangName} - maintain character voice and emotion
-7. Do NOT add any explanations or comments
+5. Preserve ALL formatting tags exactly as-is: {\\an8}, <i>...</i>, <b>...</b>, (parentheses), etc. - copy them to the translation
+6. Preserve [sound effects] and ♪ music ♪ markers exactly as-is (only translate sound effect descriptions inside brackets)
+7. Speaker names in brackets stay in original language: [Lucy], [Ghoul], [Barb] etc.
+8. Use natural, idiomatic ${targetLangName} - maintain character voice and emotion
+9. Do NOT add any explanations or comments
 
 ${numberedInput}`
 
@@ -434,10 +443,13 @@ ${numberedInput}`
                 })
                 if (matchLine) {
                   const m = matchLine.match(/^(\d+)[\.:\)]\s*(.*)$/)
-                  translated.push({ ...batch[k], text: m![2] })
+                  // Restore newlines from placeholder
+                  const translatedText = m![2].replace(/<NEWLINE>/g, '\n')
+                  translated.push({ ...batch[k], text: translatedText })
                 } else if (responseLines[k]) {
                   const cleaned = responseLines[k].replace(/^\d+[\.:\)]\s*/, '')
-                  translated.push({ ...batch[k], text: cleaned || batch[k].text })
+                  const restoredText = (cleaned || batch[k].text).replace(/<NEWLINE>/g, '\n')
+                  translated.push({ ...batch[k], text: restoredText })
                 } else {
                   translated.push(batch[k])
                 }
