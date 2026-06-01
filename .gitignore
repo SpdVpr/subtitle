@@ -42,6 +42,12 @@ ngrok/
 # backfill output (contains customer PII)
 scripts/backfill-list.json
 
+# debug/secret dumps — never commit
+debug-apikey.json
+debug-error.json
+firestore-debug.log
+firebase-debug.log
+
 # vercel
 .vercel
 

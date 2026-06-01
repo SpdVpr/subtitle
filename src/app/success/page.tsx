@@ -31,48 +31,15 @@ export default function SuccessPage() {
   useEffect(() => {
     let mounted = true
 
-    const handleBitcoinPayment = async () => {
-      if (payment === 'bitcoin' && chargeId && user && credits) {
-        console.log('🟠 Bitcoin payment detected, checking status:', chargeId)
-
-        try {
-          // Check charge status and manually add credits if needed
-          const response = await fetch(`/api/opennode/create-invoice?chargeId=${chargeId}`)
-          const data = await response.json()
-
-          if (data.success && data.charge.status === 'paid') {
-            console.log('🟠 Bitcoin charge is paid, ensuring credits are added')
-
-            // Try to add credits manually as fallback
-            const addCreditsResponse = await fetch('/api/debug/add-credits', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                userId: user.uid,
-                credits: parseInt(credits),
-                description: `Bitcoin Lightning payment - Charge ${chargeId}`
-              })
-            })
-
-            if (addCreditsResponse.ok) {
-              console.log('✅ Credits added manually for Bitcoin payment')
-              refreshCredits()
-            }
-          }
-        } catch (error) {
-          console.error('🚨 Failed to check Bitcoin payment status:', error)
-        }
-      }
-    }
-
-    // Refresh credits when page loads
+    // Credits are granted server-side by the verified Stripe/OpenNode webhooks.
+    // The success page only reflects the result — it must NOT grant credits itself.
+    // (Poll a few times so the balance shows up once the webhook has processed.)
     if (user && mounted) {
       refreshCredits()
-
-      // Handle Bitcoin payment fallback
-      if (payment === 'bitcoin') {
-        handleBitcoinPayment()
-      }
+      const poll = setInterval(() => {
+        if (mounted) refreshCredits()
+      }, 1500)
+      setTimeout(() => clearInterval(poll), 9000)
     }
 
     // Simulate loading for better UX
@@ -80,13 +47,13 @@ export default function SuccessPage() {
       if (mounted) {
         setIsLoading(false)
       }
-    }, 3000) // Increased to 3 seconds to allow webhook processing
+    }, 3000) // Allow webhook processing
 
     return () => {
       mounted = false
       clearTimeout(timer)
     }
-  }, [user, payment, chargeId, credits]) // Added dependencies
+  }, [user, payment, chargeId, credits])
 
   if (!success) {
     router.push('/buy-credits')
