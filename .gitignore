@@ -39,6 +39,9 @@ stripe-cli/
 ngrok/
 *.zip
 
+# backfill output (contains customer PII)
+scripts/backfill-list.json
+
 # vercel
 .vercel
 
