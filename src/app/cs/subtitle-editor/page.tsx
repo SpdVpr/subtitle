@@ -1,5 +1,7 @@
 'use client'
 
+
+import { authFetch } from '@/lib/auth-fetch'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -152,7 +154,7 @@ export default function CzechSubtitleEditorPage() {
       } else {
         // Fallback: try to download from storage
         console.log('📥 Downloading translated content from storage...')
-        const downloadResponse = await fetch('/api/translation-history/download', {
+        const downloadResponse = await authFetch('/api/translation-history/download', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ jobId: job.id, userId: user.uid })

@@ -163,13 +163,9 @@ export async function POST(request: NextRequest) {
       console.log(`🟠 Bitcoin charge underpaid: ${payload.id}`)
     }
 
-    // Handle other webhook events
-    console.log(`🟠 Unhandled OpenNode webhook event type: ${event.type}`)
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Event received but not processed',
-      type: event.type
-    })
+    // Acknowledge any other status (processing/refunded/etc.) so OpenNode stops retrying.
+    console.log(`🟠 OpenNode status not requiring action: ${payload.status} (${payload.id})`)
+    return NextResponse.json({ received: true, status: payload.status })
 
   } catch (error) {
     console.error('🚨 OpenNode webhook processing error:', error)
@@ -195,51 +191,66 @@ async function addCreditsToUser(
   }
 ) {
   const adminDb = getAdminDb()
-  const batch = adminDb.batch()
+  const txCol = adminDb.collection('creditTransactions')
+  // Deterministic id keyed on the OpenNode charge → idempotency (replays of the
+  // same charge never double-credit).
+  const dedupeRef = txCol.doc(`opennode_${paymentDetails.chargeId}`)
 
-  // Update user credits
-  const userRef = adminDb.collection('users').doc(userId)
-  batch.update(userRef, {
-    creditsBalance: FieldValue.increment(credits),
-    creditsTotalPurchased: FieldValue.increment(credits),
-    updatedAt: FieldValue.serverTimestamp(),
+  await adminDb.runTransaction(async (tx) => {
+    const existing = await tx.get(dedupeRef)
+    if (existing.exists) return
+    const bySession = await tx.get(
+      txCol.where('openNodeChargeId', '==', paymentDetails.chargeId).limit(1)
+    )
+    if (!bySession.empty) return
+
+    // set+merge creates the user doc if missing instead of update() throwing.
+    const userRef = adminDb.collection('users').doc(userId)
+    tx.set(
+      userRef,
+      {
+        creditsBalance: FieldValue.increment(credits),
+        creditsTotalPurchased: FieldValue.increment(credits),
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    )
+
+    tx.set(dedupeRef, {
+      userId,
+      type: 'credit',
+      credits,
+      description: `Purchased ${credits} credits - ${paymentDetails.packageName} (Bitcoin Lightning)`,
+      source: 'bitcoin_lightning',
+      openNodeChargeId: paymentDetails.chargeId,
+      amount: paymentDetails.amount,
+      currency: paymentDetails.currency,
+      fiatValue: paymentDetails.fiatValue,
+      amountUSD: paymentDetails.amountUSD,
+      paymentMethod: paymentDetails.paymentMethod,
+      createdAt: FieldValue.serverTimestamp(),
+      settledAt: paymentDetails.settledAt,
+      date: new Date().toISOString().split('T')[0],
+    })
+
+    const paymentRef = adminDb.collection('payments').doc(`opennode_${paymentDetails.chargeId}`)
+    tx.set(
+      paymentRef,
+      {
+        userId,
+        openNodeChargeId: paymentDetails.chargeId,
+        amount: paymentDetails.amount,
+        currency: paymentDetails.currency,
+        fiatValue: paymentDetails.fiatValue,
+        amountUSD: paymentDetails.amountUSD,
+        credits,
+        packageName: paymentDetails.packageName,
+        paymentMethod: paymentDetails.paymentMethod,
+        status: 'completed',
+        settledAt: paymentDetails.settledAt,
+        createdAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    )
   })
-
-  // Add credit transaction record
-  const transactionRef = adminDb.collection('creditTransactions').doc()
-  batch.set(transactionRef, {
-    userId,
-    type: 'credit',
-    credits,
-    description: `Purchased ${credits} credits - ${paymentDetails.packageName} (Bitcoin Lightning)`,
-    source: 'bitcoin_lightning',
-    openNodeChargeId: paymentDetails.chargeId,
-    amount: paymentDetails.amount,
-    currency: paymentDetails.currency,
-    fiatValue: paymentDetails.fiatValue,
-    amountUSD: paymentDetails.amountUSD,
-    paymentMethod: paymentDetails.paymentMethod,
-    createdAt: FieldValue.serverTimestamp(),
-    settledAt: paymentDetails.settledAt,
-    date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
-  })
-
-  // Add payment record for admin tracking
-  const paymentRef = adminDb.collection('payments').doc()
-  batch.set(paymentRef, {
-    userId,
-    openNodeChargeId: paymentDetails.chargeId,
-    amount: paymentDetails.amount,
-    currency: paymentDetails.currency,
-    fiatValue: paymentDetails.fiatValue,
-    amountUSD: paymentDetails.amountUSD,
-    credits,
-    packageName: paymentDetails.packageName,
-    paymentMethod: paymentDetails.paymentMethod,
-    status: 'completed',
-    settledAt: paymentDetails.settledAt,
-    createdAt: FieldValue.serverTimestamp(),
-  })
-
-  await batch.commit()
 }

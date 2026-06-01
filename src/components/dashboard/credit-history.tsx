@@ -1,5 +1,7 @@
 'use client'
 
+
+import { authFetch } from '@/lib/auth-fetch'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -54,7 +56,7 @@ export function CreditHistory({ showHeader = true }: CreditHistoryProps) {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/user/credit-history?userId=${user.uid}&limit=50`)
+      const response = await authFetch(`/api/user/credit-history?userId=${user.uid}&limit=50`)
       const data = await response.json()
 
       if (!response.ok) {

@@ -1,5 +1,7 @@
 'use client'
 
+
+import { authFetch } from '@/lib/auth-fetch'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { TranslationJob } from '@/types/database'
@@ -29,7 +31,7 @@ export function TranslationHistory({ className, showHeader = true }: Translation
       setError(null)
 
       console.log('📋 Loading translation history...')
-      const response = await fetch(`/api/translation-history?userId=${user.uid}&limit=20`)
+      const response = await authFetch(`/api/translation-history?userId=${user.uid}&limit=20`)
 
       if (!response.ok) {
         const errorData = await response.json()
@@ -60,7 +62,7 @@ export function TranslationHistory({ className, showHeader = true }: Translation
       console.log('🔽 Starting download for job:', job.id)
 
       // Use the download API endpoint
-      const response = await fetch('/api/translation-history/download', {
+      const response = await authFetch('/api/translation-history/download', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

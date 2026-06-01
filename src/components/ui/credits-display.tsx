@@ -1,5 +1,7 @@
 'use client'
 
+
+import { authFetch } from '@/lib/auth-fetch'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
@@ -25,7 +27,7 @@ export function CreditsDisplay({ showBuyButton = true, className = '', onRefresh
     }
 
     try {
-      const response = await fetch(`/api/user/credits?userId=${user.uid}`)
+      const response = await authFetch(`/api/user/credits?userId=${user.uid}`)
       if (response.ok) {
         const data = await response.json()
         setCredits(data.credits || 0)
@@ -117,7 +119,7 @@ export function CreditsCard() {
       }
 
       try {
-        const response = await fetch(`/api/user/credits?userId=${user.uid}`)
+        const response = await authFetch(`/api/user/credits?userId=${user.uid}`)
         if (response.ok) {
           const data = await response.json()
           setCredits(data.credits || 0)

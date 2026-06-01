@@ -1,5 +1,7 @@
 'use client'
 
+
+import { authFetch } from '@/lib/auth-fetch'
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -24,7 +26,7 @@ export function CreditsProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const response = await fetch(`/api/user/credits?userId=${user.uid}`)
+      const response = await authFetch(`/api/user/credits?userId=${user.uid}`)
       if (response.ok) {
         const data = await response.json()
         setCredits(data.credits || 0)

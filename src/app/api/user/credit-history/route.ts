@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyUser } from '@/lib/user-auth-server'
 
 async function getServerFirestore() {
   const { getAdminDb } = await import('@/lib/firebase-admin')
@@ -7,15 +8,13 @@ async function getServerFirestore() {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-    const limit = parseInt(searchParams.get('limit') || '50')
-
-    if (!userId) {
-      return NextResponse.json({
-        error: 'Missing userId parameter'
-      }, { status: 400 })
+    const authUser = await verifyUser(request)
+    if (!authUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    const userId = authUser.uid
+    const { searchParams } = new URL(request.url)
+    const limit = parseInt(searchParams.get('limit') || '50')
 
     console.log('💳 Getting credit history for user:', userId)
 

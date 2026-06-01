@@ -1,5 +1,7 @@
 'use client'
 
+
+import { authFetch } from '@/lib/auth-fetch'
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -267,7 +269,7 @@ export function VideoPlayerWithSubtitles() {
       } else {
         // Fallback: try to download from storage
         console.log('📥 Downloading translated content from storage...')
-        const downloadResponse = await fetch('/api/translation-history/download', {
+        const downloadResponse = await authFetch('/api/translation-history/download', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ jobId: job.id, userId: user.uid })

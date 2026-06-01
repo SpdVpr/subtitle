@@ -2,13 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getFirestore } from 'firebase-admin/firestore'
 import { getAdminApp } from '@/lib/firebase-admin'
 import { encodeContentDisposition } from '@/lib/filename-encoder'
+import { verifyUser } from '@/lib/user-auth-server'
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the job ID and user ID from the request body
-    const { jobId, userId } = await request.json()
-    if (!jobId || !userId) {
-      return NextResponse.json({ error: 'Job ID and User ID are required' }, { status: 400 })
+    const authUser = await verifyUser(request)
+    if (!authUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const userId = authUser.uid
+    // Job ID from the request body; userId comes from the verified token
+    const { jobId } = await request.json()
+    if (!jobId) {
+      return NextResponse.json({ error: 'Job ID is required' }, { status: 400 })
     }
 
     console.log('Download request:', { jobId, userId })

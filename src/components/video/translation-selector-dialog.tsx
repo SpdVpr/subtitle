@@ -1,5 +1,7 @@
 'use client'
 
+
+import { authFetch } from '@/lib/auth-fetch'
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -44,7 +46,7 @@ export function TranslationSelectorDialog({
         return
       }
 
-      const response = await fetch(`/api/translation-history?userId=${user.uid}&limit=10`)
+      const response = await authFetch(`/api/translation-history?userId=${user.uid}&limit=10`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }

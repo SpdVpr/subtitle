@@ -1,5 +1,7 @@
 'use client'
 
+
+import { authFetch } from '@/lib/auth-fetch'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
@@ -60,7 +62,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
     if (!user) return
 
     try {
-      const response = await fetch(`/api/user/credits?userId=${user.uid}`)
+      const response = await authFetch(`/api/user/credits?userId=${user.uid}`)
       if (response.ok) {
         const data = await response.json()
         setUserCredits(data.credits || 0)
@@ -372,7 +374,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
 
               try {
                 // Save translation to database via API
-                const saveResponse = await fetch('/api/batch/save-translation', {
+                const saveResponse = await authFetch('/api/batch/save-translation', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',

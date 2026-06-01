@@ -1,5 +1,7 @@
 'use client'
 
+
+import { authFetch } from '@/lib/auth-fetch'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useRouter } from 'next/navigation'
@@ -300,7 +302,7 @@ export function BatchTranslationInterfaceCS() {
 
             try {
               // Save translation to database via API
-              const saveResponse = await fetch('/api/batch/save-translation', {
+              const saveResponse = await authFetch('/api/batch/save-translation', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

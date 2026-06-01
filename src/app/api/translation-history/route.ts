@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { TranslationJobService } from '@/lib/database-admin'
+import { verifyUser } from '@/lib/user-auth-server'
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url)
-    const userId = searchParams.get('userId')
-    const limit = parseInt(searchParams.get('limit') || '20')
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
-      )
+    const authUser = await verifyUser(req)
+    if (!authUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    const userId = authUser.uid
+    const { searchParams } = new URL(req.url)
+    const limit = parseInt(searchParams.get('limit') || '20')
 
     console.log('📋 Loading translation history for user:', userId)
 

@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { TranslationJobService, UserService } from '@/lib/database-admin'
+import { verifyUser } from '@/lib/user-auth-server'
 
 export async function POST(req: NextRequest) {
   try {
+    const authUser = await verifyUser(req)
+    if (!authUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const userId = authUser.uid
+
     const {
-      userId,
       originalFileName,
       targetLanguage,
       translatedContent,
@@ -19,7 +25,7 @@ export async function POST(req: NextRequest) {
       subtitleCount
     })
 
-    if (!userId || !originalFileName || !targetLanguage || !translatedContent) {
+    if (!originalFileName || !targetLanguage || !translatedContent) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
