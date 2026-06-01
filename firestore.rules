@@ -1,126 +1,134 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can access their own profile, admins can read and write all
+
+    // ---- helpers ----
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    // Admin is determined by a verified email on the signed Firebase token.
+    // (The token is signed by Firebase and cannot be spoofed by the client,
+    //  unlike the old x-admin-email HTTP header.) email_verified is required
+    //  so nobody can self-register an allowlisted address without owning it.
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.token.get('email_verified', false) == true
+        && request.auth.token.email in [
+          'admin@subtitlebot.com',
+          'michalvesecky@gmail.com'
+        ];
+    }
+    // Server-managed fields a client must never be able to change on itself.
+    function creditFieldsUnchanged() {
+      return request.resource.data.get('creditsBalance', 0) == resource.data.get('creditsBalance', 0)
+        && request.resource.data.get('creditsTotalPurchased', 0) == resource.data.get('creditsTotalPurchased', 0);
+    }
+    function roleFieldsUnchanged() {
+      return request.resource.data.get('subscriptionPlan', 'free') == resource.data.get('subscriptionPlan', 'free')
+        && request.resource.data.get('subscriptionStatus', 'none') == resource.data.get('subscriptionStatus', 'none')
+        && request.resource.data.get('isBlocked', false) == resource.data.get('isBlocked', false);
+    }
+
+    // ---- users ----
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      // Allow admin users to read and write all user profiles
-      allow read, write: if request.auth != null &&
-        request.auth.token.email in [
-          'premium@test.com',
-          'admin@subtitlebot.com',
-          'admin@subtitle-ai.com',
-          'ceo@subtitle-ai.com',
-          'manager@subtitle-ai.com'
-        ];
+      allow read: if isOwner(userId) || isAdmin();
+      // New users may self-create, but only with (at most) the welcome credits
+      // and not pre-blocked / pre-upgraded.
+      allow create: if isAdmin() || (
+        isOwner(userId)
+        && request.resource.data.get('creditsBalance', 0) <= 200
+        && request.resource.data.get('creditsTotalPurchased', 0) <= 200
+        && request.resource.data.get('isBlocked', false) == false
+        && request.resource.data.get('subscriptionPlan', 'free') == 'free'
+      );
+      // Owners can edit their profile (name, preferences, ...) but NOT credit,
+      // plan or block fields — those are written server-side via the Admin SDK.
+      allow update: if isAdmin() || (
+        isOwner(userId) && creditFieldsUnchanged() && roleFieldsUnchanged()
+      );
+      allow delete: if isAdmin();
     }
-    
-    // Translation jobs - users can only access their own
+
+    // ---- translation jobs ----
     match /translation_jobs/{jobId} {
-      allow read, write: if request.auth != null &&
-        resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null &&
-        request.resource.data.userId == request.auth.uid;
-      // Allow admin users to read and write all translation jobs
-      allow read, write: if request.auth != null &&
-        request.auth.token.email in [
-          'premium@test.com',
-          'admin@subtitlebot.com',
-          'admin@subtitle-ai.com',
-          'ceo@subtitle-ai.com',
-          'manager@subtitle-ai.com'
-        ];
+      allow read, write: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, write: if isAdmin();
     }
 
-    // Batch jobs - users can only access their own
+    // ---- batch jobs ----
     match /batch_jobs/{jobId} {
-      allow read, write: if request.auth != null &&
-        resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null &&
-        request.resource.data.userId == request.auth.uid;
-      // Allow admin users to read and write all batch jobs
-      allow read, write: if request.auth != null &&
-        request.auth.token.email in [
-          'premium@test.com',
-          'admin@subtitlebot.com',
-          'admin@subtitle-ai.com',
-          'ceo@subtitle-ai.com',
-          'manager@subtitle-ai.com'
-        ];
+      allow read, write: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, write: if isAdmin();
     }
-    
-    // Analytics - users can only access their own
+
+    // ---- analytics ----
     match /analytics/{entryId} {
-      allow read, write: if request.auth != null && 
-        resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && 
-        request.resource.data.userId == request.auth.uid;
+      allow read, write: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAdmin();
     }
-    
-    // Files - users can only access their own
+
+    // ---- files ----
     match /files/{fileId} {
-      allow read, write: if request.auth != null && 
-        resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && 
-        request.resource.data.userId == request.auth.uid;
+      allow read, write: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
-    
-    // Subscriptions - users can only read their own
+
+    // ---- subscriptions (server-written) ----
     match /subscriptions/{subscriptionId} {
-      allow read: if request.auth != null && 
-        resource.data.userId == request.auth.uid;
-      // Only server can write subscriptions
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read: if isAdmin();
       allow write: if false;
     }
-    
-    // Error logs - users can read their own, only server can write
+
+    // ---- error logs (server-written) ----
     match /error_logs/{logId} {
-      allow read: if request.auth != null &&
-        (resource.data.userId == request.auth.uid || !exists(/databases/$(database)/documents/error_logs/$(logId)));
-      allow write: if false; // Only server-side writes
-    }
-
-    // Credit transactions - users can read their own, admins can read all and write
-    match /credit_transactions/{transactionId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      // Allow admin users to read all transactions
-      allow read: if request.auth != null &&
-        request.auth.token.email in [
-          'premium@test.com',
-          'admin@subtitlebot.com',
-          'admin@subtitle-ai.com',
-          'ceo@subtitle-ai.com',
-          'manager@subtitle-ai.com'
-        ];
-      // Allow admin users to write transactions
-      allow write: if request.auth != null &&
-        request.auth.token.email in [
-          'premium@test.com',
-          'admin@subtitlebot.com',
-          'admin@subtitle-ai.com',
-          'ceo@subtitle-ai.com',
-          'manager@subtitle-ai.com'
-        ];
-    }
-
-    // System settings - only admins can access
-    match /systemSettings/{settingId} {
-      allow read, write: if false; // Only server-side access
-    }
-
-    // Registration tracking - only admins can read, only server can write
-    match /registration_tracking/{trackingId} {
-      // Allow admin users to read all registration tracking data
-      allow read: if request.auth != null &&
-        request.auth.token.email in [
-          'premium@test.com',
-          'admin@subtitlebot.com',
-          'admin@subtitle-ai.com',
-          'ceo@subtitle-ai.com',
-          'manager@subtitle-ai.com'
-        ];
-      // Only server-side writes (from API endpoints)
+      allow read: if isAdmin();
       allow write: if false;
     }
+
+    // ---- credit transactions & payments (server-written ONLY) ----
+    // Code uses `creditTransactions` (camelCase); legacy data may exist under
+    // `credit_transactions`. Both are read-only to the owner/admin; all writes
+    // go through the Admin SDK which bypasses these rules.
+    match /creditTransactions/{transactionId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /credit_transactions/{transactionId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /payments/{paymentId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // ---- vouchers (server-written ONLY; codes must not be enumerable by clients) ----
+    match /vouchers/{voucherId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // ---- system settings (server only) ----
+    match /systemSettings/{settingId} {
+      allow read, write: if false;
+    }
+
+    // ---- registration tracking (server-written, admin-readable) ----
+    match /registration_tracking/{trackingId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // Any collection not matched above is denied by default.
   }
 }

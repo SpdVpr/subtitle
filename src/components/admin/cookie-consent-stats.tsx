@@ -1,5 +1,7 @@
 'use client'
 
+
+import { adminFetch } from '@/lib/admin-fetch'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -28,7 +30,7 @@ export function CookieConsentStats() {
     setError(null)
     
     try {
-      const response = await fetch(`/api/admin/cookie-consent-stats?days=${period}`)
+      const response = await adminFetch(`/api/admin/cookie-consent-stats?days=${period}`)
       const data = await response.json()
 
       if (!response.ok) {

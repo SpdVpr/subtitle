@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAdminEmail } from '@/lib/admin-auth-email'
+import { requireAdmin } from '@/lib/admin-auth-server'
 
 // Server-side Firebase Admin (bypasses client security rules)
 async function getServerFirestore() {
@@ -14,20 +14,10 @@ async function getServerFirestore() {
 
 export async function GET(request: NextRequest) {
   try {
-    // Check admin authentication using same system as other admin APIs
-    const adminEmail = request.headers.get('x-admin-email')
-    console.log('🔍 Credit History API request from:', adminEmail)
-
-    if (!adminEmail || !isAdminEmail(adminEmail)) {
-      console.log('❌ Admin access denied for credit history:', adminEmail)
-      return NextResponse.json({
-        error: 'Admin access required',
-        debug: {
-          receivedEmail: adminEmail,
-          isValidAdmin: adminEmail ? isAdminEmail(adminEmail) : false
-        }
-      }, { status: 403 })
-    }
+    // Verify admin via signed Firebase ID token
+    const auth = await requireAdmin(request)
+    if ('response' in auth) return auth.response
+    const adminEmail = auth.ctx.email
 
     console.log('📊 Loading credit history for admin dashboard')
 

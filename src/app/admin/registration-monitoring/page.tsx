@@ -1,5 +1,7 @@
 'use client'
 
+
+import { adminFetch } from '@/lib/admin-fetch'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
@@ -64,7 +66,7 @@ export default function RegistrationMonitoringPage() {
     setLoading(true)
     try {
       // Load suspicious registrations
-      const response = await fetch('/api/admin/registration-monitoring')
+      const response = await adminFetch('/api/admin/registration-monitoring')
       if (response.ok) {
         const data = await response.json()
         setRegistrations(data.registrations || [])

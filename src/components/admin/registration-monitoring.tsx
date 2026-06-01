@@ -1,5 +1,7 @@
 'use client'
 
+
+import { adminFetch } from '@/lib/admin-fetch'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -38,7 +40,7 @@ export function RegistrationMonitoring() {
   const loadData = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/admin/registration-monitoring')
+      const response = await adminFetch('/api/admin/registration-monitoring')
       if (response.ok) {
         const data = await response.json()
         setRegistrations(data.registrations || [])

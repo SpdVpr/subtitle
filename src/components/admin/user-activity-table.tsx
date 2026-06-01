@@ -1,5 +1,7 @@
 'use client'
 
+
+import { adminFetch } from '@/lib/admin-fetch'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -25,7 +27,7 @@ function UserActionsCell({ userId, email, isBlocked, onUpdate }: {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/admin/user-management', {
+      const res = await adminFetch('/api/admin/user-management', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +119,7 @@ function EditableCreditsCell({ userId, initial, onUpdate }: { userId: string; in
     setError(null)
     try {
       const deltaCredits = value - initial
-      const res = await fetch('/api/admin/credits', {
+      const res = await adminFetch('/api/admin/credits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-email': (typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : '') },
         body: JSON.stringify({ userId, deltaCredits, description: `Admin adjustment: ${deltaCredits > 0 ? '+' : ''}${deltaCredits} credits` })
@@ -172,7 +174,7 @@ export function UserActivityTable({ users, onRefresh }: UserActivityTableProps) 
         adminEmail = localStorage.getItem('adminEmail') || 'premium@test.com'
       }
 
-      const response = await fetch('/api/admin/debug-users', {
+      const response = await adminFetch('/api/admin/debug-users', {
         headers: { 'x-admin-email': adminEmail }
       })
 

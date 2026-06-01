@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAdminEmail } from '@/lib/admin-auth-email'
+import { requireAdmin } from '@/lib/admin-auth-server'
 import { TranslationJobService } from '@/lib/database-admin'
 
 // Force Node.js runtime for Firebase Admin SDK
@@ -7,31 +7,10 @@ export const runtime = 'nodejs'
 
 export async function GET(req: NextRequest) {
   try {
-    // Check admin permissions
-    const adminEmail = req.headers.get('x-admin-email')
-    console.log('🔍 Recent translations API request from:', adminEmail)
-
-    if (!adminEmail || !isAdminEmail(adminEmail)) {
-      console.log('❌ Admin access denied for:', adminEmail)
-      return NextResponse.json({
-        error: 'Admin access required',
-        debug: {
-          receivedEmail: adminEmail,
-          isValidAdmin: adminEmail ? isAdminEmail(adminEmail) : false,
-          allowedEmails: [
-            'premium@test.com',
-            'admin@subtitlebot.com',
-            'admin@subtitle-ai.com',
-            'ceo@subtitle-ai.com',
-            'manager@subtitle-ai.com'
-          ]
-        }
-      }, { status: 403 })
-    }
-
-    console.log('✅ Admin access granted for:', adminEmail)
-
-    console.log('🔑 Admin API access granted for:', adminEmail)
+    // Verify admin via signed Firebase ID token
+    const auth = await requireAdmin(req)
+    if ('response' in auth) return auth.response
+    const adminEmail = auth.ctx.email
 
     // Get query parameters
     const { searchParams } = new URL(req.url)

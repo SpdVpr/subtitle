@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAdminEmail } from '@/lib/admin-auth-email'
+import { requireAdmin } from '@/lib/admin-auth-server'
 
 // Force Node.js runtime for Firebase Admin SDK
 export const runtime = 'nodejs'
@@ -35,14 +35,10 @@ interface Voucher {
 
 export async function POST(req: NextRequest) {
   try {
-    // Check admin authentication
-    const adminEmail = req.headers.get('x-admin-email')
-    if (!adminEmail || !isAdminEmail(adminEmail)) {
-      return NextResponse.json({ 
-        error: 'Admin access required',
-        debug: { receivedEmail: adminEmail, isValidAdmin: adminEmail ? isAdminEmail(adminEmail) : false }
-      }, { status: 403 })
-    }
+    // Verify admin via signed Firebase ID token
+    const auth = await requireAdmin(req)
+    if ('response' in auth) return auth.response
+    const adminEmail = auth.ctx.email
 
     const body: VoucherGenerationRequest = await req.json()
     const { creditAmount, quantity, campaignName, expirationDays, usageLimit = 1, description = '' } = body

@@ -1,5 +1,7 @@
 'use client'
 
+
+import { adminFetch } from '@/lib/admin-fetch'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -50,7 +52,7 @@ export function RecentTranslations({ onRefresh }: RecentTranslationsProps) {
     try {
       const adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
 
-      const response = await fetch(`/api/admin/recent-translations?page=${page}&limit=${itemsPerPage}`, {
+      const response = await adminFetch(`/api/admin/recent-translations?page=${page}&limit=${itemsPerPage}`, {
         headers: {
           'x-admin-email': adminEmail
         }

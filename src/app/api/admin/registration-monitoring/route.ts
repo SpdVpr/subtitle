@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminDb } from '@/lib/firebase-admin'
 import { TRACKING_CONFIG } from '@/lib/registration-tracking'
+import { requireAdmin } from '@/lib/admin-auth-server'
 
 /**
  * API endpoint for admin to view registration monitoring data
@@ -9,8 +10,9 @@ import { TRACKING_CONFIG } from '@/lib/registration-tracking'
  */
 export async function GET(request: NextRequest) {
   try {
-    // TODO: Add proper admin authentication check
-    // For now, we'll rely on Firestore security rules
+    // Verify admin via signed Firebase ID token
+    const auth = await requireAdmin(request)
+    if ('response' in auth) return auth.response
 
     const db = getAdminDb()
 

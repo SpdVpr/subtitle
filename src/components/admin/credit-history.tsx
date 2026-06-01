@@ -1,5 +1,7 @@
 'use client'
 
+
+import { adminFetch } from '@/lib/admin-fetch'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -57,7 +59,7 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
 
       console.log('🔑 Credit History - Loading with email:', adminEmail)
 
-      const response = await fetch('/api/admin/credit-history', {
+      const response = await adminFetch('/api/admin/credit-history', {
         headers: { 'x-admin-email': adminEmail }
       })
 

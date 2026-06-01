@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AdminStatsService } from '@/lib/admin-stats'
+import { requireAdmin } from '@/lib/admin-auth-server'
 
 export async function GET(req: NextRequest) {
   try {
-    // For demo purposes, we'll skip authentication
-    // In production, you would verify admin access here
+    const auth = await requireAdmin(req)
+    if ('response' in auth) return auth.response
 
     // Get statistics
     const stats = await AdminStatsService.getOverallStats()

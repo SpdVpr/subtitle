@@ -1,5 +1,7 @@
 'use client'
 
+
+import { adminFetch } from '@/lib/admin-fetch'
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -89,7 +91,7 @@ export function VoucherGenerator() {
     setSuccess(null)
 
     try {
-      const response = await fetch('/api/admin/vouchers/generate', {
+      const response = await adminFetch('/api/admin/vouchers/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

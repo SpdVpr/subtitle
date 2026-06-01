@@ -1,5 +1,7 @@
 'use client'
 
+
+import { adminFetch } from '@/lib/admin-fetch'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -56,7 +58,7 @@ export function FeedbackManagement() {
         params.append('status', statusFilter)
       }
 
-      const response = await fetch(`/api/admin/feedback?${params}`, {
+      const response = await adminFetch(`/api/admin/feedback?${params}`, {
         headers: {
           'x-admin-email': user.email
         }
@@ -80,7 +82,7 @@ export function FeedbackManagement() {
     if (!user?.email) return
 
     try {
-      const response = await fetch('/api/admin/feedback', {
+      const response = await adminFetch('/api/admin/feedback', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

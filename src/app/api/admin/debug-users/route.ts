@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAdminEmail } from '@/lib/admin-auth-email'
+import { requireAdmin } from '@/lib/admin-auth-server'
 
 export const runtime = 'nodejs'
 
 export async function GET(req: NextRequest) {
   try {
-    // Check admin permissions
-    const adminEmail = req.headers.get('x-admin-email')
-    
-    if (!adminEmail || !isAdminEmail(adminEmail)) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
+    // Verify admin via signed Firebase ID token
+    const auth = await requireAdmin(req)
+    if ('response' in auth) return auth.response
+    const adminEmail = auth.ctx.email
 
     console.log('🔍 Debug: Checking Firebase configuration...')
 

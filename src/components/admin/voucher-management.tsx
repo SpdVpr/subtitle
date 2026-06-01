@@ -1,5 +1,7 @@
 'use client'
 
+
+import { adminFetch } from '@/lib/admin-fetch'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -93,7 +95,7 @@ export function VoucherManagement() {
 
     try {
       // Load statistics
-      const statsResponse = await fetch('/api/admin/vouchers/stats', {
+      const statsResponse = await adminFetch('/api/admin/vouchers/stats', {
         headers: { 'x-admin-email': user.email }
       })
       
@@ -103,7 +105,7 @@ export function VoucherManagement() {
       }
 
       // Load vouchers
-      const vouchersResponse = await fetch(`/api/admin/vouchers?status=${filters.status}&campaign=${filters.campaign}&limit=100`, {
+      const vouchersResponse = await adminFetch(`/api/admin/vouchers?status=${filters.status}&campaign=${filters.campaign}&limit=100`, {
         headers: { 'x-admin-email': user.email }
       })
 
@@ -136,7 +138,7 @@ export function VoucherManagement() {
     if (!confirm(confirmMessage)) return
 
     try {
-      const response = await fetch('/api/admin/vouchers', {
+      const response = await adminFetch('/api/admin/vouchers', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

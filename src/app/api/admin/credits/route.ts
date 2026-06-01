@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAdminEmail } from '@/lib/admin-auth-email'
+import { requireAdmin } from '@/lib/admin-auth-server'
 
 // Force Node.js runtime for Firebase Admin SDK
 export const runtime = 'nodejs'
@@ -25,11 +25,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'userId and deltaCredits are required' }, { status: 400 })
     }
 
-    // Basic admin check: either header or body adminEmail must be in allowed list
-    const headerEmail = req.headers.get('x-admin-email') || adminEmail
-    if (!headerEmail || !isAdminEmail(headerEmail)) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
+    // Verify admin via signed Firebase ID token (not a spoofable header/body field)
+    const auth = await requireAdmin(req)
+    if ('response' in auth) return auth.response
+    const headerEmail = auth.ctx.email
 
     console.log('🔧 Admin Credits Adjustment:', { userId, deltaCredits, description, adminEmail: headerEmail })
 

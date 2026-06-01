@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminDb } from '@/lib/firebase-admin'
-import { isAdminEmail } from '@/lib/admin-auth-email'
+import { requireAdmin } from '@/lib/admin-auth-server'
 
 export interface FeedbackItem {
   id: string
@@ -41,17 +41,10 @@ export interface FeedbackItem {
 
 export async function GET(request: NextRequest) {
   try {
-    // Check admin authentication
-    const adminEmail = request.headers.get('x-admin-email')
-    if (!adminEmail || !isAdminEmail(adminEmail)) {
-      return NextResponse.json({
-        error: 'Admin access required',
-        debug: {
-          receivedEmail: adminEmail,
-          isValidAdmin: adminEmail ? isAdminEmail(adminEmail) : false
-        }
-      }, { status: 403 })
-    }
+    // Verify admin via signed Firebase ID token
+    const auth = await requireAdmin(request)
+    if ('response' in auth) return auth.response
+    const adminEmail = auth.ctx.email
 
     const { searchParams } = new URL(request.url)
     const limitParam = parseInt(searchParams.get('limit') || '50')
@@ -157,13 +150,10 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    // Check admin authentication
-    const adminEmail = request.headers.get('x-admin-email')
-    if (!adminEmail || !isAdminEmail(adminEmail)) {
-      return NextResponse.json({
-        error: 'Admin access required'
-      }, { status: 403 })
-    }
+    // Verify admin via signed Firebase ID token
+    const auth = await requireAdmin(request)
+    if ('response' in auth) return auth.response
+    const adminEmail = auth.ctx.email
 
     const body = await request.json()
     const { feedbackId, status, priority } = body

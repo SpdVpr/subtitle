@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookieConsentLogger } from '@/lib/cookie-consent-logger'
-import { isAdminEmail } from '@/lib/admin-auth-email'
+import { requireAdmin } from '@/lib/admin-auth-server'
 
 export async function GET(req: NextRequest) {
   try {
-    // Verify admin authentication
-    const adminEmail = req.headers.get('x-admin-email')
-    if (!adminEmail || !isAdminEmail(adminEmail)) {
-      return NextResponse.json({
-        success: false,
-        error: 'Unauthorized'
-      }, { status: 401 })
-    }
+    // Verify admin via signed Firebase ID token
+    const auth = await requireAdmin(req)
+    if ('response' in auth) return auth.response
+    const adminEmail = auth.ctx.email
 
     const { searchParams } = new URL(req.url)
     const days = parseInt(searchParams.get('days') || '30')
