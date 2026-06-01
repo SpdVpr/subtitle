@@ -139,38 +139,7 @@ export function useAuthProvider(): AuthContextType {
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    console.log('🔑 SignIn attempt:', { email, password: password.substring(0, 3) + '...' })
-
-    // Demo login for testing - Admin account only
-    if (email === 'premium@test.com' && password === 'yIk5i4mdFinuxPz') {
-      console.log('🔑 Demo login initiated for admin user')
-      setLoading(true)
-
-      // Create mock Admin user (Premium account with admin privileges)
-      const mockAdminUser = {
-        uid: 'premium-user-demo',
-        email: 'premium@test.com',
-        displayName: 'Admin User',
-        emailVerified: true,
-        photoURL: null,
-        phoneNumber: null,
-        providerId: 'password',
-        metadata: {
-          creationTime: new Date().toISOString(),
-          lastSignInTime: new Date().toISOString(),
-        }
-      } as any
-
-      // Small delay to show loading state, then set user
-      setTimeout(() => {
-        console.log('✅ Demo admin user authenticated:', mockAdminUser)
-        setUser(mockAdminUser)
-        localStorage.setItem('demoUser', JSON.stringify(mockAdminUser))
-        setLoading(false)
-        console.log('✅ Demo user set in state and localStorage')
-      }, 500) // 500ms delay for better UX
-      return
-    }
+    console.log('🔑 SignIn attempt:', { email })
 
     if (!firebaseServices?.isConfigured || !firebaseServices.auth) {
       throw new Error('Firebase is not configured. Please set up your environment variables.')

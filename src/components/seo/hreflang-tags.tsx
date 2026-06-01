@@ -3,7 +3,7 @@ interface HreflangTagsProps {
 }
 
 export function HreflangTags({ currentPath }: HreflangTagsProps) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://subtitle-ai.vercel.app'
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')
   
   // Remove /cs prefix if present to get the base path
   const basePath = currentPath.startsWith('/cs') ? currentPath.replace('/cs', '') : currentPath
@@ -26,7 +26,7 @@ export function HreflangTags({ currentPath }: HreflangTagsProps) {
 
 // Helper function to generate hreflang metadata for Next.js
 export function generateHreflangMetadata(currentPath: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://subtitle-ai.vercel.app'
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')
   
   // Remove /cs prefix if present to get the base path
   const basePath = currentPath.startsWith('/cs') ? currentPath.replace('/cs', '') : currentPath

@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://subtitle-ai.vercel.app'
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')
 
   return {
     rules: [
@@ -17,6 +17,11 @@ export default function robots(): MetadataRoute.Robots {
           '/(dashboard)/',
           '/debug',
           '/test',
+          '/statistics',
+          '/cs/statistics',
+          '/analytics',
+          '/modern',
+          '/cs/modern',
           '/preview/',
           '/cs/preview/',
           '/success/',

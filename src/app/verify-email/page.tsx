@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Head from 'next/head'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,7 @@ import {
   ArrowLeft
 } from 'lucide-react'
 
-export default function VerifyEmailPage() {
+function VerifyEmailPageInner() {
   const { user, sendVerificationEmail } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -242,5 +243,13 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={null}>
+      <VerifyEmailPageInner />
+    </Suspense>
   )
 }

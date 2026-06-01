@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -31,7 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BarChart3, Settings } from 'lucide-react'
 import Link from 'next/link'
 
-export default function DashboardPage() {
+function DashboardPageInner() {
   const { user, loading: authLoading } = useAuth()
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
   const [dashboardStats, setDashboardStats] = useState({
@@ -370,5 +371,13 @@ export default function DashboardPage() {
         </div>
       </div>
     </EmailVerificationGuard>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardPageInner />
+    </Suspense>
   )
 }

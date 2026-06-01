@@ -7,7 +7,7 @@ interface RichSnippetsProps {
 }
 
 export function RichSnippets({ type, data, locale = 'en' }: RichSnippetsProps) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://subtitle-ai.vercel.app'
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')
   
   const generateSchema = () => {
     switch (type) {

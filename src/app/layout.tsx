@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
@@ -95,7 +96,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://subtitle-ai.vercel.app'),
+  metadataBase: new URL((process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')),
   alternates: {
     canonical: '/',
   },
@@ -144,7 +145,11 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 };
 
-// Force dynamic rendering to avoid prerender-time side effects
+// TODO(SEO): the biggest remaining SEO/perf win is making marketing pages
+// statically generated. That requires first converting the client-rendered
+// marketing pages (incl. the homepage) to server components and fixing latent
+// per-page prerender issues. Until then we keep force-dynamic so the build is
+// green and there are no prerender-time crashes.
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const fetchCache = 'force-no-store'
@@ -154,7 +159,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://subtitle-ai.vercel.app'
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -167,8 +172,11 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="manifest" href="/manifest.json" />
 
-        {/* Google Analytics */}
-        <GoogleAnalytics />
+        {/* Google Analytics (uses useSearchParams -> needs a Suspense boundary
+            so the rest of the page can still be statically generated) */}
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
 
         {/* Structured Data */}
         <StructuredData locale="en" page="home" />

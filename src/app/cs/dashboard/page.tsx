@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -29,7 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Settings } from 'lucide-react'
 import Link from 'next/link'
 
-export default function CzechDashboardPage() {
+function CzechDashboardPageInner() {
   const { user } = useAuth()
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
   const [dashboardStats, setDashboardStats] = useState({
@@ -322,5 +323,13 @@ export default function CzechDashboardPage() {
         </div>
       </div>
     </EmailVerificationGuard>
+  )
+}
+
+export default function CzechDashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <CzechDashboardPageInner />
+    </Suspense>
   )
 }

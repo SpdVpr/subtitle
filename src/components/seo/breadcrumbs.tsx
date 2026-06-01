@@ -14,7 +14,7 @@ interface BreadcrumbsProps {
 }
 
 export function Breadcrumbs({ items, locale = 'en' }: BreadcrumbsProps) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://subtitle-ai.vercel.app'
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')
   const isCs = locale === 'cs'
   const homeLabel = isCs ? 'Domů' : 'Home'
   const homeHref = isCs ? '/cs' : '/'

@@ -6,7 +6,7 @@ interface StructuredDataProps {
 }
 
 export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataProps) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://subtitle-ai.vercel.app'
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')
   const isCs = locale === 'cs'
   const urlPrefix = isCs ? '/cs' : ''
 
@@ -15,7 +15,6 @@ export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataP
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "SubtitleBot",
-    "alternateName": "SubtitleAI",
     "url": baseUrl,
     "logo": `${baseUrl}/logo-sub.png`,
     "description": isCs
@@ -25,12 +24,11 @@ export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataP
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "customer service",
-      "email": "support@subtitle-ai.com",
+      "email": "support@subtitlebot.com",
       "availableLanguage": ["English", "Czech"]
     },
     "sameAs": [
-      "https://twitter.com/SubtitleBot",
-      "https://github.com/subtitle-ai"
+      "https://twitter.com/SubtitleBot"
     ]
   }
 
@@ -80,13 +78,9 @@ export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataP
       isCs ? "Video přehrávač" : "Video player",
       isCs ? "Plovoucí titulky" : "Floating subtitles"
     ],
-    "screenshot": `${baseUrl}/og-image-${locale}.png`,
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "ratingCount": "1250",
-      "bestRating": "5"
-    }
+    "screenshot": `${baseUrl}/og-image-${locale}.png`
+    // NOTE: aggregateRating removed — Google requires ratings backed by real,
+    // on-page user reviews; fabricated ratings risk a structured-data penalty.
   }
 
   // FAQ Schema for home page

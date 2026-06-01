@@ -22,7 +22,7 @@ export function SEOHead({
   noIndex = false,
   canonical
 }: SEOHeadProps) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://subtitle-ai.vercel.app'
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')
   const fullUrl = `${baseUrl}${currentPath}`
   const defaultOgImage = locale === 'cs' ? '/og-image-cs.png' : '/og-image-en.png'
   const imageUrl = ogImage || defaultOgImage

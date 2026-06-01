@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { useCredits } from '@/contexts/credits-context'
@@ -9,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { CheckCircle, ArrowRight, Sparkles, Coins, Zap } from 'lucide-react'
 import Link from 'next/link'
 
-export default function SuccessPage() {
+function SuccessPageInner() {
   const { user } = useAuth()
   const { refreshCredits } = useCredits()
   const searchParams = useSearchParams()
@@ -186,5 +187,13 @@ export default function SuccessPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={null}>
+      <SuccessPageInner />
+    </Suspense>
   )
 }
