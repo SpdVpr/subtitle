@@ -9,17 +9,25 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-    // Admin is determined by a verified email on the signed Firebase token.
-    // (The token is signed by Firebase and cannot be spoofed by the client,
-    //  unlike the old x-admin-email HTTP header.) email_verified is required
-    //  so nobody can self-register an allowlisted address without owning it.
+    // Admin is determined by the signed Firebase token. The legacy
+    // admin@subtitlebot.com password account is pinned to its immutable UID,
+    // so it can work without email verification without allowing somebody to
+    // recreate the address and inherit admin privileges.
     function isAdmin() {
       return isSignedIn()
-        && request.auth.token.get('email_verified', false) == true
-        && request.auth.token.email in [
-          'admin@subtitlebot.com',
-          'michalvesecky@gmail.com'
-        ];
+        && (
+          (
+            request.auth.token.get('email_verified', false) == true
+            && request.auth.token.email in [
+              'admin@subtitlebot.com',
+              'michalvesecky@gmail.com'
+            ]
+          )
+          || (
+            request.auth.uid == 'mV0xAFstR1Rjv0VTx1vx86OPOGG2'
+            && request.auth.token.email == 'admin@subtitlebot.com'
+          )
+        );
     }
     // Server-managed fields a client must never be able to change on itself.
     function creditFieldsUnchanged() {

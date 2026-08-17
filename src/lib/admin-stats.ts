@@ -1,4 +1,4 @@
-import { UserService } from './database'
+import { adminFetch } from './admin-fetch'
 
 export interface AdminStats {
   // User Statistics
@@ -48,33 +48,11 @@ export interface RevenueData {
   userId: string
 }
 
-import { db } from './firebase'
-import { collection, getDocs, query, where, orderBy, Timestamp } from 'firebase/firestore'
-
 export class AdminStatsService {
 
   static async getOverallStats(): Promise<AdminStats> {
     try {
-      // Get users via server-side API only - no fallbacks to mock data
-      let adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
-
-      // For local development, set default admin email
-      if (!adminEmail && process.env.NODE_ENV === 'development') {
-        adminEmail = 'premium@test.com'
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('adminEmail', adminEmail)
-        }
-      }
-
-      if (!adminEmail) {
-        throw new Error('Admin email not configured. Please set admin email in localStorage.')
-      }
-
-      console.log('🔑 Getting admin stats with email:', adminEmail)
-
-      const response = await fetch('/api/admin/users', {
-        headers: { 'x-admin-email': adminEmail }
-      })
+      const response = await adminFetch('/api/admin/users')
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -83,7 +61,7 @@ export class AdminStatsService {
       }
 
       const data = await response.json()
-      const users = data.users || []
+      const users: any[] = data.users || []
       console.log('📊 Admin Stats - Got users from API:', users.length)
 
       if (users.length === 0) {
@@ -284,26 +262,7 @@ export class AdminStatsService {
   
   static async getUserActivity(): Promise<UserActivity[]> {
     try {
-      // Get users via server-side API only - no fallbacks to mock data
-      let adminEmail = typeof window !== 'undefined' ? localStorage.getItem('adminEmail') || '' : ''
-
-      // For local development, set default admin email
-      if (!adminEmail && process.env.NODE_ENV === 'development') {
-        adminEmail = 'premium@test.com'
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('adminEmail', adminEmail)
-        }
-      }
-
-      if (!adminEmail) {
-        throw new Error('Admin email not configured. Please set admin email in localStorage.')
-      }
-
-      console.log('🔑 User Activity - Getting users with email:', adminEmail)
-
-      const response = await fetch('/api/admin/users', {
-        headers: { 'x-admin-email': adminEmail }
-      })
+      const response = await adminFetch('/api/admin/users')
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -312,7 +271,7 @@ export class AdminStatsService {
       }
 
       const data = await response.json()
-      const users = data.users || []
+      const users: any[] = data.users || []
       console.log('👥 User Activity - Got users from API:', users.length)
 
       // Debug log for lastActive data
@@ -377,27 +336,20 @@ export class AdminStatsService {
 
   static async getRevenueData(): Promise<RevenueData[]> {
     try {
-      if (!db) return []
+      const response = await adminFetch('/api/admin/credit-history')
+      if (!response.ok) return []
+      const payload = await response.json()
       const now = new Date()
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-      const qRef = query(
-        collection(db, 'creditTransactions'),
-        where('type', '==', 'topup'),
-        orderBy('createdAt', 'desc')
-      )
-      const snapshot = await getDocs(qRef)
-      const revenueMap = new Map<string, number>()
-      const data: RevenueData[] = []
-      snapshot.forEach(docSnap => {
-        const d: any = docSnap.data()
-        const createdAt = d.createdAt?.toDate ? d.createdAt.toDate() : new Date()
-        if (createdAt < thirtyDaysAgo) return
-        const dateStr = createdAt.toISOString().split('T')[0]
-        const amount = typeof d.amountUSD === 'number' ? d.amountUSD : (d.credits ? d.credits / 100 : 0)
-        revenueMap.set(dateStr, (revenueMap.get(dateStr) || 0) + amount)
-        data.push({ date: dateStr, amount, plan: 'topup', userId: d.userId })
-      })
-      return data
+      return (payload.transactions || [])
+        .map((transaction: any) => ({ ...transaction, createdAt: new Date(transaction.createdAt) }))
+        .filter((transaction: any) => transaction.createdAt >= thirtyDaysAgo && ['topup', 'credit'].includes(transaction.type))
+        .map((transaction: any) => ({
+          date: transaction.createdAt.toISOString().split('T')[0],
+          amount: Number(transaction.amount || 0) / 100,
+          plan: transaction.type,
+          userId: transaction.userId,
+        }))
     } catch (error) {
       console.error('Failed to get revenue data:', error)
       return []

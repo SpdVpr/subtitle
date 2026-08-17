@@ -9,7 +9,6 @@ import { StatsCards } from '@/components/admin/stats-cards'
 import { UserActivityTable } from '@/components/admin/user-activity-table'
 import { RevenueChart } from '@/components/admin/revenue-chart'
 import { SecurityDashboard } from '@/components/admin/security-dashboard'
-import { AdminSetup } from '@/components/admin/admin-setup'
 import { CreditHistory } from '@/components/admin/credit-history'
 import { VoucherGenerator } from '@/components/admin/voucher-generator'
 import { VoucherManagement } from '@/components/admin/voucher-management'
@@ -187,9 +186,6 @@ export default function AdminDashboard() {
               </button>
             </nav>
           </div>
-
-          {/* Admin Setup */}
-          <AdminSetup />
 
           {/* Error Alert */}
           {error && (

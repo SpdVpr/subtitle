@@ -9,6 +9,14 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'admin@subtitlebot.com,michalv
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean)
 
+// This legacy password account is allowed without email verification only
+// when both its address and immutable Firebase UID match. Pinning the UID
+// prevents somebody from gaining admin access by recreating the same address
+// if the original Auth user is ever deleted.
+const PINNED_UNVERIFIED_ADMINS: Record<string, string> = {
+  'admin@subtitlebot.com': 'mV0xAFstR1Rjv0VTx1vx86OPOGG2',
+}
+
 export type AdminContext = { uid: string; email: string }
 
 /**
@@ -27,8 +35,8 @@ export async function verifyAdmin(request: NextRequest): Promise<AdminContext | 
   try {
     const decoded = await getAuth(getAdminApp()).verifyIdToken(token)
     const email = (decoded.email || '').toLowerCase()
-    if (!decoded.email_verified) return null
     if (!ADMIN_EMAILS.includes(email)) return null
+    if (!decoded.email_verified && PINNED_UNVERIFIED_ADMINS[email] !== decoded.uid) return null
     return { uid: decoded.uid, email }
   } catch {
     return null

@@ -43,25 +43,7 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
       setLoading(true)
       setError(null)
 
-      // Get admin email from localStorage (same as other admin components)
-      let adminEmail = ''
-      if (typeof window !== 'undefined') {
-        adminEmail = localStorage.getItem('adminEmail') || ''
-      }
-
-      // Fallback to demo admin email if not set
-      if (!adminEmail) {
-        adminEmail = 'premium@test.com'
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('adminEmail', adminEmail)
-        }
-      }
-
-      console.log('🔑 Credit History - Loading with email:', adminEmail)
-
-      const response = await adminFetch('/api/admin/credit-history', {
-        headers: { 'x-admin-email': adminEmail }
-      })
+      const response = await adminFetch('/api/admin/credit-history')
 
       if (!response.ok) {
         const errorText = await response.text()
