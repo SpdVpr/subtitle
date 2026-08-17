@@ -27,9 +27,6 @@ export function Header() {
   const navLabels = isCzech ? {
     translate: 'Překlad',
     findSubtitles: 'Hledat titulky',
-    browseSubtitles: 'Katalog',
-    subtitleTools: 'Opravit titulky',
-    guides: 'Návody',
     videoTools: 'Video',
     subtitleEditor: 'Editor',
     buyCredits: 'Kredity',
@@ -40,9 +37,6 @@ export function Header() {
   } : {
     translate: 'Translate',
     findSubtitles: 'Find Subtitles',
-    browseSubtitles: 'Browse',
-    subtitleTools: 'Fix Subtitles',
-    guides: 'Guides',
     videoTools: 'Video Tools',
     subtitleEditor: 'Subtitle Editor',
     buyCredits: 'Buy Credits',
@@ -90,24 +84,6 @@ export function Header() {
               className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               {navLabels.findSubtitles}
-            </Link>
-            <Link
-              href={`${langPrefix}/subtitles/movies`}
-              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
-            >
-              {navLabels.browseSubtitles}
-            </Link>
-            <Link
-              href={`${langPrefix}/tools`}
-              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
-            >
-              {navLabels.subtitleTools}
-            </Link>
-            <Link
-              href={`${langPrefix}/guides`}
-              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
-            >
-              {navLabels.guides}
             </Link>
             <Link
               href={`${langPrefix}/video-tools`}
@@ -204,27 +180,6 @@ export function Header() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {navLabels.findSubtitles}
-                </Link>
-                <Link
-                  href={`${langPrefix}/subtitles/movies`}
-                  className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {navLabels.browseSubtitles}
-                </Link>
-                <Link
-                  href={`${langPrefix}/tools`}
-                  className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {navLabels.subtitleTools}
-                </Link>
-                <Link
-                  href={`${langPrefix}/guides`}
-                  className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {navLabels.guides}
                 </Link>
                 <Link
                   href={`${langPrefix}/video-tools`}
