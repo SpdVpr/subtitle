@@ -71,29 +71,29 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-3 text-sm">
+          <nav className="hidden lg:flex items-center space-x-5 text-base xl:text-lg">
             <Link
               href={`${langPrefix}/translate`}
-              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+              className="text-muted-foreground hover:text-foreground transition-colors font-semibold py-2"
             >
               {navLabels.translate}
             </Link>
             {/* Batch is now integrated into translate page for both languages */}
             <Link
               href={`${langPrefix}/subtitles-search`}
-              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+              className="text-muted-foreground hover:text-foreground transition-colors font-semibold py-2"
             >
               {navLabels.findSubtitles}
             </Link>
             <Link
               href={`${langPrefix}/video-tools`}
-              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+              className="text-muted-foreground hover:text-foreground transition-colors font-semibold py-2"
             >
               {navLabels.videoTools}
             </Link>
             <Link
               href={`${langPrefix}/subtitle-editor`}
-              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+              className="text-muted-foreground hover:text-foreground transition-colors font-semibold py-2"
             >
               {navLabels.subtitleEditor}
             </Link>
