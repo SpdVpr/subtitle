@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
           'Api-Key': API_KEY,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'User-Agent': 'SubtitleAI v1.0 (https://subtitle-ai.vercel.app)',
+          'User-Agent': 'SubtitleBot v1.0 (https://www.subtitlebot.com)',
         },
       })
 
@@ -168,8 +168,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json()
-    console.log('OpenSubtitles API response data:', JSON.stringify(data, null, 2))
-
     // Transform the response to include download URLs
     const transformedData = {
       ...data,
@@ -182,7 +180,9 @@ export async function GET(request: NextRequest) {
       }))
     }
 
-    return NextResponse.json(transformedData)
+    return NextResponse.json(transformedData, {
+      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=900' },
+    })
 
   } catch (error) {
     console.error('OpenSubtitles search error:', error)
@@ -196,5 +196,4 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
 

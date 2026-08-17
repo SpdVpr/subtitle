@@ -1,4 +1,4 @@
-import { loadStripe, Stripe } from '@stripe/stripe-js'
+import type { Stripe } from '@stripe/stripe-js'
 
 // Server-side Stripe instance (only import on server)
 let stripe: any = null
@@ -17,8 +17,8 @@ let stripePromise: Promise<Stripe | null>
 
 export const getStripe = () => {
   if (!stripePromise) {
-    stripePromise = loadStripe(
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_demo_key'
+    stripePromise = import('@stripe/stripe-js').then(({ loadStripe }) =>
+      loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_demo_key')
     )
   }
   return stripePromise

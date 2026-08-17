@@ -17,6 +17,8 @@ export default function CzechFeedbackPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [honeypot, setHoneypot] = useState('')
+  const [wantsReply, setWantsReply] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
   const [startTime] = useState(Date.now())
 
   // Math CAPTCHA
@@ -93,7 +95,7 @@ export default function CzechFeedbackPage() {
         locale: 'cs',
         captchaAnswer: userAnswer, // Include CAPTCHA answer for server verification
         userId: user?.uid,
-        userEmail: user?.email,
+        userEmail: wantsReply ? userEmail.trim() : user?.email,
         userName: user?.displayName
       }
 

@@ -133,6 +133,10 @@ export function applyCookiePreferences(preferences: CookiePreferences): void {
   } else {
     console.log('🍪 Functional cookies disabled')
   }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('cookie-consent-changed', { detail: preferences }))
+  }
 }
 
 // Helper funkce pro kontrolu, zda je určitý typ cookies povolen

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { StructuredData } from "@/components/seo/structured-data";
 
 export const metadata: Metadata = {
   title: {
@@ -130,10 +129,5 @@ export default function CsLayout({
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <>
-      <StructuredData locale="cs" page="home" />
-      {children}
-    </>
-  )
+  return children
 }

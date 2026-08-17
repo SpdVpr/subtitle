@@ -3,11 +3,13 @@ import { HierarchicalSubtitleSearch } from '@/components/subtitles/hierarchical-
 import { AnimeSubtitleSearch } from '@/components/subtitles/anime-subtitle-search'
 import { Separator } from '@/components/ui/separator'
 import { Film, Tv, Play } from 'lucide-react'
+import { StructuredData } from '@/components/seo/structured-data'
+import { SubtitleSearchGuide } from '@/components/subtitles/subtitle-search-guide'
 
 
 export const metadata: Metadata = {
-  title: 'Search Subtitles',
-  description: 'Search and download subtitles from OpenSubtitles and Jimaku databases. Find subtitles for movies, TV series, and anime in multiple languages.',
+  title: 'Subtitle Finder: Movie, TV & English Subtitles',
+  description: 'Find movie, TV series, anime and English subtitles by title, year and language. Search OpenSubtitles and Jimaku, then translate or sync your file.',
   keywords: [
     'subtitle search',
     'download subtitles',
@@ -21,12 +23,12 @@ export const metadata: Metadata = {
     'free subtitles'
   ],
   openGraph: {
-    title: 'Search Subtitles - SubtitleBot',
-    description: 'Search and download subtitles from OpenSubtitles and Jimaku databases. Find subtitles for movies, TV series, and anime.',
+    title: 'Subtitle Finder for Movies, TV Shows & Anime | SubtitleBot',
+    description: 'Search movie, TV, anime and English subtitles by title, year and language, then translate or sync the file.',
     url: '/subtitles-search',
     images: [
       {
-        url: '/og-search.jpg',
+        url: '/og-image-en.png',
         width: 1200,
         height: 630,
         alt: 'SubtitleBot Search - Find and Download Subtitles',
@@ -35,26 +37,31 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Search Subtitles - SubtitleBot',
-    description: 'Search and download subtitles from OpenSubtitles and Jimaku databases.',
-    images: ['/twitter-search.jpg'],
+    title: 'Subtitle Finder for Movies, TV Shows & Anime | SubtitleBot',
+    description: 'Search movie, TV, anime and English subtitles by title, year and language.',
+    images: ['/og-image-en.png'],
   },
   alternates: {
     canonical: '/subtitles-search',
+    languages: {
+      'en': '/subtitles-search',
+      'cs': '/cs/subtitles-search',
+      'x-default': '/subtitles-search',
+    },
   },
 }
 
 export default function SubtitlesSearchPage() {
   return (
     <div className="py-4 sm:py-6 md:py-8 bg-background">
+      <StructuredData locale="en" page="search" />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
 
         {/* Header */}
         <div className="mb-8 sm:mb-10 md:mb-12 text-center">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2">Search Subtitles</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2">Find Subtitles for Movies, TV Shows & Anime</h1>
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto px-4">
-            Find subtitles for your favorite content in the two largest subtitle databases
-            and then translate them using our AI translator
+            Search movie, TV, anime and English subtitles by title, year and language. Match the right release, then download, translate or sync your subtitle file.
           </p>
         </div>
 
@@ -72,7 +79,7 @@ export default function SubtitlesSearchPage() {
             <div className="mb-4">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-foreground mb-2">OpenSubtitles Database</h2>
               <p className="text-sm sm:text-base text-gray-600 dark:text-muted-foreground">
-                The largest subtitle database for movies and TV series with millions of files in all languages
+                Search movie and TV subtitle listings by title, language, content type, year and source quality
               </p>
             </div>
             <HierarchicalSubtitleSearch />
@@ -102,12 +109,13 @@ export default function SubtitlesSearchPage() {
             <div className="mb-4">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-foreground mb-2">Jimaku Database</h2>
               <p className="text-sm sm:text-base text-gray-600 dark:text-muted-foreground">
-                Specialized database of Japanese subtitles for anime with AniList integration
+                Search anime subtitle listings through Jimaku with AniList identifiers
               </p>
             </div>
             <AnimeSubtitleSearch />
           </div>
         </div>
+        <SubtitleSearchGuide locale="en" />
       </div>
     </div>
   )

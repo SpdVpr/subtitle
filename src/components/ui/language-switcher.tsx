@@ -45,7 +45,7 @@ export function LanguageSwitcher() {
 
   return (
     <Select value={currentLang} onValueChange={handleLanguageChange}>
-      <SelectTrigger className="w-[100px] h-9">
+      <SelectTrigger className="w-[100px] h-9" aria-label="Select language">
         <div className="flex items-center gap-1">
           <Globe className="h-3 w-3" />
           <SelectValue>

@@ -9,8 +9,6 @@ import { Toaster } from "sonner"
 import { CookieBannerWrapper } from "@/components/cookie-banner-wrapper"
 import { GoogleAnalytics } from "@/components/analytics/google-analytics"
 import { LocaleAwareLayout } from "@/components/layout/locale-aware-layout"
-import { StructuredData } from "@/components/seo/structured-data"
-import { PerformanceOptimizer, defaultCriticalResources } from "@/components/seo/performance-optimizer"
 
 
 const inter = Inter({
@@ -121,8 +119,6 @@ export const metadata: Metadata = {
     title: "SubtitleBot - AI-Powered Subtitle Translation | 100+ Languages",
     description: "Professional AI subtitle translation service. Fast, accurate, context-aware translations for movies, TV shows, and videos. Free credits included.",
     images: ['/og-image-en.png'],
-    creator: '@SubtitleBot',
-    site: '@SubtitleBot',
   },
   robots: {
     index: true,
@@ -137,61 +133,24 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  icons: {
-    icon: '/logo-sub.png',
-    shortcut: '/logo-sub.png',
-    apple: '/logo-sub.png',
-  },
   manifest: '/manifest.json',
 };
-
-// TODO(SEO): the biggest remaining SEO/perf win is making marketing pages
-// statically generated. That requires first converting the client-rendered
-// marketing pages (incl. the homepage) to server components and fixing latent
-// per-page prerender issues. Until then we keep force-dynamic so the build is
-// green and there are no prerender-time crashes.
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export const fetchCache = 'force-no-store'
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Preload critical resources */}
-        <link rel="preload" href="/logo-sub.png" as="image" type="image/png" />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-        <link rel="dns-prefetch" href="https://api.openai.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        <link rel="manifest" href="/manifest.json" />
-
         {/* Google Analytics (uses useSearchParams -> needs a Suspense boundary
             so the rest of the page can still be statically generated) */}
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>
 
-        {/* Structured Data */}
-        <StructuredData locale="en" page="home" />
-
-        {/* Performance Optimization */}
-        <PerformanceOptimizer
-          enablePreloading={true}
-          enablePrefetching={true}
-          criticalResources={defaultCriticalResources}
-        />
-
-        {/* Hreflang tags for SEO */}
-        <link rel="alternate" hrefLang="en" href={`${baseUrl}`} />
-        <link rel="alternate" hrefLang="cs" href={`${baseUrl}/cs`} />
-        <link rel="alternate" hrefLang="x-default" href={`${baseUrl}`} />
       </head>
       <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
 

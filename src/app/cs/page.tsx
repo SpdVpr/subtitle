@@ -1,10 +1,10 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { StructuredData } from "@/components/seo/structured-data";
+import { HomeFacts } from "@/components/seo/home-facts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CzechHomeClient } from "./page-client";
 import {
   Sparkles,
   Zap,
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
 
 export default function CzechHome() {
   return (
-    <CzechHomeClient>
+    <>
       <StructuredData locale="cs" page="home" />
       <div className="flex flex-col min-h-screen">
         {/* Hero Section */}
@@ -353,7 +353,7 @@ export default function CzechHome() {
         {/* Features Section */}
         <section className="container px-4 py-20 mx-auto bg-background dark:bg-background">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Proč si vybrat SubtitleAI?</h2>
+            <h2 className="text-4xl font-bold mb-4">Proč si vybrat SubtitleBot?</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Vše, co potřebujete pro profesionální překlad titulků, poháněno nejmodernější AI technologií.
             </p>
@@ -934,7 +934,8 @@ export default function CzechHome() {
             </div>
           </div>
         </section>
+        <HomeFacts locale="cs" />
       </div>
-    </CzechHomeClient>
+    </>
   );
 }

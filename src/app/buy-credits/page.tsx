@@ -355,7 +355,7 @@ Complete payment in the new window.`, {
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-300">
                 <strong>Example:</strong> A 100-line subtitle file costs 4.0 credits (Standard) or 10.0 credits (Premium).
-                Your 200 welcome credits can translate ~125 files (Standard) or ~20 files (Premium) with full context research!
+                Your 100 welcome credits can translate ~62 files (Standard) or ~10 files (Premium) with full context research!
               </p>
             </div>
           </CardContent>

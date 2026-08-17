@@ -218,7 +218,7 @@ export default function PricingPage() {
         <div className="text-center mt-12 p-8 bg-muted rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Ready to get started?</h2>
           <p className="text-muted-foreground mb-6">
-            Join thousands of content creators who trust SubtitleBot for their translation needs.
+            Create an account, use the welcome credits, and purchase more only when you need them.
           </p>
           <Button size="lg" asChild>
             <Link href={user ? '/buy-credits' : '/login?redirect=/buy-credits'}>

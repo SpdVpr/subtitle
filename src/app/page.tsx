@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/useAuth";
+import { StructuredData } from "@/components/seo/structured-data";
+import { HomeFacts } from "@/components/seo/home-facts";
 import {
   Sparkles,
   Zap,
@@ -21,22 +22,10 @@ import {
 } from "lucide-react";
 
 export default function Home() {
-  const { loading } = useAuth()
-
-  // Show loading state while checking auth
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
+      <StructuredData locale="en" page="home" />
+      <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-background dark:via-card dark:to-background">
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
@@ -314,7 +303,7 @@ export default function Home() {
       {/* Features Section */}
       <section className="container px-4 py-20 mx-auto bg-background dark:bg-background">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Why Choose SubtitleAI?</h2>
+          <h2 className="text-4xl font-bold mb-4">Why Choose SubtitleBot?</h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Everything you need for professional subtitle translation, powered by cutting-edge AI technology.
           </p>
@@ -896,6 +885,8 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>
+        <HomeFacts locale="en" />
+      </div>
+    </>
   );
 }

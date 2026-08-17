@@ -20,7 +20,7 @@ interface CookiePreferences {
 }
 
 export function CookieBannerEN() {
-  const [showBanner, setShowBanner] = useState(false)
+  const [showBanner, setShowBanner] = useState(true)
   const [showSettings, setShowSettings] = useState(false)
   const [preferences, setPreferences] = useState<CookiePreferences>({
     necessary: true, // Always true, can't be disabled
@@ -33,10 +33,9 @@ export function CookieBannerEN() {
     // Check if user has already made a choice
     const cookieConsent = localStorage.getItem('cookie-consent')
     if (!cookieConsent) {
-      // Show banner after a short delay
-      const timer = setTimeout(() => setShowBanner(true), 1000)
-      return () => clearTimeout(timer)
+      setShowBanner(true)
     } else {
+      setShowBanner(false)
       // Load saved preferences
       try {
         const savedPreferences = JSON.parse(cookieConsent)

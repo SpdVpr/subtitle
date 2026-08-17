@@ -18,7 +18,7 @@ export default function AboutPage() {
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Zap className="h-8 w-8 text-primary" />
-              <h1 className="text-4xl font-bold text-foreground">About SubtitleAI</h1>
+              <h1 className="text-4xl font-bold text-foreground">About SubtitleBot</h1>
             </div>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Empowering creators worldwide with AI-powered subtitle translation and timing tools.
@@ -36,7 +36,7 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground leading-relaxed">
-              At SubtitleAI, we believe that language should never be a barrier to sharing great content. 
+              At SubtitleBot, we believe that language should never be a barrier to sharing great content.
               Our mission is to make subtitle translation fast, accurate, and accessible to creators worldwide, 
               enabling them to reach global audiences with ease.
             </p>
@@ -53,7 +53,7 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground leading-relaxed">
-              SubtitleAI was born from a simple frustration: the time-consuming and expensive process of 
+              SubtitleBot was born from a simple frustration: the time-consuming and expensive process of
               translating subtitles for video content. As content creators ourselves, we experienced firsthand 
               the challenges of reaching international audiences.
             </p>
@@ -121,8 +121,8 @@ export default function AboutPage() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Your content is precious. We process files securely and delete them immediately after 
-                translation, ensuring your privacy is always protected.
+                Your content is precious. We limit its use to providing the requested service and explain
+                our storage and processing practices in the Privacy Policy.
               </p>
             </CardContent>
           </Card>
@@ -160,9 +160,8 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground leading-relaxed">
-              We're a passionate team of developers, linguists, and content creators based in Prague, Czech Republic. 
-              Our diverse backgrounds in AI, software engineering, and media production give us unique insights 
-              into the challenges creators face and the solutions they need.
+              SubtitleBot is based in Prague, Czech Republic. We build the product around practical subtitle
+              workflows and use customer feedback to decide what to improve next.
             </p>
           </CardContent>
         </Card>
@@ -172,7 +171,7 @@ export default function AboutPage() {
           <CardHeader>
             <CardTitle>Get in Touch</CardTitle>
             <CardDescription>
-              Have questions or want to learn more about SubtitleAI?
+              Have questions or want to learn more about SubtitleBot?
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -184,7 +183,7 @@ export default function AboutPage() {
               </Button>
               <Button variant="outline" asChild>
                 <Link href="/translate">
-                  Try SubtitleAI
+                  Try SubtitleBot
                 </Link>
               </Button>
               <Button variant="outline" asChild>
@@ -201,6 +200,10 @@ export default function AboutPage() {
 }
 
 export const metadata = {
-  title: 'About Us - SubtitleAI',
-  description: 'Learn about SubtitleAI\'s mission to make subtitle translation accessible to creators worldwide through AI technology.',
+  title: 'About SubtitleBot',
+  description: 'Learn about SubtitleBot, our Prague-based team, and our approach to AI-assisted subtitle translation, editing, and timing tools.',
+  alternates: {
+    canonical: '/about',
+    languages: { en: '/about', cs: '/cs/about', 'x-default': '/about' },
+  },
 }

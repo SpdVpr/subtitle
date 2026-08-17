@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seo:gsc": "node scripts/analyze-gsc.mjs",
+    "test:seo-tools": "node --no-warnings --experimental-strip-types scripts/test-subtitle-tools.mjs"
   },
   "dependencies": {
     "@google-cloud/translate": "^9.2.0",

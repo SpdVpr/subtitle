@@ -56,7 +56,7 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
   const texts = {
     en: {
       title: 'Create Account',
-      description: 'Get started with your free account and 200 welcome credits',
+      description: 'Get started with your free account and 100 welcome credits',
       email: 'Email',
       password: 'Password',
       confirmPassword: 'Confirm Password',
@@ -74,7 +74,7 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
     },
     cs: {
       title: 'Vytvořit Účet',
-      description: 'Začněte se svým zdarma účtem a 200 uvítacími kredity',
+      description: 'Začněte se svým účtem zdarma a 100 uvítacími kredity',
       email: 'Email',
       password: 'Heslo',
       confirmPassword: 'Potvrdit Heslo',

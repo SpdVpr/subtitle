@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Github, Twitter, Mail, Heart, Globe, Zap, Gamepad2, ExternalLink } from "lucide-react"
+import { Mail, Heart, Globe, Gamepad2, ExternalLink } from "lucide-react"
 
 interface FooterProps {
   locale?: 'en' | 'cs'
@@ -35,24 +35,6 @@ export function Footer({ locale = 'en' }: FooterProps) {
             </p>
             <div className="flex items-center space-x-4">
               <Link
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="GitHub"
-              >
-                <Github className="h-5 w-5" />
-              </Link>
-              <Link
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter className="h-5 w-5" />
-              </Link>
-              <Link
                 href={`${langPrefix}/contact`}
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Contact"
@@ -82,6 +64,30 @@ export function Footer({ locale = 'en' }: FooterProps) {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {locale === 'cs' ? 'Najít Titulky' : 'Find Subtitles'}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={`${langPrefix}/subtitles/movies`}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {locale === 'cs' ? 'Katalog Titulků' : 'Subtitle Catalog'}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={`${langPrefix}/tools`}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {locale === 'cs' ? 'Opravit Titulky' : 'Subtitle Tools'}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={`${langPrefix}/guides`}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {locale === 'cs' ? 'Návody' : 'Guides'}
                 </Link>
               </li>
               <li>

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Download, ExternalLink, Calendar, Hash, Film, BookOpen, Image } from 'lucide-react'
 import { toast } from 'sonner'
+import { analytics } from '@/lib/analytics'
 
 interface JimakuEntry {
   id: number
@@ -103,13 +104,11 @@ export function AnimeSubtitleSearch() {
       }
 
       const data: JimakuSearchResponse = await response.json()
+      analytics.subtitleSearchCompleted('jimaku', language, data.length)
       console.log('📊 Jimaku API data:', data.length, 'entries')
 
       setResults(data)
       setTotalCount(data.length)
-
-      // Clear files for now - we'll need to fetch them separately
-      setFiles(new Map())
 
       if (data.length === 0) {
         toast.info('No subtitles found')
@@ -125,6 +124,7 @@ export function AnimeSubtitleSearch() {
   }
 
   const handleDownload = (entry: JimakuEntry) => {
+    analytics.subtitleSourceOpened('jimaku')
     window.open(`https://jimaku.cc/entry/${entry.id}`, '_blank')
     toast.info('Přesměrováváme vás na Jimaku pro zobrazení titulků')
   }
@@ -155,7 +155,7 @@ export function AnimeSubtitleSearch() {
             </div>
 
             <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Anime subtitle language">
                 <SelectValue placeholder="Language" />
               </SelectTrigger>
               <SelectContent>

@@ -13,11 +13,13 @@ export const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_TRACKING_ID || 'G-N2JMW
 // Initialize Google Analytics
 export const initGA = () => {
   // Only run on client side and in production
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined' || process.env.NODE_ENV !== 'production') return
+  if (document.querySelector(`script[data-subtitlebot-ga="${GA_TRACKING_ID}"]`)) return
   
   // Load gtag script
   const script1 = document.createElement('script')
   script1.async = true
+  script1.dataset.subtitlebotGa = GA_TRACKING_ID
   script1.src = `https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`
   document.head.appendChild(script1)
 
@@ -89,6 +91,22 @@ export const analytics = {
   
   fileDownloaded: (fileType: string, language: string) => {
     trackEvent('file_downloaded', 'file', `${fileType}_${language}`)
+  },
+
+  subtitleSearchCompleted: (source: 'opensubtitles' | 'jimaku', language: string, resultCount: number) => {
+    trackEvent('subtitle_search_completed', 'subtitle_search', `${source}_${language}`, resultCount)
+  },
+
+  subtitleSourceOpened: (source: 'opensubtitles' | 'jimaku') => {
+    trackEvent('subtitle_source_opened', 'subtitle_search', source)
+  },
+
+  subtitleToolUsed: (tool: string) => {
+    trackEvent('subtitle_tool_used', 'subtitle_tools', tool)
+  },
+
+  subtitleToolExported: (tool: string) => {
+    trackEvent('subtitle_tool_exported', 'subtitle_tools', tool)
   },
 
   // User events

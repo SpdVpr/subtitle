@@ -273,7 +273,7 @@ export default function TranslatePage() {
                 <Badge variant="secondary" className="bg-gray-50 text-gray-700 dark:bg-gray-950 dark:text-gray-300">TXT</Badge>
               </div>
               <span>•</span>
-              <span>50+ languages supported</span>
+              <span>100+ language pairs supported</span>
             </div>
           </div>
 

@@ -27,9 +27,11 @@ export function Header() {
   const navLabels = isCzech ? {
     translate: 'Překlad',
     findSubtitles: 'Hledat titulky',
-    videoTools: 'Nástroje',
-    subtitleEditor: 'Editor Titulků',
-    statistics: 'Statistiky',
+    browseSubtitles: 'Katalog',
+    subtitleTools: 'Opravit titulky',
+    guides: 'Návody',
+    videoTools: 'Video',
+    subtitleEditor: 'Editor',
     buyCredits: 'Kredity',
     dashboard: 'Dashboard',
     signOut: 'Odhlásit se',
@@ -38,9 +40,11 @@ export function Header() {
   } : {
     translate: 'Translate',
     findSubtitles: 'Find Subtitles',
+    browseSubtitles: 'Browse',
+    subtitleTools: 'Fix Subtitles',
+    guides: 'Guides',
     videoTools: 'Video Tools',
     subtitleEditor: 'Subtitle Editor',
-    statistics: 'Statistics',
     buyCredits: 'Buy Credits',
     dashboard: 'Dashboard',
     signOut: 'Sign Out',
@@ -73,7 +77,7 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-4">
+          <nav className="hidden lg:flex items-center space-x-3 text-sm">
             <Link
               href={`${langPrefix}/translate`}
               className="text-muted-foreground hover:text-foreground transition-colors font-medium"
@@ -88,6 +92,24 @@ export function Header() {
               {navLabels.findSubtitles}
             </Link>
             <Link
+              href={`${langPrefix}/subtitles/movies`}
+              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+            >
+              {navLabels.browseSubtitles}
+            </Link>
+            <Link
+              href={`${langPrefix}/tools`}
+              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+            >
+              {navLabels.subtitleTools}
+            </Link>
+            <Link
+              href={`${langPrefix}/guides`}
+              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+            >
+              {navLabels.guides}
+            </Link>
+            <Link
               href={`${langPrefix}/video-tools`}
               className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
@@ -98,18 +120,6 @@ export function Header() {
               className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               {navLabels.subtitleEditor}
-            </Link>
-            <Link
-              href={`${langPrefix}/statistics`}
-              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
-            >
-              {navLabels.statistics}
-            </Link>
-            <Link
-              href={`${langPrefix}/buy-credits`}
-              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
-            >
-              {navLabels.buyCredits}
             </Link>
           </nav>
 
@@ -196,6 +206,27 @@ export function Header() {
                   {navLabels.findSubtitles}
                 </Link>
                 <Link
+                  href={`${langPrefix}/subtitles/movies`}
+                  className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {navLabels.browseSubtitles}
+                </Link>
+                <Link
+                  href={`${langPrefix}/tools`}
+                  className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {navLabels.subtitleTools}
+                </Link>
+                <Link
+                  href={`${langPrefix}/guides`}
+                  className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {navLabels.guides}
+                </Link>
+                <Link
                   href={`${langPrefix}/video-tools`}
                   className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -208,13 +239,6 @@ export function Header() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {navLabels.subtitleEditor}
-                </Link>
-                <Link
-                  href={`${langPrefix}/statistics`}
-                  className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {navLabels.statistics}
                 </Link>
                 {user && isAdmin(user) && (
                   <Link

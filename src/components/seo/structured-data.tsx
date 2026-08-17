@@ -1,194 +1,150 @@
-import Script from 'next/script'
-
 interface StructuredDataProps {
   locale?: 'en' | 'cs'
-  page?: 'home' | 'translate' | 'search' | 'editor' | 'video-tools' | 'pricing' | 'about'
+  page?: 'home' | 'translate' | 'search' | 'editor' | 'video-tools' | 'pricing' | 'about' | 'statistics'
 }
+
+const PAGE_PATHS = {
+  home: '',
+  translate: '/translate',
+  search: '/subtitles-search',
+  editor: '/subtitle-editor',
+  'video-tools': '/video-tools',
+  pricing: '/pricing',
+  about: '/about',
+  statistics: '/statistics',
+} as const
 
 export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataProps) {
   const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')
   const isCs = locale === 'cs'
-  const urlPrefix = isCs ? '/cs' : ''
+  const prefix = isCs ? '/cs' : ''
+  const pagePath = `${prefix}${PAGE_PATHS[page]}`
+  const pageUrl = `${baseUrl}${pagePath || '/'}`
+  const organizationId = `${baseUrl}/#organization`
+  const websiteId = `${baseUrl}/#website`
+  const softwareId = `${baseUrl}/#software`
 
-  // Organization Schema
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "SubtitleBot",
-    "url": baseUrl,
-    "logo": `${baseUrl}/logo-sub.png`,
-    "description": isCs
-      ? "Pokročilý AI překladač titulků s podporou 100+ jazyků. Rychlé, přesné a kontextové překlady pro filmy, seriály a video obsah."
-      : "Advanced AI subtitle translator supporting 100+ languages. Fast, accurate, and context-aware translations for movies, TV shows, and video content.",
-    "foundingDate": "2024",
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "contactType": "customer service",
-      "email": "support@subtitlebot.com",
-      "availableLanguage": ["English", "Czech"]
-    },
-    "sameAs": [
-      "https://twitter.com/SubtitleBot"
-    ]
+  const pageNames: Record<NonNullable<StructuredDataProps['page']>, { en: string; cs: string }> = {
+    home: { en: 'SubtitleBot AI Subtitle Tools', cs: 'SubtitleBot AI nástroje pro titulky' },
+    translate: { en: 'AI Subtitle Translator', cs: 'AI překladač titulků' },
+    search: { en: 'Subtitle Finder for Movies, TV Shows and Anime', cs: 'Vyhledávač titulků pro filmy, seriály a anime' },
+    editor: { en: 'Online Subtitle Editor', cs: 'Online editor titulků' },
+    'video-tools': { en: 'Online Video and Subtitle Tools', cs: 'Online nástroje pro video a titulky' },
+    pricing: { en: 'SubtitleBot Pricing', cs: 'Ceník SubtitleBot' },
+    about: { en: 'About SubtitleBot', cs: 'O SubtitleBot' },
+    statistics: { en: 'SubtitleBot Statistics', cs: 'Statistiky SubtitleBot' },
   }
 
-  // Website Schema
-  const websiteSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": isCs ? "SubtitleBot - AI Překlad Titulků" : "SubtitleBot - AI Subtitle Translation",
-    "url": `${baseUrl}${urlPrefix}`,
-    "description": isCs
-      ? "Překládejte titulky pomocí pokročilé AI technologie. Podpora SRT, VTT a dalších formátů s kontextovým překladem."
-      : "Translate subtitles using advanced AI technology. Support for SRT, VTT and other formats with contextual translation.",
-    "inLanguage": isCs ? "cs-CZ" : "en-US",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": `${baseUrl}${urlPrefix}/subtitles-search?q={search_term_string}`
+  const graph: Record<string, unknown>[] = [
+    {
+      '@type': 'Organization',
+      '@id': organizationId,
+      name: 'SubtitleBot',
+      url: baseUrl,
+      logo: { '@type': 'ImageObject', url: `${baseUrl}/logo-sub.png` },
+      email: 'support@subtitlebot.com',
+      address: { '@type': 'PostalAddress', addressLocality: 'Prague', addressCountry: 'CZ' },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': websiteId,
+      url: baseUrl,
+      name: 'SubtitleBot',
+      publisher: { '@id': organizationId },
+      inLanguage: ['en', 'cs'],
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: { '@type': 'EntryPoint', urlTemplate: `${baseUrl}/subtitles-search?q={search_term_string}` },
+        'query-input': 'required name=search_term_string',
       },
-      "query-input": "required name=search_term_string"
-    }
+    },
+    {
+      '@type': 'WebApplication',
+      '@id': softwareId,
+      name: 'SubtitleBot',
+      url: baseUrl,
+      applicationCategory: 'MultimediaApplication',
+      operatingSystem: 'Any',
+      browserRequirements: 'Requires a modern web browser with JavaScript enabled',
+      description: isCs
+        ? 'Webová aplikace pro vyhledávání, překlad, editaci a synchronizaci titulků.'
+        : 'Web application for finding, translating, editing, and synchronizing subtitles.',
+      featureList: [
+        isCs ? 'Vyhledávání filmových, seriálových a anime titulků' : 'Movie, TV series, and anime subtitle search',
+        isCs ? 'AI překlad titulků ve více než 100 jazykových párech' : 'AI subtitle translation across 100+ language pairs',
+        isCs ? 'Podpora formátů SRT, VTT, ASS, SSA, SUB, SBV a TXT' : 'SRT, VTT, ASS, SSA, SUB, SBV, and TXT support',
+        isCs ? 'Online editor a synchronizace titulků' : 'Online subtitle editing and synchronization',
+      ],
+      offers: {
+        '@type': 'Offer',
+        url: `${baseUrl}${prefix}/pricing`,
+        price: '0',
+        priceCurrency: 'USD',
+        description: isCs ? '100 uvítacích kreditů zdarma' : '100 free welcome credits',
+      },
+      publisher: { '@id': organizationId },
+    },
+    {
+      '@type': 'WebPage',
+      '@id': `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: pageNames[page][locale],
+      isPartOf: { '@id': websiteId },
+      about: { '@id': softwareId },
+      inLanguage: isCs ? 'cs-CZ' : 'en-US',
+    },
+  ]
+
+  if (page !== 'home') {
+    graph.push({
+      '@type': 'BreadcrumbList',
+      '@id': `${pageUrl}#breadcrumb`,
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: isCs ? 'Domů' : 'Home', item: `${baseUrl}${prefix || '/'}` },
+        { '@type': 'ListItem', position: 2, name: pageNames[page][locale], item: pageUrl },
+      ],
+    })
   }
 
-  // Software Application Schema
-  const softwareSchema = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "SubtitleBot",
-    "applicationCategory": "MultimediaApplication",
-    "operatingSystem": "Web Browser",
-    "description": isCs
-      ? "AI-poháněný překladač titulků s podporou více než 100 jazyků. Rychlé, přesné překlady s kontextovým povědomím pro profesionální kvalitu."
-      : "AI-powered subtitle translator supporting 100+ languages. Fast, accurate translations with contextual awareness for professional quality.",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD",
-      "description": isCs ? "Zdarma s prémiovou možností" : "Free with premium option"
-    },
-    "featureList": [
-      isCs ? "AI překlad titulků" : "AI subtitle translation",
-      isCs ? "Podpora 100+ jazyků" : "100+ language support",
-      isCs ? "Kontextový překlad" : "Contextual translation",
-      isCs ? "Více formátů souborů" : "Multiple file formats",
-      isCs ? "Dávkové zpracování" : "Batch processing",
-      isCs ? "Editor titulků" : "Subtitle editor",
-      isCs ? "Video přehrávač" : "Video player",
-      isCs ? "Plovoucí titulky" : "Floating subtitles"
-    ],
-    "screenshot": `${baseUrl}/og-image-${locale}.png`
-    // NOTE: aggregateRating removed — Google requires ratings backed by real,
-    // on-page user reviews; fabricated ratings risk a structured-data penalty.
+  if (page === 'search') {
+    graph.push({
+      '@type': 'WebApplication',
+      '@id': `${pageUrl}#subtitle-finder`,
+      name: pageNames.search[locale],
+      url: pageUrl,
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      isAccessibleForFree: true,
+      description: isCs
+        ? 'Bezplatný vyhledávač titulků podle názvu, roku, typu obsahu a jazyka.'
+        : 'Free subtitle finder with title, year, content-type, and language filters.',
+      featureList: [
+        isCs ? 'Filmy a seriály přes OpenSubtitles' : 'Movies and TV shows via OpenSubtitles',
+        isCs ? 'Anime titulky přes Jimaku' : 'Anime subtitles via Jimaku',
+        isCs ? 'Filtry jazyka, roku a důvěryhodného zdroje' : 'Language, year, and trusted-source filters',
+      ],
+      provider: { '@id': organizationId },
+    })
   }
 
-  // FAQ Schema for home page
-  const faqSchema = page === 'home' ? {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": isCs ? [
-      {
-        "@type": "Question",
-        "name": "Jak funguje AI překlad titulků?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Náš AI engine kombinuje Google Gemini modely s kontextovým výzkumem pro přesné překlady. Analyzuje kontext filmu/seriálu, vztahy mezi postavami a kulturní nuance pro nejlepší možnou kvalitu překladu."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Jaké formáty titulků podporujete?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Podporujeme 7 hlavních formátů: SRT, VTT, ASS, SSA, SUB, SBV a TXT. Automaticky detekujeme formát a kódování vašich souborů."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Kolik jazyků podporujete?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Podporujeme více než 100 jazykových párů včetně všech hlavních světových jazyků a dialektů. Náš AI engine rozumí kulturním nuancím každého jazyka."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Je služba zdarma?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Ano! Noví uživatelé získají 200 kreditů zdarma při registraci. Poté můžete kupovat kredity podle potřeby - žádné měsíční předplatné, kredity nikdy nevyprší."
-        }
-      }
-    ] : [
-      {
-        "@type": "Question",
-        "name": "How does AI subtitle translation work?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Our AI engine combines Google Gemini models with contextual research for accurate translations. It analyzes movie/show context, character relationships, and cultural nuances for the best possible translation quality."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What subtitle formats do you support?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "We support 7 major formats: SRT, VTT, ASS, SSA, SUB, SBV, and TXT. We automatically detect the format and encoding of your files."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How many languages do you support?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "We support 100+ language pairs including all major world languages and dialects. Our AI engine understands cultural nuances of each language."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is the service free?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes! New users get 200 free credits upon registration. After that, you can buy credits as needed - no monthly subscriptions, credits never expire."
-        }
-      }
-    ]
-  } : null
+  if (page === 'translate') {
+    graph.push({
+      '@type': 'Service',
+      '@id': `${pageUrl}#service`,
+      name: pageNames.translate[locale],
+      url: pageUrl,
+      serviceType: isCs ? 'AI překlad titulků' : 'AI subtitle translation',
+      areaServed: 'Worldwide',
+      provider: { '@id': organizationId },
+    })
+  }
 
-  // Service Schema for specific pages
-  const serviceSchema = page === 'translate' ? {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "name": isCs ? "AI Překlad Titulků" : "AI Subtitle Translation",
-    "description": isCs
-      ? "Profesionální překlad titulků pomocí pokročilé AI technologie s kontextovým povědomím."
-      : "Professional subtitle translation using advanced AI technology with contextual awareness.",
-    "provider": {
-      "@type": "Organization",
-      "name": "SubtitleBot"
-    },
-    "areaServed": "Worldwide",
-    "availableLanguage": ["en", "cs", "de", "fr", "es", "it", "pt", "ru", "ja", "ko", "zh"],
-    "serviceType": isCs ? "Překlad titulků" : "Subtitle Translation"
-  } : null
-
-  const schemas = [organizationSchema, websiteSchema, softwareSchema]
-  if (faqSchema) schemas.push(faqSchema)
-  if (serviceSchema) schemas.push(serviceSchema)
+  const schema = { '@context': 'https://schema.org', '@graph': graph }
 
   return (
-    <>
-      {schemas.map((schema, index) => (
-        <Script
-          key={index}
-          id={`structured-data-${index}`}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(schema)
-          }}
-        />
-      ))}
-    </>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }}
+    />
   )
 }

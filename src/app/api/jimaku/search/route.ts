@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
             ...headers,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'User-Agent': 'SubtitleAI v1.0 (https://subtitle-ai.vercel.app)',
+            'User-Agent': 'SubtitleBot v1.0 (https://www.subtitlebot.com)',
           },
         })
 
@@ -150,8 +150,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data: JimakuSearchResponse = await response.json()
-    console.log('Jimaku API response data:', JSON.stringify(data, null, 2))
-
     return NextResponse.json(data)
 
   } catch (error) {

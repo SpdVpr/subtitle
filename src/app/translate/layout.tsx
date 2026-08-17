@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { BatchProvider } from '@/components/providers/batch-provider'
 
 export const metadata: Metadata = {
   title: 'Translate Subtitles',
-  description: 'Translate your subtitle files using AI-powered translation services. Support for 60+ languages with context-aware translation and automatic timing adjustment.',
+  description: 'Translate subtitle files with context-aware AI while preserving timing and formatting. Supports 100+ language pairs and common subtitle formats.',
   keywords: [
     'subtitle translation',
     'AI subtitle translator',
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
     url: '/translate',
     images: [
       {
-        url: '/og-translate.jpg',
+        url: '/og-image-en.png',
         width: 1200,
         height: 630,
         alt: 'SubtitleBot Translate - AI Subtitle Translation',
@@ -30,10 +31,15 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Translate Subtitles - SubtitleBot',
     description: 'Translate your subtitle files using AI-powered translation services.',
-    images: ['/twitter-translate.jpg'],
+    images: ['/og-image-en.png'],
   },
   alternates: {
     canonical: '/translate',
+    languages: {
+      'en': '/translate',
+      'cs': '/cs/translate',
+      'x-default': '/translate',
+    },
   },
 }
 
@@ -42,5 +48,5 @@ export default function TranslateLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <>{children}</>
+  return <BatchProvider>{children}</BatchProvider>
 }

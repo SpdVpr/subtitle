@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, Download, ExternalLink, Calendar, Star, Users, Clock, ChevronRight, ChevronDown, Film, Tv, Image } from 'lucide-react'
 import { toast } from 'sonner'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { analytics } from '@/lib/analytics'
 
 interface SubtitleFile {
   file_id: number
@@ -92,6 +93,7 @@ interface Show {
   feature_type: string
   seasons: Season[]
   movie_subtitles?: GroupedSubtitle[] // For movies
+  subtitles?: GroupedSubtitle[] // Flat TV list after episode details load
   total_subtitles?: number
 }
 
@@ -231,6 +233,7 @@ export function HierarchicalSubtitleSearch() {
   const [trustedOnly, setTrustedOnly] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
+  const autoSearchDone = useRef(false)
 
   console.log('🔧 Component state:', { query, loading, shows: shows.length, totalCount })
 
@@ -477,24 +480,26 @@ export function HierarchicalSubtitleSearch() {
 
     return {
       ...show,
-      seasons
+      seasons,
+      subtitles: subtitles as GroupedSubtitle[],
     }
   }
 
-  const handleSearch = async () => {
-    if (!query.trim()) {
+  const handleSearch = async (queryOverride?: string) => {
+    const effectiveQuery = typeof queryOverride === 'string' ? queryOverride.trim() : query.trim()
+    if (!effectiveQuery) {
       toast.error('Please enter a movie or TV series name')
       return
     }
 
-    console.log('🔍 HierarchicalSubtitleSearch: Starting search for:', query)
+    console.log('🔍 HierarchicalSubtitleSearch: Starting search for:', effectiveQuery)
     console.log('🎯 Current type value:', type)
     setLoading(true)
     setCurrentPage(1)
 
     try {
       const params = new URLSearchParams({
-        query: query.trim(),
+        query: effectiveQuery,
         languages: language,
         per_page: '200', // Get more results for better coverage
       })
@@ -527,8 +532,9 @@ export function HierarchicalSubtitleSearch() {
       }
 
       const data: SearchResponse = await response.json()
+      analytics.subtitleSearchCompleted('opensubtitles', language, data.total_count)
       console.log('📊 Raw API data:', data.data.length, 'subtitles')
-      let groupedShows = groupSubtitles(data.data, query.trim())
+      let groupedShows = groupSubtitles(data.data, effectiveQuery)
       console.log('🎭 Grouped shows:', groupedShows.length, 'shows')
 
       // If no TV series found and we're searching for "all", try specific episode search
@@ -538,7 +544,7 @@ export function HierarchicalSubtitleSearch() {
 
         try {
           const episodeParams = new URLSearchParams({
-            query: query.trim(),
+            query: effectiveQuery,
             languages: language,
             per_page: '100',
             type: 'episode'
@@ -557,7 +563,7 @@ export function HierarchicalSubtitleSearch() {
             console.log('📺 Episode search data:', episodeData.data.length, 'episodes')
 
             if (episodeData.data.length > 0) {
-              const episodeShows = groupSubtitles(episodeData.data, query.trim())
+              const episodeShows = groupSubtitles(episodeData.data, effectiveQuery)
               console.log('📺 Episode shows:', episodeShows.length, 'shows')
 
               // Merge with existing results, prioritizing TV series
@@ -600,6 +606,15 @@ export function HierarchicalSubtitleSearch() {
     }
   }
 
+  useEffect(() => {
+    if (autoSearchDone.current) return
+    const initialQuery = new URLSearchParams(window.location.search).get('q')?.trim()
+    if (!initialQuery) return
+    autoSearchDone.current = true
+    setQuery(initialQuery)
+    void handleSearch(initialQuery)
+  }, [])
+
   const toggleShow = async (showKey: string, show: Show) => {
     const newExpanded = new Set(expandedShows)
     if (newExpanded.has(showKey)) {
@@ -625,6 +640,7 @@ export function HierarchicalSubtitleSearch() {
   }
 
   const handleDownload = (subtitle: GroupedSubtitle) => {
+    analytics.subtitleSourceOpened('opensubtitles')
     window.open(subtitle.attributes.download_url, '_blank')
     toast.info('Redirecting to OpenSubtitles for subtitle download')
   }
@@ -676,7 +692,7 @@ export function HierarchicalSubtitleSearch() {
               />
             </div>
             <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Subtitle language">
                 <SelectValue placeholder="Language" />
               </SelectTrigger>
               <SelectContent>
@@ -688,7 +704,7 @@ export function HierarchicalSubtitleSearch() {
               </SelectContent>
             </Select>
             <Select value={type} onValueChange={(value) => setType(value as 'movie' | 'episode' | 'all')}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Movie or TV show">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
@@ -834,12 +850,12 @@ export function HierarchicalSubtitleSearch() {
                                     ? (show.movie_subtitles?.length || 0)
                                     : (show.total_subtitles || 0)) !== 1) ? 's' : ''}
                                 </Badge>
-                                {((show.feature_type === 'Movie' ? show.movie_subtitles : show.subtitles) || []).some(s => s.from_trusted) && (
+                                {((show.feature_type === 'Movie' ? show.movie_subtitles : show.subtitles) || []).some(s => s.attributes.from_trusted) && (
                                   <Badge variant="outline" className="bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300">
                                     ✓ Trusted
                                   </Badge>
                                 )}
-                                {((show.feature_type === 'Movie' ? show.movie_subtitles : show.subtitles) || []).some(s => s.hd) && (
+                                {((show.feature_type === 'Movie' ? show.movie_subtitles : show.subtitles) || []).some(s => s.attributes.hd) && (
                                   <Badge variant="outline" className="bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300">
                                     HD
                                   </Badge>

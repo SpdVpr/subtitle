@@ -52,7 +52,7 @@ export const defaultFAQs = {
     },
     {
       question: "Is the service free?",
-      answer: "Yes! New users get 200 free credits upon registration. After that, you can buy credits as needed - no monthly subscriptions, credits never expire."
+      answer: "Yes! New users get 100 free credits upon registration. After that, you can buy credits as needed - no monthly subscriptions, credits never expire."
     },
     {
       question: "How accurate are the translations?",
@@ -86,7 +86,7 @@ export const defaultFAQs = {
     },
     {
       question: "Je služba zdarma?",
-      answer: "Ano! Noví uživatelé získají 200 kreditů zdarma při registraci. Poté můžete kupovat kredity podle potřeby - žádné měsíční předplatné, kredity nikdy nevyprší."
+      answer: "Ano! Noví uživatelé získají 100 kreditů zdarma při registraci. Poté můžete kupovat kredity podle potřeby - žádné měsíční předplatné, kredity nikdy nevyprší."
     },
     {
       question: "Jak přesné jsou překlady?",

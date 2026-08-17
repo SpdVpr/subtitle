@@ -1,22 +1,10 @@
 'use client'
 
 import { useState, useEffect, createContext, useContext } from 'react'
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  sendPasswordResetEmail,
-  sendEmailVerification,
-  onAuthStateChanged,
-  signInWithPopup,
-  User as FirebaseUser,
-} from 'firebase/auth'
+import type { User as FirebaseUser } from 'firebase/auth'
 import { AuthContextType } from '@/types/auth'
-import { UserService } from '@/lib/database'
-import { UserProfile } from '@/types/database'
+import type { UserProfile } from '@/types/database'
 import { analytics } from '@/lib/analytics'
-
-import { doc, getDoc } from 'firebase/firestore'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -43,7 +31,10 @@ export function useAuthProvider(): AuthContextType {
     const initFirebase = async () => {
       try {
         console.log('🔥 Importing Firebase services...')
-        const { auth, db, isFirebaseConfigured, googleProvider } = await import('@/lib/firebase')
+        const [{ auth, db, isFirebaseConfigured }, { onAuthStateChanged }] = await Promise.all([
+          import('@/lib/firebase'),
+          import('firebase/auth'),
+        ])
         console.log('🔥 Firebase configured:', isFirebaseConfigured, 'Auth available:', !!auth)
         setFirebaseServices({ auth, db, isConfigured: isFirebaseConfigured })
 
@@ -81,6 +72,7 @@ export function useAuthProvider(): AuthContextType {
             // Handle user profile asynchronously (don't block UI)
             const handleUserProfile = async () => {
               try {
+                const { UserService } = await import('@/lib/database')
                 const existingUser = await UserService.getUser(firebaseUser.uid)
                 if (!existingUser) {
                   console.log('👤 Creating new user profile')
@@ -95,8 +87,8 @@ export function useAuthProvider(): AuthContextType {
                     console.log('💰 Adding welcome credits to legacy user')
                     try {
                       await UserService.updateUser(firebaseUser.uid, {
-                        creditsBalance: 200,
-                        creditsTotalPurchased: ((existingUser as any).creditsTotalPurchased || 0) + 200,
+                        creditsBalance: 100,
+                        creditsTotalPurchased: ((existingUser as any).creditsTotalPurchased || 0) + 100,
                         updatedAt: new Date() as any
                       } as any)
                     } catch (e) {
@@ -147,6 +139,7 @@ export function useAuthProvider(): AuthContextType {
 
     setLoading(true)
     try {
+      const { signInWithEmailAndPassword } = await import('firebase/auth')
       await signInWithEmailAndPassword(firebaseServices.auth, email, password)
       // Track user login
       analytics.userLoggedIn('email')
@@ -163,6 +156,10 @@ export function useAuthProvider(): AuthContextType {
 
     setLoading(true)
     try {
+      const [{ createUserWithEmailAndPassword, sendEmailVerification }, { UserService }] = await Promise.all([
+        import('firebase/auth'),
+        import('@/lib/database'),
+      ])
       // Generate browser fingerprint for anti-abuse tracking
       const { getOrGenerateFingerprint } = await import('@/lib/browser-fingerprint')
       const browserFingerprint = await getOrGenerateFingerprint()
@@ -261,6 +258,7 @@ export function useAuthProvider(): AuthContextType {
     setLoading(false)
 
     if (firebaseServices?.isConfigured && firebaseServices.auth) {
+      const { signOut: firebaseSignOut } = await import('firebase/auth')
       await firebaseSignOut(firebaseServices.auth)
     }
 
@@ -273,6 +271,7 @@ export function useAuthProvider(): AuthContextType {
     if (!firebaseServices?.isConfigured || !firebaseServices.auth) {
       throw new Error('Firebase is not configured. Please set up your environment variables.')
     }
+    const { sendPasswordResetEmail } = await import('firebase/auth')
     await sendPasswordResetEmail(firebaseServices.auth, email)
   }
 
@@ -290,6 +289,7 @@ export function useAuthProvider(): AuthContextType {
       throw new Error('Email is already verified.')
     }
 
+    const { sendEmailVerification } = await import('firebase/auth')
     await sendEmailVerification(currentUser, {
       url: `${window.location.origin}/dashboard`,
       handleCodeInApp: false
@@ -303,7 +303,11 @@ export function useAuthProvider(): AuthContextType {
 
     setLoading(true)
     try {
-      const { googleProvider } = await import('@/lib/firebase')
+      const [{ googleProvider }, { signInWithPopup }, { UserService }] = await Promise.all([
+        import('@/lib/firebase'),
+        import('firebase/auth'),
+        import('@/lib/database'),
+      ])
       const result = await signInWithPopup(firebaseServices.auth, googleProvider)
 
       // Create or update user profile in Firestore
@@ -428,7 +432,10 @@ export function useAuthProvider(): AuthContextType {
 // Helper function to get user profile
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   try {
-    const { db } = await import('@/lib/firebase')
+    const [{ db }, { doc, getDoc }] = await Promise.all([
+      import('@/lib/firebase'),
+      import('firebase/firestore'),
+    ])
     if (!db) return null
 
     const userRef = doc(db, 'users', uid)

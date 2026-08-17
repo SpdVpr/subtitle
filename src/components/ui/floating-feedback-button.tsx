@@ -32,6 +32,7 @@ export function FloatingFeedbackButton() {
         size="sm"
         onClick={() => setIsVisible(false)}
         className="h-6 w-6 p-0 bg-white/80 hover:bg-white/90 dark:bg-gray-800/80 dark:hover:bg-gray-800/90 shadow-sm"
+        aria-label={isCzech ? 'Skrýt tlačítko zpětné vazby' : 'Dismiss feedback button'}
       >
         <X className="h-3 w-3" />
       </Button>

@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  const noIndexPrefixes = [
+    '/dashboard', '/cs/dashboard', '/admin', '/analytics', '/statistics', '/cs/statistics',
+    '/preview', '/cs/preview', '/success', '/verify-email', '/cs/verify-email',
+    '/buy-credits', '/cs/buy-credits', '/batch', '/cs/batch', '/subtitle-popup/overlay',
+    '/my-feedback', '/cs/my-feedback', '/feedback', '/cs/feedback', '/cookie-settings',
+    '/cs/cookie-settings', '/register', '/cs/register', '/login', '/cs/login',
+    '/forgot-password',
+  ]
 
   // SEO-friendly redirects for old/incorrect URLs
   const redirects: Record<string, string> = {
@@ -29,6 +38,10 @@ export function middleware(request: NextRequest) {
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('X-XSS-Protection', '1; mode=block')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+
+  if (noIndexPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+  }
 
   return response
 }
