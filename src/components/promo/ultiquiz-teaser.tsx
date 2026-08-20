@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Gamepad2, ExternalLink, RotateCcw } from 'lucide-react'
+import { Gamepad2, ExternalLink, RotateCcw, Twitch, Youtube, Zap } from 'lucide-react'
 
 /**
  * Interactive UltiQuiz teaser: one real "guess the movie" question served by
@@ -11,6 +11,30 @@ import { Gamepad2, ExternalLink, RotateCcw } from 'lucide-react'
 
 const API_BASE = 'https://www.ultiquiz.com'
 const PLAY_URL = 'https://ultiquiz.com/?utm_source=subtitlebot&utm_medium=teaser&utm_campaign=subtitles-search'
+
+const LIVE_STREAMS = [
+  {
+    name: 'Twitch',
+    href: 'https://twitch.tv/movies_quiz',
+    Icon: Twitch,
+    classes:
+      'border-purple-400/60 bg-purple-500/10 text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 hover:shadow-purple-500/20',
+  },
+  {
+    name: 'Kick',
+    href: 'https://kick.com/ultiquiz',
+    Icon: Zap,
+    classes:
+      'border-green-500/60 bg-green-500/10 text-green-700 dark:text-green-400 hover:bg-green-500/20 hover:shadow-green-500/20',
+  },
+  {
+    name: 'YouTube',
+    href: 'https://youtube.com/@TheUltimateMovieQuiz',
+    Icon: Youtube,
+    classes:
+      'border-red-400/60 bg-red-500/10 text-red-700 dark:text-red-400 hover:bg-red-500/20 hover:shadow-red-500/20',
+  },
+]
 
 interface Question {
   photoUrl: string
@@ -26,7 +50,6 @@ interface TeaserTexts {
   wrong: string
   play: string
   another: string
-  live: string
 }
 
 const TEXTS: Record<'en' | 'cs', TeaserTexts> = {
@@ -38,7 +61,6 @@ const TEXTS: Record<'en' | 'cs', TeaserTexts> = {
     wrong: 'Not this time — the right answer was:',
     play: 'Play the full quiz — free',
     another: 'Another one',
-    live: 'LIVE 24/7 quiz streams on Twitch, Kick & YouTube',
   },
   cs: {
     badge: 'FILMOVÁ PAUZA',
@@ -48,7 +70,6 @@ const TEXTS: Record<'en' | 'cs', TeaserTexts> = {
     wrong: 'Tentokrát ne — správně bylo:',
     play: 'Zahraj si celý kvíz — zdarma',
     another: 'Další otázka',
-    live: 'LIVE 24/7 kvízové streamy na Twitchi, Kicku a YouTube',
   },
 }
 
@@ -119,6 +140,29 @@ export function UltiQuizTeaser({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
         <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-amber-400/10 to-transparent rounded-bl-full" />
 
         <div className="relative">
+          {/* LIVE streams row */}
+          <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 mb-5">
+            <span className="inline-flex items-center gap-2 rounded-full border-2 border-red-400/70 bg-red-500/10 px-3.5 py-2 text-sm font-extrabold tracking-wide text-red-600 dark:text-red-400">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+              </span>
+              LIVE 24/7
+            </span>
+            {LIVE_STREAMS.map(({ name, href, Icon, classes }) => (
+              <a
+                key={name}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center gap-2 rounded-xl border-2 px-4 sm:px-5 py-2.5 text-sm sm:text-base font-bold shadow-sm hover:shadow-md transition-all ${classes}`}
+              >
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+                {name}
+              </a>
+            ))}
+          </div>
+
           {/* Header */}
           <div className="flex items-center gap-3 mb-4">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/20 flex-shrink-0">
@@ -207,19 +251,6 @@ export function UltiQuizTeaser({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
             </div>
           </div>
 
-          {/* Live streams note */}
-          <a
-            href={PLAY_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative mt-4 inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-            </span>
-            {t.live}
-          </a>
         </div>
       </div>
     </div>
