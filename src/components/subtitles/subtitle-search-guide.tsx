@@ -1,19 +1,41 @@
 import Link from 'next/link'
-import { CheckCircle2, Download, Languages, Search } from 'lucide-react'
+import { CheckCircle2, Download, Search, ChevronDown } from 'lucide-react'
 
+/**
+ * Compact guide under the subtitle search: three one-line steps, then tips
+ * and FAQ folded into native <details> accordions (content stays in the DOM
+ * for SEO), and the related-tools links. The translation upsell lives in the
+ * TranslatePromo banner above this component.
+ */
 export function SubtitleSearchGuide({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
   const isCs = locale === 'cs'
 
   const steps = isCs
     ? [
-        ['1. Zadejte přesný název', 'Použijte originální název filmu, seriálu nebo anime. U podobných titulů přidejte rok vydání.'],
-        ['2. Vyberte správnou verzi', 'Porovnejte jazyk, rok, řadu, epizodu, vydání a hodnocení zdroje. Správná release verze obvykle lépe sedí na časování.'],
-        ['3. Stáhněte nebo přeložte', 'Otevřete výsledek u poskytovatele. Pokud požadovaný jazyk chybí, stažený soubor můžete přeložit v SubtitleBot.'],
+        ['1. Zadejte název', 'Originální název; u remaků přidejte rok.'],
+        ['2. Vyberte verzi', 'Sedící release = správné časování.'],
+        ['3. Stáhněte / přeložte', 'Chybí váš jazyk? Přeložíme ho výše.'],
       ]
     : [
-        ['1. Search the exact title', 'Use the original movie, TV show, or anime title. Add the release year when different productions share a name.'],
-        ['2. Match the right release', 'Compare language, year, season, episode, release name, and source rating. A matching release is more likely to have correct timing.'],
-        ['3. Download or translate', 'Open the result at its source. If your language is unavailable, bring the downloaded subtitle file to SubtitleBot for translation.'],
+        ['1. Search the title', 'Original title; add the year for remakes.'],
+        ['2. Match the release', 'A matching release means correct timing.'],
+        ['3. Download / translate', 'Language missing? Translate it above.'],
+      ]
+
+  const tips = isCs
+    ? [
+        'Začněte originálním názvem; lokalizovaný zkuste jako druhý.',
+        'U remaků a stejně pojmenovaných filmů vyplňte rok vydání.',
+        'U seriálů zkontrolujte řadu a epizodu (např. S02E05).',
+        'Volba „důvěryhodné zdroje“ zúží výsledky, ale zvýší kvalitu.',
+        'AI překlady zahrňte, jen když chybí ověřená lidská verze.',
+      ]
+    : [
+        'Start with the original title; try the localized one second.',
+        'Add the release year for remakes and shared titles.',
+        'For TV, verify season and episode (e.g. S02E05).',
+        'The trusted-source filter narrows results but improves quality.',
+        'Include AI translations only when no verified human one exists.',
       ]
 
   const faqs = isCs
@@ -31,93 +53,67 @@ export function SubtitleSearchGuide({ locale = 'en' }: { locale?: 'en' | 'cs' })
       ]
 
   return (
-    <div className="mt-16 space-y-16">
+    <div className="mt-10 space-y-8">
+      {/* Three compact steps */}
       <section aria-labelledby="how-to-find-subtitles">
-        <div className="max-w-3xl mb-8">
-          <h2 id="how-to-find-subtitles" className="text-2xl sm:text-3xl font-bold mb-3">
-            {isCs ? 'Jak najít správné titulky' : 'How to find the right subtitles'}
-          </h2>
-          <p className="text-muted-foreground leading-relaxed">
-            {isCs
-              ? 'SubtitleBot spojuje vyhledávání filmů a seriálů přes OpenSubtitles s vyhledáváním anime přes Jimaku. Nehostujeme katalog souborů; výsledky odkazují na příslušný zdroj, kde platí jeho dostupnost a pravidla.'
-              : 'SubtitleBot combines movie and TV search through OpenSubtitles with anime search through Jimaku. We do not host a subtitle catalog; results lead to the relevant source, whose availability and terms apply.'}
-          </p>
-        </div>
-        <ol className="grid gap-5 md:grid-cols-3">
+        <h2 id="how-to-find-subtitles" className="text-xl sm:text-2xl font-bold mb-4">
+          {isCs ? 'Jak najít správné titulky' : 'How to find the right subtitles'}
+        </h2>
+        <ol className="grid gap-3 md:grid-cols-3">
           {steps.map(([title, description], index) => {
             const Icon = index === 0 ? Search : index === 1 ? CheckCircle2 : Download
             return (
-              <li key={title} className="rounded-xl border bg-card p-6">
-                <Icon className="h-6 w-6 text-primary mb-4" aria-hidden="true" />
-                <h3 className="font-semibold mb-2">{title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+              <li key={title} className="rounded-xl border bg-card px-4 py-3.5 flex items-start gap-3">
+                <Icon className="h-5 w-5 text-primary shrink-0 mt-0.5" aria-hidden="true" />
+                <div>
+                  <h3 className="font-semibold text-sm">{title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+                </div>
               </li>
             )
           })}
         </ol>
       </section>
 
-      <section className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]" aria-labelledby="search-tips">
-        <div>
-          <h2 id="search-tips" className="text-2xl font-bold mb-4">
-            {isCs ? 'Tipy pro přesnější výsledky' : 'Tips for more accurate results'}
-          </h2>
-          <ul className="space-y-3 text-muted-foreground">
-            {(isCs
-              ? [
-                  'Začněte originálním názvem; lokalizovaný název zkuste až jako druhou variantu.',
-                  'U remaků a stejně pojmenovaných filmů vyplňte rok vydání.',
-                  'U seriálů zkontrolujte číslo řady a epizody i označení jako S02E05.',
-                  'Volba „důvěryhodné zdroje“ omezí výsledky, ale může zlepšit jejich kvalitu.',
-                  'AI nebo strojové překlady zahrňte, jen pokud není dostupná ověřená lidská verze.',
-                ]
-              : [
-                  'Start with the original title; try the localized title as a second option.',
-                  'Add the release year for remakes and productions that share a title.',
-                  'For TV, verify both the season and episode number, including labels such as S02E05.',
-                  'The trusted-source filter narrows the result set but may improve reliability.',
-                  'Include AI or machine translations when a verified human subtitle is unavailable.',
-                ]).map((tip) => (
-              <li key={tip} className="flex gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" aria-hidden="true" />
+      {/* Tips + FAQ folded into accordions */}
+      <section className="grid gap-3 md:grid-cols-2" aria-label={isCs ? 'Tipy a časté otázky' : 'Tips and FAQ'}>
+        <details className="group rounded-xl border bg-card px-4 py-3">
+          <summary className="flex items-center justify-between cursor-pointer font-semibold text-sm list-none [&::-webkit-details-marker]:hidden">
+            {isCs ? '💡 Tipy pro přesnější výsledky' : '💡 Tips for more accurate results'}
+            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            {tips.map((tip) => (
+              <li key={tip} className="flex gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" aria-hidden="true" />
                 <span>{tip}</span>
               </li>
             ))}
           </ul>
-        </div>
-        <aside className="rounded-xl bg-primary/5 border border-primary/15 p-6">
-          <Languages className="h-7 w-7 text-primary mb-4" aria-hidden="true" />
-          <h2 className="text-xl font-bold mb-3">
-            {isCs ? 'Nenašli jste svůj jazyk?' : 'Can’t find your language?'}
-          </h2>
-          <p className="text-sm text-foreground/75 leading-relaxed mb-5">
-            {isCs
-              ? 'Najděte kvalitní titulky v dostupném jazyce a přeložte je při zachování časování. Překladač podporuje SRT, VTT, ASS, SSA, SUB, SBV a TXT.'
-              : 'Find a reliable subtitle in an available language, then translate it while preserving timing. The translator supports SRT, VTT, ASS, SSA, SUB, SBV, and TXT.'}
-          </p>
-          <Link href={isCs ? '/cs/translate' : '/translate'} className="font-semibold text-primary hover:underline">
-            {isCs ? 'Přeložit soubor titulků →' : 'Translate a subtitle file →'}
-          </Link>
-        </aside>
+        </details>
+
+        <details className="group rounded-xl border bg-card px-4 py-3">
+          <summary className="flex items-center justify-between cursor-pointer font-semibold text-sm list-none [&::-webkit-details-marker]:hidden">
+            {isCs ? '❓ Časté otázky k titulkům' : '❓ Subtitle finder FAQ'}
+            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <dl className="mt-3 space-y-3">
+            {faqs.map(([question, answer]) => (
+              <div key={question}>
+                <dt className="font-medium text-sm">{question}</dt>
+                <dd className="text-sm text-muted-foreground leading-relaxed">{answer}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
       </section>
 
-      <section aria-labelledby="subtitle-faq">
-        <h2 id="subtitle-faq" className="text-2xl font-bold mb-6">
-          {isCs ? 'Časté otázky k titulkům' : 'Subtitle finder FAQ'}
-        </h2>
-        <dl className="grid gap-6 md:grid-cols-2">
-          {faqs.map(([question, answer]) => (
-            <div key={question} className="border-t pt-5">
-              <dt className="font-semibold mb-2">{question}</dt>
-              <dd className="text-sm text-muted-foreground leading-relaxed">{answer}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      <nav aria-label={isCs ? 'Související nástroje' : 'Related subtitle tools'} className="rounded-xl border p-6">
-        <h2 className="text-xl font-bold mb-4">{isCs ? 'Související nástroje' : 'Related subtitle tools'}</h2>
-        <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium">
+      {/* Related tools (SEO internal links) */}
+      <nav aria-label={isCs ? 'Související nástroje' : 'Related subtitle tools'} className="rounded-xl border px-4 py-3.5">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-medium">
+          <span className="text-muted-foreground font-semibold">
+            {isCs ? 'Související nástroje:' : 'Related tools:'}
+          </span>
           <Link className="text-primary hover:underline" href={isCs ? '/cs/translate' : '/translate'}>{isCs ? 'AI překladač titulků' : 'AI subtitle translator'}</Link>
           <Link className="text-primary hover:underline" href={isCs ? '/cs/subtitle-editor' : '/subtitle-editor'}>{isCs ? 'Editor a synchronizace' : 'Subtitle editor and sync'}</Link>
           <Link className="text-primary hover:underline" href={isCs ? '/cs/video-tools' : '/video-tools'}>{isCs ? 'Video přehrávač s titulky' : 'Video player with subtitles'}</Link>

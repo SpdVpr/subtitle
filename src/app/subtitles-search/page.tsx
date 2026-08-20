@@ -6,6 +6,7 @@ import { Film, Tv, Play } from 'lucide-react'
 import { StructuredData } from '@/components/seo/structured-data'
 import { SubtitleSearchGuide } from '@/components/subtitles/subtitle-search-guide'
 import { UltiQuizTeaser } from '@/components/promo/ultiquiz-teaser'
+import { TranslatePromo } from '@/components/promo/translate-promo'
 
 
 export const metadata: Metadata = {
@@ -117,6 +118,7 @@ export default function SubtitlesSearchPage() {
           </div>
         </div>
         <UltiQuizTeaser locale="en" />
+        <TranslatePromo locale="en" />
         <SubtitleSearchGuide locale="en" />
       </div>
     </div>

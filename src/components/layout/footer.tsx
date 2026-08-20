@@ -1,6 +1,12 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Mail, Heart, Globe, Gamepad2, ExternalLink } from "lucide-react"
+import { Mail, Heart, Globe, Gamepad2, ExternalLink, Twitch, Youtube, Zap } from "lucide-react"
+
+const liveStreams = [
+  { name: 'Twitch', href: 'https://twitch.tv/movies_quiz', Icon: Twitch, color: 'text-purple-500 hover:text-purple-400' },
+  { name: 'Kick', href: 'https://kick.com/ultiquiz', Icon: Zap, color: 'text-green-500 hover:text-green-400' },
+  { name: 'YouTube', href: 'https://youtube.com/@TheUltimateMovieQuiz', Icon: Youtube, color: 'text-red-500 hover:text-red-400' },
+]
 
 interface FooterProps {
   locale?: 'en' | 'cs'
@@ -41,6 +47,33 @@ export function Footer({ locale = 'en' }: FooterProps) {
               >
                 <Mail className="h-5 w-5" />
               </Link>
+            </div>
+
+            {/* Live movie quiz streams */}
+            <div className="mt-5">
+              <div className="flex items-center gap-2 mb-2.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                </span>
+                <span className="text-xs font-semibold tracking-wide text-foreground">
+                  {locale === 'cs' ? 'FILMOVÝ KVÍZ LIVE 24/7' : 'MOVIE QUIZ LIVE 24/7'}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                {liveStreams.map(({ name, href, Icon, color }) => (
+                  <a
+                    key={name}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${name} — movie quiz live stream`}
+                    className={`transition-colors ${color}`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
 
