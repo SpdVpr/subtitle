@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator'
 import { Film, Tv, Play } from 'lucide-react'
 import { StructuredData } from '@/components/seo/structured-data'
 import { SubtitleSearchGuide } from '@/components/subtitles/subtitle-search-guide'
+import { UltiQuizTeaser } from '@/components/promo/ultiquiz-teaser'
 
 export const metadata: Metadata = {
   title: 'Vyhledávač titulků pro filmy, seriály a anime',
@@ -115,6 +116,7 @@ export default function CzechSubtitlesSearchPage() {
           </div>
         </div>
 
+        <UltiQuizTeaser locale="cs" />
         <SubtitleSearchGuide locale="cs" />
       </div>
     </div>
