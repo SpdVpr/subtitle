@@ -18,6 +18,7 @@ const localizedPages: LocalizedPage[] = [
   { path: '', changeFrequency: 'weekly', priority: 1 },
   { path: '/translate', changeFrequency: 'weekly', priority: 0.9 },
   { path: '/subtitles-search', changeFrequency: 'weekly', priority: 1 },
+  { path: '/live', changeFrequency: 'daily', priority: 0.8 },
   { path: '/subtitle-editor', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/video-tools', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/subtitle-popup', changeFrequency: 'monthly', priority: 0.7 },

@@ -56,9 +56,12 @@ export function Footer({ locale = 'en' }: FooterProps) {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
                 </span>
-                <span className="text-xs font-semibold tracking-wide text-foreground">
+                <Link
+                  href={`${langPrefix}/live`}
+                  className="text-xs font-semibold tracking-wide text-foreground hover:text-primary transition-colors"
+                >
                   {locale === 'cs' ? 'FILMOVÝ KVÍZ LIVE 24/7' : 'MOVIE QUIZ LIVE 24/7'}
-                </span>
+                </Link>
               </div>
               <div className="flex items-center gap-3">
                 {liveStreams.map(({ name, href, Icon, color }) => (
