@@ -55,6 +55,20 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "registration_tracking",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "creditsReduced",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "creditsAwarded",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []
