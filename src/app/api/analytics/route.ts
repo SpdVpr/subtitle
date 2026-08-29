@@ -1,23 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { TranslationJobService, UserService } from '@/lib/database-admin'
 import { ErrorTracker } from '@/lib/error-tracking'
+import { requireUserOrAdmin } from '@/lib/user-auth-server'
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    const userId = searchParams.get('userId')
+    const requestedUserId = searchParams.get('userId')
     const period = searchParams.get('period') || 'month'
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
 
-    console.log('📊 Analytics API called:', { userId, period, startDate, endDate })
-
-    if (!userId) {
+    if (!requestedUserId) {
       return NextResponse.json(
         { error: 'Missing userId' },
         { status: 400 }
       )
     }
+
+    // This endpoint returns one user's whole translation history, so it must
+    // not take the caller's word for who they are: require a verified Firebase
+    // ID token whose uid matches ?userId= (admins may read any account).
+    const auth = await requireUserOrAdmin(req, requestedUserId)
+    if ('response' in auth) return auth.response
+    const userId = auth.uid
+
+    console.log('📊 Analytics API called:', { userId, period, startDate, endDate })
 
     // Check if user exists and has analytics access
     let user = null
@@ -85,7 +93,7 @@ export async function GET(req: NextRequest) {
     let translationJobs = []
 
     try {
-      translationJobs = await TranslationJobService.getUserJobs(userId, 200)
+      translationJobs = await TranslationJobService.getUserJobsForAnalytics(userId, 200)
       console.log('📊 Total translation jobs found:', translationJobs.length)
 
       if (translationJobs.length === 0) {
@@ -395,14 +403,18 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { userId, event, properties } = body
+    const { userId: requestedUserId, event, properties } = body
 
-    if (!userId || !event) {
+    if (!requestedUserId || !event) {
       return NextResponse.json(
         { error: 'Missing userId or event' },
         { status: 400 }
       )
     }
+
+    const auth = await requireUserOrAdmin(req, requestedUserId)
+    if ('response' in auth) return auth.response
+    const userId = auth.uid
 
     // Record custom event (this could be expanded based on needs)
     const today = new Date().toISOString().split('T')[0]

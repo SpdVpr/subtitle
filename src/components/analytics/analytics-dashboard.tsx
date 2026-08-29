@@ -1,5 +1,6 @@
 'use client'
 
+import { authFetch } from '@/lib/auth-fetch'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -72,7 +73,7 @@ export function AnalyticsDashboard() {
 
     try {
       // Fetch real analytics data from API
-      const response = await fetch(`/api/analytics?userId=${user.uid}&period=${period}`)
+      const response = await authFetch(`/api/analytics?userId=${user.uid}&period=${period}`)
       if (!response.ok) {
         throw new Error('Failed to fetch analytics data')
       }

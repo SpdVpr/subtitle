@@ -17,6 +17,23 @@ export type StatisticsJob = Pick<
   'status' | 'originalFileName' | 'targetLanguage' | 'createdAt' | 'completedAt'
 >
 
+// Fields the per-user analytics endpoints aggregate. Same reason as above: the
+// analytics pages only count and group jobs, so the SRT payload must not be read.
+export type UserAnalyticsJob = Pick<
+  TranslationJob,
+  'id' | 'status' | 'originalFileName' | 'targetLanguage' | 'aiService'
+  | 'createdAt' | 'processingTimeMs' | 'subtitleCount'
+>
+
+// Fields the translation-history list renders. `translatedContent` is absent on
+// purpose -- callers that need the SRT itself fetch the single job they opened
+// through /api/translation-history/download.
+export type HistoryJob = Pick<
+  TranslationJob,
+  'id' | 'status' | 'originalFileName' | 'translatedFileName' | 'sourceLanguage'
+  | 'targetLanguage' | 'aiService' | 'createdAt' | 'completedAt' | 'subtitleCount'
+> & { updatedAt?: TranslationJob['createdAt'] }
+
 // Helper function to get database instance
 async function getDatabase() {
   const db = getAdminDb()
@@ -254,20 +271,53 @@ export class TranslationJobService {
     }
   }
 
-  static async getUserJobs(userId: string, limitCount = 50): Promise<TranslationJob[]> {
+  /**
+   * Aggregate-only view of one user's recent jobs, for the analytics endpoints.
+   *
+   * The projection is the point, exactly as in getJobsForStatistics: a
+   * TranslationJob carries the whole translated SRT in `translatedContent`
+   * (~68 KB per document), so reading 200 full documents moved ~13 MB out of
+   * Firestore on every /api/analytics call just to compute a handful of counts.
+   */
+  static async getUserJobsForAnalytics(userId: string, limitCount = 50): Promise<UserAnalyticsJob[]> {
     try {
-      const { db, isAdmin } = await getDatabase()
+      const db = getAdminDb()
 
-      // Admin SDK
       const snapshot = await db.collection(COLLECTIONS.TRANSLATION_JOBS)
         .where('userId', '==', userId)
         .orderBy('createdAt', 'desc')
         .limit(limitCount)
+        .select('status', 'originalFileName', 'targetLanguage', 'aiService', 'createdAt', 'processingTimeMs', 'subtitleCount')
         .get()
 
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TranslationJob))
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserAnalyticsJob))
     } catch (error) {
-      console.error('❌ Error getting user jobs:', error)
+      console.error('Error getting user jobs for analytics:', error)
+      throw error
+    }
+  }
+
+  /**
+   * List view of one user's recent jobs, for /api/translation-history.
+   *
+   * Same projection rationale: the history list only renders file names,
+   * languages, counts and timestamps, but a 20-job page of full documents was
+   * ~1.4 MB of egress because every job embeds its translated SRT.
+   */
+  static async getUserJobsForHistory(userId: string, limitCount = 50): Promise<HistoryJob[]> {
+    try {
+      const db = getAdminDb()
+
+      const snapshot = await db.collection(COLLECTIONS.TRANSLATION_JOBS)
+        .where('userId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .limit(limitCount)
+        .select('status', 'originalFileName', 'translatedFileName', 'sourceLanguage', 'targetLanguage', 'aiService', 'createdAt', 'completedAt', 'updatedAt', 'subtitleCount')
+        .get()
+
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as HistoryJob))
+    } catch (error) {
+      console.error('Error getting user jobs for history:', error)
       throw error
     }
   }

@@ -1,6 +1,7 @@
 'use client'
 
 
+import { authFetch } from '@/lib/auth-fetch'
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -49,7 +50,7 @@ function DashboardPageInner() {
 
       try {
         // Fetch analytics data which now includes creditsUsed
-        const analyticsResponse = await fetch(`/api/analytics?userId=${user.uid}&period=month`)
+        const analyticsResponse = await authFetch(`/api/analytics?userId=${user.uid}&period=month`)
 
         let totalTranslations = 0
         let creditsUsed = 0

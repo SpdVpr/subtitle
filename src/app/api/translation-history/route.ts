@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     console.log('📋 Loading translation history for user:', userId)
 
     // Get user's translation jobs
-    const jobs = await TranslationJobService.getUserJobs(userId, limit)
+    const jobs = await TranslationJobService.getUserJobsForHistory(userId, limit)
 
     // Convert Firestore Timestamps to regular Date objects for JSON serialization
     const serializedJobs = jobs.map(job => ({

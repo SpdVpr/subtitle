@@ -1,19 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUserOrAdmin } from '@/lib/user-auth-server'
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    const userId = searchParams.get('userId')
+    const requestedUserId = searchParams.get('userId')
     const period = searchParams.get('period') || 'month'
 
-    console.log('📊 Working Analytics API called:', { userId, period })
-
-    if (!userId) {
+    if (!requestedUserId) {
       return NextResponse.json(
         { error: 'Missing userId' },
         { status: 400 }
       )
     }
+
+    // Same guard as /api/analytics: a uid in the query string is not proof of
+    // identity, so require a verified ID token that matches it (or an admin).
+    const auth = await requireUserOrAdmin(req, requestedUserId)
+    if ('response' in auth) return auth.response
+    const userId = auth.uid
+
+    console.log('📊 Working Analytics API called:', { userId, period })
 
     // Step 1: Try to get real data
     let realJobs = []
@@ -22,7 +29,7 @@ export async function GET(req: NextRequest) {
     try {
       console.log('🔍 Attempting to load real translation jobs...')
       const { TranslationJobService } = await import('@/lib/database-admin')
-      realJobs = await TranslationJobService.getUserJobs(userId, 50)
+      realJobs = await TranslationJobService.getUserJobsForAnalytics(userId, 50)
       hasRealData = realJobs.length > 0
       console.log('📊 Real jobs found:', realJobs.length)
     } catch (error) {
