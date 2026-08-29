@@ -10,6 +10,13 @@ import {
   ErrorLog
 } from '@/types/database'
 
+// Fields the public statistics endpoint aggregates. Kept deliberately narrow so
+// the heavy `translatedContent` SRT payload never leaves Firestore.
+export type StatisticsJob = Pick<
+  TranslationJob,
+  'status' | 'originalFileName' | 'targetLanguage' | 'createdAt' | 'completedAt'
+>
+
 // Helper function to get database instance
 async function getDatabase() {
   const db = getAdminDb()
@@ -265,18 +272,27 @@ export class TranslationJobService {
     }
   }
 
-  static async getAllJobs(limitCount = 1000): Promise<TranslationJob[]> {
+  /**
+   * Aggregate-only view of recent jobs for the public statistics endpoint.
+   *
+   * The projection is the point: a TranslationJob carries the whole translated
+   * SRT in `translatedContent` (~48 KB per document), so fetching full
+   * documents moved ~49 MB out of Firestore on every request. Only the fields
+   * the statistics actually aggregate are read.
+   */
+  static async getJobsForStatistics(limitCount = 1000): Promise<StatisticsJob[]> {
     try {
       const db = getAdminDb()
 
       const snapshot = await db.collection(COLLECTIONS.TRANSLATION_JOBS)
         .orderBy('createdAt', 'desc')
         .limit(limitCount)
+        .select('status', 'originalFileName', 'targetLanguage', 'createdAt', 'completedAt')
         .get()
 
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TranslationJob))
+      return snapshot.docs.map(doc => doc.data() as StatisticsJob)
     } catch (error) {
-      console.error('❌ Error getting all jobs:', error)
+      console.error('Error getting jobs for statistics:', error)
       throw error
     }
   }
@@ -292,8 +308,9 @@ export class TranslationJobService {
       // First get total count of completed translations
       const totalCountSnapshot = await db.collection(COLLECTIONS.TRANSLATION_JOBS)
         .where('status', '==', 'completed')
+        .count()
         .get()
-      const totalCount = totalCountSnapshot.size
+      const totalCount = totalCountSnapshot.data().count
 
       // First try with the optimized query (requires index)
       try {

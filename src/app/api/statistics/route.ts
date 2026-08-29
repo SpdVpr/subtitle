@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { TranslationJobService } from '@/lib/database-admin'
 import { groupSubtitlesByTitle } from '@/lib/subtitle-name-cleaner'
+import rateLimiter, { RATE_LIMITS, createRateLimitResponse } from '@/lib/rate-limiter'
 
 export interface TranslationStatistics {
   period: 'week' | 'month'
@@ -81,10 +82,47 @@ const LANGUAGE_NAMES: Record<string, string> = {
   'tl': 'Filipino'
 }
 
+// These are site-wide aggregates that change slowly, but the query behind them
+// reads 1000 documents. Uncached, every crawler hit on /statistics turned into
+// 1000 Firestore reads; on 2026-08-28 that added up to ~7.3M reads in one day.
+const STATS_TTL_MS = 60 * 60 * 1000 // 1 hour
+const statsCache = new Map<'week' | 'month', { expiresAt: number, payload: TranslationStatistics }>()
+
+// The CDN absorbs the repeat traffic so most requests never reach a function
+// instance; the in-memory map covers the ones that do.
+const CACHE_HEADERS = {
+  'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400'
+}
+
+function cacheAndRespond(period: 'week' | 'month', payload: TranslationStatistics) {
+  statsCache.set(period, { expiresAt: Date.now() + STATS_TTL_MS, payload })
+  return NextResponse.json(payload, { headers: CACHE_HEADERS })
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    const period = (searchParams.get('period') || 'week') as 'week' | 'month'
+    // Collapse anything unrecognised to 'week': a varying ?period= value must not
+    // be able to miss the cache and reach Firestore on every request.
+    const period: 'week' | 'month' = searchParams.get('period') === 'month' ? 'month' : 'week'
+
+    const ipAddress =
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.headers.get('x-real-ip') ||
+      'unknown'
+    const rateLimitKey = `statistics:${ipAddress}`
+
+    if (rateLimiter.isRateLimited(rateLimitKey, RATE_LIMITS.API.maxRequests, RATE_LIMITS.API.windowMs)) {
+      return NextResponse.json(
+        createRateLimitResponse(rateLimiter.getResetTime(rateLimitKey)),
+        { status: 429 }
+      )
+    }
+
+    const cached = statsCache.get(period)
+    if (cached && cached.expiresAt > Date.now()) {
+      return NextResponse.json(cached.payload, { headers: CACHE_HEADERS })
+    }
     
     console.log('📊 Statistics API called with period:', period)
     
@@ -100,7 +138,7 @@ export async function GET(req: NextRequest) {
     
     // Get all translation jobs from the period
     // Note: We'll get more jobs than needed and filter client-side since Firestore queries are limited
-    const allJobs = await TranslationJobService.getAllJobs(1000) // Get last 1000 jobs
+    const allJobs = await TranslationJobService.getJobsForStatistics(1000) // Get last 1000 jobs
     
     console.log('📋 Total jobs retrieved:', allJobs.length)
     
@@ -120,7 +158,7 @@ export async function GET(req: NextRequest) {
     
     if (filteredJobs.length === 0) {
       console.log('⚠️ No translation jobs found for the specified period')
-      return NextResponse.json({
+      return cacheAndRespond(period, {
         period,
         startDate: startDateStr,
         endDate: endDateStr,
@@ -217,7 +255,7 @@ export async function GET(req: NextRequest) {
       topLanguagesCount: statistics.data.topLanguages.length
     })
     
-    return NextResponse.json(statistics)
+    return cacheAndRespond(period, statistics)
     
   } catch (error) {
     console.error('❌ Statistics API Error:', error)
