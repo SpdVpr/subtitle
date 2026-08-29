@@ -390,46 +390,6 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
     }
   }
 
-  const handleJsonResponse = async (result: any) => {
-    if (result.jobId) {
-      // Poll for job completion
-      await pollJobStatus(result.jobId)
-    } else if (result.translatedContent) {
-      // Direct result
-      await handleTranslationComplete(result)
-    } else {
-      throw new Error('Invalid response format')
-    }
-  }
-
-  const pollJobStatus = async (jobId: string) => {
-
-    const pollInterval = setInterval(async () => {
-      try {
-        const statusResponse = await fetch(`/api/translation-jobs/${jobId}/status`)
-        if (!statusResponse.ok) throw new Error('Failed to fetch job status')
-
-        const statusData = await statusResponse.json()
-
-        if (statusData.status === 'completed') {
-          clearInterval(pollInterval)
-          await handleTranslationComplete(statusData)
-        } else if (statusData.status === 'failed') {
-          clearInterval(pollInterval)
-          throw new Error(statusData.error || 'Translation job failed')
-        } else if (statusData.progress) {
-          updateProgress(statusData.stage || 'processing', statusData.progress, statusData.details)
-        }
-      } catch (error) {
-        clearInterval(pollInterval)
-        throw error
-      }
-    }, 2000)
-
-    // Cleanup after 10 minutes
-    setTimeout(() => clearInterval(pollInterval), 600000)
-  }
-
   const handleTranslationComplete = async (data: any) => {
     if (!isCompleted) {
       setIsCompleted(true)

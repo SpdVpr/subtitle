@@ -357,8 +357,11 @@ export function ContextualTranslationProgress({ progress, selectedFile, result, 
     })
   }
 
-  // Show component if there's a selected file or if translation is active/has progress
-  const shouldShow = selectedFile || progress.isActive || progress.progress > 0 || progress.stage !== 'initializing'
+  // Show the panel only once a translation is actually running or finished.
+  // Keying this on `selectedFile` made it announce "Processing" over a 0%
+  // "Initializing" stage the moment a file was picked - before the user had
+  // chosen a target language or pressed Start.
+  const shouldShow = progress.isActive || progress.progress > 0 || progress.stage !== 'initializing' || Boolean(result)
 
   if (!shouldShow) {
     return null

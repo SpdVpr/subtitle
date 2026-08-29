@@ -172,7 +172,7 @@ export default function SubtitleEditorPage() {
         return
       }
 
-      console.log(`📄 Content preview:`, translatedContent.substring(0, 200) + '...')
+      console.log(`📄 Loaded translated content: ${translatedContent.length} characters`)
 
       // Parse subtitle content
       try {
