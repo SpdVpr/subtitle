@@ -9,6 +9,10 @@ function getAdminApp(): admin.app.App {
     const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
     const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL
     let privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY
+    // Needed so admin.storage() resolves a bucket: translated subtitles are
+    // stored as files, not as Firestore fields.
+    const storageBucket =
+      process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || `${projectId}.firebasestorage.app`
 
     if (!projectId) {
       throw new Error('Missing Firebase project ID. Please set FIREBASE_ADMIN_PROJECT_ID or NEXT_PUBLIC_FIREBASE_PROJECT_ID environment variable.')
@@ -24,6 +28,7 @@ function getAdminApp(): admin.app.App {
           clientEmail,
           privateKey,
         }),
+        storageBucket,
       })
       console.log('🔧 Firebase Admin: Using service account credentials')
     } else {
@@ -31,6 +36,7 @@ function getAdminApp(): admin.app.App {
       try {
         adminApp = admin.initializeApp({
           projectId,
+          storageBucket,
         })
         console.log('🔧 Firebase Admin: Using application default credentials for project:', projectId)
       } catch (error) {
@@ -43,6 +49,10 @@ function getAdminApp(): admin.app.App {
   }
 
   return adminApp!
+}
+
+export function getAdminStorage() {
+  return admin.storage(getAdminApp())
 }
 
 export function getAdminDb() {

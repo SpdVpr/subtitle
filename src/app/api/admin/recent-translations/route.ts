@@ -59,7 +59,6 @@ export async function GET(req: NextRequest) {
         processingTimeMs: translation.processingTimeMs,
         createdAt: formatTimestamp(translation.createdAt),
         completedAt: formatTimestamp(translation.completedAt),
-        translatedContent: translation.translatedContent, // For download functionality
         confidence: translation.confidence
       }
     })

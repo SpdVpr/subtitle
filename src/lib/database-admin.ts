@@ -1,5 +1,5 @@
 // Server-side database operations using Firebase Admin with client SDK fallback
-import { getAdminDb } from './firebase-admin'
+import { getAdminDb, getAdminStorage } from './firebase-admin'
 import {
   UserProfile,
   TranslationJob,
@@ -33,6 +33,16 @@ export type HistoryJob = Pick<
   'id' | 'status' | 'originalFileName' | 'translatedFileName' | 'sourceLanguage'
   | 'targetLanguage' | 'aiService' | 'createdAt' | 'completedAt' | 'subtitleCount'
 > & { updatedAt?: TranslationJob['createdAt'] }
+
+// The translated SRT is a blob, not a field. Firestore bills whole documents,
+// so keeping a subtitle file beside the job metadata taxed every query over
+// translation_jobs - that is what moved 336 GiB of egress on 2026-08-28.
+// Cloud Storage has no practical size ceiling, so long subtitles stay uncapped.
+const TRANSLATION_CONTENT_PREFIX = 'translations'
+
+function translationContentFile(jobId: string) {
+  return getAdminStorage().bucket().file(`${TRANSLATION_CONTENT_PREFIX}/${jobId}.srt`)
+}
 
 // Helper function to get database instance
 async function getDatabase() {
@@ -237,17 +247,60 @@ export class TranslationJobService {
   static async createJob(job: Omit<TranslationJob, 'id' | 'createdAt'>): Promise<string> {
     try {
       const db = getAdminDb()
-      const jobData = {
-        ...job,
-        createdAt: new Date()
-      }
+      const { translatedContent, ...metadata } = job
 
-      const docRef = await db.collection(COLLECTIONS.TRANSLATION_JOBS).add(jobData)
+      const docRef = await db.collection(COLLECTIONS.TRANSLATION_JOBS).add({
+        ...metadata,
+        createdAt: new Date()
+      })
+
+      if (translatedContent) {
+        await TranslationJobService.saveTranslatedContent(docRef.id, translatedContent)
+      }
       return docRef.id
     } catch (error) {
       console.error('❌ Error creating translation job:', error)
       throw error
     }
+  }
+
+  /**
+   * Stores the translated SRT as a file. Falls back to the legacy inline field
+   * if Storage is unreachable - losing a finished translation is worse than
+   * paying to keep it in Firestore.
+   */
+  static async saveTranslatedContent(jobId: string, content: string): Promise<void> {
+    try {
+      await translationContentFile(jobId).save(content, {
+        contentType: 'text/plain; charset=utf-8',
+        resumable: false
+      })
+    } catch (error) {
+      console.error('Storage write failed, keeping content on the job document:', error)
+      await getAdminDb().collection(COLLECTIONS.TRANSLATION_JOBS).doc(jobId)
+        .set({ translatedContent: content }, { merge: true })
+    }
+  }
+
+  /**
+   * Reads the translated SRT. Jobs created before the migration still carry it
+   * inline, so the document is the fallback, not the primary source.
+   */
+  static async getTranslatedContent(jobId: string): Promise<string | null> {
+    try {
+      const file = translationContentFile(jobId)
+      const [exists] = await file.exists()
+      if (exists) {
+        const [buffer] = await file.download()
+        return buffer.toString('utf8')
+      }
+    } catch (error) {
+      console.error('Storage read failed for job', jobId, error)
+    }
+
+    const doc = await getAdminDb().collection(COLLECTIONS.TRANSLATION_JOBS).doc(jobId).get()
+    const legacy = doc.get('translatedContent')
+    return typeof legacy === 'string' && legacy.length > 0 ? legacy : null
   }
 
   static async getJob(jobId: string): Promise<TranslationJob | null> {
@@ -263,8 +316,15 @@ export class TranslationJobService {
 
   static async updateJob(jobId: string, updates: Partial<TranslationJob>): Promise<void> {
     try {
-      const db = getAdminDb()
-      await db.collection(COLLECTIONS.TRANSLATION_JOBS).doc(jobId).update(updates)
+      const { translatedContent, ...metadata } = updates
+
+      if (translatedContent !== undefined) {
+        await TranslationJobService.saveTranslatedContent(jobId, translatedContent)
+      }
+      // update() rejects an empty payload, and a content-only update leaves none.
+      if (Object.keys(metadata).length > 0) {
+        await getAdminDb().collection(COLLECTIONS.TRANSLATION_JOBS).doc(jobId).update(metadata)
+      }
     } catch (error) {
       console.error('❌ Error updating translation job:', error)
       throw error
@@ -370,6 +430,7 @@ export class TranslationJobService {
           .where('status', '==', 'completed')
           .orderBy('completedAt', 'desc')
           .limit(Math.min(1000, offset + limitCount)) // Limit to reasonable number
+        .select('originalFileName', 'translatedFileName', 'sourceLanguage', 'targetLanguage', 'userId', 'status', 'aiService', 'subtitleCount', 'characterCount', 'processingTimeMs', 'createdAt', 'completedAt', 'confidence')
           .get()
 
         const allJobs = allJobsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TranslationJob))
@@ -410,6 +471,7 @@ export class TranslationJobService {
         const jobsSnapshot = await db.collection(COLLECTIONS.TRANSLATION_JOBS)
           .where('status', '==', 'completed')
           .limit(Math.min(1000, offset + limitCount + 100)) // Get more to sort and paginate in memory
+        .select('originalFileName', 'translatedFileName', 'sourceLanguage', 'targetLanguage', 'userId', 'status', 'aiService', 'subtitleCount', 'characterCount', 'processingTimeMs', 'createdAt', 'completedAt', 'confidence')
           .get()
 
         let jobs = jobsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TranslationJob))

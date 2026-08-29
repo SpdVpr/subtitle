@@ -27,7 +27,6 @@ interface RecentTranslation {
   processingTimeMs?: number
   createdAt: any
   completedAt: any
-  translatedContent?: string
   confidence?: number
 }
 
@@ -96,14 +95,16 @@ export function RecentTranslations({ onRefresh }: RecentTranslationsProps) {
   }
 
   const handleDownload = async (translation: RecentTranslation) => {
-    if (!translation.translatedContent) {
-      alert('Přeložený obsah není k dispozici pro stažení')
-      return
-    }
-
     try {
-      // Create blob and download
-      const blob = new Blob([translation.translatedContent], { type: 'text/plain;charset=utf-8' })
+      // The listing ships metadata only; fetch the SRT itself on click.
+      const response = await adminFetch(`/api/admin/recent-translations/content?jobId=${translation.id}`)
+      if (!response.ok) {
+        alert('Přeložený obsah není k dispozici pro stažení')
+        return
+      }
+
+      const content = await response.text()
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -314,7 +315,7 @@ export function RecentTranslations({ onRefresh }: RecentTranslationsProps) {
                         onClick={() => handleDownload(translation)}
                         variant="outline"
                         size="sm"
-                        disabled={!translation.translatedContent}
+                        disabled={translation.status !== 'completed'}
                         className="flex items-center space-x-1"
                       >
                         <Download className="w-4 h-4" />

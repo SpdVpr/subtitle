@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getFirestore } from 'firebase-admin/firestore'
 import { getAdminApp } from '@/lib/firebase-admin'
 import { encodeContentDisposition } from '@/lib/filename-encoder'
+import { TranslationJobService } from '@/lib/database-admin'
 import { verifyUser } from '@/lib/user-auth-server'
 
 export async function POST(request: NextRequest) {
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const job = jobDoc.data()
-    console.log('Job found:', { id: jobId, userId: job?.userId, hasContent: !!job?.translatedContent })
+    console.log('Job found:', { id: jobId, userId: job?.userId })
 
     // Verify the job belongs to the user
     if (job?.userId !== userId) {
@@ -38,8 +39,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    // Check if we have the translated content
-    if (!job.translatedContent) {
+    // Content lives in Storage; legacy jobs still resolve from the document.
+    const translatedContent = await TranslationJobService.getTranslatedContent(jobId)
+    if (!translatedContent) {
       console.log('No translated content available for job:', jobId)
       return NextResponse.json({ error: 'Translated content not available' }, { status: 404 })
     }
@@ -52,7 +54,7 @@ export async function POST(request: NextRequest) {
     const contentDisposition = encodeContentDisposition(fileName)
 
     // Return the file as a download with proper encoding
-    return new NextResponse(job.translatedContent, {
+    return new NextResponse(translatedContent, {
       status: 200,
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
