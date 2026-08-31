@@ -59,6 +59,30 @@ export const catalogSeeds: CatalogSeed[] = [
   { slug: 'dune-2021', title: 'Dune', year: 2021, type: 'movie', imdbId: 1160419, tmdbId: 438631, popularity: 89, description: 'Denis Villeneuve adaptation of Frank Herbert’s science-fiction novel.' },
   { slug: 'oppenheimer-2023', title: 'Oppenheimer', year: 2023, type: 'movie', imdbId: 15398776, tmdbId: 872585, popularity: 88, description: 'Christopher Nolan biographical drama about J. Robert Oppenheimer.' },
   { slug: 'south-park-bigger-longer-uncut-1999', title: 'South Park: Bigger, Longer & Uncut', year: 1999, type: 'movie', imdbId: 158983, tmdbId: 9473, popularity: 82, description: 'Animated musical comedy based on the South Park television series.' },
+  { slug: 'the-godfather-part-ii-1974', title: 'The Godfather Part II', year: 1974, type: 'movie', imdbId: 71562, tmdbId: 240, popularity: 97, description: 'Francis Ford Coppola’s crime epic follows Michael Corleone while tracing Vito Corleone’s rise.' },
+  { slug: 'the-lord-of-the-rings-the-two-towers-2002', title: 'The Lord of the Rings: The Two Towers', year: 2002, type: 'movie', imdbId: 167261, tmdbId: 121, popularity: 96, description: 'The second film in Peter Jackson’s Lord of the Rings trilogy.' },
+  { slug: 'the-lord-of-the-rings-the-return-of-the-king-2003', title: 'The Lord of the Rings: The Return of the King', year: 2003, type: 'movie', imdbId: 167260, tmdbId: 122, popularity: 97, description: 'The concluding film in Peter Jackson’s Lord of the Rings trilogy.' },
+  { slug: 'dune-part-two-2024', title: 'Dune: Part Two', year: 2024, type: 'movie', imdbId: 15239678, tmdbId: 693134, popularity: 96, description: 'Denis Villeneuve’s continuation of Paul Atreides’ journey on Arrakis.' },
+  { slug: 'forrest-gump-1994', title: 'Forrest Gump', year: 1994, type: 'movie', imdbId: 109830, tmdbId: 13, popularity: 96, description: 'Robert Zemeckis drama following one man through decades of American history.' },
+  { slug: 'se7en-1995', title: 'Se7en', year: 1995, type: 'movie', imdbId: 114369, tmdbId: 807, popularity: 95, description: 'David Fincher crime thriller about detectives pursuing a serial killer.' },
+  { slug: 'the-silence-of-the-lambs-1991', title: 'The Silence of the Lambs', year: 1991, type: 'movie', imdbId: 102926, tmdbId: 274, popularity: 94, description: 'Psychological thriller centered on Clarice Starling and Hannibal Lecter.' },
+  { slug: 'saving-private-ryan-1998', title: 'Saving Private Ryan', year: 1998, type: 'movie', imdbId: 120815, tmdbId: 857, popularity: 94, description: 'Steven Spielberg war drama following a squad sent behind enemy lines.' },
+  { slug: 'the-green-mile-1999', title: 'The Green Mile', year: 1999, type: 'movie', imdbId: 120689, tmdbId: 497, popularity: 94, description: 'Supernatural prison drama adapted from the novel by Stephen King.' },
+  { slug: 'terminator-2-judgment-day-1991', title: 'Terminator 2: Judgment Day', year: 1991, type: 'movie', imdbId: 103064, tmdbId: 280, popularity: 95, description: 'James Cameron science-fiction action sequel starring Arnold Schwarzenegger.' },
+  { slug: 'back-to-the-future-1985', title: 'Back to the Future', year: 1985, type: 'movie', imdbId: 88763, tmdbId: 105, popularity: 93, description: 'Time-travel adventure directed by Robert Zemeckis.' },
+  { slug: 'goodfellas-1990', title: 'Goodfellas', year: 1990, type: 'movie', imdbId: 99685, tmdbId: 769, popularity: 93, description: 'Martin Scorsese crime drama chronicling life inside the mob.' },
+  { slug: 'whiplash-2014', title: 'Whiplash', year: 2014, type: 'movie', imdbId: 2582802, tmdbId: 244786, popularity: 92, description: 'Intense drama about a jazz drummer and his demanding instructor.' },
+  { slug: 'joker-2019', title: 'Joker', year: 2019, type: 'movie', imdbId: 7286456, tmdbId: 475557, popularity: 96, description: 'Psychological crime drama starring Joaquin Phoenix as Arthur Fleck.' },
+  { slug: 'the-batman-2022', title: 'The Batman', year: 2022, type: 'movie', imdbId: 1877830, tmdbId: 414906, popularity: 95, description: 'Matt Reeves detective thriller starring Robert Pattinson as Batman.' },
+  { slug: 'spider-man-no-way-home-2021', title: 'Spider-Man: No Way Home', year: 2021, type: 'movie', imdbId: 10872600, tmdbId: 634649, popularity: 95, description: 'Marvel multiverse adventure starring Tom Holland as Spider-Man.' },
+  { slug: 'top-gun-maverick-2022', title: 'Top Gun: Maverick', year: 2022, type: 'movie', imdbId: 1745960, tmdbId: 361743, popularity: 92, description: 'Aviation action drama in which Pete Mitchell trains a new generation of pilots.' },
+  { slug: 'barbie-2023', title: 'Barbie', year: 2023, type: 'movie', imdbId: 1517268, tmdbId: 346698, popularity: 94, description: 'Greta Gerwig fantasy comedy starring Margot Robbie and Ryan Gosling.' },
+  { slug: '3-idiots-2009', title: '3 Idiots', year: 2009, type: 'movie', imdbId: 1187043, tmdbId: 20453, popularity: 94, description: 'Indian comedy-drama about friendship, education, and personal ambition.' },
+  { slug: 'rrr-2022', title: 'RRR', year: 2022, type: 'movie', imdbId: 8178634, tmdbId: 579974, popularity: 92, description: 'S. S. Rajamouli’s Telugu-language historical action epic.' },
+  { slug: 'avatar-the-way-of-water-2022', title: 'Avatar: The Way of Water', year: 2022, type: 'movie', imdbId: 1630029, tmdbId: 76600, popularity: 95, description: 'James Cameron’s science-fiction sequel returning to the world of Pandora.' },
+  { slug: 'everything-everywhere-all-at-once-2022', title: 'Everything Everywhere All at Once', year: 2022, type: 'movie', imdbId: 6710474, tmdbId: 545611, popularity: 91, description: 'Multiverse action comedy-drama starring Michelle Yeoh.' },
+  { slug: 'deadpool-and-wolverine-2024', title: 'Deadpool & Wolverine', year: 2024, type: 'movie', imdbId: 6263850, tmdbId: 533535, popularity: 94, description: 'Marvel action comedy bringing Deadpool and Wolverine together.' },
+  { slug: 'inside-out-2-2024', title: 'Inside Out 2', year: 2024, type: 'movie', imdbId: 22022452, tmdbId: 1022789, popularity: 92, description: 'Pixar sequel exploring new emotions during Riley’s teenage years.' },
   { slug: 'breaking-bad', title: 'Breaking Bad', year: 2008, type: 'tv', imdbId: 903747, tmdbId: 1396, popularity: 100, description: 'Crime drama series created by Vince Gilligan.' },
   { slug: 'game-of-thrones', title: 'Game of Thrones', year: 2011, type: 'tv', imdbId: 944947, tmdbId: 1399, popularity: 98, description: 'Fantasy drama series based on the novels by George R. R. Martin.' },
   { slug: 'stranger-things', title: 'Stranger Things', year: 2016, type: 'tv', imdbId: 4574334, tmdbId: 66732, popularity: 97, description: 'Science-fiction horror series created by the Duffer Brothers.' },
@@ -73,7 +97,26 @@ export const catalogSeeds: CatalogSeed[] = [
 ]
 
 const API_URL = 'https://api.opensubtitles.com/api/v1/subtitles'
+const OPENSUBTITLES_URL = 'https://www.opensubtitles.com'
 const languageQuery = catalogLanguages.map((language) => language.code).join(',')
+
+interface OpenSubtitlesSourceAttributes {
+  url?: unknown
+  slug?: unknown
+}
+
+export function getOpenSubtitlesSourceUrl(attributes?: OpenSubtitlesSourceAttributes): string {
+  if (typeof attributes?.url === 'string' && attributes.url.startsWith('http')) {
+    return attributes.url
+  }
+
+  const slug = typeof attributes?.slug === 'string' ? attributes.slug.trim() : ''
+  if (slug) {
+    return `${OPENSUBTITLES_URL}/en/subtitles/${encodeURIComponent(slug)}`
+  }
+
+  return `${OPENSUBTITLES_URL}/`
+}
 
 export function getCatalogSeed(type: CatalogMediaType, slug: string) {
   return catalogSeeds.find((seed) => seed.type === type && seed.slug === slug)
@@ -116,7 +159,7 @@ export async function fetchCatalogResult(media: CatalogSeed): Promise<CatalogRes
       aiTranslated: Boolean(item.attributes?.ai_translated),
       machineTranslated: Boolean(item.attributes?.machine_translated),
       downloadCount: Number(item.attributes?.download_count || 0),
-      sourceUrl: typeof item.attributes?.url === 'string' && item.attributes.url.startsWith('http') ? item.attributes.url : 'https://www.opensubtitles.com/',
+      sourceUrl: getOpenSubtitlesSourceUrl(item.attributes),
       uploadDate: item.attributes?.upload_date ? String(item.attributes.upload_date) : null,
     }))
     const languageCounts = subtitles.reduce<Record<string, number>>((counts, subtitle) => {

@@ -4,7 +4,7 @@ import { getTools } from '@/content/tools'
 import { catalogLanguages, catalogSeeds } from '@/lib/subtitle-catalog'
 
 const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')
-const contentLastModified = new Date('2026-08-17')
+const contentLastModified = new Date('2026-08-31')
 
 type Frequency = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
 

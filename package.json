@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seo:gsc": "node scripts/analyze-gsc.mjs",
+    "test:catalog": "node --no-warnings --experimental-strip-types scripts/test-subtitle-catalog.mjs",
     "test:seo-tools": "node --no-warnings --experimental-strip-types scripts/test-subtitle-tools.mjs"
   },
   "dependencies": {
