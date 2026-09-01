@@ -30,6 +30,8 @@ export interface CatalogResult {
   subtitles: CatalogSubtitle[]
   total: number
   languageCounts: Record<string, number>
+  /** OpenSubtitles language codes seen in the current samples, most frequent first. */
+  sampledLanguages: string[]
   fetched: boolean
 }
 
@@ -96,8 +98,17 @@ export const catalogSeeds: CatalogSeed[] = [
   { slug: 'house-of-the-dragon', title: 'House of the Dragon', year: 2022, type: 'tv', imdbId: 11198330, tmdbId: 94997, popularity: 90, description: 'Fantasy drama and prequel to Game of Thrones.' },
 ]
 
+export interface CatalogLanguageAvailability {
+  total: number
+  humanCount: number
+  machineOnly: boolean
+  best: CatalogSubtitle | null
+  fetched: boolean
+}
+
 const API_URL = 'https://api.opensubtitles.com/api/v1/subtitles'
 const OPENSUBTITLES_URL = 'https://www.opensubtitles.com'
+const CACHE_SECONDS = 21_600
 const languageQuery = catalogLanguages.map((language) => language.code).join(',')
 
 interface OpenSubtitlesSourceAttributes {
@@ -122,53 +133,121 @@ export function getCatalogSeed(type: CatalogMediaType, slug: string) {
   return catalogSeeds.find((seed) => seed.type === type && seed.slug === slug)
 }
 
-export async function fetchCatalogResult(media: CatalogSeed): Promise<CatalogResult> {
-  const key = process.env.OPENSUBTITLES_API_KEY
-  if (!key) return { media, subtitles: [], total: 0, languageCounts: {}, fetched: false }
+function emptyResult(media: CatalogSeed): CatalogResult {
+  return { media, subtitles: [], total: 0, languageCounts: {}, sampledLanguages: [], fetched: false }
+}
+
+function buildSearchUrl(media: CatalogSeed, languages?: string) {
   const url = new URL(API_URL)
   url.searchParams.set(media.type === 'movie' ? 'imdb_id' : 'parent_imdb_id', String(media.imdbId))
-  url.searchParams.set('languages', languageQuery)
+  if (languages) url.searchParams.set('languages', languages)
   url.searchParams.set('per_page', '50')
   url.searchParams.set('page', '1')
   if (media.type === 'movie') url.searchParams.set('type', 'movie')
+  return url
+}
+
+function parseSubtitles(data: any, fallbackRelease: string): CatalogSubtitle[] {
+  return (Array.isArray(data?.data) ? data.data : []).map((item: any) => ({
+    id: String(item.id),
+    language: String(item.attributes?.language || 'unknown').toLowerCase(),
+    release: String(item.attributes?.release || item.attributes?.feature_details?.movie_name || fallbackRelease),
+    fps: Number.isFinite(Number(item.attributes?.fps)) && Number(item.attributes?.fps) > 0 ? Number(item.attributes.fps) : null,
+    trusted: Boolean(item.attributes?.from_trusted),
+    hearingImpaired: Boolean(item.attributes?.hearing_impaired),
+    aiTranslated: Boolean(item.attributes?.ai_translated),
+    machineTranslated: Boolean(item.attributes?.machine_translated),
+    downloadCount: Number(item.attributes?.download_count || 0),
+    sourceUrl: getOpenSubtitlesSourceUrl(item.attributes),
+    uploadDate: item.attributes?.upload_date ? String(item.attributes.upload_date) : null,
+  }))
+}
+
+function countLanguages(subtitles: CatalogSubtitle[]) {
+  return subtitles.reduce<Record<string, number>>((counts, subtitle) => {
+    counts[subtitle.language] = (counts[subtitle.language] || 0) + 1
+    return counts
+  }, {})
+}
+
+/** One cached OpenSubtitles search. Returns null on any non-OK response after retries. */
+async function fetchOpenSubtitles(url: URL, key: string, tag: string, fallbackRelease: string): Promise<{ total: number; subtitles: CatalogSubtitle[] } | null> {
+  let response: Response | null = null
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    response = await fetch(url, {
+      headers: {
+        'Api-Key': key,
+        Accept: 'application/json',
+        'User-Agent': 'SubtitleBot v1.0 (https://www.subtitlebot.com)',
+      },
+      next: { revalidate: CACHE_SECONDS, tags: [tag] },
+    })
+    if (response.ok || (response.status !== 429 && response.status < 500)) break
+    await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)))
+  }
+  if (!response?.ok) return null
+  const data = await response.json()
+  const subtitles = parseSubtitles(data, fallbackRelease)
+  return { total: Number(data.total_count || subtitles.length), subtitles }
+}
+
+/** Trusted first, then human-made, then most downloaded. */
+export function pickBestSubtitle(subtitles: CatalogSubtitle[]): CatalogSubtitle | null {
+  const human = (subtitle: CatalogSubtitle) => Number(!(subtitle.aiTranslated || subtitle.machineTranslated))
+  return [...subtitles].sort((a, b) => Number(b.trusted) - Number(a.trusted) || human(b) - human(a) || b.downloadCount - a.downloadCount)[0] || null
+}
+
+export async function fetchCatalogResult(media: CatalogSeed): Promise<CatalogResult> {
+  const key = process.env.OPENSUBTITLES_API_KEY
+  if (!key) return emptyResult(media)
 
   try {
-    let response: Response | null = null
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      response = await fetch(url, {
-        headers: {
-          'Api-Key': key,
-          Accept: 'application/json',
-          'User-Agent': 'SubtitleBot v1.0 (https://www.subtitlebot.com)',
-        },
-        next: { revalidate: 21_600, tags: [`subtitle-catalog-${media.type}-${media.slug}`] },
-      })
-      if (response.ok || (response.status !== 429 && response.status < 500)) break
-      await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)))
+    const tag = `subtitle-catalog-${media.type}-${media.slug}`
+    const primary = await fetchOpenSubtitles(buildSearchUrl(media, languageQuery), key, tag, media.title)
+    if (!primary) return emptyResult(media)
+
+    // A second, unfiltered sample widens the list of languages the page can show.
+    // It is best-effort: when it fails we still have the catalog-language sample.
+    const broad = await fetchOpenSubtitles(buildSearchUrl(media), key, `${tag}-all`, media.title).catch(() => null)
+    const merged = new Map<string, CatalogSubtitle>()
+    for (const subtitle of [...primary.subtitles, ...(broad?.subtitles || [])]) merged.set(subtitle.id, subtitle)
+    const sampledLanguages = Object.entries(countLanguages([...merged.values()]))
+      .sort((a, b) => b[1] - a[1])
+      .map(([code]) => code)
+
+    return {
+      media,
+      subtitles: primary.subtitles,
+      total: broad?.total ?? primary.total,
+      languageCounts: countLanguages(primary.subtitles),
+      sampledLanguages,
+      fetched: true,
     }
-    if (!response) return { media, subtitles: [], total: 0, languageCounts: {}, fetched: false }
-    if (!response.ok) return { media, subtitles: [], total: 0, languageCounts: {}, fetched: false }
-    const data = await response.json()
-    const subtitles: CatalogSubtitle[] = (Array.isArray(data.data) ? data.data : []).map((item: any) => ({
-      id: String(item.id),
-      language: String(item.attributes?.language || 'unknown'),
-      release: String(item.attributes?.release || item.attributes?.feature_details?.movie_name || media.title),
-      fps: Number.isFinite(Number(item.attributes?.fps)) && Number(item.attributes?.fps) > 0 ? Number(item.attributes.fps) : null,
-      trusted: Boolean(item.attributes?.from_trusted),
-      hearingImpaired: Boolean(item.attributes?.hearing_impaired),
-      aiTranslated: Boolean(item.attributes?.ai_translated),
-      machineTranslated: Boolean(item.attributes?.machine_translated),
-      downloadCount: Number(item.attributes?.download_count || 0),
-      sourceUrl: getOpenSubtitlesSourceUrl(item.attributes),
-      uploadDate: item.attributes?.upload_date ? String(item.attributes.upload_date) : null,
-    }))
-    const languageCounts = subtitles.reduce<Record<string, number>>((counts, subtitle) => {
-      counts[subtitle.language] = (counts[subtitle.language] || 0) + 1
-      return counts
-    }, {})
-    return { media, subtitles, total: Number(data.total_count || subtitles.length), languageCounts, fetched: true }
   } catch {
-    return { media, subtitles: [], total: 0, languageCounts: {}, fetched: false }
+    return emptyResult(media)
+  }
+}
+
+/** Live availability of one language for a title. `osCodes` are OpenSubtitles language codes (see subtitle-catalog-languages). */
+export async function fetchCatalogLanguageAvailability(media: CatalogSeed, osCodes: string[]): Promise<CatalogLanguageAvailability> {
+  const none: CatalogLanguageAvailability = { total: 0, humanCount: 0, machineOnly: false, best: null, fetched: false }
+  const key = process.env.OPENSUBTITLES_API_KEY
+  if (!key || !osCodes.length) return none
+
+  try {
+    const codes = osCodes.join(',')
+    const result = await fetchOpenSubtitles(buildSearchUrl(media, codes), key, `subtitle-catalog-${media.type}-${media.slug}-${codes.replace(/,/g, '-')}`, media.title)
+    if (!result) return none
+    const human = result.subtitles.filter((subtitle) => !subtitle.aiTranslated && !subtitle.machineTranslated)
+    return {
+      total: result.total,
+      humanCount: human.length,
+      machineOnly: result.total > 0 && human.length === 0,
+      best: pickBestSubtitle(human.length ? human : result.subtitles),
+      fetched: true,
+    }
+  } catch {
+    return none
   }
 }
 

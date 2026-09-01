@@ -105,6 +105,19 @@ export const analytics = {
     trackEvent('subtitle_source_opened', 'subtitle_search', source)
   },
 
+  // Catalog title pages (/subtitles/movie/... and /subtitles/tv/...)
+  catalogLanguageChecked: (title: string, language: string, status: string) => {
+    trackEvent('catalog_language_checked', 'catalog', `${title}:${language}:${status}`)
+  },
+
+  catalogSourceOpened: (title: string, language: string) => {
+    trackEvent('catalog_source_opened', 'catalog', `${title}:${language}`)
+  },
+
+  catalogTranslateClicked: (title: string, language: string, status: string) => {
+    trackEvent('catalog_translate_clicked', 'catalog', `${title}:${language}:${status}`)
+  },
+
   subtitleToolUsed: (tool: string) => {
     trackEvent('subtitle_tool_used', 'subtitle_tools', tool)
   },

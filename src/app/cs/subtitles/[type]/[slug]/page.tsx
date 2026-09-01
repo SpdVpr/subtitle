@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ type: str
   if (!media) return {}
   const result = await fetchCatalogResult(media)
   const title = `${media.title} (${media.year}) titulky`
-  const description = `Najděte titulky pro ${media.title}, porovnejte aktuální jazyky, FPS a release a otevřete vybraný výsledek na OpenSubtitles.`
+  const description = `Stáhněte titulky ${media.title} (${media.year}) z OpenSubtitles ve více než 30 jazycích, nebo si anglický soubor přeložte do svého jazyka během pár minut. První soubor zdarma.`
   return { title, description, robots: { index: result.fetched && result.subtitles.length >= 2, follow: true }, alternates: { canonical: `/cs/subtitles/${type}/${slug}`, languages: { en: `/subtitles/${type}/${slug}`, cs: `/cs/subtitles/${type}/${slug}`, 'x-default': `/subtitles/${type}/${slug}` } }, openGraph: { title: `${title} | SubtitleBot`, description, url: `/cs/subtitles/${type}/${slug}`, images: ['/og-image-cs.png'] } }
 }
 

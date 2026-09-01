@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ type: str
   if (!media) return {}
   const result = await fetchCatalogResult(media)
   const title = `${media.title} (${media.year}) Subtitles`
-  const description = `Find ${media.title} subtitles, compare current languages, FPS and release matches, then open the selected result at OpenSubtitles.`
+  const description = `Download ${media.title} (${media.year}) subtitles from OpenSubtitles in 30+ languages, or translate the English file into your language in minutes. First file free.`
   return { title, description, robots: { index: result.fetched && result.subtitles.length >= 2, follow: true }, alternates: { canonical: `/subtitles/${type}/${slug}`, languages: { en: `/subtitles/${type}/${slug}`, cs: `/cs/subtitles/${type}/${slug}`, 'x-default': `/subtitles/${type}/${slug}` } }, openGraph: { title: `${title} | SubtitleBot`, description, url: `/subtitles/${type}/${slug}`, images: ['/og-image-en.png'] } }
 }
 

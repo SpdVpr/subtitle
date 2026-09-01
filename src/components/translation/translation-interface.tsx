@@ -56,6 +56,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
   const [freeTranslationAvailable, setFreeTranslationAvailable] = useState(false)
   const [creditStatusLoading, setCreditStatusLoading] = useState(true)
   const [retryCount, setRetryCount] = useState(0)
+  const [catalogContext, setCatalogContext] = useState<{ title: string } | null>(null)
   const [maxRetries] = useState(2)
   const {
     progress: translationProgress,
@@ -79,7 +80,10 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
     const requestedTarget = params.get('targetLanguage')
     if (requestedSource) setSourceLanguage(requestedSource)
     if (requestedTarget) setTargetLanguage(requestedTarget)
-    analytics.translationIntent(params.get('from') || 'direct')
+    const from = params.get('from') || 'direct'
+    const catalogTitle = params.get('title')?.trim()
+    if (from.startsWith('subtitle-catalog') && catalogTitle) setCatalogContext({ title: catalogTitle.slice(0, 120) })
+    analytics.translationIntent(from)
   }, [])
 
   useEffect(() => {
@@ -610,6 +614,14 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
             <CardDescription className="text-sm sm:text-base">Upload your SRT file and translate it to any language</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 sm:space-y-6">
+            {catalogContext && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-800/40 dark:bg-blue-950/30 dark:text-blue-200">
+                <strong>{catalogContext.title}</strong>
+                {locale === 'cs'
+                  ? ': nahrajte anglický soubor .srt stažený z OpenSubtitles. Cílový jazyk je předvyplněný níže.'
+                  : ': upload the English .srt you downloaded from OpenSubtitles. Your target language is already selected below.'}
+              </div>
+            )}
             {user && (
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
                 <span className="text-sm text-muted-foreground">Credits:</span>
@@ -973,12 +985,13 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
               // Before/during translation
               <Button
                 onClick={() => {
+                  const returnTo = `${window.location.pathname}${window.location.search}`
                   if (!user) {
-                    window.location.href = `/login?redirect=${encodeURIComponent('/translate')}`
+                    window.location.href = `${locale === 'cs' ? '/cs/login' : '/login'}?redirect=${encodeURIComponent(returnTo)}`
                     return
                   }
                   if (!user.emailVerified) {
-                    window.location.href = `/verify-email?redirect=${encodeURIComponent('/translate')}`
+                    window.location.href = `/verify-email?redirect=${encodeURIComponent(returnTo)}`
                     return
                   }
                   handleTranslate()
