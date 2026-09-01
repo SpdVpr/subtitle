@@ -9,7 +9,11 @@ export async function authFetch(input: string, init: RequestInit = {}): Promise<
   let token = ''
   try {
     const user = auth?.currentUser
-    if (user) token = await user.getIdToken()
+    if (user) {
+      const currentToken = await user.getIdTokenResult()
+      const needsVerificationRefresh = user.emailVerified && currentToken.claims.email_verified !== true
+      token = await user.getIdToken(needsVerificationRefresh)
+    }
   } catch {
     // fall through with empty token -> server returns 401
   }

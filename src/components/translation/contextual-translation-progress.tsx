@@ -151,7 +151,7 @@ function StageInfoDisplay({ stage, isActive, isCompleted, progress, selectedFile
                   {data.extractedInfo?.episode && <div><strong>Episode:</strong> {data.extractedInfo.episode}</div>}
                   <div><strong>Format:</strong> {data.fileAnalysis?.format || 'Unknown'}</div>
                   <div><strong>Source:</strong> {data.fileAnalysis?.source || 'Unknown'}</div>
-                  {data.fileAnalysis?.quality && <div><strong>Quality:</strong> {data.fileAnalysis.quality}</div>}
+                  {data.fileAnalysis?.quality && <div><strong>Detected source quality:</strong> {data.fileAnalysis.quality}</div>}
                 </div>
               </div>
             </div>

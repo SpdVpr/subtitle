@@ -318,31 +318,8 @@ export async function POST(request: NextRequest) {
 
           try {
 
-            // Try to upload to storage (optional - if it fails, we still have the content in the job)
-            if (jobId) {
-              try {
-                const { StorageService } = await import('@/lib/storage')
-                const { TranslationJobService } = await import('@/lib/database-admin')
-                const { url: translatedFileUrl } = await StorageService.uploadTranslatedFile(
-                  translatedContent,
-                  file.name,
-                  userId,
-                  jobId,
-                  targetLanguage
-                )
-                console.log(`📤 Uploaded translated file: ${translatedFileUrl}`)
-
-                // Update job with storage URL
-                await TranslationJobService.updateJob(jobId, {
-                  translatedFileUrl
-                })
-              } catch (storageError) {
-                console.warn('⚠️ Storage upload failed, but job content is saved:', storageError)
-                // Continue - we have the content in the job record
-              }
-            }
-
-            // Storage upload completed (user usage already updated above)
+            // TranslationJobService.createJob already stores the SRT through
+            // the Admin Storage SDK with an inline Firestore fallback.
 
             // Record analytics
             const { AnalyticsService } = await import('@/lib/database-admin')

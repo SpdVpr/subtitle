@@ -20,7 +20,7 @@ export class PremiumTranslationService {
 
   constructor(apiKey: string, model: 'standard' | 'premium' = 'premium') {
     this.apiKey = apiKey
-    this.model = model === 'premium' ? 'gemini-3-pro' : 'gemini-3-flash'
+    this.model = model === 'premium' ? 'gemini-3.1-pro-preview' : 'gemini-3-flash'
     console.log(`🤖 PremiumTranslationService initialized with model: ${this.model} (${model})`)
   }
 
@@ -118,7 +118,7 @@ export class PremiumTranslationService {
 
     try {
 
-      const isPremium = this.model === 'gemini-3-pro'
+      const isPremium = this.model === 'gemini-3.1-pro-preview'
 
       // ===== FAST PATH FOR STANDARD (Gemini 3 Flash) =====
       // Uses Google Gemini 3 Flash for fastest, cheapest translations
@@ -306,7 +306,7 @@ Title: "${showInfo.title}"${showInfo.year ? ` (${showInfo.year})` : ''}${showInf
 Return ONLY valid JSON, no markdown or explanations.`
 
         const researchResult = await ai.models.generateContent({
-          model: 'gemini-3-pro-preview',
+          model: 'gemini-3.1-pro-preview',
           contents: researchPrompt,
           config: {
             thinkingConfig: {
@@ -1188,7 +1188,7 @@ CONTENT ANALYSIS:`
     }).join('\n')
 
     const completion = await openai.chat.completions.create({
-      model: this.model, // Use selected model (gemini-3-pro or gemini-3-flash)
+      model: this.model,
       messages: [
         {
           role: "system",

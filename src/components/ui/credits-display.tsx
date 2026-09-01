@@ -192,7 +192,7 @@ export function CreditsCard() {
 
             {totalPurchased > 0 && (
               <div className="text-sm text-muted-foreground">
-                Purchased credits: {totalPurchased.toFixed(1)}
+                Lifetime credited: {totalPurchased.toFixed(1)}
               </div>
             )}
 
@@ -205,8 +205,8 @@ export function CreditsCard() {
               </Button>
 
               <div className="text-xs text-muted-foreground space-y-1">
-                <div>• Standard: 0.5 credits per 20 lines</div>
-                <div>• Premium: 1.5 credits per 20 lines</div>
+                <div>• Standard: 0.5 credits per 20 subtitles</div>
+                <div>• Premium: 1.5 credits per 20 subtitles</div>
                 <div>• Includes context research & cultural adaptation</div>
                 <div>• Credit packages start at $0.008 per credit</div>
               </div>

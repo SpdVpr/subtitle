@@ -299,7 +299,7 @@ function DashboardPageInner() {
                           {dashboardStats.loading ? (
                             <Loader2 className="h-8 w-8 animate-spin" />
                           ) : (
-                            Math.round(dashboardStats.creditsUsed)
+                            dashboardStats.creditsUsed.toFixed(1)
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -348,7 +348,7 @@ function DashboardPageInner() {
                         </div>
                         <div>
                           <p className="font-medium text-foreground">Download your translation</p>
-                          <p className="text-sm text-muted-foreground">Get professional-quality results in seconds</p>
+                          <p className="text-sm text-muted-foreground">Review, edit, and download the translated subtitle file</p>
                         </div>
                       </div>
                     </CardContent>

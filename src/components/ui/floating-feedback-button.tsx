@@ -25,7 +25,7 @@ export function FloatingFeedbackButton() {
   const buttonText = isCzech ? 'Zpětná vazba' : 'Feedback'
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+    <div className="hidden sm:flex fixed bottom-6 right-6 z-50 flex-col items-end gap-2">
       {/* Dismiss button */}
       <Button
         variant="ghost"
@@ -40,7 +40,7 @@ export function FloatingFeedbackButton() {
       {/* Main feedback button */}
       <Button
         asChild
-        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-4 py-2 group"
+        className="h-10 w-10 p-0 sm:h-auto sm:w-auto sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-full group"
       >
         <Link href={feedbackUrl} className="flex items-center gap-2">
           <div className="relative">
@@ -49,7 +49,7 @@ export function FloatingFeedbackButton() {
               <Heart className="h-1.5 w-1.5 text-white" />
             </div>
           </div>
-          <span className="font-medium">{buttonText}</span>
+          <span className="hidden sm:inline font-medium">{buttonText}</span>
         </Link>
       </Button>
       

@@ -124,16 +124,24 @@ export async function GET(req: NextRequest) {
       const endTime = endDateObj.getTime()
 
       const filteredJobs = translationJobs.filter(job => {
-        const jobDate = job.createdAt instanceof Date ? job.createdAt : new Date(job.createdAt)
+        const rawDate: any = job.createdAt
+        const jobDate = rawDate instanceof Date
+          ? rawDate
+          : typeof rawDate?.toDate === 'function'
+            ? rawDate.toDate()
+            : rawDate?.seconds
+              ? new Date(rawDate.seconds * 1000)
+              : rawDate?._seconds
+                ? new Date(rawDate._seconds * 1000)
+                : new Date(rawDate)
         const jobTime = jobDate.getTime()
-        return jobTime >= startTime && jobTime <= endTime
+        return Number.isFinite(jobTime) && jobTime >= startTime && jobTime <= endTime
       })
 
       console.log('📊 Jobs in date range:', filteredJobs.length)
       console.log('📊 Date range:', { startDateStr, endDateStr })
 
-      // Use all jobs if no jobs in date range (for demo purposes)
-      translationJobs = filteredJobs.length > 0 ? filteredJobs : translationJobs.slice(0, 20)
+      translationJobs = filteredJobs
       console.log('📊 Using jobs for analytics:', translationJobs.length)
 
     } catch (error) {
@@ -170,7 +178,11 @@ export async function GET(req: NextRequest) {
     // Aggregate by service
     const serviceMap = new Map<string, number>()
     translationJobs.forEach(job => {
-      const service = job.aiService === 'premium' ? 'Premium AI' : 'Google Translate'
+      const service = job.aiService === 'google'
+        ? 'Google Gemini'
+        : job.aiService === 'openai'
+          ? 'OpenAI (legacy)'
+          : 'Premium AI'
       const current = serviceMap.get(service) || 0
       serviceMap.set(service, current + 1)
     })

@@ -285,7 +285,7 @@ export default function PreviewPage() {
                 <span className="text-gray-500 dark:text-muted-foreground">AI Service:</span>
                 <div className="font-medium flex items-center">
                   <Zap className="h-3 w-3 mr-1" />
-                  {previewData.aiService === 'google' ? 'Google Translate' : 'Google Gemini'}
+                  {previewData.aiService === 'google' ? 'Google Gemini' : previewData.aiService === 'openai' ? 'OpenAI' : 'Premium AI'}
                 </div>
               </div>
               <div>

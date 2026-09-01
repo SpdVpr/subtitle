@@ -596,7 +596,6 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
                     <Zap className="h-4 w-4" />
                     <span className="font-medium">Standard</span>
                     <Badge variant="secondary" className="text-xs">Gemini Flash</Badge>
-                    <Badge variant="destructive" className="text-[10px] px-1 py-0 animate-pulse">SALE</Badge>
                   </div>
                   <p className="text-xs opacity-80 mb-2">Fast, reliable translation</p>
                   <div className="text-sm font-semibold">{CREDIT_RATES.standard} credits per 20 subtitles</div>
@@ -625,7 +624,6 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
                     >
                       Gemini Pro
                     </Badge>
-                    <Badge variant="destructive" className="text-[10px] px-1 py-0 animate-pulse">SALE</Badge>
                   </div>
                   <p className={`text-xs mb-2 ${translationModel === 'premium' ? 'text-amber-900' : 'text-gray-600 dark:text-gray-400'
                     }`}>

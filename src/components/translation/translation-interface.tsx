@@ -2,7 +2,7 @@
 
 
 import { authFetch } from '@/lib/auth-fetch'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { useTranslationProgress } from '@/hooks/use-translation-progress'
@@ -54,6 +54,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
   const [isCompleted, setIsCompleted] = useState(false)
   const [userCredits, setUserCredits] = useState<number | null>(null)
   const [freeTranslationAvailable, setFreeTranslationAvailable] = useState(false)
+  const [creditStatusLoading, setCreditStatusLoading] = useState(true)
   const [retryCount, setRetryCount] = useState(0)
   const [maxRetries] = useState(2)
   const {
@@ -66,6 +67,9 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
   const originalTitleRef = useRef<string>('')
   const lastStreamStageRef = useRef<string>('initializing')
   const lastStreamProgressRef = useRef<number>(0)
+  const registerCreditsRefresh = useCallback((refreshFn: () => void) => {
+    setRefreshCredits(() => refreshFn)
+  }, [])
 
   // Title useEffect - store original title for restoration
   useEffect(() => {
@@ -126,9 +130,13 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
   // Fetch user credits
   useEffect(() => {
     const fetchCredits = async () => {
-      if (!user) return
+      if (!user) {
+        setCreditStatusLoading(false)
+        return
+      }
 
       try {
+        setCreditStatusLoading(true)
         const response = await authFetch(`/api/user/credits?userId=${user.uid}`)
         if (response.ok) {
           const data = await response.json()
@@ -138,6 +146,8 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
       } catch (error) {
         console.error('Failed to fetch credits:', error)
         setUserCredits(0)
+      } finally {
+        setCreditStatusLoading(false)
       }
     }
 
@@ -147,12 +157,16 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
   // Recalculate cost when subtitle count or model changes
   useEffect(() => {
     if (selectedFile && subtitleCount) {
+      if (user && creditStatusLoading) {
+        setEstimatedCost(null)
+        return
+      }
       const eligibleForFree =
         freeTranslationAvailable || !user
       const estimated = eligibleForFree ? 0 : getTranslationCredits(subtitleCount, translationModel)
       setEstimatedCost(estimated)
     }
-  }, [selectedFile, subtitleCount, translationModel, freeTranslationAvailable, user])
+  }, [selectedFile, subtitleCount, translationModel, freeTranslationAvailable, user, creditStatusLoading])
 
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file)
@@ -600,7 +614,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
                 <span className="text-sm text-muted-foreground">Credits:</span>
                 <CreditsDisplay
-                  onRefresh={setRefreshCredits}
+                  onRefresh={registerCreditsRefresh}
                   className="self-start sm:self-auto"
                 />
               </div>
@@ -651,7 +665,6 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                       <Zap className="h-4 w-4" />
                       <span className="font-medium">Standard</span>
                       <Badge variant="secondary" className="text-xs">Gemini Flash</Badge>
-                      <Badge variant="destructive" className="text-[10px] px-1 py-0 animate-pulse">SALE</Badge>
                     </div>
                     <p className="text-xs opacity-80 mb-2">Fast, reliable translation</p>
                     <div className="text-sm font-semibold">{CREDIT_RATES.standard} credits per 20 subtitles</div>
@@ -680,7 +693,6 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                       >
                         Gemini Pro
                       </Badge>
-                      <Badge variant="destructive" className="text-[10px] px-1 py-0 animate-pulse">SALE</Badge>
                     </div>
                     <p className={`text-xs mb-2 ${translationModel === 'premium' ? 'text-amber-900' : 'text-gray-600 dark:text-gray-400'
                       }`}>
@@ -760,7 +772,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
             </div>
 
             {/* Cost Calculator */}
-            {selectedFile && subtitleCount && estimatedCost !== null && (
+            {selectedFile && subtitleCount && estimatedCost !== null && translationResult?.status !== 'completed' && (
               <div className={`p-4 border rounded-lg ${userCredits !== null && userCredits < estimatedCost
                 ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/30'
                 : translationModel === 'premium'
@@ -801,7 +813,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                       ? 'text-destructive/80'
                       : 'text-muted-foreground'
                       }`}>
-                      {estimatedCost === 0 ? 'Your first eligible file' : `~$${(estimatedCost / 100).toFixed(2)} USD`}
+                      {estimatedCost === 0 ? 'Your first file' : `~$${(estimatedCost / 100).toFixed(2)} USD`}
                     </p>
                   </div>
                 </div>
@@ -975,12 +987,13 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                   !selectedFile ||
                   !targetLanguage ||
                   isTranslating ||
+                  (Boolean(user) && creditStatusLoading) ||
                   (Boolean(user) && userCredits !== null && estimatedCost !== null && userCredits < estimatedCost)
                 }
                 className="w-full"
                 size="lg"
               >
-                {isTranslating ? 'Translating...' : !user ? 'Sign in to translate your first file free' : !user.emailVerified ? 'Verify email to start' :
+                {isTranslating ? 'Translating...' : !user ? 'Sign in to translate your first file free' : !user.emailVerified ? 'Verify email to start' : creditStatusLoading ? 'Checking your free file...' :
                   (userCredits !== null && estimatedCost !== null && userCredits < estimatedCost) ?
                     'Insufficient Credits' : 'Start Translation'}
               </Button>

@@ -251,7 +251,7 @@ function CzechDashboardPageInner() {
                         {dashboardStats.loading ? (
                           <Loader2 className="h-8 w-8 animate-spin" />
                         ) : (
-                          Math.round(dashboardStats.creditsUsed)
+                          dashboardStats.creditsUsed.toFixed(1)
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground">
@@ -300,7 +300,7 @@ function CzechDashboardPageInner() {
                       </div>
                       <div>
                         <p className="font-medium text-foreground">Stáhněte si váš překlad</p>
-                        <p className="text-sm text-muted-foreground">Získejte profesionální kvalitu za sekundy</p>
+                        <p className="text-sm text-muted-foreground">Výsledek zkontrolujte, upravte a stáhněte</p>
                       </div>
                     </div>
                   </CardContent>
