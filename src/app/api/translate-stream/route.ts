@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { PremiumTranslationService } from '@/lib/premium-translation-service'
+import { verifyUser } from '@/lib/user-auth-server'
+import {
+  completeFreeTranslation,
+  releaseFreeTranslation,
+  reserveTranslationPayment,
+  type TranslationPaymentReservation,
+} from '@/lib/free-translation-server'
+import type { TranslationModel } from '@/lib/credit-policy'
 
 // GET method for debugging
 export async function GET() {
@@ -14,20 +22,20 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const authUser = await verifyUser(request)
+    if (!authUser) {
+      return NextResponse.json({ error: 'Authentication required. Please sign in again.' }, { status: 401 })
+    }
+    if (!authUser.emailVerified) {
+      return NextResponse.json({ error: 'Email verification required.', code: 'EMAIL_NOT_VERIFIED' }, { status: 403 })
+    }
+
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const targetLanguage = (formData.get('targetLanguage') as string) || 'cs'
     const sourceLanguage = (formData.get('sourceLanguage') as string) || 'en'
-    const userId = (formData.get('userId') as string) || ''
-    const translationModel = (formData.get('translationModel') as string) || 'standard'
-
-    // Check if user is logged in
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'Authentication required. Please log in to use translation services.' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      })
-    }
+    const userId = authUser.uid
+    const translationModel: TranslationModel = formData.get('translationModel') === 'premium' ? 'premium' : 'standard'
 
     if (!file) {
       return new Response(JSON.stringify({ error: 'No file uploaded' }), {
@@ -37,7 +45,6 @@ export async function POST(request: NextRequest) {
     }
 
     const geminiKey = process.env.GEMINI_API_KEY
-    const apiKey = process.env.OPENAI_API_KEY || 'gemini-mode' // OpenAI key kept for backward compat
     console.log('🔑 ROUTE: GEMINI_API_KEY exists:', !!geminiKey, '| OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY)
     if (!geminiKey) {
       return new Response('Translation requires a valid GEMINI_API_KEY', { status: 400 })
@@ -52,6 +59,9 @@ export async function POST(request: NextRequest) {
       async start(controller) {
         let progressTimeoutId: NodeJS.Timeout | null = null
         let controllerClosed = false
+        let paymentReservation: TranslationPaymentReservation | null = null
+        let parsedSubtitleCount = 0
+        const requestStartedAt = Date.now()
 
         try {
           controller.enqueue(sse({ type: 'connected' }))
@@ -68,52 +78,39 @@ export async function POST(request: NextRequest) {
 
           const fileText = await file.text()
           const entries = SubtitleProcessor.parseSRT(fileText)
+          parsedSubtitleCount = entries.length
           if (!entries.length) {
             controller.enqueue(sse({ type: 'error', message: 'No valid subtitles found in file' }))
             controller.close()
             return
           }
 
-          // Calculate credits based on selected model
-          const batchSize = 20
-          const totalBatches = Math.ceil(entries.length / batchSize)
-          const creditsPerBatch = translationModel === 'premium' ? 1.5 : 0.5
-          const totalCredits = totalBatches * creditsPerBatch
-
-          console.log(`💰 ${translationModel} translation: ${entries.length} subtitles, ${totalBatches} batches, ${totalCredits} credits (${creditsPerBatch} per batch)`)
-
           const startTime = Date.now()
 
-          // Skip credit deduction in development mode
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🚧 Development mode: Skipping credit deduction')
-            controller.enqueue(sse({ type: 'progress', stage: 'payment', progress: 5, details: 'Development mode: Credits skipped' }))
-            await new Promise(resolve => setTimeout(resolve, 300))
-          } else {
-            // Production credit handling
-            try {
-              const { UserService } = await import('@/lib/database-admin')
-              const user = await UserService.getUser(userId)
-              const balance = (user?.creditsBalance || 0)
-
-              if (balance < totalCredits) {
-                controller.enqueue(sse({ type: 'error', message: `Insufficient credits. Required: ${totalCredits.toFixed(2)}, Available: ${balance.toFixed(2)}` }))
-                controller.close()
-                return
-              }
-
-              // Deduct all credits upfront
-              console.log(`💳 PRODUCTION: About to deduct ${totalCredits} credits for user ${userId}`)
-              await UserService.adjustCredits(userId, -totalCredits, `${translationModel} translation: ${entries.length} subtitles (${totalBatches} batches)`)
-              console.log(`✅ PRODUCTION: Successfully deducted ${totalCredits} credits for ${translationModel} translation`)
-            } catch (err) {
-              console.error('❌ PRODUCTION: Credit deduction failed:', err)
-              console.error('❌ PRODUCTION: Error details:', err instanceof Error ? err.message : String(err))
-              console.error('❌ PRODUCTION: Error stack:', err instanceof Error ? err.stack : 'No stack')
-              controller.enqueue(sse({ type: 'error', message: 'Failed to process payment. Please try again.' }))
-              controller.close()
-              return
-            }
+          try {
+            paymentReservation = await reserveTranslationPayment({
+              userId,
+              subtitleCount: entries.length,
+              model: translationModel,
+              description: `${translationModel} translation: ${entries.length} subtitles`,
+            })
+            controller.enqueue(sse({
+              type: 'progress',
+              stage: 'payment',
+              progress: 5,
+              details: paymentReservation.kind === 'free'
+                ? 'Your first subtitle file is free.'
+                : `${paymentReservation.creditsCharged} credits reserved`,
+            }))
+          } catch (err) {
+            const message = err instanceof Error ? err.message : ''
+            const [code, required = '0', available = '0'] = message.split(':')
+            const userMessage = code === 'INSUFFICIENT_CREDITS'
+                ? `Insufficient credits. Required: ${Number(required).toFixed(1)}, available: ${Number(available).toFixed(1)}.`
+                : 'Failed to reserve translation payment. Please try again.'
+            controller.enqueue(sse({ type: 'error', message: userMessage, code }))
+            controller.close()
+            return
           }
 
           // Always use PremiumTranslationService but with different models
@@ -172,7 +169,7 @@ export async function POST(request: NextRequest) {
               // Add small delay to ensure progress updates are visible
               await new Promise(resolve => setTimeout(resolve, 100))
             } catch (error) {
-              console.warn(`⚠️ [${timestamp}] Failed to send progress update - controller may be closed:`, error.message)
+              console.warn(`⚠️ [${timestamp}] Failed to send progress update - controller may be closed:`, error instanceof Error ? error.message : error)
               controllerClosed = true
             }
           }
@@ -235,12 +232,11 @@ export async function POST(request: NextRequest) {
               originalFileSize: file.size,
               sourceLanguage: sourceLanguage || undefined,
               targetLanguage,
-              aiService: 'openai',
+              aiService: 'google',
               translatedFileName,
               translatedContent, // Store content directly in job
               subtitleCount: translated.length,
               characterCount: translatedContent.length,
-              confidence: 0.95,
               processingTimeMs: Date.now() - startTime,
               completedAt: new Date() as any
             })
@@ -254,11 +250,21 @@ export async function POST(request: NextRequest) {
             })
             console.log(`📊 PRODUCTION: Updated user usage statistics and last active`)
 
+            if (paymentReservation?.kind === 'free' && paymentReservation.claimId) {
+              await completeFreeTranslation(userId, paymentReservation.claimId)
+            }
+
             console.log('✅ PRODUCTION: All critical database operations completed successfully')
           } catch (dbError) {
             console.error('❌ PRODUCTION: Critical database operations failed:', dbError)
             console.error('❌ PRODUCTION: DB error details:', dbError instanceof Error ? dbError.message : String(dbError))
             // Continue anyway - user should still get their translation
+          }
+
+          // A delivered translation consumes the free attempt even if optional
+          // history/storage bookkeeping failed.
+          if (paymentReservation?.kind === 'free' && paymentReservation.claimId) {
+            await completeFreeTranslation(userId, paymentReservation.claimId)
           }
 
           // Now try to send result to client
@@ -276,7 +282,9 @@ export async function POST(request: NextRequest) {
                 translatedFileName,
                 subtitleCount: translated.length,
                 characterCount: translatedContent.length,
-                jobId: 'pending' // Will be updated after database operations
+                jobId: jobId || 'pending',
+                paymentKind: paymentReservation?.kind,
+                creditsCharged: paymentReservation?.creditsCharged || 0,
               }))
 
               console.log('✅ Result sent to client successfully')
@@ -287,7 +295,7 @@ export async function POST(request: NextRequest) {
               break
 
             } catch (error) {
-              console.error(`❌ Failed to send result (attempt ${attempt}/3) - controller issue:`, error.message)
+              console.error(`❌ Failed to send result (attempt ${attempt}/3) - controller issue:`, error instanceof Error ? error.message : error)
 
               if (attempt === 3) {
                 console.error('❌ All attempts to send result failed - controller permanently closed')
@@ -345,8 +353,8 @@ export async function POST(request: NextRequest) {
               charactersTranslated: translatedContent.length,
               processingTimeMs: Date.now() - startTime,
               languagePairs: { [`${sourceLanguage || 'auto'}-${targetLanguage}`]: 1 },
-              serviceUsage: { 'premium': 1 },
-              averageConfidence: 0.95
+              serviceUsage: { [`gemini_${translationModel}`]: 1 },
+              averageConfidence: 0
             })
             console.log(`📈 Recorded analytics for user ${userId}`)
             console.log('✅ All database operations completed successfully')
@@ -365,22 +373,42 @@ export async function POST(request: NextRequest) {
             clearTimeout(progressTimeoutId)
           }
 
-          // Refund credits on translation failure (only in production) - do this asynchronously
-          if (process.env.NODE_ENV !== 'development') {
-            setImmediate(async () => {
-              try {
+          // Release the free attempt or refund the exact amount reserved.
+          setImmediate(async () => {
+            try {
+              if (paymentReservation?.kind === 'free' && paymentReservation.claimId) {
+                await releaseFreeTranslation(userId, paymentReservation.claimId)
+              } else if (paymentReservation?.creditsCharged) {
                 const { UserService } = await import('@/lib/database-admin')
-                const batchSize = 20
-                const totalBatches = Math.ceil(entries.length / batchSize)
-                const creditsPerBatch = translationModel === 'premium' ? 0.75 : 0.25
-                const totalCredits = totalBatches * creditsPerBatch
-
-                await UserService.adjustCredits(userId, totalCredits, `Refund for failed translation: ${file.name}`)
-                console.log(`💰 Refunded ${totalCredits} credits due to translation failure`)
-              } catch (refundError) {
-                console.error('❌ Failed to refund credits:', refundError)
+                await UserService.adjustCredits(
+                  userId,
+                  paymentReservation.creditsCharged,
+                  `Full refund for failed translation: ${file.name}`
+                )
               }
+            } catch (refundError) {
+              console.error('❌ Failed to release/refund translation payment:', refundError)
+            }
+          })
+
+          try {
+            const { TranslationJobService } = await import('@/lib/database-admin')
+            await TranslationJobService.createJob({
+              userId,
+              type: 'single',
+              status: 'failed',
+              originalFileName: file.name,
+              originalFileSize: file.size,
+              sourceLanguage: sourceLanguage || undefined,
+              targetLanguage,
+              aiService: 'google',
+              subtitleCount: parsedSubtitleCount,
+              processingTimeMs: Date.now() - requestStartedAt,
+              errorMessage: err?.message || 'Translation failed',
+              completedAt: new Date() as any,
             })
+          } catch (failureLogError) {
+            console.error('Failed to persist translation failure:', failureLogError)
           }
 
           if (!controllerClosed) {
@@ -422,4 +450,3 @@ export async function POST(request: NextRequest) {
     })
   }
 }
-

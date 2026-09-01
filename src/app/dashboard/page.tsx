@@ -339,7 +339,7 @@ function DashboardPageInner() {
                         </div>
                         <div>
                           <p className="font-medium text-foreground">Choose your AI service</p>
-                          <p className="text-sm text-muted-foreground">Standard (~0.1 credits) or Premium (~0.2 credits) per 20 lines</p>
+                          <p className="text-sm text-muted-foreground">First complete file free in either quality; then 0.5 Standard or 1.5 Premium credits per 20 subtitles</p>
                         </div>
                       </div>
                       <div className="flex items-start space-x-3">

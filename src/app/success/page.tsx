@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, ArrowRight, Sparkles, Coins, Zap } from 'lucide-react'
 import Link from 'next/link'
+import { trackPurchase } from '@/lib/analytics'
 
 function SuccessPageInner() {
   const { user } = useAuth()
@@ -25,9 +26,10 @@ function SuccessPageInner() {
   const chargeId = searchParams.get('charge_id') || searchParams.get('invoice_id')
 
   // Parse amount - handle both numeric and placeholder values
+  const packagePrice = (creditValue: number) => ({ 100: 1, 500: 5, 1200: 10, 2500: 20 }[creditValue] || 0)
   const parsedAmount = amount && amount !== '{CHECKOUT_SESSION_TOTAL_AMOUNT}'
     ? parseInt(amount) / 100
-    : credits ? parseInt(credits) * 0.01 : null
+    : credits ? packagePrice(parseInt(credits)) : null
 
   useEffect(() => {
     let mounted = true
@@ -55,6 +57,15 @@ function SuccessPageInner() {
       clearTimeout(timer)
     }
   }, [user, payment, chargeId, credits])
+
+  useEffect(() => {
+    const transactionId = sessionId || chargeId
+    if (!success || !transactionId || !parsedAmount) return
+    const key = `subtitlebot_purchase_tracked_${transactionId}`
+    if (sessionStorage.getItem(key)) return
+    trackPurchase(transactionId, parsedAmount, 'USD')
+    sessionStorage.setItem(key, '1')
+  }, [success, sessionId, chargeId, parsedAmount])
 
   if (!success) {
     router.push('/buy-credits')

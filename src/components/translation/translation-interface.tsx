@@ -21,9 +21,20 @@ import { Download, Crown, AlertCircle, Eye, Calculator, PictureInPicture2, Star,
 import { useFavoriteLanguages } from '@/hooks/use-favorite-languages'
 import { analytics } from '@/lib/analytics'
 import { toast } from 'sonner'
+import {
+  CREDIT_RATES,
+  getTranslationCredits,
+} from '@/lib/credit-policy'
 
 interface TranslationInterfaceProps {
   locale?: 'en' | 'cs'
+}
+
+declare global {
+  interface Window {
+    subtitleCount?: number
+    translationStartTime?: number
+  }
 }
 
 export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProps) {
@@ -42,6 +53,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
   const [refreshCredits, setRefreshCredits] = useState<(() => void) | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
   const [userCredits, setUserCredits] = useState<number | null>(null)
+  const [freeTranslationAvailable, setFreeTranslationAvailable] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
   const [maxRetries] = useState(2)
   const {
@@ -52,10 +64,18 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
     errorProgress
   } = useTranslationProgress()
   const originalTitleRef = useRef<string>('')
+  const lastStreamStageRef = useRef<string>('initializing')
+  const lastStreamProgressRef = useRef<number>(0)
 
   // Title useEffect - store original title for restoration
   useEffect(() => {
     if (!originalTitleRef.current) originalTitleRef.current = document.title
+    const params = new URLSearchParams(window.location.search)
+    const requestedSource = params.get('sourceLanguage')
+    const requestedTarget = params.get('targetLanguage')
+    if (requestedSource) setSourceLanguage(requestedSource)
+    if (requestedTarget) setTargetLanguage(requestedTarget)
+    analytics.translationIntent(params.get('from') || 'direct')
   }, [])
 
   useEffect(() => {
@@ -113,6 +133,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
         if (response.ok) {
           const data = await response.json()
           setUserCredits(data.credits || 0)
+          setFreeTranslationAvailable(Boolean(data.freeTranslationAvailable))
         }
       } catch (error) {
         console.error('Failed to fetch credits:', error)
@@ -126,12 +147,12 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
   // Recalculate cost when subtitle count or model changes
   useEffect(() => {
     if (selectedFile && subtitleCount) {
-      const chunksNeeded = Math.ceil(subtitleCount / 20)
-      const costPerChunk = translationModel === 'premium' ? 1.5 : 0.5 // Premium: 1.5 credits, Standard: 0.5 credits per 20 lines
-      const estimated = chunksNeeded * costPerChunk
+      const eligibleForFree =
+        freeTranslationAvailable || !user
+      const estimated = eligibleForFree ? 0 : getTranslationCredits(subtitleCount, translationModel)
       setEstimatedCost(estimated)
     }
-  }, [subtitleCount, translationModel])
+  }, [selectedFile, subtitleCount, translationModel, freeTranslationAvailable, user])
 
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file)
@@ -144,6 +165,21 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
       const text = await file.text()
       const parsed = SubtitleProcessor.parseSubtitleFile(text, file.name)
       setSubtitleCount(parsed.length)
+
+      try {
+        if (file.size <= 4 * 1024 * 1024) {
+          sessionStorage.setItem('subtitlebot_pending_translation', JSON.stringify({
+            name: file.name,
+            type: file.type,
+            content: text,
+            sourceLanguage,
+            targetLanguage,
+            translationModel,
+          }))
+        }
+      } catch {
+        // The upload still works; only cross-login restoration is unavailable.
+      }
 
         // Set global variable for adaptive timeout
         ; (window as any).subtitleCount = parsed.length
@@ -162,7 +198,44 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
     setSelectedFile(null)
     setSubtitleCount(null)
     setEstimatedCost(null)
+    sessionStorage.removeItem('subtitlebot_pending_translation')
   }
+
+  useEffect(() => {
+    if (selectedFile) return
+    try {
+      const raw = sessionStorage.getItem('subtitlebot_pending_translation')
+      if (!raw) return
+      const pending = JSON.parse(raw)
+      if (!pending?.content || !pending?.name) return
+      const restored = new File([pending.content], pending.name, { type: pending.type || 'text/plain' })
+      setSourceLanguage(pending.sourceLanguage || 'auto')
+      setTargetLanguage(pending.targetLanguage || '')
+      setTranslationModel(pending.translationModel === 'premium' ? 'premium' : 'standard')
+      setSelectedFile(restored)
+      const parsed = SubtitleProcessor.parseSubtitleFile(pending.content, pending.name)
+      setSubtitleCount(parsed.length)
+    } catch {
+      sessionStorage.removeItem('subtitlebot_pending_translation')
+    }
+  }, [selectedFile])
+
+  useEffect(() => {
+    if (!selectedFile) return
+    try {
+      const raw = sessionStorage.getItem('subtitlebot_pending_translation')
+      if (!raw) return
+      const pending = JSON.parse(raw)
+      sessionStorage.setItem('subtitlebot_pending_translation', JSON.stringify({
+        ...pending,
+        sourceLanguage,
+        targetLanguage,
+        translationModel,
+      }))
+    } catch {
+      // Persistence is an activation aid, not a requirement for translation.
+    }
+  }, [selectedFile, sourceLanguage, targetLanguage, translationModel])
 
   const handleTranslate = async () => {
     if (!selectedFile || !targetLanguage || !user) {
@@ -197,19 +270,19 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
       // Try streaming endpoint first, fallback to simple endpoint
       let response
       try {
-        response = await fetch('/api/translate-stream', {
+        response = await authFetch('/api/translate-stream', {
           method: 'POST',
           body: formData,
         })
 
         if (response.status === 405) {
-          response = await fetch('/api/translate-simple', {
+          response = await authFetch('/api/translate-simple', {
             method: 'POST',
             body: formData,
           })
         }
       } catch (error) {
-        response = await fetch('/api/translate-simple', {
+        response = await authFetch('/api/translate-simple', {
           method: 'POST',
           body: formData,
         })
@@ -222,8 +295,13 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
 
       const contentType = response.headers.get('content-type')
 
-      // Always try streaming first since our API sends streaming data
-      await handleStreamingResponse(response)
+      if (contentType?.includes('application/json')) {
+        const data = await response.json()
+        if (data.error) throw new Error(data.error)
+        await handleTranslationComplete(data)
+      } else {
+        await handleStreamingResponse(response)
+      }
 
     } catch (error) {
       console.error('Translation failed:', error)
@@ -242,7 +320,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
 
         // Wait a bit before retrying
         setTimeout(() => {
-          handleTranslation()
+          handleTranslate()
         }, 3000)
         return
       }
@@ -272,7 +350,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
     let progressStuckCount = 0
 
     // Adaptive timeout based on subtitle count
-    const subtitleCount = window.subtitleCount || 500 // Get from global or default
+      const subtitleCount = window.subtitleCount || 500 // Get from global or default
     const baseTimeout = 180000 // 3 minutes base
     const timeoutPerSubtitle = 200 // 200ms per subtitle
     const adaptiveTimeout = Math.min(
@@ -291,15 +369,15 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
 
       // Different timeouts for different stages
       let timeoutThreshold = 60000 // Default 60 seconds
-      if (handleStreamingResponse._lastStage === 'finalizing') {
+      if (lastStreamStageRef.current === 'finalizing') {
         timeoutThreshold = 30000 // Only 30 seconds for finalizing
-      } else if (handleStreamingResponse._lastStage === 'translating') {
+      } else if (lastStreamStageRef.current === 'translating') {
         timeoutThreshold = 90000 // 90 seconds for translating
       }
 
       if (timeSinceLastProgress > timeoutThreshold) {
         progressStuckCount++
-        console.warn(`⚠️ No progress for ${Math.round(timeSinceLastProgress / 1000)}s in ${handleStreamingResponse._lastStage} stage (count: ${progressStuckCount})`)
+        console.warn(`⚠️ No progress for ${Math.round(timeSinceLastProgress / 1000)}s in ${lastStreamStageRef.current} stage (count: ${progressStuckCount})`)
 
         if (progressStuckCount >= 3) { // Reduced from 5 to 3
           console.error('❌ Translation appears stuck, cancelling...')
@@ -334,10 +412,10 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
 
               if (data.type === 'progress') {
                 // Track progress changes
-                if (!handleStreamingResponse._lastProgress || Math.abs(data.progress - handleStreamingResponse._lastProgress) > 5) {
-                  handleStreamingResponse._lastProgress = data.progress
+                if (!lastStreamProgressRef.current || Math.abs(data.progress - lastStreamProgressRef.current) > 5) {
+                  lastStreamProgressRef.current = data.progress
                 }
-                handleStreamingResponse._lastStage = data.stage // Track current stage
+                lastStreamStageRef.current = data.stage // Track current stage
                 lastProgressTime = Date.now() // Reset progress timer
                 progressStuckCount = 0 // Reset stuck counter
                 updateProgress(data.stage, data.progress, data.details)
@@ -420,16 +498,23 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
         downloadUrl,
         translatedContent,
         translatedFileName: data.translatedFileName || 'translated.srt',
-        originalFileName: selectedFile?.name || 'unknown.srt'
+        originalFileName: selectedFile?.name || 'unknown.srt',
+        paymentKind: data.paymentKind,
+        creditsUsed: Number(data.creditsCharged || data.creditsUsed || 0),
       }
 
       setTranslationResult(result)
+      if (data.paymentKind === 'free') setFreeTranslationAvailable(false)
+      if (data.paymentKind === 'free') {
+        analytics.freeTranslationCompleted(data.subtitleCount || subtitleCount || 0, targetLanguage)
+      }
+      sessionStorage.removeItem('subtitlebot_pending_translation')
 
       // Track successful translation completion
       analytics.translationCompleted(
         sourceLanguage === 'auto' ? 'auto' : sourceLanguage,
         targetLanguage,
-        Date.now() - (window as any).translationStartTime || 0,
+        Date.now() - (window.translationStartTime || Date.now()),
         data.subtitleCount || subtitleCount || 0
       )
 
@@ -515,10 +600,15 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
                 <span className="text-sm text-muted-foreground">Credits:</span>
                 <CreditsDisplay
-                  userId={user.uid}
-                  onRefreshChange={setRefreshCredits}
+                  onRefresh={setRefreshCredits}
                   className="self-start sm:self-auto"
                 />
+              </div>
+            )}
+
+            {(freeTranslationAvailable || !user) && (
+              <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-900 dark:border-green-800/40 dark:bg-green-950/30 dark:text-green-200">
+                <strong>First file free:</strong> Translate one complete subtitle file in either quality. No credits or card needed.
               </div>
             )}
 
@@ -526,10 +616,10 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
               <div className="p-4 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800/30 rounded-lg">
                 <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-300">
                   <AlertCircle className="h-4 w-4" />
-                  <span className="font-medium">Login Required</span>
+                  <span className="font-medium">Upload first, sign in when ready</span>
                 </div>
                 <p className="text-yellow-700 dark:text-yellow-400 mt-1">
-                  Please log in to use the translation service.
+                  Choose your file and languages now. We will keep them in this tab while you sign in or create an account.
                 </p>
               </div>
             )}
@@ -564,7 +654,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                       <Badge variant="destructive" className="text-[10px] px-1 py-0 animate-pulse">SALE</Badge>
                     </div>
                     <p className="text-xs opacity-80 mb-2">Fast, reliable translation</p>
-                    <div className="text-sm font-semibold"><span className="line-through opacity-50 mr-1">0.8</span>0.5 credits per 20 lines</div>
+                    <div className="text-sm font-semibold">{CREDIT_RATES.standard} credits per 20 subtitles</div>
                   </div>
                 </Button>
 
@@ -598,7 +688,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                     </p>
                     <div className={`text-sm font-semibold ${translationModel === 'premium' ? 'text-amber-900' : 'text-gray-900 dark:text-gray-100'
                       }`}>
-                      <span className="line-through opacity-50 mr-1">2.0</span>1.5 credits per 20 lines
+                      {CREDIT_RATES.premium} credits per 20 subtitles
                     </div>
                   </div>
                 </Button>
@@ -670,7 +760,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
             </div>
 
             {/* Cost Calculator */}
-            {selectedFile && subtitleCount && estimatedCost && (
+            {selectedFile && subtitleCount && estimatedCost !== null && (
               <div className={`p-4 border rounded-lg ${userCredits !== null && userCredits < estimatedCost
                 ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/30'
                 : translationModel === 'premium'
@@ -705,13 +795,13 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                         ? 'text-amber-600'
                         : 'text-primary'
                       }`}>
-                      {estimatedCost.toFixed(1)} credits
+                      {estimatedCost === 0 ? 'FREE' : `${estimatedCost.toFixed(1)} credits`}
                     </div>
                     <p className={`text-xs ${userCredits !== null && userCredits < estimatedCost
                       ? 'text-destructive/80'
                       : 'text-muted-foreground'
                       }`}>
-                      ~${(estimatedCost / 100).toFixed(2)} USD
+                      {estimatedCost === 0 ? 'Your first eligible file' : `~$${(estimatedCost / 100).toFixed(2)} USD`}
                     </p>
                   </div>
                 </div>
@@ -751,7 +841,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                         </>
                       )}
                     </span>
-                    <span>Rate: {translationModel === 'premium' ? '2.0' : '0.8'} credits per 20 subtitles</span>
+                    <span>Rate: {CREDIT_RATES[translationModel]} credits per 20 subtitles</span>
                   </div>
                 </div>
               </div>
@@ -784,7 +874,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                           originalFile: selectedFile?.name || 'unknown.srt',
                           sourceLanguage: sourceLanguage === 'auto' ? 'Auto-detect' : sourceLanguage,
                           targetLanguage: targetLanguage,
-                          aiService: 'openai', // We're using OpenAI for premium translation
+                          aiService: 'google',
                           translatedFileName: translationResult.translatedFileName || 'translated.srt'
                         }
 
@@ -852,22 +942,45 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                     PiP Overlay
                   </Button>
                 </div>
+
+                {translationResult?.paymentKind === 'free' && (
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800/40 dark:bg-blue-950/30">
+                    <h4 className="font-semibold text-blue-950 dark:text-blue-200">{locale === 'cs' ? 'Bezplatný překlad je hotový' : 'Your free translation is complete'}</h4>
+                    <p className="mt-1 text-sm text-blue-800 dark:text-blue-300">
+                      {locale === 'cs'
+                        ? 'Výsledek si ponechte a pokračujte jen tehdy, pokud vám SubtitleBot vyhovuje. Startovní balíček za $5 pokryje až 20 000 Standard titulků a zakoupené kredity nevyprší.'
+                        : 'Keep the result and continue only if SubtitleBot worked for you. The $5 Starter Pack covers up to 20,000 Standard subtitle lines, and purchased credits never expire.'}
+                    </p>
+                    <Button asChild className="mt-3" size="sm">
+                      <a href={locale === 'cs' ? '/cs/buy-credits' : '/buy-credits'}>{locale === 'cs' ? 'Přeložit další soubor pomocí kreditů' : 'Translate another file with credits'}</a>
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
               // Before/during translation
               <Button
-                onClick={handleTranslate}
+                onClick={() => {
+                  if (!user) {
+                    window.location.href = `/login?redirect=${encodeURIComponent('/translate')}`
+                    return
+                  }
+                  if (!user.emailVerified) {
+                    window.location.href = `/verify-email?redirect=${encodeURIComponent('/translate')}`
+                    return
+                  }
+                  handleTranslate()
+                }}
                 disabled={
                   !selectedFile ||
                   !targetLanguage ||
                   isTranslating ||
-                  !user ||
-                  (userCredits !== null && estimatedCost !== null && userCredits < estimatedCost)
+                  (Boolean(user) && userCredits !== null && estimatedCost !== null && userCredits < estimatedCost)
                 }
                 className="w-full"
                 size="lg"
               >
-                {isTranslating ? 'Translating...' :
+                {isTranslating ? 'Translating...' : !user ? 'Sign in to translate your first file free' : !user.emailVerified ? 'Verify email to start' :
                   (userCredits !== null && estimatedCost !== null && userCredits < estimatedCost) ?
                     'Insufficient Credits' : 'Start Translation'}
               </Button>

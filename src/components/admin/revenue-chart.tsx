@@ -27,18 +27,18 @@ export function RevenueChart({ revenueData, stats }: RevenueChartProps) {
     }))
     .slice(-14) // Last 14 days
 
-  // Subscription distribution data
+  // Actual payer distribution (not inferred from remaining balances).
   const subscriptionData = [
-    { name: 'Free', value: stats.freeUsers, color: '#94a3b8' },
-    { name: 'Premium', value: stats.premiumUsers, color: '#3b82f6' },
-    { name: 'Pro', value: stats.proUsers, color: '#8b5cf6' }
+    { name: 'Never paid', value: stats.freeUsers, color: '#94a3b8' },
+    { name: 'Payers', value: stats.premiumUsers, color: '#3b82f6' },
+    { name: 'Repeat payers', value: stats.proUsers, color: '#8b5cf6' }
   ]
 
   // Service usage data
   const serviceData = [
-    { name: 'Google Translate', value: stats.googleTranslateUsage, color: '#10b981' },
-    { name: 'Google Gemini', value: stats.openaiUsage, color: '#f59e0b' },
-    { name: 'Premium AI', value: stats.premiumAiUsage, color: '#8b5cf6' }
+    { name: 'Gemini (correctly tagged)', value: stats.googleTranslateUsage, color: '#10b981' },
+    { name: 'Legacy mislabeled jobs', value: stats.openaiUsage, color: '#f59e0b' },
+    { name: 'Legacy premium tag', value: stats.premiumAiUsage, color: '#8b5cf6' }
   ]
 
   return (

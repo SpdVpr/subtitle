@@ -77,10 +77,15 @@ export function createPaymentUrl(config: PaymentLinkConfig, userId: string, meta
   // Add client_reference_id for user identification
   url.searchParams.set('client_reference_id', userId)
   
-  // Add custom metadata if provided
+  // Payment Links support email prefill and UTM query parameters. Arbitrary
+  // metadata[...] URL parameters are silently ignored by hosted links.
   if (metadata) {
     Object.entries(metadata).forEach(([key, value]) => {
-      url.searchParams.set(`metadata[${key}]`, value)
+      if (!value) return
+      if (key === 'user_email') url.searchParams.set('prefilled_email', value)
+      if (['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].includes(key)) {
+        url.searchParams.set(key, value.slice(0, 150))
+      }
     })
   }
   

@@ -15,8 +15,8 @@ interface CreditTransaction {
   userEmail: string
   type: 'topup' | 'deduction' | 'refund' | 'bonus' | 'credit'
   amount: number
-  balanceBefore: number
-  balanceAfter: number
+  balanceBefore: number | null
+  balanceAfter: number | null
   reason: string
   createdAt: Date
   adminId?: string
@@ -197,10 +197,10 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
                       </div>
                     </div>
                     <div className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground">
-                      {transaction.type === 'topup' || transaction.type === 'credit' ? (
+                      {(transaction.type === 'topup' || transaction.type === 'credit') && /^Purchased \d+ credits - /.test(transaction.reason || '') ? (
                         <div>
                           <div className="font-medium text-green-700 dark:text-green-300 text-xs sm:text-sm">
-                            💳 Credit Purchase: {Math.abs(transaction.amount).toFixed(2)} credits
+                            💳 Paid credit purchase: {Math.abs(transaction.amount).toFixed(2)} credits
                           </div>
                           <div className="text-xs mt-1 truncate">
                             Account: {transaction.userEmail}
@@ -247,10 +247,12 @@ export function CreditHistory({ onRefresh }: CreditHistoryProps) {
                     <span className="hidden sm:inline">{formatAmount(transaction.amount, transaction.type)} credits</span>
                     <span className="sm:hidden">{formatAmount(transaction.amount, transaction.type)}</span>
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-muted-foreground">
-                    <span className="hidden sm:inline">Balance: {transaction.balanceAfter.toFixed(2)} credits</span>
-                    <span className="sm:hidden">{transaction.balanceAfter.toFixed(2)}</span>
-                  </div>
+                  {transaction.balanceAfter !== null && (
+                    <div className="text-xs text-gray-500 dark:text-muted-foreground">
+                      <span className="hidden sm:inline">Balance: {transaction.balanceAfter.toFixed(2)} credits</span>
+                      <span className="sm:hidden">{transaction.balanceAfter.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

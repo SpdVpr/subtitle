@@ -21,18 +21,22 @@ export interface TranslationRequest {
 }
 
 export interface TranslationResult {
-  id: string
-  originalFileName: string
-  translatedFileName: string
-  targetLanguage: string
-  sourceLanguage: string
-  aiService: 'google' | 'openai' | 'premium'
-  status: 'processing' | 'completed' | 'failed'
-  progress: number
+  id?: string
+  originalFileName?: string
+  translatedFileName?: string
+  targetLanguage?: string
+  sourceLanguage?: string
+  aiService?: 'google' | 'openai' | 'premium'
+  status: 'processing' | 'completed' | 'failed' | 'error'
+  progress?: number
   downloadUrl?: string
+  translatedContent?: string
+  paymentKind?: 'free' | 'credits'
+  creditsUsed?: number
+  error?: string
   errorMessage?: string
   processingTimeMs?: number
-  subtitleCount: number
+  subtitleCount?: number
 }
 
 export interface LanguageOption {

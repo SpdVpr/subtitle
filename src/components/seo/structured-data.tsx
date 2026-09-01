@@ -80,7 +80,7 @@ export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataP
         url: `${baseUrl}${prefix}/pricing`,
         price: '0',
         priceCurrency: 'USD',
-        description: isCs ? '100 uvítacích kreditů zdarma' : '100 free welcome credits',
+        description: isCs ? 'První kompletní soubor titulků zdarma' : 'First complete subtitle file free',
       },
       publisher: { '@id': organizationId },
     },

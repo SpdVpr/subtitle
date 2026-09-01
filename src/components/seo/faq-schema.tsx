@@ -52,11 +52,11 @@ export const defaultFAQs = {
     },
     {
       question: "Is the service free?",
-      answer: "Yes! New users get 100 free credits upon registration. After that, you can buy credits as needed - no monthly subscriptions, credits never expire."
+      answer: "Yes. Your first complete subtitle file is free in either quality and requires no card. Continuing translations use pay-as-you-go credits that never expire."
     },
     {
       question: "How accurate are the translations?",
-      answer: "Our AI achieves 95% accuracy rate by combining advanced language models with contextual understanding. The system analyzes character relationships, cultural context, and maintains proper timing."
+      answer: "Quality varies by language pair and source material. SubtitleBot uses contextual AI, preserves timing, and lets you review and edit the result before publishing."
     },
     {
       question: "Can I translate multiple files at once?",
@@ -86,11 +86,11 @@ export const defaultFAQs = {
     },
     {
       question: "Je služba zdarma?",
-      answer: "Ano! Noví uživatelé získají 100 kreditů zdarma při registraci. Poté můžete kupovat kredity podle potřeby - žádné měsíční předplatné, kredity nikdy nevyprší."
+      answer: "Ano. První kompletní soubor titulků je zdarma ve Standard nebo Premium kvalitě a bez platební karty. Další překlady používají kredity, které nevyprší."
     },
     {
       question: "Jak přesné jsou překlady?",
-      answer: "Naše AI dosahuje 95% míry přesnosti kombinací pokročilých jazykových modelů s kontextovým porozuměním. Systém analyzuje vztahy postav, kulturní kontext a udržuje správné časování."
+      answer: "Kvalita závisí na jazykovém páru a zdrojovém textu. SubtitleBot používá kontextovou AI, zachová časování a výsledek můžete před publikováním zkontrolovat a upravit."
     },
     {
       question: "Mohu překládat více souborů najednou?",

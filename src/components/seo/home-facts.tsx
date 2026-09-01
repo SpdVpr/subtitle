@@ -8,14 +8,14 @@ export function HomeFacts({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
         ['Překlad', 'AI překlad ve více než 100 jazykových párech se zachováním časových značek.'],
         ['Formáty', 'SRT, VTT, ASS, SSA, SUB, SBV a TXT.'],
         ['Úpravy', 'Online editace textu, posun časování, hledání a nahrazování.'],
-        ['Cena', '100 uvítacích kreditů; další kredity bez měsíčního předplatného.'],
+        ['Cena', 'První kompletní soubor titulků zdarma; potom kredity bez předplatného.'],
       ]
     : [
         ['Find', 'Movie and TV subtitles through OpenSubtitles; anime subtitles through Jimaku.'],
         ['Translate', 'AI translation across 100+ language pairs while preserving timestamps.'],
         ['Formats', 'SRT, VTT, ASS, SSA, SUB, SBV, and TXT.'],
         ['Edit', 'Online text editing, timing shifts, search, and replacement.'],
-        ['Pricing', '100 welcome credits; additional credits without a monthly subscription.'],
+        ['Pricing', 'First complete subtitle file free; then pay-as-you-go credits.'],
       ]
 
   return (

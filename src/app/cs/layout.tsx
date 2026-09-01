@@ -5,7 +5,7 @@ export const metadata: Metadata = {
     default: "SubtitleBot - AI Překlad Titulků",
     template: "%s | SubtitleBot"
   },
-  description: "Profesionální AI služba pro překlad titulků s podporou 100+ jazyků. Rychlé, přesné, kontextové překlady pro filmy, seriály a videa. Zdarma kredity v ceně. Bez předplatného.",
+  description: "Profesionální AI překlad titulků ve 100+ jazycích. První kompletní soubor titulků zdarma, bez platební karty a předplatného.",
   keywords: [
     // Základní překladové termíny
     "překlad titulků",

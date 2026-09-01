@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/hooks/useAuth'
 import { Chrome, Loader2, AlertCircle, Mail } from 'lucide-react'
+import { currentRedirect } from '@/lib/safe-redirect'
+import { analytics } from '@/lib/analytics'
 
 const createRegisterSchema = (locale: 'en' | 'cs' = 'en') => {
   const messages = {
@@ -56,7 +58,7 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
   const texts = {
     en: {
       title: 'Create Account',
-      description: 'Get started with your free account and 100 welcome credits',
+      description: 'Translate your first complete subtitle file free — no card required',
       email: 'Email',
       password: 'Password',
       confirmPassword: 'Confirm Password',
@@ -74,7 +76,7 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
     },
     cs: {
       title: 'Vytvořit Účet',
-      description: 'Začněte se svým účtem zdarma a 100 uvítacími kredity',
+      description: 'Přeložte první kompletní soubor titulků zdarma — bez platební karty',
       email: 'Email',
       password: 'Heslo',
       confirmPassword: 'Potvrdit Heslo',
@@ -96,11 +98,11 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
 
   // Redirect to dashboard if already logged in and reset loading state
   useEffect(() => {
-    if (user) {
+    if (user && !isLoading && !success) {
       setIsLoading(false) // Reset loading state when user is authenticated
-      router.push(locale === 'cs' ? '/cs/dashboard' : '/dashboard')
+      router.push(currentRedirect(locale === 'cs' ? '/cs/dashboard' : '/dashboard'))
     }
-  }, [user, router, locale])
+  }, [user, router, locale, isLoading, success])
 
   const {
     register,
@@ -115,10 +117,12 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
     setError(null)
 
     try {
-      await signUp(data.email, data.password)
+      analytics.signUpStarted('email')
+      const redirectPath = currentRedirect(locale === 'cs' ? '/cs/translate' : '/translate')
+      await signUp(data.email, data.password, redirectPath)
       setSuccess(true)
       // Redirect to email verification page after successful registration
-      setTimeout(() => router.push('/verify-email'), 2000)
+      setTimeout(() => router.push(`/verify-email?redirect=${encodeURIComponent(redirectPath)}`), 2000)
     } catch (error: any) {
       console.error('Registration error:', error)
 
@@ -145,9 +149,10 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
     setError(null)
 
     try {
+      analytics.signUpStarted('google')
       await signInWithGoogle()
-      // Don't redirect immediately - let the auth state change handle the redirect
-      // The useAuth hook will properly manage the loading state and redirect
+      router.push(currentRedirect(locale === 'cs' ? '/cs/translate' : '/translate'))
+      setIsLoading(false)
     } catch (error: any) {
       setError(error.message || 'Failed to sign up with Google')
       setIsLoading(false)
@@ -180,7 +185,7 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
             </div>
           </div>
           <Button asChild className="w-full">
-            <Link href="/verify-email">Continue to Email Verification</Link>
+            <Link href={`/verify-email?redirect=${encodeURIComponent(currentRedirect(locale === 'cs' ? '/cs/translate' : '/translate'))}`}>Continue to Email Verification</Link>
           </Button>
         </CardContent>
       </Card>
@@ -229,7 +234,7 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
               {error}
               {error.includes('already registered') && (
                 <div className="mt-2">
-                  <Link href="/login" className="text-blue-600 hover:underline font-medium">
+                  <Link href={`/login?redirect=${encodeURIComponent(currentRedirect('/translate'))}`} className="text-blue-600 hover:underline font-medium">
                     Go to Sign In →
                   </Link>
                 </div>
@@ -302,7 +307,7 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
 
           <p className="text-center text-sm text-gray-600">
             {t.alreadyHaveAccount}{' '}
-            <Link href={locale === 'cs' ? '/cs/login' : '/login'} className="text-blue-600 hover:underline">
+            <Link href={`${locale === 'cs' ? '/cs/login' : '/login'}?redirect=${encodeURIComponent(currentRedirect(locale === 'cs' ? '/cs/translate' : '/translate'))}`} className="text-blue-600 hover:underline">
               {t.signIn}
             </Link>
           </p>

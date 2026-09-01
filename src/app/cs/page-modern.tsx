@@ -22,8 +22,8 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "SubtitleBot - AI Překlad Titulků | 100+ Jazyků | Zdarma Kredity",
-  description: "Profesionální AI překladač titulků s podporou 100+ jazyků. Rychlé, přesné, kontextové překlady pro filmy, seriály a videa. 100 kreditů zdarma. Žádné předplatné. Vyzkoušejte nyní!",
+  title: "SubtitleBot - AI Překlad Titulků | První Soubor Zdarma",
+  description: "Profesionální AI překladač titulků ve 100+ jazycích. První kompletní soubor titulků zdarma.",
   keywords: [
     "AI překlad titulků",
     "SRT překladač",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "SubtitleBot - AI Překlad Titulků | 100+ Jazyků",
-    description: "Profesionální AI překladač titulků s podporou 100+ jazyků. Rychlé, přesné, kontextové překlady. 100 kreditů zdarma při registraci.",
+    description: "Profesionální AI překladač titulků ve 100+ jazycích. První kompletní soubor titulků zdarma.",
     url: '/cs',
     siteName: "SubtitleBot",
     images: [
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: "SubtitleBot - AI Překlad Titulků | 100+ Jazyků",
-    description: "Profesionální AI překladač titulků. Rychlé, přesné, kontextové překlady. 100 kreditů zdarma.",
+    description: "Profesionální AI překladač titulků. První kompletní soubor titulků zdarma.",
     images: ['/og-image-cs.png'],
     creator: '@SubtitleBot',
     site: '@SubtitleBot',
@@ -94,7 +94,7 @@ export default function CzechHomeModern() {
               <Link href="/cs/register" className="inline-block group mb-8">
                 <div className="inline-flex items-center gap-3 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 hover:from-emerald-600 hover:via-green-600 hover:to-teal-600 text-white px-8 py-4 rounded-full shadow-2xl hover:shadow-emerald-500/50 transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-rotate-1">
                   <Gift className="h-6 w-6 animate-bounce" />
-                  <span className="font-bold text-lg">🎁 100 KREDITŮ ZDARMA pro nové uživatele!</span>
+                  <span className="font-bold text-lg">🎁 PRVNÍ KOMPLETNÍ SOUBOR TITULKŮ ZDARMA!</span>
                   <Sparkles className="h-6 w-6 animate-spin-slow" />
                 </div>
               </Link>
@@ -372,7 +372,7 @@ export default function CzechHomeModern() {
                 <div className="mt-8 text-center">
                   <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-base px-6 py-3 shadow-lg">
                     <Star className="h-5 w-5 mr-2" />
-                    95% míra přesnosti
+                    Kontextový překlad zaměřený na kvalitu
                   </Badge>
                 </div>
               </div>
@@ -397,7 +397,7 @@ export default function CzechHomeModern() {
                 {
                   icon: Zap,
                   title: "Bleskově Rychlé",
-                  description: "Celé soubory za méně než 30 sekund",
+                  description: "Rychlé zpracování s živým průběhem",
                   detail: "Optimalizované AI zachovává perfektní časování",
                   gradient: "from-yellow-400 to-orange-500"
                 },
@@ -596,7 +596,7 @@ export default function CzechHomeModern() {
                 <CardHeader className="relative z-10">
                   <div className="text-5xl mb-4">🎁</div>
                   <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white">
-                    Uvítací Bonus
+                    První Překlad Zdarma
                   </CardTitle>
                   <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
                     Začněte zdarma
@@ -605,12 +605,12 @@ export default function CzechHomeModern() {
 
                 <CardContent className="relative z-10 space-y-6">
                   <div className="text-center py-6">
-                    <div className="text-6xl font-black text-green-600 dark:text-green-400">100</div>
-                    <div className="text-xl text-gray-600 dark:text-gray-400 mt-2">Kreditů Zdarma</div>
+                    <div className="text-6xl font-black text-green-600 dark:text-green-400">1</div>
+                    <div className="text-xl text-gray-600 dark:text-gray-400 mt-2">Kompletní Soubor Zdarma</div>
                   </div>
 
                   <ul className="space-y-3">
-                    {["~250 řádků překladu", "Prémiový AI překlad", "Žádný časový limit", "Přístup ke všem funkcím"].map((feature, idx) => (
+                    {["Bez omezení počtu titulků", "Standard nebo Premium AI", "Bez platební karty", "Kompletní soubor ke stažení"].map((feature, idx) => (
                       <li key={idx} className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                         <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                         <span>{feature}</span>
@@ -619,7 +619,7 @@ export default function CzechHomeModern() {
                   </ul>
 
                   <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-6 rounded-xl shadow-lg text-lg" asChild>
-                    <Link href="/cs/register">Získat Zdarma Kredity</Link>
+                    <Link href="/cs/translate">Přeložit První Soubor Zdarma</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -640,7 +640,7 @@ export default function CzechHomeModern() {
 
                 <CardContent className="relative z-10 space-y-6">
                   <div className="text-center py-6">
-                    <div className="text-6xl font-black text-purple-600 dark:text-purple-400">~0,4</div>
+                    <div className="text-6xl font-black text-purple-600 dark:text-purple-400">0,5–1,5</div>
                     <div className="text-xl text-gray-600 dark:text-gray-400 mt-2">kreditů za 20 řádků</div>
                   </div>
 
@@ -663,7 +663,7 @@ export default function CzechHomeModern() {
             {/* Pricing Info */}
             <div className="mt-12 text-center space-y-4">
               <p className="text-lg text-gray-600 dark:text-gray-400">
-                💵 <strong className="text-gray-900 dark:text-white">1 USD = 100 kreditů</strong> • Kupte podle potřeby • Bez vypršení
+                💵 <strong className="text-gray-900 dark:text-white">První způsobilý soubor zdarma</strong> • Potom kredity podle potřeby • Zakoupené kredity nevyprší
               </p>
             </div>
           </div>
@@ -686,7 +686,7 @@ export default function CzechHomeModern() {
                 Připraveni začít?
               </h2>
               <p className="text-xl md:text-2xl text-white/90 leading-relaxed">
-                Získejte <span className="font-bold">100 kreditů zdarma</span> a vyzkoušejte nejlepší AI překladač titulků
+                Přeložte <span className="font-bold">první kompletní soubor zdarma</span> a vyzkoušejte náš AI překladač titulků
               </p>
 
               <div className="flex flex-col sm:flex-row gap-6 justify-center pt-8">
@@ -723,7 +723,7 @@ export default function CzechHomeModern() {
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-6 w-6" />
-                  <span className="font-semibold">100 kreditů zdarma</span>
+                  <span className="font-semibold">První soubor zdarma</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-6 w-6" />
@@ -738,4 +738,3 @@ export default function CzechHomeModern() {
     </CzechHomeClient>
   );
 }
-

@@ -272,7 +272,7 @@ function CzechDashboardPageInner() {
                   <CardHeader>
                     <CardTitle className="text-foreground">🚀 Začínáme</CardTitle>
                     <CardDescription className="text-muted-foreground">
-                      Využijte své kredity naplno s těmito tipy
+                      První kompletní soubor titulků je zdarma; potom používáte kredity
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
@@ -291,7 +291,7 @@ function CzechDashboardPageInner() {
                       </div>
                       <div>
                         <p className="font-medium text-foreground">Vyberte si AI službu</p>
-                        <p className="text-sm text-muted-foreground">Standardní (~0,1 kreditů) nebo Prémiový (~0,2 kreditů) za 20 řádků</p>
+                        <p className="text-sm text-muted-foreground">Potom 0,5 Standard nebo 1,5 Premium kreditu za 20 titulků</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">

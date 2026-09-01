@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminDb } from '@/lib/firebase-admin'
-import { TRACKING_CONFIG } from '@/lib/registration-tracking'
+import { verifyUser } from '@/lib/user-auth-server'
+import { isDisposableEmail } from '@/lib/disposable-email'
 
 /**
  * API endpoint to record a registration in the tracking system
@@ -17,14 +18,16 @@ import { TRACKING_CONFIG } from '@/lib/registration-tracking'
  */
 export async function POST(request: NextRequest) {
   try {
+    const authUser = await verifyUser(request)
+    if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
     const body = await request.json()
     const {
       userId,
       email,
       browserFingerprint,
       registrationMethod,
-      creditsAwarded,
-      suspiciousScore
+      acquisition
     } = body
 
     // Validate required fields
@@ -33,6 +36,9 @@ export async function POST(request: NextRequest) {
         { error: 'Missing required fields' },
         { status: 400 }
       )
+    }
+    if (userId !== authUser.uid) {
+      return NextResponse.json({ error: 'User mismatch' }, { status: 403 })
     }
 
     // Get client IP address
@@ -54,6 +60,14 @@ export async function POST(request: NextRequest) {
       .get()
     const duplicateFingerprintCount = fingerprintQuery.size
 
+    let suspiciousScore = 0
+    if (duplicateIpCount > 0) suspiciousScore += Math.min(40, duplicateIpCount * 15)
+    if (duplicateFingerprintCount > 0) suspiciousScore += Math.min(50, duplicateFingerprintCount * 25)
+    if (duplicateIpCount > 0 && duplicateFingerprintCount > 0) suspiciousScore += 20
+    if (isDisposableEmail(email)) suspiciousScore = 100
+    suspiciousScore = Math.min(100, suspiciousScore)
+    const creditsAwarded = 0
+
     // Record the registration using Admin SDK
     const trackingData = {
       userId,
@@ -61,13 +75,14 @@ export async function POST(request: NextRequest) {
       ipAddress,
       browserFingerprint,
       userAgent,
-      suspiciousScore: suspiciousScore || 0,
+      suspiciousScore,
       duplicateIpCount,
       duplicateFingerprintCount,
-      creditsAwarded: creditsAwarded || TRACKING_CONFIG.DEFAULT_CREDITS,
-      creditsReduced: creditsAwarded < TRACKING_CONFIG.DEFAULT_CREDITS,
+      creditsAwarded,
+      creditsReduced: false,
       registrationMethod,
       emailVerified: false,
+      acquisition: typeof acquisition === 'string' ? acquisition.slice(0, 2000) : null,
       createdAt: new Date()
     }
 
@@ -122,4 +137,3 @@ function getClientIP(request: NextRequest): string {
   // Fallback
   return request.ip || 'unknown'
 }
-

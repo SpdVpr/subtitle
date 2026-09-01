@@ -3,7 +3,7 @@ import { getAdminApp } from '@/lib/firebase-admin'
 import { getAuth } from 'firebase-admin/auth'
 import { verifyAdmin } from '@/lib/admin-auth-server'
 
-export type UserContext = { uid: string; email: string | null }
+export type UserContext = { uid: string; email: string | null; emailVerified: boolean }
 
 /**
  * Verifies the caller's Firebase ID token (Authorization: Bearer <token>) and
@@ -19,7 +19,7 @@ export async function verifyUser(request: NextRequest): Promise<UserContext | nu
   if (!token) return null
   try {
     const decoded = await getAuth(getAdminApp()).verifyIdToken(token)
-    return { uid: decoded.uid, email: decoded.email || null }
+    return { uid: decoded.uid, email: decoded.email || null, emailVerified: Boolean(decoded.email_verified) }
   } catch {
     return null
   }

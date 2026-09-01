@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { TranslationJobService, UserService } from '@/lib/database-admin'
+import { TranslationJobService } from '@/lib/database-admin'
 import { verifyUser } from '@/lib/user-auth-server'
 
 export async function POST(req: NextRequest) {
@@ -66,21 +66,13 @@ export async function POST(req: NextRequest) {
       completedAt: new Date() as any,
       subtitleCount: subtitleCount || 0,
       characterCount: characterCount || 0,
-      processingTimeMs: 2000, // Estimate
+      processingTimeMs: 0,
       translatedContent,
-      confidence: 0.85
     })
 
-    // Calculate and deduct credits
-    const chunksNeeded = Math.ceil((subtitleCount || 20) / 20)
-    const creditsUsed = chunksNeeded * 0.7
-
-    await UserService.adjustCredits(
-      userId,
-      -creditsUsed,
-      `Batch translation: ${originalFileName}`,
-      jobId
-    )
+    // Legacy persistence endpoint only. Translation endpoints now reserve and
+    // charge centrally; saving a result must never deduct a second time.
+    const creditsUsed = 0
 
     console.log('✅ Batch translation saved successfully:', {
       jobId,

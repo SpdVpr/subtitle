@@ -101,8 +101,8 @@ export class UserService {
     try {
       console.log('👤 Creating new user in Firestore:', uid, email)
 
-      const creditsBalance = options?.creditsBalance ?? 100
-      const creditsTotalPurchased = options?.creditsBalance ?? 100
+      const creditsBalance = options?.creditsBalance ?? 0
+      const creditsTotalPurchased = 0
 
       const userProfile: UserProfile = {
         uid,
@@ -122,6 +122,7 @@ export class UserService {
         },
         creditsBalance,
         creditsTotalPurchased,
+        freeTranslationUsed: false,
         registrationTracking: options?.registrationTracking,
         preferences: {
           defaultAiService: 'google',

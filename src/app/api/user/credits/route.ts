@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { UserService } from '@/lib/database-admin'
 import { verifyUser } from '@/lib/user-auth-server'
+import { getAdminDb } from '@/lib/firebase-admin'
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,10 +28,38 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    let actualPurchasedCredits = 0
+    try {
+      const purchases = await getAdminDb().collection('creditTransactions')
+        .where('userId', '==', userId)
+        .select('credits', 'description')
+        .get()
+      purchases.forEach((doc) => {
+        const data = doc.data()
+        if (/^Purchased \d+ credits - /.test(data.description || '') && !/simulated/i.test(data.description || '')) {
+          actualPurchasedCredits += Number(data.credits || 0)
+        }
+      })
+    } catch (error) {
+      console.warn('Failed to calculate purchased credits:', error)
+    }
+
+    const freeClaimedAt = (user.freeTranslationClaimedAt as any)?.toDate?.() || null
+    const hasActiveFreeClaim = Boolean(
+      user.freeTranslationClaimId &&
+      freeClaimedAt &&
+      Date.now() - freeClaimedAt.getTime() < 15 * 60 * 1000
+    )
+
     return NextResponse.json({
       success: true,
       credits: user.creditsBalance || 0,
-      totalPurchased: user.creditsTotalPurchased || 0,
+      totalPurchased: actualPurchasedCredits,
+      freeTranslationAvailable:
+        !user.freeTranslationUsed &&
+        !hasActiveFreeClaim &&
+        Number(user.usage?.translationsUsed || 0) === 0 &&
+        Number(user.registrationTracking?.suspiciousScore || 0) < 50,
       user: {
         uid: user.uid,
         email: user.email,

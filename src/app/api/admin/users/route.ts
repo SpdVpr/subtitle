@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
         console.log('📡 Using Firebase Client SDK')
         const { collection, getDocs, query, orderBy } = await import('firebase/firestore')
         const usersQuery = query(
-          collection(db, 'users'),
+          collection(db as any, 'users'),
           orderBy('createdAt', 'desc')
         )
         snapshot = await getDocs(usersQuery)
@@ -81,11 +81,26 @@ export async function GET(req: NextRequest) {
       throw new Error(`Firestore query failed: ${firestoreError.message}`)
     }
 
+    const paidUserIds = new Set<string>()
+    try {
+      const purchases = await db.collection('creditTransactions')
+        .select('userId', 'description')
+        .get()
+      purchases.forEach((purchaseDoc: any) => {
+        const purchase = purchaseDoc.data()
+        if (/^Purchased \d+ credits - /.test(purchase.description || '') && !/simulated/i.test(purchase.description || '')) {
+          paidUserIds.add(purchase.userId)
+        }
+      })
+    } catch (purchaseError) {
+      console.warn('Failed to load payer classification:', purchaseError)
+    }
+
     const mappedUsers = users.map(user => ({
       userId: user.uid,
       email: user.email || 'Unknown',
       displayName: user.displayName,
-      plan: (user.creditsBalance || 0) > 0 ? 'credits' : 'free',
+      plan: paidUserIds.has(user.uid) ? 'paid' : 'free',
       lastActive: user.usage?.lastActive || user.updatedAt || user.createdAt,
       translationsCount: user.usage?.translationsUsed || 0,
       creditsBalance: user.creditsBalance || 0,

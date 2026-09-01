@@ -31,6 +31,10 @@ export interface UserProfile {
   // Credits wallet
   creditsBalance?: number // in credits (e.g., 1 USD = 100 credits)
   creditsTotalPurchased?: number // lifetime purchased credits
+  freeTranslationUsed?: boolean
+  freeTranslationClaimId?: string
+  freeTranslationClaimedAt?: Timestamp
+  freeTranslationCompletedAt?: Timestamp
 
   // Registration tracking (anti-abuse)
   registrationTracking?: {

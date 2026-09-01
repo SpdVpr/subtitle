@@ -37,8 +37,8 @@ export function TranslatePromo({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
             </h2>
             <p className="text-sm sm:text-base text-white/85 leading-relaxed mb-4">
               {isCs
-                ? 'Stáhněte jakékoli titulky výše a nahrajte je do našeho AI překladače — během pár minut je máte ve svém jazyce, s původním časováním a formátem.'
-                : 'Download any subtitle above and drop it into our AI translator — get it in your language in minutes, with the original timing and format intact.'}
+                ? 'Stáhněte titulky výše a nahrajte je do AI překladače. První kompletní soubor je zdarma a bez platební karty.'
+                : 'Download a subtitle above and drop it into our AI translator. Your first complete file is free with no card required.'}
             </p>
             <ul className="flex flex-wrap gap-x-5 gap-y-2 text-xs sm:text-sm text-white/90">
               {features.map(([Icon, label]) => (
@@ -52,10 +52,10 @@ export function TranslatePromo({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
 
           <div className="flex lg:justify-end">
             <Link
-              href={`${langPrefix}/translate`}
+              href={`${langPrefix}/translate?from=subtitle-search`}
               className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm sm:text-base font-bold text-primary shadow-lg hover:bg-blue-50 transition-colors"
             >
-              {isCs ? 'Přeložit titulky teď' : 'Translate subtitles now'}
+              {isCs ? 'Přeložit první soubor zdarma' : 'Translate first file free'}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

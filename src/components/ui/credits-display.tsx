@@ -18,6 +18,7 @@ interface CreditsDisplayProps {
 export function CreditsDisplay({ showBuyButton = true, className = '', onRefresh }: CreditsDisplayProps) {
   const { user } = useAuth()
   const [credits, setCredits] = useState<number | null>(null)
+  const [freeTranslationAvailable, setFreeTranslationAvailable] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const fetchCredits = async () => {
@@ -31,6 +32,7 @@ export function CreditsDisplay({ showBuyButton = true, className = '', onRefresh
       if (response.ok) {
         const data = await response.json()
         setCredits(data.credits || 0)
+        setFreeTranslationAvailable(Boolean(data.freeTranslationAvailable))
       } else {
         console.error('Failed to fetch credits:', response.status)
         setCredits(0)
@@ -93,6 +95,12 @@ export function CreditsDisplay({ showBuyButton = true, className = '', onRefresh
         <span>{creditsValue.toFixed(1)}</span>
       </div>
 
+      {freeTranslationAvailable && (
+        <div className="rounded-full bg-green-100 px-2 py-1 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+          1 free file
+        </div>
+      )}
+
       {showBuyButton && (
         <Button size="sm" variant="outline" asChild>
           <Link href="/buy-credits">
@@ -109,6 +117,7 @@ export function CreditsCard() {
   const { user } = useAuth()
   const [credits, setCredits] = useState<number | null>(null)
   const [totalPurchased, setTotalPurchased] = useState<number>(0)
+  const [freeTranslationAvailable, setFreeTranslationAvailable] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -124,6 +133,7 @@ export function CreditsCard() {
           const data = await response.json()
           setCredits(data.credits || 0)
           setTotalPurchased(data.totalPurchased || 0)
+          setFreeTranslationAvailable(Boolean(data.freeTranslationAvailable))
         } else {
           console.error('Failed to fetch credits:', response.status)
           setCredits(0)
@@ -167,16 +177,24 @@ export function CreditsCard() {
               <span className="text-gray-500 dark:text-muted-foreground">credits</span>
             </div>
 
-            {isLowCredits && (
+            {freeTranslationAvailable && (
+              <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-900 dark:border-green-800/40 dark:bg-green-950/30 dark:text-green-200">
+                Your first complete subtitle file is free in either quality.
+              </div>
+            )}
+
+            {isLowCredits && !freeTranslationAvailable && (
               <div className="flex items-center space-x-2 text-destructive bg-destructive/10 p-2 rounded">
                 <Info className="w-4 h-4" />
                 <span className="text-sm">Low credits - consider buying more</span>
               </div>
             )}
 
-            <div className="text-sm text-muted-foreground">
-              Total purchased: {totalPurchased.toFixed(1)} credits
-            </div>
+            {totalPurchased > 0 && (
+              <div className="text-sm text-muted-foreground">
+                Purchased credits: {totalPurchased.toFixed(1)}
+              </div>
+            )}
 
             <div className="space-y-2">
               <Button asChild className="w-full">
@@ -190,7 +208,7 @@ export function CreditsCard() {
                 <div>• Standard: 0.5 credits per 20 lines</div>
                 <div>• Premium: 1.5 credits per 20 lines</div>
                 <div>• Includes context research & cultural adaptation</div>
-                <div>• 1 USD = 100 credits</div>
+                <div>• Credit packages start at $0.008 per credit</div>
               </div>
             </div>
           </>

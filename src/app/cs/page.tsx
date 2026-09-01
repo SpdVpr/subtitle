@@ -21,8 +21,8 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "SubtitleBot - AI Překlad Titulků | 100+ Jazyků | Zdarma Kredity",
-  description: "Profesionální AI překladač titulků s podporou 100+ jazyků. Rychlé, přesné, kontextové překlady pro filmy, seriály a videa. 100 kreditů zdarma. Žádné předplatné. Vyzkoušejte nyní!",
+  title: "SubtitleBot - AI Překlad Titulků | První Soubor Zdarma",
+  description: "Profesionální AI překladač titulků s podporou 100+ jazyků. První kompletní soubor titulků zdarma, bez platební karty.",
   keywords: [
     "AI překlad titulků",
     "SRT překladač",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "SubtitleBot - AI Překlad Titulků | 100+ Jazyků",
-    description: "Profesionální AI překladač titulků s podporou 100+ jazyků. Rychlé, přesné, kontextové překlady. 100 kreditů zdarma při registraci.",
+    description: "Profesionální AI překladač titulků s podporou 100+ jazyků. První kompletní soubor titulků zdarma.",
     url: '/cs',
     siteName: "SubtitleBot",
     images: [
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: "SubtitleBot - AI Překlad Titulků | 100+ Jazyků",
-    description: "Profesionální AI překladač titulků. Rychlé, přesné, kontextové překlady. 100 kreditů zdarma.",
+    description: "Profesionální AI překladač titulků. První kompletní soubor titulků zdarma.",
     images: ['/og-image-cs.png'],
     creator: '@SubtitleBot',
     site: '@SubtitleBot',
@@ -93,7 +93,7 @@ export default function CzechHome() {
               <Link href="/cs/register" className="inline-block group">
                 <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-full mb-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 hover:-rotate-1">
                   <Gift className="h-5 w-5 animate-bounce" />
-                  <span className="font-semibold">Noví uživatelé získají 100 kreditů ZDARMA pro první překlady</span>
+                  <span className="font-semibold">První kompletní soubor titulků přeložíme ZDARMA</span>
                   <Sparkles className="h-5 w-5 animate-spin-slow" />
                 </div>
               </Link>
@@ -216,7 +216,7 @@ export default function CzechHome() {
                   <p className="text-center text-sm text-gray-600 dark:text-muted-foreground">
                     <span className="font-medium text-blue-600 dark:text-primary">Perfektní časování zachováno</span> •
                     <span className="font-medium text-green-600 dark:text-green-400"> Přirozené překlady</span> •
-                    <span className="font-medium text-purple-600 dark:text-purple-400"> Podpora 40+ jazyků</span>
+                    <span className="font-medium text-purple-600 dark:text-purple-400"> Podpora 100+ jazykových párů</span>
                   </p>
                 </div>
               </div>
@@ -342,7 +342,7 @@ export default function CzechHome() {
                 <div className="mt-6 text-center">
                   <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                     <Star className="h-4 w-4 mr-1" />
-                    95% míra přesnosti
+                    Kontextový překlad zaměřený na kvalitu
                   </Badge>
                 </div>
               </div>
@@ -367,7 +367,7 @@ export default function CzechHome() {
                 </div>
                 <CardTitle className="text-xl">Bleskově rychlé</CardTitle>
                 <CardDescription className="text-base">
-                  Přeložte celé soubory s titulky za méně než 30 sekund
+                  Rychlé zpracování s živým průběhem
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -632,18 +632,18 @@ export default function CzechHome() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-center space-x-2">
-                    <span>Uvítací bonus</span>
+                    <span>První překlad zdarma</span>
                   </CardTitle>
                   <CardDescription>Začněte zdarma</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="text-3xl font-bold text-primary">100 Kreditů</div>
-                  <div className="text-sm text-muted-foreground">Zdarma při registraci</div>
+                  <div className="text-3xl font-bold text-primary">1 soubor zdarma</div>
+                  <div className="text-sm text-muted-foreground">Kompletní soubor • Standard nebo Premium</div>
                 </CardContent>
                 <CardContent className="space-y-2">
-                  <p>Ôťô ~250 řádků překladu</p>
-                  <p>Ôťô Prémiový AI překlad</p>
-                  <p>Ôťô žádný časový limit</p>
+                  <p>✓ Kompletní soubor titulků</p>
+                  <p>✓ Standard nebo Premium AI překlad</p>
+                  <p>✓ Bez platební karty</p>
                   <p>Ôťô Přístup ke všem funkcím</p>
                 </CardContent>
               </Card>
@@ -667,7 +667,7 @@ export default function CzechHome() {
                       <span className="font-bold">1,5 kreditů</span>
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground mt-2">za 20 řádků</div>
+                  <div className="text-xs text-muted-foreground mt-2">za 20 titulků</div>
                 </CardContent>
                 <CardContent className="space-y-2">
                   <p>Ôťô Kontextový překlad</p>
@@ -680,10 +680,10 @@ export default function CzechHome() {
 
             <div className="mt-8 space-y-4">
               <div className="text-sm text-muted-foreground">
-                💵 <strong>1 USD = 100 kreditů</strong> • Kupte kredity podle potřeby • Bez vypršení
+                💵 Další překlady používají kredity • Od $0,008 za kredit • Zakoupené kredity nevyprší
               </div>
               <Button size="lg" asChild>
-                <Link href="/cs/register">Získat 100 Zdarma Kreditů</Link>
+                <Link href="/cs/translate">Přeložit první soubor zdarma</Link>
               </Button>
             </div>
           </div>

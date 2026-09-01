@@ -7,6 +7,9 @@ import { Check, Star, Zap, Crown, Coins, Bitcoin, ExternalLink } from 'lucide-re
 import { useAuth } from '@/hooks/useAuth'
 import Link from 'next/link'
 import { STRIPE_PAYMENT_LINKS, getPricePerCredit } from '@/lib/stripe-payment-links'
+import { getLinesForCredits } from '@/lib/credit-policy'
+import { useEffect } from 'react'
+import { analytics } from '@/lib/analytics'
 
 // Enhanced credit packages with current Stripe Payment Links (excluding $1 packages)
 const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS
@@ -40,11 +43,10 @@ function getPackageDescription(credits: number): string {
 }
 
 function getPackageFeatures(credits: number): string[] {
-  // Average cost: (0.8 + 2.0) / 2 = 1.4 credits per 20 lines
-  const avgCostPer20Lines = 1.4
   const features = [
     `${credits.toLocaleString()} kreditů`,
-    `~${Math.floor(credits / avgCostPer20Lines * 20).toLocaleString()} řádků překladu (průměr)`,
+    `Až ${getLinesForCredits(credits, 'standard').toLocaleString()} titulků ve Standard kvalitě`,
+    `Až ${getLinesForCredits(credits, 'premium').toLocaleString()} titulků v Premium kvalitě`,
     'Kredity nevyprší',
     'Standard i Premium AI překlad',
     'Všechny jazykové páry',
@@ -69,6 +71,7 @@ function getPackageFeatures(credits: number): string[] {
 
 export default function PricingPageCZ() {
   const { user } = useAuth()
+  useEffect(() => analytics.pricingViewed('cs_pricing'), [])
 
   const getPackageIcon = (credits: number) => {
     if (credits <= 100) return <Coins className="w-8 h-8 text-blue-500" />
@@ -86,7 +89,7 @@ export default function PricingPageCZ() {
             Jednoduché, transparentní ceny
           </h1>
           <p className="text-xl text-muted-foreground mb-6 max-w-3xl mx-auto">
-            Vyberte si perfektní balíček kreditů pro překlad titulků. 
+            První kompletní soubor titulků přeložíme zdarma v libovolné kvalitě. Potom si vyberte balíček kreditů podle potřeby.
             Žádné předplatné, žádné skryté poplatky - plaťte jen za to, co použijete.
           </p>
           <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
@@ -196,8 +199,7 @@ export default function PricingPageCZ() {
             <div>
               <h3 className="font-semibold mb-2">Jak fungují kredity?</h3>
               <p className="text-muted-foreground">
-                Každý kredit umožňuje přeložit přibližně 5 řádků titulků. 
-                Kredity se odečítají podle skutečného počtu zpracovaných řádků.
+                Standard stojí 0,5 kreditu a Premium 1,5 kreditu za každých započatých 20 titulků.
               </p>
             </div>
             <div>
@@ -216,7 +218,7 @@ export default function PricingPageCZ() {
             <div>
               <h3 className="font-semibold mb-2">Mohu získat refundaci?</h3>
               <p className="text-muted-foreground">
-                Nabízíme refundaci do 7 dnů od nákupu, pokud jste nepoužili žádné kredity. 
+                Refundaci posuzujeme do 30 dnů od nákupu, pokud nebyl použit žádný ze zakoupených kreditů.
                 Kontaktujte náš tým podpory pro pomoc.
               </p>
             </div>
@@ -230,8 +232,8 @@ export default function PricingPageCZ() {
             Připojte se k tisícům tvůrců obsahu, kteří důvěřují SubtitleBot pro své potřeby překladu.
           </p>
           <Button size="lg" asChild>
-            <Link href={user ? '/cs/buy-credits' : '/cs/login?redirect=/cs/buy-credits'}>
-              {user ? 'Koupit kredity nyní' : 'Registrovat se a koupit kredity'}
+            <Link href={user ? '/cs/buy-credits' : '/cs/translate'}>
+              {user ? 'Koupit kredity nyní' : 'Vyzkoušet první soubor zdarma'}
             </Link>
           </Button>
         </div>

@@ -1,193 +1,118 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { PremiumTranslationService } from '@/lib/premium-translation-service'
+import { verifyUser } from '@/lib/user-auth-server'
+import {
+  completeFreeTranslation,
+  releaseFreeTranslation,
+  reserveTranslationPayment,
+  type TranslationPaymentReservation,
+} from '@/lib/free-translation-server'
+import type { TranslationModel } from '@/lib/credit-policy'
 
 export async function GET() {
-  return NextResponse.json({
-    message: 'Simple translate endpoint is working',
-    timestamp: new Date().toISOString()
-  })
+  return NextResponse.json({ message: 'Simple translate endpoint is working' })
 }
 
 export async function POST(request: NextRequest) {
+  let reservation: TranslationPaymentReservation | null = null
+  let userId = ''
+  let fileName = 'subtitle file'
+
   try {
-    console.log('🚀 Simple translate endpoint called')
-    
+    const authUser = await verifyUser(request)
+    if (!authUser) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+    if (!authUser.emailVerified) {
+      return NextResponse.json({ error: 'Email verification required.', code: 'EMAIL_NOT_VERIFIED' }, { status: 403 })
+    }
+    userId = authUser.uid
+
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const targetLanguage = (formData.get('targetLanguage') as string) || 'cs'
     const sourceLanguage = (formData.get('sourceLanguage') as string) || 'en'
-    const userId = (formData.get('userId') as string) || ''
+    const model: TranslationModel = formData.get('translationModel') === 'premium' ? 'premium' : 'standard'
+    if (!file) return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
+    fileName = file.name
+
+    const geminiKey = process.env.GEMINI_API_KEY
+    if (!geminiKey) return NextResponse.json({ error: 'Translation service is not configured.' }, { status: 500 })
+
+    const entries = SubtitleProcessor.parseSRT(await file.text())
+    if (!entries.length) return NextResponse.json({ error: 'No valid subtitles found in file' }, { status: 400 })
+
+    try {
+      reservation = await reserveTranslationPayment({
+        userId,
+        subtitleCount: entries.length,
+        model,
+        description: `${model} translation: ${entries.length} subtitles`,
+      })
+    } catch (error) {
+      const [code, required = '0', available = '0'] = (error instanceof Error ? error.message : '').split(':')
+      const message = code === 'INSUFFICIENT_CREDITS'
+          ? `Insufficient credits. Required: ${Number(required).toFixed(1)}, available: ${Number(available).toFixed(1)}.`
+          : 'Failed to reserve translation payment.'
+      return NextResponse.json({ error: message, code }, { status: 402 })
+    }
 
     const startTime = Date.now()
-
-    console.log('📝 Request data:', {
-      hasFile: !!file,
+    const translator = new PremiumTranslationService(geminiKey, model)
+    const translatedEntries = await translator.translateSubtitles(
+      entries,
       targetLanguage,
-      sourceLanguage,
-      userId: userId.substring(0, 10) + '...'
+      sourceLanguage || 'en',
+      file.name,
+      () => undefined
+    )
+    const translatedContent = SubtitleProcessor.generateSRT(translatedEntries, targetLanguage)
+    const translatedFileName = file.name.replace(/\.[^.]+$/, `_${targetLanguage}.srt`)
+
+    const { TranslationJobService, UserService } = await import('@/lib/database-admin')
+    const jobId = await TranslationJobService.createJob({
+      userId,
+      type: 'single',
+      status: 'completed',
+      originalFileName: file.name,
+      originalFileSize: file.size,
+      sourceLanguage: sourceLanguage || undefined,
+      targetLanguage,
+      aiService: 'google',
+      translatedFileName,
+      translatedContent,
+      subtitleCount: translatedEntries.length,
+      characterCount: translatedContent.length,
+      processingTimeMs: Date.now() - startTime,
+      completedAt: new Date() as any,
     })
-
-    // Check if user is logged in
-    if (!userId) {
-      return NextResponse.json({ 
-        error: 'Authentication required. Please log in to use translation services.' 
-      }, { status: 401 })
+    await UserService.updateUsage(userId, { translationsUsed: 1, lastActive: new Date() })
+    if (reservation.kind === 'free' && reservation.claimId) {
+      await completeFreeTranslation(userId, reservation.claimId)
     }
 
-    if (!file) {
-      return NextResponse.json({ 
-        error: 'No file uploaded' 
-      }, { status: 400 })
-    }
-
-    const apiKey = process.env.OPENAI_API_KEY
-    if (!apiKey || !apiKey.startsWith('sk-')) {
-      return NextResponse.json({ 
-        error: 'Premium translation requires a valid OPENAI_API_KEY' 
-      }, { status: 500 })
-    }
-
-    console.log('🔑 API key available:', !!apiKey)
-
-    const fileText = await file.text()
-    const entries = SubtitleProcessor.parseSRT(fileText)
-    
-    if (!entries.length) {
-      return NextResponse.json({ 
-        error: 'No valid subtitles found in file' 
-      }, { status: 400 })
-    }
-
-    console.log('📄 Parsed subtitles:', entries.length)
-
-    // Calculate and deduct credits upfront
-    const batchSize = 20
-    const totalBatches = Math.ceil(entries.length / batchSize)
-    const totalCredits = totalBatches * 0.7
-
-    console.log(`💰 Credit calculation: ${entries.length} subtitles, ${totalBatches} batches, ${totalCredits} credits`)
-
-    // Check balance and deduct credits upfront
-    try {
-      const { UserService } = await import('@/lib/database-admin')
-
-      console.log('🔍 Getting user data...')
-      const user = await UserService.getUser(userId)
-
-      if (!user) {
-        console.error('❌ User not found:', userId)
-        return NextResponse.json({
-          error: 'User not found. Please log in again.'
-        }, { status: 404 })
-      }
-
-      const balance = (user?.creditsBalance || 0)
-      console.log(`💳 User balance: ${balance}, Required: ${totalCredits}`)
-
-      if (balance < totalCredits) {
-        return NextResponse.json({
-          error: `Insufficient credits. Required: ${totalCredits.toFixed(2)}, Available: ${balance.toFixed(2)}`
-        }, { status: 402 })
-      }
-
-      console.log('💰 Deducting credits...')
-      console.log(`💳 SIMPLE: About to deduct ${totalCredits} credits for user ${userId}`)
-      // Deduct all credits upfront
-      await UserService.adjustCredits(userId, -totalCredits, `Premium translation: ${entries.length} subtitles (${totalBatches} batches)`)
-      console.log(`✅ SIMPLE: Successfully deducted ${totalCredits} credits for premium translation`)
-    } catch (err) {
-      console.error('❌ Credit deduction failed:', err)
-      console.error('❌ Error details:', err instanceof Error ? err.message : String(err))
-      console.error('❌ Error stack:', err instanceof Error ? err.stack : 'No stack trace')
-
-      return NextResponse.json({
-        error: 'Failed to process payment: ' + (err instanceof Error ? err.message : 'Unknown database error')
-      }, { status: 500 })
-    }
-
-    console.log('🎬 Starting premium translation...')
-    const premium = new PremiumTranslationService(apiKey)
-
-    // Progress callback that logs and could be extended for real-time updates
-    const progressCallback = (stage: string, progress: number, details?: string) => {
-      console.log(`🔄 Progress: ${stage} (${progress}%) - ${details || ''}`)
-      // In future, we could send progress updates via WebSocket or polling
-    }
-
-    try {
-      console.log('🚀 Calling PremiumTranslationService.translateSubtitles...')
-      const translatedEntries = await premium.translateSubtitles(
-        entries,
-        targetLanguage,
-        sourceLanguage || 'en',
-        file.name,
-        progressCallback
-      )
-      console.log('✅ PremiumTranslationService completed, got', translatedEntries.length, 'entries')
-
-      const translatedContent = SubtitleProcessor.generateSRT(translatedEntries, targetLanguage)
-      const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
-
-      console.log('✅ Translation completed successfully')
-
-      // Save translation job to database (asynchronously)
-      try {
-        const { TranslationJobService } = await import('@/lib/database-admin')
-
-        const jobId = await TranslationJobService.createJob({
-          userId,
-          type: 'single',
-          status: 'completed',
-          originalFileName: file.name,
-          originalFileSize: file.size,
-          sourceLanguage: sourceLanguage || undefined,
-          targetLanguage,
-          aiService: 'openai',
-          translatedFileName,
-          translatedContent,
-          subtitleCount: translatedEntries.length,
-          characterCount: translatedContent.length,
-          confidence: 0.95,
-          processingTimeMs: Date.now() - startTime,
-          completedAt: new Date() as any
-        })
-        console.log(`📝 SIMPLE: Created translation job: ${jobId} for user ${userId}`)
-      } catch (jobError) {
-        console.error('❌ Failed to save translation job:', jobError)
-        // Don't fail the request if job saving fails
-      }
-
-      return NextResponse.json({
-        status: 'completed',
-        translatedContent,
-        translatedFileName,
-        subtitleCount: entries.length,
-        creditsUsed: totalCredits,
-        processingTimeMs: Date.now() - startTime
-      })
-
-    } catch (translationError) {
-      console.error('❌ Translation failed:', translationError)
-      
-      // Refund credits on translation failure
-      try {
-        const { UserService } = await import('@/lib/database-admin')
-        await UserService.adjustCredits(userId, totalCredits, `Refund for failed translation: ${file.name}`)
-        console.log(`💰 Refunded ${totalCredits} credits due to translation failure`)
-      } catch (refundError) {
-        console.error('❌ Failed to refund credits:', refundError)
-      }
-
-      return NextResponse.json({ 
-        error: 'Translation failed: ' + (translationError instanceof Error ? translationError.message : 'Unknown error')
-      }, { status: 500 })
-    }
-
+    return NextResponse.json({
+      type: 'result',
+      status: 'completed',
+      translatedContent,
+      translatedFileName,
+      subtitleCount: entries.length,
+      creditsUsed: reservation.creditsCharged,
+      paymentKind: reservation.kind,
+      jobId,
+      processingTimeMs: Date.now() - startTime,
+    })
   } catch (error) {
-    console.error('❌ Simple translate error:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error')
-    }, { status: 500 })
+    try {
+      if (reservation?.kind === 'free' && reservation.claimId) {
+        await releaseFreeTranslation(userId, reservation.claimId)
+      } else if (reservation?.creditsCharged) {
+        const { UserService } = await import('@/lib/database-admin')
+        await UserService.adjustCredits(userId, reservation.creditsCharged, `Full refund for failed translation: ${fileName}`)
+      }
+    } catch (refundError) {
+      console.error('Failed to release/refund fallback translation:', refundError)
+    }
+    console.error('Simple translation failed:', error)
+    return NextResponse.json({ error: 'Translation failed. Your payment reservation was released.' }, { status: 500 })
   }
 }

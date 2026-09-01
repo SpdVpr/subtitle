@@ -9,6 +9,7 @@ import { Toaster } from "sonner"
 import { CookieBannerWrapper } from "@/components/cookie-banner-wrapper"
 import { GoogleAnalytics } from "@/components/analytics/google-analytics"
 import { LocaleAwareLayout } from "@/components/layout/locale-aware-layout"
+import { AttributionTracker } from "@/components/analytics/attribution-tracker"
 
 
 const inter = Inter({
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
     default: "SubtitleBot - AI-Powered Subtitle Translation | 100+ Languages",
     template: "%s | SubtitleBot - AI Subtitle Translation"
   },
-  description: "Professional AI subtitle translation service supporting 100+ languages. Fast, accurate, context-aware translations for movies, TV shows, and videos. Free credits included. No subscription required.",
+  description: "Professional AI subtitle translation supporting 100+ languages. Translate your first complete subtitle file free, with no card or subscription required.",
   keywords: [
     // Core translation terms
     "subtitle translation",
@@ -100,7 +101,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "SubtitleBot - AI-Powered Subtitle Translation | 100+ Languages",
-    description: "Professional AI subtitle translation service supporting 100+ languages. Fast, accurate, context-aware translations for movies, TV shows, and videos. Free credits included.",
+    description: "Professional AI subtitle translation supporting 100+ languages. First complete subtitle file free.",
     url: '/',
     siteName: "SubtitleBot",
     images: [
@@ -117,7 +118,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: "SubtitleBot - AI-Powered Subtitle Translation | 100+ Languages",
-    description: "Professional AI subtitle translation service. Fast, accurate, context-aware translations for movies, TV shows, and videos. Free credits included.",
+    description: "Professional AI subtitle translation. First complete subtitle file free.",
     images: ['/og-image-en.png'],
   },
   robots: {
@@ -156,6 +157,7 @@ export default function RootLayout({
 
 
         <Providers>
+          <AttributionTracker />
           <LocaleAwareLayout>
             {children}
           </LocaleAwareLayout>

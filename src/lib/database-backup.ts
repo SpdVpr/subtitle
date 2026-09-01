@@ -44,8 +44,8 @@ export class UserService {
 
     console.log('👤 Creating new user in Firestore:', uid, email)
 
-    const creditsBalance = options?.creditsBalance ?? 100
-    const creditsTotalPurchased = options?.creditsBalance ?? 100
+    const creditsBalance = options?.creditsBalance ?? 0
+    const creditsTotalPurchased = 0
 
     const userProfile: UserProfile = {
       uid,
@@ -65,6 +65,7 @@ export class UserService {
       },
       creditsBalance,
       creditsTotalPurchased,
+      freeTranslationUsed: false,
       registrationTracking: options?.registrationTracking,
       preferences: {
         defaultAiService: 'google',
@@ -164,12 +165,13 @@ export class UserService {
       updatedAt: serverTimestamp()
     }
 
-    // Only set createdAt and welcome credits for new users
+    // Only set createdAt and the free-translation entitlement for new users
     if (!existingUser) {
       updateData.createdAt = serverTimestamp()
-      updateData.creditsBalance = 100 // Welcome credits
-      updateData.creditsTotalPurchased = 100
-      console.log('👤 Setting createdAt and 100 welcome credits for new user')
+      updateData.creditsBalance = 0
+      updateData.creditsTotalPurchased = 0
+      updateData.freeTranslationUsed = false
+      console.log('👤 Setting createdAt and free first translation for new user')
     }
 
     await setDoc(doc(db, COLLECTIONS.USERS, uid), updateData, { merge: true })

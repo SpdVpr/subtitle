@@ -46,7 +46,7 @@ export default function EnglishHomeModern() {
                 {/* Badge */}
                 <div className="inline-flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
                   <Gift className="h-4 w-4" />
-                  100 Free Credits
+                  First Subtitle File Free
                 </div>
 
                 {/* Clean Title */}
@@ -68,12 +68,12 @@ export default function EnglishHomeModern() {
                     <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Languages</div>
                   </div>
                   <div>
-                    <div className="text-4xl font-black text-black dark:text-white">&lt;30s</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Processing</div>
+                    <div className="text-4xl font-black text-black dark:text-white">Live</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Progress</div>
                   </div>
                   <div>
-                    <div className="text-4xl font-black text-black dark:text-white">95%</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Accuracy</div>
+                    <div className="text-4xl font-black text-black dark:text-white">7</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">File formats</div>
                   </div>
                 </div>
 
@@ -187,7 +187,7 @@ export default function EnglishHomeModern() {
                 {
                   icon: Zap,
                   title: "Lightning Fast",
-                  description: "Translate entire subtitle files in under 30 seconds",
+                  description: "Fast processing with live progress for every file",
                   detail: "Optimized AI processing with perfect timing preservation"
                 },
                 {
@@ -328,15 +328,15 @@ export default function EnglishHomeModern() {
 
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
 
-              {/* Free Credits */}
+              {/* Free first translation */}
               <Card className="relative overflow-hidden border-2 border-orange-500 bg-white dark:bg-black rounded-none shadow-2xl">
                 <div className="absolute top-0 right-0 bg-orange-500 text-white px-4 py-1 text-xs font-bold">
                   POPULAR
                 </div>
                 <CardHeader className="pt-12">
-                  <div className="text-6xl font-black text-black dark:text-white mb-4">100</div>
+                  <div className="text-6xl font-black text-black dark:text-white mb-4">1</div>
                   <CardTitle className="text-3xl font-black text-black dark:text-white">
-                    Free Credits
+                    Free First Translation
                   </CardTitle>
                   <CardDescription className="text-lg text-gray-600 dark:text-gray-400 mt-2">
                     Start translating immediately
@@ -345,8 +345,8 @@ export default function EnglishHomeModern() {
                 <CardContent className="space-y-6 pb-12">
                   <ul className="space-y-4">
                     {[
-                      "~250 lines of translation",
-                      "Premium AI translation",
+                      "One complete subtitle file",
+                      "Context-aware AI translation",
                       "All features included",
                       "No time limit",
                       "No credit card required"
@@ -358,7 +358,7 @@ export default function EnglishHomeModern() {
                     ))}
                   </ul>
                   <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-6 rounded-none text-lg" asChild>
-                    <Link href="/register">Get Free Credits</Link>
+                    <Link href="/translate">Translate First File Free</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -366,12 +366,12 @@ export default function EnglishHomeModern() {
               {/* Premium Translation */}
               <Card className="relative overflow-hidden border-2 border-black dark:border-white bg-white dark:bg-black rounded-none shadow-2xl">
                 <CardHeader className="pt-12">
-                  <div className="text-6xl font-black text-black dark:text-white mb-4">0.8-2.0</div>
+                  <div className="text-6xl font-black text-black dark:text-white mb-4">0.5-1.5</div>
                   <CardTitle className="text-3xl font-black text-black dark:text-white">
                     Credits per 20 lines
                   </CardTitle>
                   <CardDescription className="text-lg text-gray-600 dark:text-gray-400 mt-2">
-                    Standard (0.8) or Premium (2.0) quality
+                    Standard (0.5) or Premium (1.5) credits
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 pb-12">
@@ -398,7 +398,7 @@ export default function EnglishHomeModern() {
 
             <div className="text-center mt-12">
               <p className="text-lg text-gray-600 dark:text-gray-400">
-                <strong className="text-black dark:text-white">1 USD = 100 credits</strong> • Buy as needed • No expiration
+                <strong className="text-black dark:text-white">First eligible file free</strong> • Then buy credits as needed • Purchased credits never expire
               </p>
             </div>
           </div>
@@ -456,7 +456,7 @@ export default function EnglishHomeModern() {
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5" />
-                  <span>100 free credits</span>
+                  <span>First complete file free</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5" />
@@ -471,4 +471,3 @@ export default function EnglishHomeModern() {
     </div>
   );
 }
-

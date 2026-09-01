@@ -13,13 +13,14 @@ import { Breadcrumbs, breadcrumbConfigs } from '@/components/seo/breadcrumbs'
 import { StructuredData } from '@/components/seo/structured-data'
 
 export default function TranslatePage() {
-  const [mode, setMode] = useState<'select' | 'single' | 'batch'>('select')
+  // Single-file translation is the primary activation path. Users should land
+  // on the upload UI instead of making an extra mode-selection decision.
+  const [mode, setMode] = useState<'select' | 'single' | 'batch'>('single')
 
   if (mode === 'single') {
     return (
       <>
         <StructuredData locale="en" page="translate" />
-        <EmailVerificationGuard>
           <div className="py-4 sm:py-6 md:py-8">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
               <Breadcrumbs items={breadcrumbConfigs.en.translate} locale="en" />
@@ -39,7 +40,6 @@ export default function TranslatePage() {
               <TranslationInterface locale="en" />
             </div>
           </div>
-        </EmailVerificationGuard>
       </>
     )
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -12,6 +12,10 @@ import { Coins, Zap, Star, Crown, ArrowRight, Check, ExternalLink, Bitcoin } fro
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { STRIPE_PAYMENT_LINKS, createPaymentUrl, formatPrice, getPricePerCredit } from '@/lib/stripe-payment-links'
+import { getLinesForCredits } from '@/lib/credit-policy'
+import { authFetch } from '@/lib/auth-fetch'
+import { analytics } from '@/lib/analytics'
+import { getStoredAttribution } from '@/components/analytics/attribution-tracker'
 
 // Enhanced credit packages with Stripe Payment Links (excluding $1 packages)
 const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS
@@ -39,7 +43,8 @@ function getPackageName(credits: number): string {
 function getPackageFeatures(credits: number): string[] {
   const features = [
     `${credits.toLocaleString()} credits`,
-    `~${(credits * 5).toLocaleString()} lines of translation`,
+    `Up to ${getLinesForCredits(credits, 'standard').toLocaleString()} Standard subtitle lines`,
+    `Up to ${getLinesForCredits(credits, 'premium').toLocaleString()} Premium subtitle lines`,
     'No expiration'
   ]
 
@@ -57,6 +62,7 @@ export default function BuyCreditsPage() {
   const { user } = useAuth()
   const { refreshCredits } = useCredits()
   const [loading, setLoading] = useState<string | null>(null)
+  useEffect(() => analytics.pricingViewed('buy_credits'), [])
 
   const handlePurchase = async (packageId: string) => {
     if (!user) {
@@ -84,12 +90,13 @@ export default function BuyCreditsPage() {
         },
         user.uid,
         {
-          credits: pkg.credits.toString(),
-          package_name: pkg.name,
           user_email: user.email || '',
+          ...getStoredAttribution(),
         }
       )
 
+      analytics.packageSelected(pkg.credits, pkg.price, pkg.name)
+      analytics.beginCheckout(pkg.credits, pkg.price, pkg.name, 'card')
       // Redirect to Stripe Payment Link
       window.location.href = paymentUrl
     } catch (error) {
@@ -115,10 +122,13 @@ export default function BuyCreditsPage() {
         throw new Error('Package not found')
       }
 
+      analytics.packageSelected(pkg.credits, pkg.price, pkg.name)
+      analytics.beginCheckout(pkg.credits, pkg.price, pkg.name, 'bitcoin_lightning')
+
       console.log(`🟠 Creating Bitcoin invoice for ${pkg.credits} credits`)
       toast.loading('Creating Bitcoin Lightning invoice...', { id: 'bitcoin-invoice' })
 
-      const response = await fetch('/api/opennode/create-invoice', {
+      const response = await authFetch('/api/opennode/create-invoice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +185,7 @@ Complete payment in the new window.`, {
             💰 Buy Credits
           </h1>
           <p className="text-xl text-muted-foreground mb-6">
-            Simple pay-per-use credits. Each credit = 1 line of translation. No subscriptions, no expiration.
+            Your first complete subtitle file is free in either quality. Continuing translations use 0.5 Standard or 1.5 Premium credits per 20 subtitles. Purchased credits never expire.
           </p>
 
           {/* Current Balance - only for logged in users */}
@@ -354,8 +364,8 @@ Complete payment in the new window.`, {
 
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-300">
-                <strong>Example:</strong> A 100-line subtitle file costs 4.0 credits (Standard) or 10.0 credits (Premium).
-                Your 100 welcome credits can translate ~62 files (Standard) or ~10 files (Premium) with full context research!
+                <strong>Example:</strong> A 100-subtitle file costs 2.5 credits (Standard) or 7.5 credits (Premium).
+                Your first complete file is free; credits are used from the second file onward.
               </p>
             </div>
           </CardContent>

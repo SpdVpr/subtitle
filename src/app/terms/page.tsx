@@ -141,7 +141,7 @@ export default function TermsPage() {
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
                   <li>All payments are processed securely through Stripe</li>
                   <li>Prices are subject to change with 30 days notice</li>
-                  <li>Credits are non-refundable once purchased</li>
+                  <li>Unused purchased credits may be refunded within 30 days; used credits are non-refundable</li>
                   <li>Credits do not expire unless otherwise specified</li>
                   <li>We reserve the right to modify credit pricing and packages</li>
                 </ul>

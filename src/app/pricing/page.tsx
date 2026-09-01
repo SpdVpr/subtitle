@@ -7,6 +7,9 @@ import { Check, Star, Zap, Crown, Coins, Bitcoin, ExternalLink } from 'lucide-re
 import { useAuth } from '@/hooks/useAuth'
 import Link from 'next/link'
 import { STRIPE_PAYMENT_LINKS, getPricePerCredit } from '@/lib/stripe-payment-links'
+import { getLinesForCredits } from '@/lib/credit-policy'
+import { useEffect } from 'react'
+import { analytics } from '@/lib/analytics'
 
 // Enhanced credit packages with current Stripe Payment Links (excluding $1 packages)
 const CREDIT_PACKAGES = STRIPE_PAYMENT_LINKS
@@ -32,11 +35,10 @@ function getPackageName(credits: number): string {
 }
 
 function getPackageFeatures(credits: number): string[] {
-  // Average cost: (0.8 + 2.0) / 2 = 1.4 credits per 20 lines
-  const avgCostPer20Lines = 1.4
   const features = [
     `${credits.toLocaleString()} credits`,
-    `~${Math.floor(credits / avgCostPer20Lines * 20).toLocaleString()} lines of translation (avg)`,
+    `Up to ${getLinesForCredits(credits, 'standard').toLocaleString()} Standard subtitle lines`,
+    `Up to ${getLinesForCredits(credits, 'premium').toLocaleString()} Premium subtitle lines`,
     'No expiration',
     'Standard & Premium AI translation',
     'All language pairs supported',
@@ -61,6 +63,7 @@ function getPackageFeatures(credits: number): string[] {
 
 export default function PricingPage() {
   const { user } = useAuth()
+  useEffect(() => analytics.pricingViewed('pricing'), [])
 
   const getPackageIcon = (credits: number) => {
     if (credits <= 100) return <Coins className="w-8 h-8 text-blue-500" />
@@ -78,7 +81,7 @@ export default function PricingPage() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-xl text-muted-foreground mb-6 max-w-3xl mx-auto">
-            Choose the perfect credit package for your subtitle translation needs.
+            Your first complete subtitle file is free in either quality. After that, choose the credit package that fits your needs.
             No subscriptions, no hidden fees - just pay for what you use.
           </p>
           <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
@@ -187,7 +190,7 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold mb-2">How do credits work?</h3>
               <p className="text-muted-foreground">
-                Standard translation costs 0.5 credits per 20 lines, Premium costs 1.5 credits per 20 lines.
+                Standard translation costs 0.5 credits per 20 subtitles, Premium costs 1.5 credits per 20 subtitles.
                 Credits are deducted based on the actual number of lines processed and the model you choose.
               </p>
             </div>
@@ -207,7 +210,7 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold mb-2">Can I get a refund?</h3>
               <p className="text-muted-foreground">
-                We offer refunds within 7 days of purchase if you haven't used any credits.
+                We consider refunds within 30 days of purchase when none of the purchased credits have been used.
                 Contact our support team for assistance.
               </p>
             </div>
@@ -218,11 +221,11 @@ export default function PricingPage() {
         <div className="text-center mt-12 p-8 bg-muted rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Ready to get started?</h2>
           <p className="text-muted-foreground mb-6">
-            Create an account, use the welcome credits, and purchase more only when you need them.
+            Create an account and translate your first complete subtitle file free. Buy credits only when you continue.
           </p>
           <Button size="lg" asChild>
-            <Link href={user ? '/buy-credits' : '/login?redirect=/buy-credits'}>
-              {user ? 'Buy Credits Now' : 'Sign Up & Buy Credits'}
+            <Link href={user ? '/buy-credits' : '/translate'}>
+              {user ? 'Buy Credits Now' : 'Try Your First File Free'}
             </Link>
           </Button>
         </div>

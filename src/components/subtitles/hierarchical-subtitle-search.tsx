@@ -945,6 +945,14 @@ export function HierarchicalSubtitleSearch() {
                                       <ExternalLink className="h-4 w-4" />
                                       <span>Download</span>
                                     </Button>
+                                    <Button
+                                      onClick={() => window.open(`/translate?from=subtitle-search&sourceLanguage=${encodeURIComponent(subtitle.attributes.language)}`, '_blank')}
+                                      size="sm"
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      Translate • first file free
+                                    </Button>
 
                                   </div>
                                 </div>
@@ -1037,6 +1045,15 @@ export function HierarchicalSubtitleSearch() {
                                                       title="Download"
                                                     >
                                                       <ExternalLink className="h-3 w-3" />
+                                                    </Button>
+                                                    <Button
+                                                      onClick={() => window.open(`/translate?from=subtitle-search&sourceLanguage=${encodeURIComponent(subtitle.attributes.language)}`, '_blank')}
+                                                      size="sm"
+                                                      variant="outline"
+                                                      className="text-xs px-2 py-1"
+                                                      title="Translate — first file free"
+                                                    >
+                                                      Translate
                                                     </Button>
 
                                                   </div>

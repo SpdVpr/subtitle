@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { CREDIT_RATES } from '@/lib/credit-policy'
 import { TranslationJobService, UserService, AnalyticsService } from '@/lib/database-admin'
 import { StorageService } from '@/lib/storage'
 import { ErrorTracker } from '@/lib/error-tracking'
@@ -104,7 +105,7 @@ export async function POST(req: NextRequest) {
 
       // Check credits instead of translation limits
       const creditsBalance = (user as any).creditsBalance || 0
-      const requiredCredits = aiServiceRaw === 'premium' ? 0.2 : 0.1 // Estimate per batch
+      const requiredCredits = aiServiceRaw === 'premium' ? CREDIT_RATES.premium : CREDIT_RATES.standard
 
       if (creditsBalance < requiredCredits) {
         return NextResponse.json(
@@ -145,8 +146,7 @@ export async function POST(req: NextRequest) {
           let totalCreditsUsed = 0
 
           for (const chunk of textChunks) {
-            // Charge 0.1 credits per chunk (approximately 20 lines)
-            const chunkCredits = 0.1
+            const chunkCredits = CREDIT_RATES.standard
 
             // Check credits before processing each chunk
             if (!userId.endsWith('-user-demo')) {
@@ -401,7 +401,7 @@ async function processTranslationJob(
       const currentBalance = (user as any)?.creditsBalance || 0
 
       const chunksNeeded = Math.ceil(subtitleEntries.length / 20)
-      const creditsPerChunk = translationModel === 'premium' ? 2.0 : 0.8
+      const creditsPerChunk = translationModel === 'premium' ? CREDIT_RATES.premium : CREDIT_RATES.standard
       const requiredCredits = chunksNeeded * creditsPerChunk
 
       console.log(`💰 Required credits: ${requiredCredits}, Current balance: ${currentBalance}`)
@@ -508,7 +508,7 @@ async function processTranslationJob(
     if (userId !== 'premium-user-demo' && !userId.endsWith('-user-demo')) {
       // Calculate credits based on subtitle count and model
       const chunksNeeded = Math.ceil(subtitleEntries.length / 20)
-      const creditsPerChunk = translationModel === 'premium' ? 2.0 : 0.8
+      const creditsPerChunk = translationModel === 'premium' ? CREDIT_RATES.premium : CREDIT_RATES.standard
       const totalCredits = chunksNeeded * creditsPerChunk
 
       console.log(`💰 Deducting ${totalCredits} credits for ${subtitleEntries.length} subtitles (${chunksNeeded} chunks, ${creditsPerChunk} per chunk)`)

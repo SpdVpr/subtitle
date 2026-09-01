@@ -3,7 +3,7 @@ import { BatchProvider } from '@/components/providers/batch-provider'
 
 export const metadata: Metadata = {
   title: 'Translate Subtitles',
-  description: 'Translate subtitle files with context-aware AI while preserving timing and formatting. Supports 100+ language pairs and common subtitle formats.',
+  description: 'Translate subtitle files with context-aware AI while preserving timing. Your first complete subtitle file is free with no card required.',
   keywords: [
     'subtitle translation',
     'AI subtitle translator',
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Translate Subtitles - SubtitleBot',
-    description: 'Translate your subtitle files using AI-powered translation services. Support for 100+ languages with context-aware translation.',
+    description: 'Translate your first complete subtitle file free. 100+ language pairs with context-aware AI.',
     url: '/translate',
     images: [
       {

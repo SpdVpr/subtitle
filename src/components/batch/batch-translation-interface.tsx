@@ -27,6 +27,7 @@ import {
   Edit3,
   Crown
 } from 'lucide-react'
+import { CREDIT_RATES, getTranslationCredits } from '@/lib/credit-policy'
 
 interface BatchFile {
   file: File
@@ -53,6 +54,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
   const [totalEstimatedCost, setTotalEstimatedCost] = useState<number>(0)
   const [totalSubtitles, setTotalSubtitles] = useState<number>(0)
   const [userCredits, setUserCredits] = useState<number | null>(null)
+  const [freeTranslationAvailable, setFreeTranslationAvailable] = useState(false)
   const refreshCreditsRef = useRef<(() => void) | null>(null)
   const [overallProgress, setOverallProgress] = useState<number>(0)
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0)
@@ -66,6 +68,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
       if (response.ok) {
         const data = await response.json()
         setUserCredits(data.credits || 0)
+        setFreeTranslationAvailable(Boolean(data.freeTranslationAvailable))
         console.log('💰 User credits loaded:', data.credits)
       } else {
         console.error('Failed to fetch credits:', response.status)
@@ -121,13 +124,12 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
       const lines = text.split('\n')
       const subtitleBlocks = lines.filter(line => line.trim() && !line.match(/^\d+$/) && !line.match(/^\d{2}:\d{2}:\d{2}/))
       const subtitleCount = Math.max(1, subtitleBlocks.length)
-      const costPerChunk = translationModel === 'premium' ? 1.5 : 0.5
-      const cost = Math.ceil(subtitleCount / 20) * costPerChunk
+      const cost = getTranslationCredits(subtitleCount, translationModel)
 
       return { cost, subtitleCount }
     } catch (error) {
       console.error('Error estimating credits for file:', file.name, error)
-      const defaultCostPerChunk = translationModel === 'premium' ? 1.5 : 0.5
+      const defaultCostPerChunk = CREDIT_RATES[translationModel]
       return { cost: defaultCostPerChunk, subtitleCount: 20 } // Default estimate
     }
   }
@@ -184,11 +186,15 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
 
   // Calculate totals when files or model change
   useEffect(() => {
-    const totalCost = files.reduce((sum, file) => sum + (file.estimatedCost || 0), 0)
+    let totalCost = files.reduce((sum, file) => sum + (file.estimatedCost || 0), 0)
+    if (freeTranslationAvailable) {
+      const freeFile = files[0]
+      if (freeFile) totalCost -= freeFile.estimatedCost || 0
+    }
     const totalSubs = files.reduce((sum, file) => sum + (file.subtitleCount || 0), 0)
     setTotalEstimatedCost(totalCost)
     setTotalSubtitles(totalSubs)
-  }, [files])
+  }, [files, freeTranslationAvailable, translationModel])
 
   // Recalculate costs when model changes
   useEffect(() => {
@@ -304,7 +310,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
 
           try {
             // Use streaming API for real progress updates
-            const response = await fetch('/api/translate-stream', {
+            const response = await authFetch('/api/translate-stream', {
               method: 'POST',
               body: formData
             })
@@ -368,69 +374,16 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
             const result = translationResult
             console.log('✅ Translation result:', result)
 
-            // translate-simple returns direct response with translated content
+            // The translation endpoint already stores the job and charges once.
             if (result.translatedContent) {
-              console.log('💾 Saving translation to database...')
-
-              try {
-                // Save translation to database via API
-                const saveResponse = await authFetch('/api/batch/save-translation', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    userId: user.uid,
-                    originalFileName: file.file.name,
-                    targetLanguage,
-                    translatedContent: result.translatedContent,
-                    subtitleCount: result.subtitleCount || file.subtitleCount || 0,
-                    characterCount: result.characterCount || 0
-                  })
-                })
-
-                if (saveResponse.ok) {
-                  const saveResult = await saveResponse.json()
-                  console.log('✅ Translation saved to database and credits deducted:', saveResult)
-
-                  // Update file status to completed
-                  setFiles(prev => prev.map(f =>
-                    f.id === file.id ? {
-                      ...f,
-                      status: 'completed' as const,
-                      progress: 100,
-                      result: {
-                        ...result,
-                        jobId: saveResult.jobId,
-                        translatedFileName: saveResult.translatedFileName
-                      }
-                    } : f
-                  ))
-                } else {
-                  console.error('❌ Failed to save to database:', await saveResponse.text())
-                  // Still show as completed in UI, but log the error
-                  setFiles(prev => prev.map(f =>
-                    f.id === file.id ? {
-                      ...f,
-                      status: 'completed' as const,
-                      progress: 100,
-                      result
-                    } : f
-                  ))
-                }
-
-              } catch (dbError) {
-                console.error('❌ Failed to save to database:', dbError)
-                // Still show as completed in UI, but log the error
-                setFiles(prev => prev.map(f =>
-                  f.id === file.id ? {
-                    ...f,
-                    status: 'completed' as const,
-                    progress: 100,
-                    result
-                  } : f
-                ))
-              }
+              setFiles(prev => prev.map(f =>
+                f.id === file.id ? {
+                  ...f,
+                  status: 'completed' as const,
+                  progress: 100,
+                  result
+                } : f
+              ))
             } else {
               throw new Error('No translated content in response')
             }
@@ -646,7 +599,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
                     <Badge variant="destructive" className="text-[10px] px-1 py-0 animate-pulse">SALE</Badge>
                   </div>
                   <p className="text-xs opacity-80 mb-2">Fast, reliable translation</p>
-                  <div className="text-sm font-semibold"><span className="line-through opacity-50 mr-1">0.8</span>0.5 credits per 20 lines</div>
+                  <div className="text-sm font-semibold">{CREDIT_RATES.standard} credits per 20 subtitles</div>
                 </div>
               </Button>
 
@@ -680,7 +633,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
                   </p>
                   <div className={`text-sm font-semibold ${translationModel === 'premium' ? 'text-amber-900' : 'text-gray-900 dark:text-gray-100'
                     }`}>
-                    <span className="line-through opacity-50 mr-1">2.0</span>1.5 credits per 20 lines
+                    {CREDIT_RATES.premium} credits per 20 subtitles
                   </div>
                 </div>
               </Button>
@@ -744,6 +697,12 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
               </div>
             </div>
 
+            {freeTranslationAvailable && files.length > 0 && (
+              <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-900 dark:border-green-800/40 dark:bg-green-950/30 dark:text-green-200">
+                The first file in this batch is free in the selected quality. The estimate already includes it.
+              </div>
+            )}
+
             {/* Model Info */}
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-border">
               <div className="flex justify-between items-center text-sm">
@@ -762,7 +721,7 @@ export function BatchTranslationInterface({ locale = 'en' }: BatchTranslationInt
                   )}
                 </span>
                 <span className="text-muted-foreground">
-                  Rate: {translationModel === 'premium' ? '1.5' : '0.5'} credits per 20 subtitles
+                  Rate: {CREDIT_RATES[translationModel]} credits per 20 subtitles
                 </span>
               </div>
             </div>

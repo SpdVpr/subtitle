@@ -77,7 +77,7 @@ export function RegistrationMonitoring() {
         <AlertDescription>
           <strong>Anti-Abuse System:</strong> Automaticky detekuje podezřelé registrace na základě IP adresy a browser fingerprinting.
           <br />
-          <strong>Kredity:</strong> Normální (100) • Podezřelé 50-79 (20) • Velmi podezřelé 80+ (0)
+          <strong>Free trial:</strong> Score 0–49 způsobilý • 50–99 bez free trialu • 100 registrace blokována
         </AlertDescription>
       </Alert>
 
@@ -135,13 +135,13 @@ export function RegistrationMonitoring() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-green-500" />
-                Credits Awarded
+                Eligible Free Trials
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-500">{stats.creditsAwarded}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Total given out
+                Low-risk registrations
               </p>
             </CardContent>
           </Card>
@@ -150,13 +150,13 @@ export function RegistrationMonitoring() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Shield className="w-4 h-4 text-blue-500" />
-                Credits Saved
+                Restricted Trials
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-500">{stats.creditsSaved}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Prevented abuse
+                Suspicious registrations
               </p>
             </CardContent>
           </Card>
@@ -183,7 +183,7 @@ export function RegistrationMonitoring() {
         <CardHeader>
           <CardTitle>Suspicious Registrations</CardTitle>
           <CardDescription>
-            Registrace s suspicious score ≥ 50 (snížené kredity na 20)
+            Registrace se suspicious score ≥ 50 (bez bezplatného prvního souboru)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -208,7 +208,7 @@ export function RegistrationMonitoring() {
                     <th className="text-left py-3 px-2 font-medium">Score</th>
                     <th className="text-center py-3 px-2 font-medium">IP Dupes</th>
                     <th className="text-center py-3 px-2 font-medium">Browser Dupes</th>
-                    <th className="text-left py-3 px-2 font-medium">Credits</th>
+                    <th className="text-left py-3 px-2 font-medium">Free trial</th>
                     <th className="text-left py-3 px-2 font-medium">Date</th>
                   </tr>
                 </thead>
@@ -239,16 +239,13 @@ export function RegistrationMonitoring() {
                         )}
                       </td>
                       <td className="py-3 px-2">
-                        <span className={reg.creditsReduced ? 'text-orange-500 font-bold' : 'font-medium'}>
-                          {reg.creditsAwarded}
+                        <span className={reg.suspiciousScore >= 50 ? 'text-orange-500 font-bold' : 'text-green-600 font-medium'}>
+                          {reg.suspiciousScore >= 50 ? 'Restricted' : 'Eligible'}
                         </span>
-                        {reg.creditsReduced && (
-                          <span className="text-xs text-muted-foreground ml-1">(reduced)</span>
-                        )}
                       </td>
                       <td className="py-3 px-2 text-sm text-muted-foreground">
-                        {reg.createdAt?.toDate ? 
-                          new Date(reg.createdAt.toDate()).toLocaleDateString('cs-CZ', {
+                        {reg.createdAt ?
+                          new Date(reg.createdAt).toLocaleDateString('cs-CZ', {
                             day: '2-digit',
                             month: '2-digit',
                             year: 'numeric'
@@ -272,12 +269,12 @@ export function RegistrationMonitoring() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Normal Credits:</span>
-            <span className="font-medium">100</span>
+            <span className="text-muted-foreground">Free first file:</span>
+            <span className="font-medium">První kompletní soubor, libovolná kvalita</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Suspicious Credits:</span>
-            <span className="font-medium text-orange-500">20</span>
+            <span className="text-muted-foreground">Suspicious score 50+:</span>
+            <span className="font-medium text-orange-500">Bez free trialu</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Suspicious Threshold:</span>
@@ -292,4 +289,3 @@ export function RegistrationMonitoring() {
     </div>
   )
 }
-

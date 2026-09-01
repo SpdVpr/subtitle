@@ -70,6 +70,10 @@ export const analytics = {
   translationStarted: (sourceLanguage: string, targetLanguage: string, fileSize: number) => {
     trackEvent('translation_started', 'translation', `${sourceLanguage}_to_${targetLanguage}`, fileSize)
   },
+
+  translationIntent: (source: string) => {
+    trackEvent('translate_intent', 'activation', source)
+  },
   
   translationCompleted: (sourceLanguage: string, targetLanguage: string, duration: number, subtitleCount: number) => {
     trackEvent('translation_completed', 'translation', `${sourceLanguage}_to_${targetLanguage}`, duration, {
@@ -113,6 +117,14 @@ export const analytics = {
   userRegistered: (method: string) => {
     trackEvent('sign_up', 'user', method)
   },
+
+  signUpStarted: (method: string) => {
+    trackEvent('sign_up_started', 'user', method)
+  },
+
+  emailVerified: (method: string) => {
+    trackEvent('email_verified', 'user', method)
+  },
   
   userLoggedIn: (method: string) => {
     trackEvent('login', 'user', method)
@@ -147,6 +159,32 @@ export const analytics = {
 
   creditsUsed: (amount: number, feature: string) => {
     trackEvent('credits_used', 'premium', feature, amount)
+  },
+
+  pricingViewed: (location: string) => {
+    trackEvent('view_item_list', 'ecommerce', location, undefined, { item_list_id: 'credit_packages' })
+  },
+
+  packageSelected: (credits: number, price: number, packageName: string) => {
+    if (typeof window === 'undefined' || !window.gtag) return
+    window.gtag('event', 'select_item', {
+      item_list_id: 'credit_packages',
+      items: [{ item_id: `credits_${credits}`, item_name: packageName, price, quantity: 1 }],
+    })
+  },
+
+  beginCheckout: (credits: number, price: number, packageName: string, method: string) => {
+    if (typeof window === 'undefined' || !window.gtag) return
+    window.gtag('event', 'begin_checkout', {
+      currency: 'USD',
+      value: price,
+      payment_type: method,
+      items: [{ item_id: `credits_${credits}`, item_name: packageName, price, quantity: 1 }],
+    })
+  },
+
+  freeTranslationCompleted: (subtitleCount: number, targetLanguage: string) => {
+    trackEvent('free_translation_completed', 'activation', targetLanguage, subtitleCount)
   },
 
   // Feedback events

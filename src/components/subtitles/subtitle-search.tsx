@@ -336,10 +336,10 @@ export function SubtitleSearch() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(`/translate`, '_blank')}
+                        onClick={() => window.open(`/translate?from=subtitle-search&sourceLanguage=${encodeURIComponent(subtitle.attributes.language)}`, '_blank')}
                         className="text-xs"
                       >
-                        Přeložit titulky
+                        Přeložit • první soubor zdarma
                       </Button>
                     </div>
                   </div>

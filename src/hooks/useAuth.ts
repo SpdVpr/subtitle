@@ -5,6 +5,8 @@ import type { User as FirebaseUser } from 'firebase/auth'
 import { AuthContextType } from '@/types/auth'
 import type { UserProfile } from '@/types/database'
 import { analytics } from '@/lib/analytics'
+import { safeInternalRedirect } from '@/lib/safe-redirect'
+import { authFetch } from '@/lib/auth-fetch'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -72,6 +74,7 @@ export function useAuthProvider(): AuthContextType {
             // Handle user profile asynchronously (don't block UI)
             const handleUserProfile = async () => {
               try {
+                if (sessionStorage.getItem('subtitlebot_registration_in_progress') === '1') return
                 const { UserService } = await import('@/lib/database')
                 const existingUser = await UserService.getUser(firebaseUser.uid)
                 if (!existingUser) {
@@ -82,17 +85,17 @@ export function useAuthProvider(): AuthContextType {
                     firebaseUser.displayName || undefined
                   )
                 } else {
-                  // Ensure welcome credits for legacy accounts without creditsBalance
+                  // Initialize legacy wallets without granting confusing welcome credits.
                   if ((existingUser as any).creditsBalance == null) {
-                    console.log('💰 Adding welcome credits to legacy user')
+                    console.log('💰 Initializing legacy credit wallet')
                     try {
                       await UserService.updateUser(firebaseUser.uid, {
-                        creditsBalance: 100,
-                        creditsTotalPurchased: ((existingUser as any).creditsTotalPurchased || 0) + 100,
+                        creditsBalance: 0,
+                        creditsTotalPurchased: (existingUser as any).creditsTotalPurchased || 0,
                         updatedAt: new Date() as any
                       } as any)
                     } catch (e) {
-                      console.warn('Failed to set welcome credits for legacy user:', e)
+                      console.warn('Failed to initialize legacy wallet:', e)
                     }
                   } else {
                     // Update last login time
@@ -149,7 +152,7 @@ export function useAuthProvider(): AuthContextType {
     }
   }
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, continueUrl = '/translate') => {
     if (!firebaseServices?.isConfigured || !firebaseServices.auth || !firebaseServices.db) {
       throw new Error('Firebase is not configured. Please set up your environment variables.')
     }
@@ -168,31 +171,38 @@ export function useAuthProvider(): AuthContextType {
       const checkResponse = await fetch('/api/registration/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ browserFingerprint })
+        body: JSON.stringify({ browserFingerprint, email })
       })
 
-      let creditsToAward = 100 // Default
+      let isAllowed = false
       let suspiciousScore = 0
       let duplicateDetected = false
 
       if (checkResponse.ok) {
         const checkResult = await checkResponse.json()
-        creditsToAward = checkResult.creditsToAward
+        isAllowed = Boolean(checkResult.isAllowed)
         suspiciousScore = checkResult.suspiciousScore
         duplicateDetected = checkResult.duplicateIpCount > 0 || checkResult.duplicateFingerprintCount > 0
 
         console.log('🔍 Registration check:', {
           suspiciousScore,
-          creditsToAward,
+          isAllowed,
           reasons: checkResult.reasons
         })
+      } else {
+        throw new Error('Registration protection is temporarily unavailable. Please try again.')
       }
 
+      if (!isAllowed) {
+        throw new Error('Registration could not be completed. Please use a permanent email address or contact support.')
+      }
+
+      sessionStorage.setItem('subtitlebot_registration_in_progress', '1')
       const { user: firebaseUser } = await createUserWithEmailAndPassword(firebaseServices.auth, email, password)
 
       // Send email verification with custom settings
       await sendEmailVerification(firebaseUser, {
-        url: `${window.location.origin}/dashboard`,
+        url: `${window.location.origin}${safeInternalRedirect(continueUrl, '/translate')}`,
         handleCodeInApp: false
       })
 
@@ -202,7 +212,7 @@ export function useAuthProvider(): AuthContextType {
         firebaseUser.email!,
         firebaseUser.displayName || undefined,
         {
-          creditsBalance: creditsToAward,
+          creditsBalance: 0,
           registrationTracking: {
             browserFingerprint,
             userAgent: navigator.userAgent,
@@ -212,10 +222,11 @@ export function useAuthProvider(): AuthContextType {
           }
         }
       )
+      sessionStorage.removeItem('subtitlebot_registration_in_progress')
 
       // Record registration in tracking system
       try {
-        const recordResponse = await fetch('/api/registration/record', {
+        const recordResponse = await authFetch('/api/registration/record', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -223,8 +234,7 @@ export function useAuthProvider(): AuthContextType {
             email: firebaseUser.email,
             browserFingerprint,
             registrationMethod: 'email',
-            creditsAwarded: creditsToAward,
-            suspiciousScore
+            acquisition: localStorage.getItem('subtitlebot_attribution') || undefined
           })
         })
 
@@ -246,6 +256,7 @@ export function useAuthProvider(): AuthContextType {
       // Don't set loading to false here - let onAuthStateChanged handle it
       // This ensures proper redirect flow
     } catch (error) {
+      sessionStorage.removeItem('subtitlebot_registration_in_progress')
       setLoading(false)
       throw error
     }
@@ -275,7 +286,7 @@ export function useAuthProvider(): AuthContextType {
     await sendPasswordResetEmail(firebaseServices.auth, email)
   }
 
-  const sendVerificationEmail = async () => {
+  const sendVerificationEmail = async (continueUrl = '/translate') => {
     if (!firebaseServices?.isConfigured || !firebaseServices.auth) {
       throw new Error('Firebase is not configured. Please set up your environment variables.')
     }
@@ -291,7 +302,7 @@ export function useAuthProvider(): AuthContextType {
 
     const { sendEmailVerification } = await import('firebase/auth')
     await sendEmailVerification(currentUser, {
-      url: `${window.location.origin}/dashboard`,
+      url: `${window.location.origin}${safeInternalRedirect(continueUrl, '/translate')}`,
       handleCodeInApp: false
     })
   }
@@ -303,6 +314,7 @@ export function useAuthProvider(): AuthContextType {
 
     setLoading(true)
     try {
+      sessionStorage.setItem('subtitlebot_registration_in_progress', '1')
       const [{ googleProvider }, { signInWithPopup }, { UserService }] = await Promise.all([
         import('@/lib/firebase'),
         import('firebase/auth'),
@@ -326,34 +338,41 @@ export function useAuthProvider(): AuthContextType {
           const checkResponse = await fetch('/api/registration/check', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ browserFingerprint })
+            body: JSON.stringify({ browserFingerprint, email: result.user.email })
           })
 
-          let creditsToAward = 100 // Default
+          let isAllowed = false
           let suspiciousScore = 0
           let duplicateDetected = false
 
           if (checkResponse.ok) {
             const checkResult = await checkResponse.json()
-            creditsToAward = checkResult.creditsToAward
+            isAllowed = Boolean(checkResult.isAllowed)
             suspiciousScore = checkResult.suspiciousScore
             duplicateDetected = checkResult.duplicateIpCount > 0 || checkResult.duplicateFingerprintCount > 0
 
             console.log('🔍 Google registration check:', {
               suspiciousScore,
-              creditsToAward,
+              isAllowed,
               reasons: checkResult.reasons
             })
+          } else {
+            throw new Error('Registration protection is temporarily unavailable. Please try again.')
           }
 
-          // Create new user with full profile and adjusted credits
-          console.log(`👤 Creating new Google user in Firestore with ${creditsToAward} welcome credits`)
+          if (!isAllowed) {
+            await result.user.delete()
+            throw new Error('Registration could not be completed. Please use a permanent email address or contact support.')
+          }
+
+          // Create a new user with one free Standard translation instead of welcome credits.
+          console.log('👤 Creating new Google user with a free first translation')
           await UserService.createUser(
             result.user.uid,
             result.user.email!,
             result.user.displayName || undefined,
             {
-              creditsBalance: creditsToAward,
+              creditsBalance: 0,
               registrationTracking: {
                 browserFingerprint,
                 userAgent: navigator.userAgent,
@@ -363,10 +382,11 @@ export function useAuthProvider(): AuthContextType {
               }
             }
           )
+          await UserService.updateUser(result.user.uid, { emailVerified: true } as any)
 
           // Record registration in tracking system
           try {
-            const recordResponse = await fetch('/api/registration/record', {
+            const recordResponse = await authFetch('/api/registration/record', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -374,8 +394,7 @@ export function useAuthProvider(): AuthContextType {
                 email: result.user.email,
                 browserFingerprint,
                 registrationMethod: 'google',
-                creditsAwarded: creditsToAward,
-                suspiciousScore
+                acquisition: localStorage.getItem('subtitlebot_attribution') || undefined
               })
             })
 
@@ -409,7 +428,9 @@ export function useAuthProvider(): AuthContextType {
 
       // Set loading to false to let onAuthStateChanged + React re-render handle the flow
       setLoading(false)
+      sessionStorage.removeItem('subtitlebot_registration_in_progress')
     } catch (error) {
+      sessionStorage.removeItem('subtitlebot_registration_in_progress')
       setLoading(false)
       throw error
     }

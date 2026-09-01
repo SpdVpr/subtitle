@@ -19,8 +19,8 @@ export function AIOptimizedMeta({
   const content = {
     en: {
       home: {
-        title: "SubtitleBot - AI Subtitle Translation | 100+ Languages | Free Credits",
-        description: "Professional AI subtitle translator supporting 100+ languages. Fast, accurate, context-aware translations for movies, TV shows, videos. 100 free credits. No subscription required. Try now!",
+        title: "SubtitleBot - AI Subtitle Translation | First File Free",
+        description: "Professional AI subtitle translator supporting 100+ languages. First complete subtitle file free, with no card or subscription.",
         keywords: "AI subtitle translation, SRT translator, video subtitles, Google Gemini AI translation, multilingual subtitles, subtitle converter, free subtitle translation, professional subtitle service"
       },
       translate: {
@@ -45,7 +45,7 @@ export function AIOptimizedMeta({
       },
       pricing: {
         title: "Pricing | AI Subtitle Translation Credits | No Subscription | SubtitleBot",
-        description: "Simple credit-based pricing for AI subtitle translation. No monthly subscriptions, credits never expire. Start with 100 free credits. Pay only for what you use.",
+        description: "Translate the first complete subtitle file free in either quality. Then use pay-as-you-go credits that never expire.",
         keywords: "subtitle translation pricing, AI translation credits, no subscription, pay per use, free credits, subtitle translation cost"
       },
       about: {
@@ -56,8 +56,8 @@ export function AIOptimizedMeta({
     },
     cs: {
       home: {
-        title: "SubtitleBot - AI Překlad Titulků | 100+ Jazyků | Zdarma Kredity",
-        description: "Profesionální AI překladač titulků s podporou 100+ jazyků. Rychlé, přesné, kontextové překlady pro filmy, seriály, videa. 100 kreditů zdarma. Bez předplatného. Vyzkoušejte nyní!",
+        title: "SubtitleBot - AI Překlad Titulků | První Soubor Zdarma",
+        description: "Profesionální AI překladač titulků ve 100+ jazycích. První kompletní soubor titulků zdarma, bez karty a předplatného.",
         keywords: "AI překlad titulků, SRT překladač, video titulky, Google Gemini AI překlad, vícejazyčné titulky, konvertor titulků, zdarma překlad titulků, profesionální služba titulků"
       },
       translate: {
@@ -82,7 +82,7 @@ export function AIOptimizedMeta({
       },
       pricing: {
         title: "Ceník | AI Překlad Titulků Kredity | Bez Předplatného | SubtitleBot",
-        description: "Jednoduchý kreditový ceník pro AI překlad titulků. Bez měsíčních předplatných, kredity nikdy nevyprší. Začněte se 100 kredity zdarma. Plaťte jen za to, co použijete.",
+        description: "První kompletní soubor přeložte zdarma ve Standard nebo Premium kvalitě. Potom používejte kredity bez předplatného a bez expirace.",
         keywords: "ceník překladu titulků, AI překladové kredity, bez předplatného, platba za použití, zdarma kredity, cena překladu titulků"
       },
       about: {
@@ -123,7 +123,6 @@ export function AIOptimizedMeta({
       {/* Technical specifications for AI crawlers */}
       <meta name="supported-formats" content="SRT,VTT,ASS,SSA,SUB,SBV,TXT" />
       <meta name="processing-method" content="ai-contextual-translation" />
-      <meta name="accuracy-rate" content="95%" />
       <meta name="processing-speed" content="real-time" />
 
       {/* Accessibility and compliance */}

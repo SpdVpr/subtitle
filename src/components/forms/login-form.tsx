@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/hooks/useAuth'
 import { Chrome, Loader2, AlertCircle } from 'lucide-react'
+import { currentRedirect } from '@/lib/safe-redirect'
 
 const createLoginSchema = (locale: 'en' | 'cs' = 'en') => {
   const messages = {
@@ -81,7 +82,7 @@ export function LoginForm({ locale = 'en' }: LoginFormProps) {
   useEffect(() => {
     if (user) {
       setIsLoading(false) // Reset loading state when user is authenticated
-      router.push(locale === 'cs' ? '/cs/dashboard' : '/dashboard')
+      router.push(currentRedirect(locale === 'cs' ? '/cs/dashboard' : '/dashboard'))
     }
   }, [user, router, locale])
 
@@ -100,8 +101,7 @@ export function LoginForm({ locale = 'en' }: LoginFormProps) {
 
     try {
       await signIn(data.email, data.password)
-      // Redirect to dashboard after successful login
-      router.push('/dashboard')
+      router.push(currentRedirect(locale === 'cs' ? '/cs/dashboard' : '/dashboard'))
     } catch (error: any) {
       console.error('Login error:', error)
 
@@ -133,8 +133,7 @@ export function LoginForm({ locale = 'en' }: LoginFormProps) {
 
     try {
       await signInWithGoogle()
-      // Don't redirect immediately - let the auth state change handle the redirect
-      // The useAuth hook will properly manage the loading state and redirect
+      router.push(currentRedirect(locale === 'cs' ? '/cs/dashboard' : '/dashboard'))
     } catch (error: any) {
       setError(error.message || 'Failed to sign in with Google')
       setIsLoading(false)
@@ -243,7 +242,7 @@ export function LoginForm({ locale = 'en' }: LoginFormProps) {
             </Link>
             <p className="text-sm text-gray-600">
               {t.dontHaveAccount}{' '}
-              <Link href={locale === 'cs' ? '/cs/register' : '/register'} className="text-blue-600 hover:underline">
+              <Link href={`${locale === 'cs' ? '/cs/register' : '/register'}?redirect=${encodeURIComponent(currentRedirect('/translate'))}`} className="text-blue-600 hover:underline">
                 {t.signUp}
               </Link>
             </p>

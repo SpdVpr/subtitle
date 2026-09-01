@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { openNodeClient, getPackageByCredits } from '@/lib/opennode'
+import { verifyUser } from '@/lib/user-auth-server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, credits } = await request.json()
+    const authUser = await verifyUser(request)
+    if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { credits } = await request.json()
+    const userId = authUser.uid
 
     if (!userId || !credits) {
       return NextResponse.json({
@@ -88,6 +92,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  const authUser = await verifyUser(request)
+  if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { searchParams } = new URL(request.url)
   const chargeId = searchParams.get('chargeId')
 

@@ -10,7 +10,7 @@ export default function RegisterPage() {
 
 export const metadata = {
   title: 'Vytvořit Účet - SubtitleBot',
-  description: 'Vytvořte si účet SubtitleBot a začněte překládat titulky s 200 zdarma kredity',
+  description: 'Vytvořte si účet SubtitleBot a přeložte první kompletní soubor titulků zdarma',
   keywords: [
     'registrace',
     'vytvořit účet',
@@ -22,7 +22,7 @@ export const metadata = {
   ],
   openGraph: {
     title: 'Vytvořit Účet - SubtitleBot',
-    description: 'Vytvořte si účet SubtitleBot a začněte překládat titulky s 200 zdarma kredity',
+    description: 'Vytvořte si účet SubtitleBot a přeložte první kompletní soubor titulků zdarma',
     url: '/cs/register',
     siteName: 'SubtitleBot',
     locale: 'cs_CZ',
@@ -31,6 +31,6 @@ export const metadata = {
   twitter: {
     card: 'summary',
     title: 'Vytvořit Účet - SubtitleBot',
-    description: 'Vytvořte si účet SubtitleBot a začněte překládat titulky s 200 zdarma kredity',
+    description: 'Vytvořte si účet SubtitleBot a přeložte první kompletní soubor titulků zdarma',
   },
 }

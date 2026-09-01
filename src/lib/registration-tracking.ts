@@ -14,8 +14,8 @@ export const COLLECTIONS = {
 // Configuration
 export const TRACKING_CONFIG = {
   // Credits
-  DEFAULT_CREDITS: 100,
-  SUSPICIOUS_CREDITS: 20, // Reduced credits for suspicious registrations
+  DEFAULT_CREDITS: 0, // New users receive one free Standard file, not credits
+  SUSPICIOUS_CREDITS: 0,
   VERY_HIGH_SUSPICIOUS_CREDITS: 0, // No credits for very high suspicious registrations
 
   // Thresholds for suspicion scoring
@@ -27,8 +27,8 @@ export const TRACKING_CONFIG = {
   FINGERPRINT_CHECK_WINDOW_DAYS: 90,
 
   // Suspicious score thresholds
-  SUSPICIOUS_THRESHOLD: 50, // Above this = reduce credits to 20
-  VERY_HIGH_THRESHOLD: 80, // Above this = reduce credits to 0
+  SUSPICIOUS_THRESHOLD: 50,
+  VERY_HIGH_THRESHOLD: 80,
   BLOCK_THRESHOLD: 100, // Above this = block registration (future feature)
 }
 
@@ -288,4 +288,3 @@ export async function getSuspiciousRegistrations(limit: number = 50): Promise<Re
     return []
   }
 }
-

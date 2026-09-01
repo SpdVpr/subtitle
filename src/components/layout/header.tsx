@@ -33,7 +33,7 @@ export function Header() {
     dashboard: 'Dashboard',
     signOut: 'Odhlásit se',
     signIn: 'Přihlásit se',
-    getStarted: 'Začít'
+    getStarted: 'První soubor zdarma'
   } : {
     translate: 'Translate',
     findSubtitles: 'Find Subtitles',
@@ -43,7 +43,7 @@ export function Header() {
     dashboard: 'Dashboard',
     signOut: 'Sign Out',
     signIn: 'Sign In',
-    getStarted: 'Get Started'
+    getStarted: 'First file free'
   }
 
 

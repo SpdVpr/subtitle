@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import Link from 'next/link'
+import { authFetch } from '@/lib/auth-fetch'
 
 interface Notification {
   id: string
@@ -10,6 +11,7 @@ interface Notification {
   title: string
   message: string
   feedbackId?: string
+  url?: string
   read: boolean
   createdAt: string
 }
@@ -35,7 +37,7 @@ export default function NotificationsBell() {
     
     try {
       setLoading(true)
-      const response = await fetch(`/api/notifications?userId=${user.uid}`)
+      const response = await authFetch('/api/notifications')
       
       if (response.ok) {
         const data = await response.json()
@@ -51,7 +53,7 @@ export default function NotificationsBell() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const response = await fetch('/api/notifications', {
+      const response = await authFetch('/api/notifications', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notificationId, read: true }),
@@ -208,6 +210,18 @@ export default function NotificationsBell() {
                               View feedback
                             </Link>
                           )}
+                          {notification.url && (
+                            <Link
+                              href={notification.url}
+                              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                              onClick={() => {
+                                markAsRead(notification.id)
+                                setIsOpen(false)
+                              }}
+                            >
+                              Continue
+                            </Link>
+                          )}
                           {!notification.read && (
                             <button
                               onClick={() => markAsRead(notification.id)}
@@ -249,4 +263,3 @@ export default function NotificationsBell() {
     </div>
   )
 }
-

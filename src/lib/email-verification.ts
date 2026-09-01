@@ -16,7 +16,7 @@ export class EmailVerificationService {
     
     try {
       await firebaseSendEmailVerification(user, {
-        url: `${window.location.origin}/dashboard`,
+        url: `${window.location.origin}/translate`,
         handleCodeInApp: false
       })
       

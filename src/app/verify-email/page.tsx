@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
 import { EmailVerificationService } from '@/lib/email-verification'
+import { safeInternalRedirect } from '@/lib/safe-redirect'
+import { analytics } from '@/lib/analytics'
 import { 
   CheckCircle, 
   XCircle, 
@@ -27,26 +29,37 @@ function VerifyEmailPageInner() {
   useEffect(() => {
     const actionCode = searchParams.get('oobCode')
     const continueUrl = searchParams.get('continueUrl')
+    const redirectPath = safeInternalRedirect(searchParams.get('redirect'), '/translate')
 
     if (actionCode) {
       // Verify email with action code
       verifyEmailWithCode(actionCode, continueUrl)
     } else {
       // Just show verification status
-      setStatus('pending')
-      setMessage('Check your email for a verification link')
+      if (user?.emailVerified) {
+        setStatus('success')
+        setMessage('Your email has been verified successfully!')
+        import('@/lib/database').then(({ UserService }) =>
+          UserService.updateUser(user.uid, { emailVerified: true } as any)
+        ).catch(console.warn)
+        setTimeout(() => { window.location.href = redirectPath }, 800)
+      } else {
+        setStatus('pending')
+        setMessage('Check your email for a verification link')
+      }
     }
-  }, [searchParams])
+  }, [searchParams, user])
 
   const verifyEmailWithCode = async (actionCode: string, continueUrl: string | null) => {
     try {
       await EmailVerificationService.verifyEmail(actionCode)
       setStatus('success')
       setMessage('Your email has been verified successfully!')
+      analytics.emailVerified('email_link')
 
       // Redirect after 2 seconds with better UX
       setTimeout(() => {
-        const redirectUrl = continueUrl || '/dashboard'
+        const redirectUrl = safeInternalRedirect(continueUrl || searchParams.get('redirect'), '/translate')
         console.log('Redirecting to:', redirectUrl)
 
         // Try multiple redirect methods for better compatibility
@@ -70,7 +83,7 @@ function VerifyEmailPageInner() {
 
     setIsResending(true)
     try {
-      await sendVerificationEmail()
+      await sendVerificationEmail(safeInternalRedirect(searchParams.get('redirect'), '/translate'))
       setMessage('Verification email sent! Check your inbox.')
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Failed to send verification email')
@@ -109,7 +122,7 @@ function VerifyEmailPageInner() {
     <>
       {status === 'success' && (
         <Head>
-          <meta httpEquiv="refresh" content="3;url=/dashboard" />
+          <meta httpEquiv="refresh" content={`3;url=${safeInternalRedirect(searchParams.get('redirect'), '/translate')}`} />
         </Head>
       )}
       <div className="py-8">
@@ -170,11 +183,11 @@ function VerifyEmailPageInner() {
             {status === 'success' && (
               <div className="text-center">
                 <p className="text-sm text-gray-600 dark:text-muted-foreground mb-4">
-                  Redirecting to dashboard in 2 seconds...
+                  Redirecting to your translation in 2 seconds...
                 </p>
                 <Button
                   onClick={() => {
-                    const redirectUrl = '/dashboard'
+                    const redirectUrl = safeInternalRedirect(searchParams.get('redirect'), '/translate')
                     if (window.opener) {
                       window.opener.location.href = redirectUrl
                       window.close()

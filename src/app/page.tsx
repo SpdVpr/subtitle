@@ -43,7 +43,7 @@ export default function Home() {
             <Link href="/register" className="inline-block group">
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-full mb-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 hover:-rotate-1">
                 <Gift className="h-5 w-5 animate-bounce" />
-                <span className="font-semibold">🎉 New users get 100 FREE credits to start!</span>
+                <span className="font-semibold">🎉 Translate your first complete subtitle file FREE!</span>
                 <Sparkles className="h-5 w-5 animate-spin-slow" />
               </div>
             </Link>
@@ -166,7 +166,7 @@ export default function Home() {
                 <p className="text-center text-sm text-gray-600 dark:text-muted-foreground">
                   <span className="font-medium text-blue-600 dark:text-primary">Perfect timing preserved</span> •
                   <span className="font-medium text-green-600 dark:text-green-400"> Natural translations</span> •
-                  <span className="font-medium text-purple-600 dark:text-purple-400"> 40+ languages supported</span>
+                  <span className="font-medium text-purple-600 dark:text-purple-400"> 100+ language pairs supported</span>
                 </p>
               </div>
             </div>
@@ -292,7 +292,7 @@ export default function Home() {
               <div className="mt-6 text-center">
                 <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                   <Star className="h-4 w-4 mr-1" />
-                  95% Accuracy Rate
+                  Quality-focused, context-aware output
                 </Badge>
               </div>
             </div>
@@ -317,7 +317,7 @@ export default function Home() {
               </div>
               <CardTitle className="text-xl">Lightning Fast</CardTitle>
               <CardDescription className="text-base">
-                Translate entire subtitle files in under 30 seconds
+                Fast processing with live progress
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -583,18 +583,18 @@ export default function Home() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-center space-x-2">
                   <span>🎁</span>
-                  <span>Welcome Bonus</span>
+                  <span>Free First Translation</span>
                 </CardTitle>
                 <CardDescription>Get started for free</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-3xl font-bold text-primary">100 Credits</div>
-                <div className="text-sm text-muted-foreground">Free on signup</div>
+                <div className="text-3xl font-bold text-primary">1 File Free</div>
+                <div className="text-sm text-muted-foreground">Complete file • either quality</div>
               </CardContent>
               <CardContent className="space-y-2">
-                <p>✓ ~250 lines of translation</p>
-                <p>✓ Premium AI translation</p>
-                <p>✓ No time limit</p>
+                <p>✓ Complete subtitle file</p>
+                <p>✓ Standard or Premium AI</p>
+                <p>✓ No payment card required</p>
                 <p>✓ Full feature access</p>
               </CardContent>
             </Card>
@@ -618,7 +618,7 @@ export default function Home() {
                     <span className="font-bold">1.5 credits</span>
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground mt-2">per 20 lines</div>
+                <div className="text-xs text-muted-foreground mt-2">per 20 subtitles</div>
               </CardContent>
               <CardContent className="space-y-2">
                 <p>✓ Context-aware translation</p>
@@ -631,10 +631,10 @@ export default function Home() {
 
           <div className="mt-8 space-y-4">
             <div className="text-sm text-muted-foreground">
-              💡 <strong>1 USD = 100 credits</strong> • Buy credits as needed • No expiration
+              💡 Continuing translations use credits • From $0.008 per credit • Purchased credits never expire
             </div>
             <Button size="lg" asChild>
-              <Link href="/register">Get 100 Free Credits</Link>
+              <Link href="/translate">Translate Your First File Free</Link>
             </Button>
           </div>
         </div>

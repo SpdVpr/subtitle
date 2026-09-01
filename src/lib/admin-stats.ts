@@ -52,7 +52,7 @@ export class AdminStatsService {
 
   static async getOverallStats(): Promise<AdminStats> {
     try {
-      const response = await adminFetch('/api/admin/users')
+      const response = await adminFetch('/api/admin/stats')
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -61,6 +61,7 @@ export class AdminStatsService {
       }
 
       const data = await response.json()
+      if (data.success && data.data) return data.data as AdminStats
       const users: any[] = data.users || []
       console.log('📊 Admin Stats - Got users from API:', users.length)
 
@@ -343,7 +344,11 @@ export class AdminStatsService {
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
       return (payload.transactions || [])
         .map((transaction: any) => ({ ...transaction, createdAt: new Date(transaction.createdAt) }))
-        .filter((transaction: any) => transaction.createdAt >= thirtyDaysAgo && ['topup', 'credit'].includes(transaction.type))
+        .filter((transaction: any) =>
+          transaction.createdAt >= thirtyDaysAgo &&
+          /^Purchased \d+ credits - /.test(transaction.reason || '') &&
+          !/simulated/i.test(transaction.reason || '')
+        )
         .map((transaction: any) => ({
           date: transaction.createdAt.toISOString().split('T')[0],
           amount: Number(transaction.amount || 0) / 100,

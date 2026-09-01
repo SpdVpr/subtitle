@@ -134,8 +134,8 @@ export async function GET(request: NextRequest) {
         userEmail,
         type: data.type || 'unknown',
         amount: Number(data.credits || data.amount) || 0, // FIXED: credits first, then amount
-        balanceBefore: Number(data.balanceBefore) || 0,
-        balanceAfter: Number(data.balanceAfter) || 0,
+        balanceBefore: data.balanceBefore == null ? null : Number(data.balanceBefore),
+        balanceAfter: data.balanceAfter == null ? null : Number(data.balanceAfter),
         reason: data.reason || data.description || 'No reason provided',
         createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt) || new Date(),
         adminId: data.adminId,

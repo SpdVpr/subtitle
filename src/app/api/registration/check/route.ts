@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAdminDb } from '@/lib/firebase-admin'
 import { TRACKING_CONFIG } from '@/lib/registration-tracking'
 import rateLimiter, { RATE_LIMITS, createRateLimitResponse } from '@/lib/rate-limiter'
+import { isDisposableEmail } from '@/lib/disposable-email'
 
 /**
  * API endpoint to check if a registration should be allowed
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { browserFingerprint } = body
+    const { browserFingerprint, email = '' } = body
 
     if (!browserFingerprint) {
       return NextResponse.json(
@@ -50,6 +51,11 @@ export async function POST(request: NextRequest) {
 
     const reasons: string[] = []
     let suspiciousScore = 0
+
+    if (email && isDisposableEmail(String(email))) {
+      suspiciousScore = 100
+      reasons.push('Disposable email providers are not eligible for registration')
+    }
 
     // Check for duplicate IPs
     const ipQuery = await db.collection('registration_tracking')
@@ -85,14 +91,7 @@ export async function POST(request: NextRequest) {
     suspiciousScore = Math.min(100, suspiciousScore)
 
     // Determine credits to award
-    let creditsToAward = TRACKING_CONFIG.DEFAULT_CREDITS
-    if (suspiciousScore >= TRACKING_CONFIG.VERY_HIGH_THRESHOLD) {
-      creditsToAward = TRACKING_CONFIG.VERY_HIGH_SUSPICIOUS_CREDITS
-      reasons.push(`Credits reduced to ${creditsToAward} due to very high suspicious activity (score: ${suspiciousScore})`)
-    } else if (suspiciousScore >= TRACKING_CONFIG.SUSPICIOUS_THRESHOLD) {
-      creditsToAward = TRACKING_CONFIG.SUSPICIOUS_CREDITS
-      reasons.push(`Credits reduced to ${creditsToAward} due to suspicious activity (score: ${suspiciousScore})`)
-    }
+    const creditsToAward = 0
 
     // Determine if registration should be blocked (future feature)
     const isAllowed = suspiciousScore < TRACKING_CONFIG.BLOCK_THRESHOLD
@@ -141,4 +140,3 @@ function getClientIP(request: NextRequest): string {
   // Fallback
   return request.ip || 'unknown'
 }
-
