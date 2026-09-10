@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -241,7 +242,9 @@ export default function CookiePolicyPage() {
   )
 }
 
-export const metadata = {
-  title: 'Cookie Policy - SubtitleAI',
-  description: 'Learn about how SubtitleAI uses cookies to improve your experience and how you can manage your cookie preferences.',
-}
+export const metadata = pageMetadata({
+  locale: "en",
+  path: "/cookies",
+  title: "Cookie Policy",
+  description: "Learn which cookies SubtitleBot uses, what they are for and how you can change your cookie preferences at any time."
+})

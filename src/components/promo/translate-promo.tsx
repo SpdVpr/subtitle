@@ -25,8 +25,8 @@ export function TranslatePromo({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
   return (
     <div className="mt-10 sm:mt-12">
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-blue-700 dark:from-blue-600 dark:via-blue-700 dark:to-blue-900 p-6 sm:p-8 text-white shadow-xl shadow-primary/20">
-        <div className="absolute -top-12 -right-12 w-56 h-56 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -bottom-16 -left-10 w-48 h-48 rounded-full bg-blue-300/10 blur-2xl" />
+        <div className="absolute -top-12 -right-12 w-56 h-56 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.16),transparent_70%)]" />
+        <div className="absolute -bottom-16 -left-10 w-48 h-48 rounded-full bg-[radial-gradient(circle_at_center,rgba(147,197,253,0.16),transparent_70%)]" />
 
         <div className="relative grid lg:grid-cols-[1.3fr_0.7fr] gap-6 items-center">
           <div>

@@ -3,6 +3,9 @@ interface StructuredDataProps {
   page?: 'home' | 'translate' | 'search' | 'editor' | 'video-tools' | 'pricing' | 'about' | 'statistics'
 }
 
+// Keep in sync with the sitemap lastModified date.
+const CONTENT_UPDATED = '2026-09-10'
+
 const PAGE_PATHS = {
   home: '',
   translate: '/translate',
@@ -41,7 +44,7 @@ export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataP
       '@id': organizationId,
       name: 'SubtitleBot',
       url: baseUrl,
-      logo: { '@type': 'ImageObject', url: `${baseUrl}/logo-sub.png` },
+      logo: { '@type': 'ImageObject', url: `${baseUrl}/logo-sub.png`, width: 256, height: 209 },
       email: 'support@subtitlebot.com',
       address: { '@type': 'PostalAddress', addressLocality: 'Prague', addressCountry: 'CZ' },
     },
@@ -92,6 +95,7 @@ export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataP
       isPartOf: { '@id': websiteId },
       about: { '@id': softwareId },
       inLanguage: isCs ? 'cs-CZ' : 'en-US',
+      dateModified: CONTENT_UPDATED,
     },
   ]
 

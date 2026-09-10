@@ -1,47 +1,20 @@
-import { Metadata } from 'next'
+import { pageMetadata } from '@/lib/seo'
 import { VideoPlayerWithSubtitles } from '@/components/video/video-player-with-subtitles'
 
 
-export const metadata: Metadata = {
-  title: 'Video Tools',
-  description: 'Advanced video player and subtitle tools. Watch videos with custom subtitles or use Picture-in-Picture overlay for streaming services like Netflix, YouTube, and more.',
+export const metadata = pageMetadata({
+  locale: "en",
+  path: "/video-tools",
+  title: "Video Player with Subtitles and Subtitle Overlay",
+  description: "Watch local videos with your own subtitle file, or use the Picture-in-Picture subtitle overlay on top of streaming services such as Netflix or YouTube. Free, in the browser.",
   keywords: [
-    'video tools',
-    'video player',
-    'subtitle overlay',
-    'Picture-in-Picture',
-    'streaming subtitles',
-    'YouTube subtitles',
-    'Netflix subtitles',
-    'video subtitle player',
-    'custom subtitles',
-    'subtitle synchronization'
-  ],
-  openGraph: {
-    title: 'Video Tools - SubtitleBot',
-    description: 'Advanced video player and subtitle tools. Watch videos with custom subtitles or use Picture-in-Picture overlay.',
-    url: '/video-tools',
-    type: 'website',
-    images: [
-      {
-        url: '/og-video-tools.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'SubtitleBot Video Tools - Video Player and Subtitle Overlay',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Video Tools - SubtitleBot',
-    description: 'Advanced video player and subtitle tools for any video content.',
-    images: ['/twitter-video-tools.jpg'],
-  },
-  alternates: {
-    canonical: '/video-tools',
-  },
-}
-
+    "video player with subtitles",
+    "subtitle overlay",
+    "picture in picture subtitles",
+    "streaming subtitles",
+    "Netflix subtitles overlay"
+  ]
+})
 export default function VideoPlayerPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-background dark:to-card">

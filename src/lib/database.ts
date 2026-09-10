@@ -16,7 +16,7 @@ import {
   serverTimestamp,
   increment
 } from 'firebase/firestore'
-import { db } from './firebase'
+import { db } from './firebase-db'
 import {
   UserProfile,
   TranslationJob,

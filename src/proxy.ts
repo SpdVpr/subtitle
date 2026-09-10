@@ -9,7 +9,7 @@ export function proxy(request: NextRequest) {
     '/buy-credits', '/cs/buy-credits', '/batch', '/cs/batch', '/subtitle-popup/overlay',
     '/my-feedback', '/cs/my-feedback', '/feedback', '/cs/feedback', '/cookie-settings',
     '/cs/cookie-settings', '/register', '/cs/register', '/login', '/cs/login',
-    '/forgot-password',
+    '/forgot-password', '/modern', '/cs/modern',
   ]
 
   // SEO-friendly redirects for old/incorrect URLs
@@ -49,11 +49,12 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except for:
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * - files with an extension (images, fonts, manifest, sitemap, robots)
+     * so static assets are served straight from the CDN without running here.
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|.*\\.[a-zA-Z0-9]+$).*)',
   ],
 }

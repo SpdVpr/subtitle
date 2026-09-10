@@ -1,46 +1,12 @@
-import { Metadata } from 'next'
+import { pageMetadata } from '@/lib/seo'
 import { SubtitlePopupController } from '@/components/popup/subtitle-popup-controller'
 
-export const metadata: Metadata = {
-  title: 'Plovoucí titulky',
-  description: 'Otevřete plovoucí titulkové okno, které funguje nad jakýmkoli video obsahem. Perfektní pro streamovací služby jako Netflix, YouTube a online videa. Nevyžaduje instalaci.',
-  keywords: [
-    'plovoucí titulky',
-    'video overlay',
-    'streamovací titulky',
-    'externí titulky',
-    'titulkové okno',
-    'Netflix titulky',
-    'YouTube overlay',
-    'titulkové popup',
-    'průhledný overlay',
-    'zobrazení titulků'
-  ],
-  openGraph: {
-    title: 'Plovoucí titulky - SubtitleBot',
-    description: 'Otevřete plovoucí titulkové okno, které funguje nad jakýmkoli video obsahem. Perfektní pro streamovací služby a online videa.',
-    url: '/cs/subtitle-popup',
-    type: 'website',
-    images: [
-      {
-        url: '/og-popup.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'SubtitleBot - Plovoucí titulkové okno',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Plovoucí titulky - SubtitleBot',
-    description: 'Plovoucí titulkové okno, které funguje nad jakýmkoli video obsahem.',
-    images: ['/twitter-popup.jpg'],
-  },
-  alternates: {
-    canonical: '/cs/subtitle-popup',
-  },
-}
-
+export const metadata = pageMetadata({
+  locale: "cs",
+  path: "/subtitle-popup",
+  title: "Vyskakovací okno s titulky nad jakýmkoli videem",
+  description: "Otevřete okno s titulky, které zůstane nad každým přehrávačem nebo streamovací službou. Bez rozšíření a instalace."
+})
 export default function CzechSubtitlePopupPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-background dark:to-card">

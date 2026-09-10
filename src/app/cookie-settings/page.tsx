@@ -197,10 +197,10 @@ export default function CookieSettingsPage() {
             For detailed information about how we use cookies, please see our policies:
           </p>
           <div className="flex flex-wrap gap-4 text-sm">
-            <Link href="/cookie-policy" className="text-blue-600 hover:underline">
+            <Link href="/cookies" className="text-blue-600 hover:underline">
               Cookie Policy
             </Link>
-            <Link href="/privacy-policy" className="text-blue-600 hover:underline">
+            <Link href="/privacy" className="text-blue-600 hover:underline">
               Privacy Policy
             </Link>
             <Link href="/terms" className="text-blue-600 hover:underline">

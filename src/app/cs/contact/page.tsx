@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -202,3 +203,10 @@ export default function CzechContactPage() {
     </div>
   )
 }
+
+export const metadata = pageMetadata({
+  locale: "cs",
+  path: "/contact",
+  title: "Kontakt a podpora SubtitleBot",
+  description: "Máte dotaz k překladu titulků, kreditům nebo vyhledávání titulků? Napište týmu SubtitleBot e-mailem nebo přes kontaktní formulář."
+})

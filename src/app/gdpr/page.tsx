@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -41,7 +42,7 @@ export default function GDPRPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground leading-relaxed">
-              SubtitleAI is committed to protecting your personal data and respecting your privacy rights 
+              SubtitleBot is committed to protecting your personal data and respecting your privacy rights 
               under the General Data Protection Regulation (GDPR). This page explains your rights and 
               how we comply with GDPR requirements.
             </p>
@@ -306,7 +307,9 @@ export default function GDPRPage() {
   )
 }
 
-export const metadata = {
-  title: 'GDPR Compliance - SubtitleAI',
-  description: 'Learn about your data protection rights under GDPR and how SubtitleAI ensures compliance with data protection regulations.',
-}
+export const metadata = pageMetadata({
+  locale: "en",
+  path: "/gdpr",
+  title: "GDPR Compliance",
+  description: "Your data protection rights under GDPR and how SubtitleBot keeps your subtitle files and account data compliant."
+})

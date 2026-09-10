@@ -121,11 +121,11 @@ export function CookieBannerEN() {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Learn more in our{' '}
-                    <Link href="/cookie-policy" className="text-blue-600 hover:underline">
+                    <Link href="/cookies" className="text-blue-600 hover:underline">
                       Cookie Policy
                     </Link>
                     {' '}and{' '}
-                    <Link href="/privacy-policy" className="text-blue-600 hover:underline">
+                    <Link href="/privacy" className="text-blue-600 hover:underline">
                       Privacy Policy
                     </Link>
                     .

@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -155,3 +156,10 @@ export default function ContactPage() {
     </div>
   )
 }
+
+export const metadata = pageMetadata({
+  locale: "en",
+  path: "/contact",
+  title: "Contact SubtitleBot Support",
+  description: "Questions about subtitle translation, credits or the subtitle finder? Contact the SubtitleBot team by email or through the contact form."
+})

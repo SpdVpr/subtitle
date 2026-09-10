@@ -23,7 +23,6 @@ export function useAuthProvider(): AuthContextType {
   const [loading, setLoading] = useState(true)
   const [firebaseServices, setFirebaseServices] = useState<{
     auth: any
-    db: any
     isConfigured: boolean
   } | null>(null)
 
@@ -33,12 +32,12 @@ export function useAuthProvider(): AuthContextType {
     const initFirebase = async () => {
       try {
         console.log('🔥 Importing Firebase services...')
-        const [{ auth, db, isFirebaseConfigured }, { onAuthStateChanged }] = await Promise.all([
+        const [{ auth, isFirebaseConfigured }, { onAuthStateChanged }] = await Promise.all([
           import('@/lib/firebase'),
           import('firebase/auth'),
         ])
         console.log('🔥 Firebase configured:', isFirebaseConfigured, 'Auth available:', !!auth)
-        setFirebaseServices({ auth, db, isConfigured: isFirebaseConfigured })
+        setFirebaseServices({ auth, isConfigured: isFirebaseConfigured })
 
         if (!isFirebaseConfigured || !auth) {
           console.log('🔥 Firebase not configured, stopping initialization')
@@ -153,7 +152,7 @@ export function useAuthProvider(): AuthContextType {
   }
 
   const signUp = async (email: string, password: string, continueUrl = '/translate') => {
-    if (!firebaseServices?.isConfigured || !firebaseServices.auth || !firebaseServices.db) {
+    if (!firebaseServices?.isConfigured || !firebaseServices.auth) {
       throw new Error('Firebase is not configured. Please set up your environment variables.')
     }
 
@@ -315,15 +314,16 @@ export function useAuthProvider(): AuthContextType {
     setLoading(true)
     try {
       sessionStorage.setItem('subtitlebot_registration_in_progress', '1')
-      const [{ googleProvider }, { signInWithPopup }, { UserService }] = await Promise.all([
+      const [{ googleProvider }, { signInWithPopup, browserPopupRedirectResolver }, { UserService }] = await Promise.all([
         import('@/lib/firebase'),
         import('firebase/auth'),
         import('@/lib/database'),
       ])
-      const result = await signInWithPopup(firebaseServices.auth, googleProvider)
+      // Resolver passed explicitly: auth is initialized without one (see lib/firebase.ts)
+      const result = await signInWithPopup(firebaseServices.auth, googleProvider, browserPopupRedirectResolver)
 
       // Create or update user profile in Firestore
-      if (result.user && firebaseServices.db) {
+      if (result.user) {
         console.log('🔥 Creating/updating Google user profile:', result.user.uid, result.user.email)
 
         // Check if user already exists
@@ -454,7 +454,7 @@ export function useAuthProvider(): AuthContextType {
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   try {
     const [{ db }, { doc, getDoc }] = await Promise.all([
-      import('@/lib/firebase'),
+      import('@/lib/firebase-db'),
       import('firebase/firestore'),
     ])
     if (!db) return null

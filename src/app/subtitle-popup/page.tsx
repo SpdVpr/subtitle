@@ -1,47 +1,13 @@
-import { Metadata } from 'next'
+import { pageMetadata } from '@/lib/seo'
 import { SubtitlePopupController } from '@/components/popup/subtitle-popup-controller'
 
 
-export const metadata: Metadata = {
-  title: 'Subtitle Popup',
-  description: 'Open a subtitle overlay window that works over any video content. Perfect for streaming services like Netflix, YouTube, and online videos. No installation required.',
-  keywords: [
-    'subtitle popup',
-    'video overlay',
-    'streaming subtitles',
-    'external subtitles',
-    'subtitle window',
-    'Netflix subtitles',
-    'YouTube overlay',
-    'floating subtitles',
-    'transparent overlay',
-    'subtitle display'
-  ],
-  openGraph: {
-    title: 'Subtitle Popup - SubtitleBot',
-    description: 'Open a subtitle overlay window that works over any video content. Perfect for streaming services and online videos.',
-    url: '/subtitle-popup',
-    type: 'website',
-    images: [
-      {
-        url: '/og-popup.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'SubtitleBot Popup - Subtitle Overlay Window',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Subtitle Popup - SubtitleBot',
-    description: 'Subtitle overlay window that works over any video content.',
-    images: ['/twitter-popup.jpg'],
-  },
-  alternates: {
-    canonical: '/subtitle-popup',
-  },
-}
-
+export const metadata = pageMetadata({
+  locale: "en",
+  path: "/subtitle-popup",
+  title: "Subtitle Popup Window: Subtitles Over Any Video",
+  description: "Open an always-on-top subtitle window and play your subtitle file over any video player or streaming site. No extension or installation needed."
+})
 export default function SubtitlePopupPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-background dark:to-card">

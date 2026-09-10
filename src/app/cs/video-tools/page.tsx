@@ -1,46 +1,18 @@
-import { Metadata } from 'next'
+import { pageMetadata } from '@/lib/seo'
 import { VideoPlayerWithSubtitles } from '@/components/video/video-player-with-subtitles'
 
-export const metadata: Metadata = {
-  title: 'Video Nástroje',
-  description: 'Pokročilý video přehrávač a nástroje pro titulky. Sledujte videa s vlastními titulky nebo použijte plovoucí titulky pro streamovací služby jako Netflix, YouTube a další.',
+export const metadata = pageMetadata({
+  locale: "cs",
+  path: "/video-tools",
+  title: "Video přehrávač s titulky a overlay titulků",
+  description: "Přehrávejte lokální videa s vlastním souborem titulků nebo použijte Picture-in-Picture overlay titulků nad streamovacími službami jako Netflix či YouTube. Zdarma, v prohlížeči.",
   keywords: [
-    'video nástroje',
-    'video přehrávač',
-    'titulkový overlay',
-    'plovoucí titulky',
-    'streamovací titulky',
-    'YouTube titulky',
-    'Netflix titulky',
-    'video titulkový přehrávač',
-    'vlastní titulky',
-    'synchronizace titulků'
-  ],
-  openGraph: {
-    title: 'Video Nástroje - SubtitleBot',
-    description: 'Pokročilý video přehrávač a nástroje pro titulky. Sledujte videa s vlastními titulky nebo použijte plovoucí titulky.',
-    url: '/cs/video-tools',
-    type: 'website',
-    images: [
-      {
-        url: '/og-video-tools.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'SubtitleBot Video Nástroje - Video Přehrávač a Titulkový Overlay',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Video Nástroje - SubtitleBot',
-    description: 'Pokročilý video přehrávač a nástroje pro titulky pro jakýkoli video obsah.',
-    images: ['/twitter-video-tools.jpg'],
-  },
-  alternates: {
-    canonical: '/cs/video-tools',
-  },
-}
-
+    "video přehrávač s titulky",
+    "overlay titulků",
+    "titulky nad videem",
+    "Netflix titulky"
+  ]
+})
 export default function CzechVideoPlayerPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-background dark:to-card">

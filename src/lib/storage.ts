@@ -7,7 +7,7 @@ import {
   getMetadata,
   updateMetadata
 } from 'firebase/storage'
-import { storage } from './firebase'
+import { storage } from './firebase-storage'
 import { FileService } from './database'
 import { StoredFile } from '@/types/database'
 

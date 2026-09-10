@@ -54,6 +54,21 @@ export function SubtitleSearchGuide({ locale = 'en' }: { locale?: 'en' | 'cs' })
 
   return (
     <div className="mt-10 space-y-8">
+      {/* FAQ structured data mirrors the visible FAQ below (answer engines + rich results) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: faqs.map(([question, answer]) => ({
+              '@type': 'Question',
+              name: question,
+              acceptedAnswer: { '@type': 'Answer', text: answer },
+            })),
+          }).replace(/</g, '\\u003c'),
+        }}
+      />
       {/* Three compact steps */}
       <section aria-labelledby="how-to-find-subtitles">
         <h2 id="how-to-find-subtitles" className="text-xl sm:text-2xl font-bold mb-4">

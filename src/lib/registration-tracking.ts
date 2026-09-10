@@ -1,4 +1,4 @@
-import { db } from './firebase'
+import { db } from './firebase-db'
 import { collection, addDoc, query, where, getDocs, serverTimestamp, Timestamp } from 'firebase/firestore'
 import { RegistrationTracking } from '@/types/database'
 

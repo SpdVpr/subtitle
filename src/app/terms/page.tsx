@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -40,7 +41,7 @@ export default function TermsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground leading-relaxed">
-                By accessing and using SubtitleAI ("Service", "Platform", "we", "us", or "our"), you ("User", "you", or "your") accept and agree to be bound by the terms and provisions of this agreement ("Terms of Service" or "Terms").
+                By accessing and using SubtitleBot ("Service", "Platform", "we", "us", or "our"), you ("User", "you", or "your") accept and agree to be bound by the terms and provisions of this agreement ("Terms of Service" or "Terms").
               </p>
               <p className="text-muted-foreground leading-relaxed">
                 If you do not agree to abide by the above, please do not use this service. These Terms apply to all visitors, users, and others who access or use the Service.
@@ -58,7 +59,7 @@ export default function TermsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground leading-relaxed">
-                SubtitleAI is an AI-powered platform that provides subtitle translation, timing adjustment, and related services. Our Service includes:
+                SubtitleBot is an AI-powered platform that provides subtitle translation, timing adjustment, and related services. Our Service includes:
               </p>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
                 <li>Automated subtitle translation using AI technology</li>
@@ -166,7 +167,7 @@ export default function TermsPage() {
               <div>
                 <h4 className="font-semibold text-foreground mb-2">6.1 Our Content</h4>
                 <p className="text-muted-foreground leading-relaxed">
-                  The Service and its original content, features, and functionality are and will remain the exclusive property of SubtitleAI and its licensors. The Service is protected by copyright, trademark, and other laws.
+                  The Service and its original content, features, and functionality are and will remain the exclusive property of SubtitleBot and its licensors. The Service is protected by copyright, trademark, and other laws.
                 </p>
               </div>
               <div>
@@ -232,7 +233,7 @@ export default function TermsPage() {
               <div>
                 <h4 className="font-semibold text-foreground mb-2">8.3 Limitation of Liability</h4>
                 <p className="text-muted-foreground leading-relaxed">
-                  To the maximum extent permitted by law, SubtitleAI shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or other intangible losses.
+                  To the maximum extent permitted by law, SubtitleBot shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or other intangible losses.
                 </p>
               </div>
             </CardContent>
@@ -330,10 +331,17 @@ export default function TermsPage() {
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            By using SubtitleAI, you acknowledge that you have read and understood these Terms of Service.
+            By using SubtitleBot, you acknowledge that you have read and understood these Terms of Service.
           </p>
         </div>
       </div>
     </div>
   )
 }
+
+export const metadata = pageMetadata({
+  locale: "en",
+  path: "/terms",
+  title: "Terms of Service",
+  description: "Terms and conditions for using SubtitleBot subtitle translation, editing and search tools, including credits and refunds."
+})

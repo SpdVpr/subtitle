@@ -1,5 +1,3 @@
-import { auth } from '@/lib/firebase'
-
 /**
  * fetch() wrapper for admin API calls. Attaches the current user's Firebase
  * ID token as a Bearer credential so the server can verify admin access.
@@ -8,6 +6,7 @@ import { auth } from '@/lib/firebase'
 export async function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
   let token = ''
   try {
+    const { auth } = await import('@/lib/firebase')
     const user = auth?.currentUser
     if (user) token = await user.getIdToken()
   } catch {

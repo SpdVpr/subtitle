@@ -1,0 +1,36 @@
+# SubtitleBot
+
+> SubtitleBot (https://www.subtitlebot.com) is a browser-based toolkit for finding, translating, editing and synchronizing subtitles. Its AI subtitle translator covers 100+ language pairs and preserves timestamps. The first complete subtitle file is translated free; afterwards you pay per use with credits, with no subscription.
+
+## Key facts
+
+- Subtitle finder for movies and TV series (OpenSubtitles) and anime (Jimaku): https://www.subtitlebot.com/subtitles-search
+- AI subtitle translation (context-aware, based on Google Gemini models): https://www.subtitlebot.com/translate
+- Supported subtitle formats: SRT, VTT, ASS, SSA, SUB, SBV and TXT (files up to 10 MB)
+- Online subtitle editor with timing shift, find and replace and export: https://www.subtitlebot.com/subtitle-editor
+- Free subtitle tools (sync and FPS conversion, SRT validator, reading speed, SRT/VTT conversion, encoding detection): https://www.subtitlebot.com/tools
+- Video player with subtitles and subtitle overlay for streaming sites: https://www.subtitlebot.com/video-tools
+- Pricing: first complete subtitle file free, then pay-as-you-go credits that never expire: https://www.subtitlebot.com/pricing
+- Languages of the site: English (default) and Czech (https://www.subtitlebot.com/cs)
+- Operated from Prague, Czech Republic. Support: support@subtitlebot.com
+
+## Guides
+
+- Subtitle guides hub: https://www.subtitlebot.com/guides
+- How to find the right subtitles: https://www.subtitlebot.com/guides/how-to-find-the-right-subtitles
+- Fix subtitles that are out of sync: https://www.subtitlebot.com/guides/fix-subtitles-out-of-sync
+- Subtitle frame rate conversion: https://www.subtitlebot.com/guides/subtitle-frame-rate-conversion
+
+## Subtitle catalog
+
+- Movie subtitles: https://www.subtitlebot.com/subtitles/movies
+- TV series subtitles: https://www.subtitlebot.com/subtitles/tv
+- English subtitles: https://www.subtitlebot.com/subtitles/english
+- Popular and latest: https://www.subtitlebot.com/subtitles/popular , https://www.subtitlebot.com/subtitles/latest
+
+## Policies
+
+- About: https://www.subtitlebot.com/about
+- Privacy: https://www.subtitlebot.com/privacy
+- Terms: https://www.subtitlebot.com/terms
+- Sitemap: https://www.subtitlebot.com/sitemap.xml

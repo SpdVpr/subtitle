@@ -200,3 +200,37 @@ Každá indexovaná stránka musí mít reálnou hodnotu: aktuální dostupné j
 | 270 dní | denní organika a brand share | cíl 1 000+ denně je realistický mezikrok; 2–3 tisíce vyžadují inventory a odkazy |
 
 Pro přesnější forecast je potřeba export minimálně 16 měsíců z GSC po dimenzích query, page, country a device. Screenshoty ukazují směr a top 20 dotazů, ale ne distribuci pozic, long tail ani sezónnost. Žádná SEO nebo GEO úprava nemůže garantovat konkrétní návštěvnost; plán je postavený tak, aby byl růst měřitelný a jednotlivé investice šly zastavit nebo rozšířit podle dat.
+
+## Aktualizace 10. 9. 2026 — druhá vlna SEO/GEO a PageSpeed
+
+Výchozí stav (PageSpeed Insights, mobil, homepage): Performance 74, Accessibility 96, Best Practices 100, SEO 100; FCP 2,3 s, LCP 5,7 s. Field data (CrUX): LCP 1,7 s, CLS 0,05, INP 211 ms (jediná metrika mimo limit).
+
+### Co se změnilo
+
+SEO
+- Root layout už nenastavuje `canonical: '/'` a `openGraph.url: '/'`. Ty se dědily do všech stránek bez vlastních metadat (`/pricing`, `/subtitle-editor`, `/contact`, `/cs/pricing`, `/cs/translate`, …), takže tyto stránky deklarovaly jako kanonickou homepage.
+- Nový helper `src/lib/seo.ts` (`pageMetadata`) generuje title, description, canonical, hreflang EN/CS + `x-default` a OG/Twitter kartu. Použit na všech veřejných stránkách, které metadata neměly nebo je měly chybně (ceník, editor, kontakt, právní stránky, video-tools, popup, CS překlad, CS about).
+- Title template zkrácen na `%s | SubtitleBot` (dřív 85+ znaků, oříznuté v SERP). CS homepage měla dvojitý suffix.
+- Opraveny odkazy na neexistující OG obrázky (`/og-video-tools.jpg`, `/og-popup.jpg`), nové OG obrázky 1200×630 s aktuálními tvrzeními (staré screenshoty slibovaly „200 kreditů“ a „40+ jazyků“).
+- Sjednocena značka: zbytky „SubtitleAI“ v registraci, obnově hesla, podmínkách a GDPR.
+- Finder (`/subtitles-search`, `/cs/subtitles-search`) má server-renderovaný blok odkazů na katalogové huby (filmy, seriály, populární, nejnovější, jazyky) s anchor texty odpovídajícími dotazům z GSC; homepage má v hero CTA „Find Movie & TV Subtitles“.
+- `/modern`, `/cs/modern` dostaly `X-Robots-Tag: noindex`; 404 stránka má `noindex`; cookie lišta a nastavení cookies odkazují přímo na `/cookies` a `/privacy` (dřív přes 301 na staré URL, prefetch končil 404).
+- `<html lang>` se na `/cs/*` přepíná na `cs` po hydrataci (root layout je sdílený).
+
+GEO
+- FAQ na finderu má odpovídající `FAQPage` JSON-LD (obsah je viditelný v DOM).
+- `WebPage` schema nese `dateModified`, Organization logo má rozměry.
+- `public/llms.txt` shrnuje fakta o produktu a klíčové URL pro AI crawlery.
+
+Výkon
+- Firebase klient rozdělen: `lib/firebase.ts` je jen Auth (`initializeAuth` bez popup resolveru — bez gapi + auth iframe na každé stránce), Firestore/Storage jsou v `lib/firebase-db.ts` a `lib/firebase-storage.ts`; `authFetch`/`adminFetch` importují Firebase líně. Úvodní JS homepage klesl z 1 376 kB na 781 kB (raw).
+- Odstraněny `filter: blur()` bloby a `backdrop-filter` v hlavičce/patičce/hero. V headless Chrome (PSI) se rasterizují softwarově a odkládaly první vykreslení o ~2 s (Lighthouse observed FCP homepage 2,26 s → 0,38 s, finder 2,32 s → 0,15 s). Nahrazeny radiálními gradienty.
+- Odstraněna vstupní animace hero (opacity 0 → LCP zpoždění) a univerzální `* { transition }` v globals.css (drahé style recalc, INP).
+- Homepage obrázky přes `next/image` (AVIF/WebP, responzivní `sizes`, lazy), zdroje zmenšeny; logo 607 kB → 11 kB; OG obrázky ~107 kB.
+- `next.config.ts`: `removeConsole` v produkci, `images.minimumCacheTTL` 1 rok, cache hlavičky pro `/images/*`, logo, OG a ikony; proxy matcher už neběží pro statické soubory.
+- UltiQuiz teaser načítá API a obrázek až u viewportu (IntersectionObserver).
+
+### Po nasazení
+1. Zkontrolovat PSI (mobil) pro `/` a `/subtitles-search`; INP sledovat v CrUX po 28 dnech.
+2. V Search Console požádat o přeindexování `/pricing`, `/subtitle-editor`, `/cs/pricing`, `/cs/translate` (dřív kanonicky splývaly s homepage).
+3. Poznámka k Lighthouse CLI: Chrome 152 headless hlásí `transferSize` jako nekomprimovanou velikost, simulované FCP/LCP jsou proto lokálně pesimistické; PSI (Chrome 151) měří správně.

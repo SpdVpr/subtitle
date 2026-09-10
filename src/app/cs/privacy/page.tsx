@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -221,3 +222,10 @@ export default function CzechPrivacyPage() {
     </div>
   )
 }
+
+export const metadata = pageMetadata({
+  locale: "cs",
+  path: "/privacy",
+  title: "Zásady ochrany osobních údajů",
+  description: "Jak SubtitleBot shromažďuje, používá a chrání vaše údaje při překladu, úpravě a vyhledávání titulků."
+})

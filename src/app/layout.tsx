@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -12,17 +11,11 @@ import { LocaleAwareLayout } from "@/components/layout/locale-aware-layout"
 import { AttributionTracker } from "@/components/analytics/attribution-tracker"
 
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: 'swap',
-  preload: true,
-});
 
 export const metadata: Metadata = {
   title: {
     default: "SubtitleBot - AI-Powered Subtitle Translation | 100+ Languages",
-    template: "%s | SubtitleBot - AI Subtitle Translation"
+    template: "%s | SubtitleBot"
   },
   description: "Professional AI subtitle translation supporting 100+ languages. Translate your first complete subtitle file free, with no card or subscription required.",
   keywords: [
@@ -96,13 +89,9 @@ export const metadata: Metadata = {
     telephone: false,
   },
   metadataBase: new URL((process.env.NEXT_PUBLIC_APP_URL || 'https://www.subtitlebot.com').replace(/\/$/, '')),
-  alternates: {
-    canonical: '/',
-  },
   openGraph: {
     title: "SubtitleBot - AI-Powered Subtitle Translation | 100+ Languages",
     description: "Professional AI subtitle translation supporting 100+ languages. First complete subtitle file free.",
-    url: '/',
     siteName: "SubtitleBot",
     images: [
       {
@@ -153,7 +142,7 @@ export default function RootLayout({
         </Suspense>
 
       </head>
-      <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
+      <body className="font-sans antialiased bg-background text-foreground">
 
 
         <Providers>

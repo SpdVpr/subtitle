@@ -46,7 +46,7 @@ export async function GET(
       method: 'GET',
       headers: {
         'Accept': 'application/json',
-        'User-Agent': 'SubtitleAI v1.0 (https://subtitle-ai.vercel.app)',
+        'User-Agent': 'SubtitleBot v1.0 (https://www.subtitlebot.com)',
       },
       // Cache for 1 hour
       next: { revalidate: 3600 }

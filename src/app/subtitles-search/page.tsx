@@ -6,6 +6,7 @@ import { Film, Tv, Play } from 'lucide-react'
 import { StructuredData } from '@/components/seo/structured-data'
 import { SubtitleSearchGuide } from '@/components/subtitles/subtitle-search-guide'
 import { UltiQuizTeaser } from '@/components/promo/ultiquiz-teaser'
+import { SubtitleHubLinks } from '@/components/subtitles/subtitle-hub-links'
 import { TranslatePromo } from '@/components/promo/translate-promo'
 
 
@@ -117,6 +118,7 @@ export default function SubtitlesSearchPage() {
             <AnimeSubtitleSearch />
           </div>
         </div>
+        <SubtitleHubLinks locale="en" />
         <UltiQuizTeaser locale="en" />
         <TranslatePromo locale="en" />
         <SubtitleSearchGuide locale="en" />

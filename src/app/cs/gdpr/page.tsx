@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -261,3 +262,10 @@ export default function CzechGDPRPage() {
     </div>
   )
 }
+
+export const metadata = pageMetadata({
+  locale: "cs",
+  path: "/gdpr",
+  title: "GDPR a ochrana údajů",
+  description: "Vaše práva podle GDPR a jak SubtitleBot zajišťuje soulad s ochranou osobních údajů."
+})

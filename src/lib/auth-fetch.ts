@@ -1,13 +1,15 @@
-import { auth } from '@/lib/firebase'
-
 /**
  * fetch() wrapper for authenticated user API calls. Attaches the current user's
  * Firebase ID token as a Bearer credential so the server can derive the userId
  * from the verified token instead of trusting a spoofable ?userId= param.
+ *
+ * Firebase is imported lazily so that this helper (used by the global auth
+ * provider) does not pull the Auth SDK into the initial bundle of every page.
  */
 export async function authFetch(input: string, init: RequestInit = {}): Promise<Response> {
   let token = ''
   try {
+    const { auth } = await import('@/lib/firebase')
     const user = auth?.currentUser
     if (user) {
       const currentToken = await user.getIdTokenResult()

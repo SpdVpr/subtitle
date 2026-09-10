@@ -9,6 +9,6 @@ export default function ForgotPasswordPage() {
 }
 
 export const metadata = {
-  title: 'Reset Password - SubtitleAI',
-  description: 'Reset your SubtitleAI account password',
+  title: 'Reset Password - SubtitleBot',
+  description: 'Reset your SubtitleBot account password',
 }

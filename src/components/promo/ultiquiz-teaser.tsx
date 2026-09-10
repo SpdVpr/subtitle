@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Gamepad2, ExternalLink, RotateCcw, Twitch, Youtube, Zap } from 'lucide-react'
 
 /**
@@ -98,6 +98,8 @@ export function UltiQuizTeaser({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
   const [failed, setFailed] = useState(false)
   const [picked, setPicked] = useState<string | null>(null)
   const [result, setResult] = useState<{ correct: boolean; correctAnswer: string } | null>(null)
+  const [armed, setArmed] = useState(false)
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
   const load = useCallback(async () => {
     setPicked(null)
@@ -107,9 +109,32 @@ export function UltiQuizTeaser({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
     else setFailed(true)
   }, [])
 
+  // Defer the API call (and the movie still) until the teaser is close to the
+  // viewport, so it never competes with the subtitle search for bandwidth.
   useEffect(() => {
-    load()
-  }, [load])
+    if (armed) return
+    const el = sentinelRef.current
+    if (!el) return
+    if (typeof IntersectionObserver === 'undefined') {
+      setArmed(true)
+      return
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setArmed(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '600px 0px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [armed])
+
+  useEffect(() => {
+    if (armed) load()
+  }, [armed, load])
 
   const answer = async (option: string) => {
     if (!question || picked) return
@@ -132,7 +157,8 @@ export function UltiQuizTeaser({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
   }
 
   // Never break or clutter the page when the quiz API is unavailable
-  if (failed || !question) return null
+  if (failed) return null
+  if (!question) return <div ref={sentinelRef} aria-hidden="true" />
 
   return (
     <div className="mt-12 sm:mt-16">
@@ -186,6 +212,7 @@ export function UltiQuizTeaser({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
                 alt="Movie screenshot — guess the title"
                 className="w-full aspect-video object-cover"
                 loading="lazy"
+                decoding="async"
               />
             </div>
 

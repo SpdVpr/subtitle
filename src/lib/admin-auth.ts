@@ -1,4 +1,4 @@
-import { User } from 'firebase/auth'
+import type { User } from 'firebase/auth'
 
 // Admin email addresses - only these users can access the admin dashboard.
 // Keep in sync with src/lib/admin-auth-server.ts (server enforcement) and

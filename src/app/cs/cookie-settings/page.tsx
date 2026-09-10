@@ -197,10 +197,10 @@ export default function CookieSettingsPageCZ() {
             Podrobné informace o tom, jak používáme cookies, najdete v našich zásadách:
           </p>
           <div className="flex flex-wrap gap-4 text-sm">
-            <Link href="/cs/cookie-policy" className="text-blue-600 hover:underline">
+            <Link href="/cs/cookies" className="text-blue-600 hover:underline">
               Cookie Policy
             </Link>
-            <Link href="/cs/privacy-policy" className="text-blue-600 hover:underline">
+            <Link href="/cs/privacy" className="text-blue-600 hover:underline">
               Zásady ochrany osobních údajů
             </Link>
             <Link href="/cs/terms" className="text-blue-600 hover:underline">

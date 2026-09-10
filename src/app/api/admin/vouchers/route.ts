@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
     } else {
       // Client SDK fallback
       const { collection, query, orderBy, where, limit: firestoreLimit, getDocs } = await import('firebase/firestore')
-      const { db: clientDb } = await import('@/lib/firebase')
+      const { db: clientDb } = await import('@/lib/firebase-db')
       
       let q = query(collection(clientDb, 'vouchers'), orderBy('createdAt', 'desc'))
       
@@ -202,7 +202,7 @@ export async function DELETE(req: NextRequest) {
     } else {
       // Client SDK fallback
       const { doc, deleteDoc, updateDoc } = await import('firebase/firestore')
-      const { db: clientDb } = await import('@/lib/firebase')
+      const { db: clientDb } = await import('@/lib/firebase-db')
       
       for (const code of voucherCodes) {
         try {

@@ -1,5 +1,6 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { StructuredData } from "@/components/seo/structured-data";
 import { HomeFacts } from "@/components/seo/home-facts";
 import { Button } from "@/components/ui/button";
@@ -17,11 +18,12 @@ import {
   ArrowDown,
   Languages,
   Star,
-  MessageSquare
+  MessageSquare,
+  Search
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "SubtitleBot - AI Překlad Titulků | První Soubor Zdarma",
+  title: { absolute: "SubtitleBot - AI Překlad Titulků | První Soubor Zdarma" },
   description: "Profesionální AI překladač titulků s podporou 100+ jazyků. První kompletní soubor titulků zdarma, bez platební karty.",
   keywords: [
     "AI překlad titulků",
@@ -67,6 +69,7 @@ export const metadata: Metadata = {
     languages: {
       'en': '/',
       'cs': '/cs',
+      'x-default': '/',
     },
   },
 };
@@ -82,9 +85,9 @@ export default function CzechHome() {
 
           {/* Animated background blobs */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-20 left-10 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-blob"></div>
-            <div className="absolute top-40 right-20 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-            <div className="absolute -bottom-20 left-1/3 w-96 h-96 bg-green-400/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+            <div className="absolute top-20 left-10 w-96 h-96 rounded-full bg-[radial-gradient(circle_at_center,rgba(96,165,250,0.28),transparent_70%)] animate-blob"></div>
+            <div className="absolute top-40 right-20 w-96 h-96 rounded-full bg-[radial-gradient(circle_at_center,rgba(192,132,252,0.28),transparent_70%)] animate-blob animation-delay-2000"></div>
+            <div className="absolute -bottom-20 left-1/3 w-96 h-96 rounded-full bg-[radial-gradient(circle_at_center,rgba(74,222,128,0.28),transparent_70%)] animate-blob animation-delay-4000"></div>
           </div>
 
           <div className="container px-4 py-24 mx-auto text-center relative">
@@ -98,7 +101,7 @@ export default function CzechHome() {
                 </div>
               </Link>
 
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent animate-fade-in-up">
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
                 AI Překlad Titulků
               </h1>
 
@@ -128,7 +131,7 @@ export default function CzechHome() {
               </div>
 
               {/* Live Translation Demo */}
-              <div className="bg-white/80 backdrop-blur-sm border border-blue-200 rounded-2xl p-6 mb-10 max-w-4xl mx-auto shadow-xl dark:bg-card/80 dark:border-border dark:backdrop-blur-sm hover:shadow-2xl transition-shadow duration-300 animate-fade-in-up animation-delay-300">
+              <div className="bg-white/90 border border-blue-200 rounded-2xl p-6 mb-10 max-w-4xl mx-auto shadow-xl dark:bg-card/90 dark:border-border hover:shadow-2xl transition-shadow duration-300">
                 <div className="flex items-center justify-center gap-2 mb-6">
                   <Languages className="h-5 w-5 text-blue-600 dark:text-primary" />
                   <span className="font-semibold text-gray-800 dark:text-card-foreground">Podívejte se na překlad v akci</span>
@@ -143,7 +146,7 @@ export default function CzechHome() {
                   {/* Original English */}
                   <div className="flex-1 space-y-3">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-6 h-4 bg-red-500 rounded-sm flex items-center justify-center">
+                      <div className="w-6 h-4 bg-red-600 rounded-sm flex items-center justify-center">
                         <span className="text-white text-xs font-bold">EN</span>
                       </div>
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Originál v angličtině</span>
@@ -151,17 +154,17 @@ export default function CzechHome() {
 
                     <div className="space-y-2">
                       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border-l-4 border-red-500">
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-1">00:02:15,340 → 00:02:18,720</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 font-mono mb-1">00:02:15,340 → 00:02:18,720</div>
                         <div className="text-sm text-gray-800 dark:text-gray-200">This algorithm looks impossible to solve.</div>
                       </div>
 
                       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border-l-4 border-red-500">
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-1">00:02:19,180 → 00:02:22,560</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 font-mono mb-1">00:02:19,180 → 00:02:22,560</div>
                         <div className="text-sm text-gray-800 dark:text-gray-200">It's a piece of cake for David.</div>
                       </div>
 
                       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border-l-4 border-red-500">
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-1">00:02:23,890 → 00:02:26,450</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 font-mono mb-1">00:02:23,890 → 00:02:26,450</div>
                         <div className="text-sm text-gray-800 dark:text-gray-200">He's been coding since he was twelve.</div>
                       </div>
                     </div>
@@ -194,17 +197,17 @@ export default function CzechHome() {
 
                     <div className="space-y-2">
                       <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 border-l-4 border-blue-600">
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-1">00:02:15,340 → 00:02:18,720</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 font-mono mb-1">00:02:15,340 → 00:02:18,720</div>
                         <div className="text-sm text-gray-800 dark:text-blue-200">Tento algoritmus vypadá neřešitelně.</div>
                       </div>
 
                       <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 border-l-4 border-blue-600">
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-1">00:02:19,180 → 00:02:22,560</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 font-mono mb-1">00:02:19,180 → 00:02:22,560</div>
                         <div className="text-sm text-gray-800 dark:text-blue-200">Pro Davida je to hračka.</div>
                       </div>
 
                       <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 border-l-4 border-blue-600">
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-1">00:02:23,890 → 00:02:26,450</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 font-mono mb-1">00:02:23,890 → 00:02:26,450</div>
                         <div className="text-sm text-gray-800 dark:text-blue-200">Programuje už od dvanácti let.</div>
                       </div>
                     </div>
@@ -222,12 +225,18 @@ export default function CzechHome() {
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up animation-delay-300">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300" asChild>
                   <Link href="/cs/translate" className="flex items-center gap-2">
                     <Sparkles className="h-5 w-5" />
                     Začít Překládat ZDARMA
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" className="hover:scale-105 transition-all duration-300" asChild>
+                  <Link href="/cs/subtitles-search" className="flex items-center gap-2">
+                    <Search className="h-5 w-5" />
+                    Najít titulky k filmům a seriálům
                   </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="hover:scale-105 transition-all duration-300" asChild>
@@ -239,7 +248,7 @@ export default function CzechHome() {
               </div>
 
               {/* Trust Indicators */}
-              <div className="mt-12 flex flex-wrap justify-center items-center gap-8 text-gray-600 dark:text-muted-foreground animate-fade-in-up animation-delay-300">
+              <div className="mt-12 flex flex-wrap justify-center items-center gap-8 text-gray-600 dark:text-muted-foreground">
                 <div className="flex items-center gap-2 hover:scale-110 transition-transform duration-300">
                   <Star className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   <span className="text-sm">Prémiová AI kvalita - Gemini Pro model</span>
@@ -261,12 +270,12 @@ export default function CzechHome() {
         <section className="py-20 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-secondary dark:to-card relative overflow-hidden">
           {/* Subtle animated background */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
-            <div className="absolute top-20 right-20 w-64 h-64 bg-purple-400/20 rounded-full blur-3xl animate-blob"></div>
-            <div className="absolute bottom-20 left-20 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+            <div className="absolute top-20 right-20 w-64 h-64 rounded-full bg-[radial-gradient(circle_at_center,rgba(192,132,252,0.45),transparent_70%)] animate-blob"></div>
+            <div className="absolute bottom-20 left-20 w-64 h-64 rounded-full bg-[radial-gradient(circle_at_center,rgba(96,165,250,0.45),transparent_70%)] animate-blob animation-delay-4000"></div>
           </div>
 
           <div className="container px-4 mx-auto relative z-10">
-            <div className="text-center mb-16 animate-fade-in-up">
+            <div className="text-center mb-16">
               <Badge className="mb-4 bg-purple-100 dark:bg-accent text-purple-700 dark:text-primary border-purple-200 dark:border-border hover:scale-105 transition-transform duration-300">
                 <Brain className="h-4 w-4 mr-2" />
                 Proprietární AI technologie
@@ -330,12 +339,12 @@ export default function CzechHome() {
 
                 <div className="space-y-4">
                   <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-                    <p className="text-sm text-destructive font-medium mb-1">Základní překlad:</p>
-                    <p className="text-sm text-muted-foreground">"I am very happy to see you"</p>
+                    <p className="text-sm text-red-700 dark:text-red-400 font-medium mb-1">Základní překlad:</p>
+                    <p className="text-sm text-foreground/80">"I am very happy to see you"</p>
                   </div>
                   <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                    <p className="text-sm text-primary font-medium mb-1">Náš AI překlad:</p>
-                    <p className="text-sm text-muted-foreground">"Jsem naprosto nadšený, že tě vidím!"</p>
+                    <p className="text-sm text-blue-700 dark:text-blue-300 font-medium mb-1">Náš AI překlad:</p>
+                    <p className="text-sm text-foreground/80">"Jsem naprosto nadšený, že tě vidím!"</p>
                   </div>
                 </div>
 
@@ -360,7 +369,7 @@ export default function CzechHome() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105 animate-fade-in-up">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105">
               <CardHeader className="text-center pb-4">
                 <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                   <Zap className="h-8 w-8 text-primary" />
@@ -377,7 +386,7 @@ export default function CzechHome() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105 animate-fade-in-up animation-delay-300">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105">
               <CardHeader className="text-center pb-4">
                 <div className="bg-purple-100 dark:bg-accent w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                   <Brain className="h-8 w-8 text-purple-600 dark:text-primary" />
@@ -394,7 +403,7 @@ export default function CzechHome() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105 animate-fade-in-up animation-delay-300">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105">
               <CardHeader className="text-center pb-4">
                 <div className="bg-green-100 dark:bg-accent w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                   <FileText className="h-8 w-8 text-green-600 dark:text-primary" />
@@ -420,7 +429,7 @@ export default function CzechHome() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105 animate-fade-in-up animation-delay-300">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105">
               <CardHeader className="text-center pb-4">
                 <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                   <Gift className="h-8 w-8 text-primary" />
@@ -597,11 +606,7 @@ export default function CzechHome() {
                 <div className="relative">
                   <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 shadow-2xl">
                     <div className="bg-black rounded-lg aspect-video flex items-center justify-center mb-4 relative overflow-hidden">
-                      <img
-                        src="/images/gladiator.webp"
-                        alt="Gladiator movie scene - Russell Crowe as Maximus"
-                        className="w-full h-full object-cover"
-                      />
+                      <Image src="/images/gladiator.webp" alt="Gladiator movie scene - Russell Crowe as Maximus" fill sizes="(max-width: 1024px) 100vw, 600px" className="object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20"></div>
 
                       {/* Simulated subtitle overlay */}
@@ -787,11 +792,7 @@ export default function CzechHome() {
                         </div>
                       </div>
                       <div className="aspect-video bg-black rounded-b-lg flex items-center justify-center relative overflow-hidden">
-                        <img
-                          src="/images/SouthPark.webp"
-                          alt="South Park episode scene"
-                          className="w-full h-full object-cover"
-                        />
+                        <Image src="/images/SouthPark.webp" alt="South Park episode scene" fill sizes="(max-width: 1024px) 100vw, 600px" className="object-cover" />
                       </div>
                     </div>
 
@@ -900,11 +901,7 @@ export default function CzechHome() {
                   <div className="bg-gradient-to-br from-gray-900 to-purple-900 rounded-2xl p-6 shadow-2xl">
                     {/* Video player mockup */}
                     <div className="bg-black rounded-lg aspect-video mb-4 relative overflow-hidden">
-                      <img
-                        src="/images/solo-leveling.jpeg"
-                        alt="Solo Leveling anime scene"
-                        className="w-full h-full object-cover"
-                      />
+                      <Image src="/images/solo-leveling.webp" alt="Solo Leveling anime scene" fill sizes="(max-width: 1024px) 100vw, 600px" className="object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-pink-900/30"></div>
 
                       {/* Subtitle overlay mockup */}

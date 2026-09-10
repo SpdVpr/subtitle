@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -225,3 +226,10 @@ export default function CzechAboutPage() {
     </div>
   )
 }
+
+export const metadata = pageMetadata({
+  locale: "cs",
+  path: "/about",
+  title: "O SubtitleBot",
+  description: "Poznejte SubtitleBot, pražský tým a náš přístup k AI překladu, úpravě a synchronizaci titulků."
+})

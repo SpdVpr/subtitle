@@ -1,3 +1,5 @@
+import { pageMetadata } from '@/lib/seo'
+
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-4">
@@ -60,3 +62,10 @@ export default function PrivacyPage() {
     </div>
   )
 }
+
+export const metadata = pageMetadata({
+  locale: "en",
+  path: "/privacy",
+  title: "Privacy Policy",
+  description: "How SubtitleBot collects, uses and protects your data when you translate, edit or search for subtitles."
+})

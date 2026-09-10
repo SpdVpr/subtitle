@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -258,3 +259,10 @@ export default function CzechTermsPage() {
     </div>
   )
 }
+
+export const metadata = pageMetadata({
+  locale: "cs",
+  path: "/terms",
+  title: "Obchodní podmínky",
+  description: "Podmínky používání nástrojů SubtitleBot pro překlad, úpravu a vyhledávání titulků včetně kreditů a vracení plateb."
+})

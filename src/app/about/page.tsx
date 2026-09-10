@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -199,11 +200,9 @@ export default function AboutPage() {
   )
 }
 
-export const metadata = {
-  title: 'About SubtitleBot',
-  description: 'Learn about SubtitleBot, our Prague-based team, and our approach to AI-assisted subtitle translation, editing, and timing tools.',
-  alternates: {
-    canonical: '/about',
-    languages: { en: '/about', cs: '/cs/about', 'x-default': '/about' },
-  },
-}
+export const metadata = pageMetadata({
+  locale: "en",
+  path: "/about",
+  title: "About SubtitleBot",
+  description: "Learn about SubtitleBot, our Prague-based team, and our approach to AI-assisted subtitle translation, editing, and timing tools."
+})

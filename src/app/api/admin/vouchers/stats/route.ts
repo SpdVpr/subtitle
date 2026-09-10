@@ -136,7 +136,7 @@ export async function GET(req: NextRequest) {
     } else {
       // Client SDK fallback
       const { collection, getDocs, query, orderBy, limit } = await import('firebase/firestore')
-      const { db: clientDb } = await import('@/lib/firebase')
+      const { db: clientDb } = await import('@/lib/firebase-db')
       
       // Get all vouchers
       const vouchersSnapshot = await getDocs(collection(clientDb, 'vouchers'))

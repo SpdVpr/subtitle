@@ -121,11 +121,11 @@ export function CookieBannerCZ() {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Více informací najdete v naší{' '}
-                    <Link href="/cookie-policy" className="text-blue-600 hover:underline">
+                    <Link href="/cs/cookies" className="text-blue-600 hover:underline">
                       Cookie Policy
                     </Link>
                     {' '}a{' '}
-                    <Link href="/privacy-policy" className="text-blue-600 hover:underline">
+                    <Link href="/cs/privacy" className="text-blue-600 hover:underline">
                       Zásadách ochrany osobních údajů
                     </Link>
                     .

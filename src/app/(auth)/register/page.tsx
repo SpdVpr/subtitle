@@ -9,6 +9,6 @@ export default function RegisterPage() {
 }
 
 export const metadata = {
-  title: 'Create Account - SubtitleAI',
-  description: 'Create your SubtitleAI account to start translating subtitles',
+  title: 'Create Account - SubtitleBot',
+  description: 'Create your SubtitleBot account to start translating subtitles',
 }

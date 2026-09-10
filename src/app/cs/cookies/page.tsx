@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -249,3 +250,10 @@ export default function CzechCookiesPage() {
     </div>
   )
 }
+
+export const metadata = pageMetadata({
+  locale: "cs",
+  path: "/cookies",
+  title: "Zásady používání cookies",
+  description: "Jaké cookies SubtitleBot používá, k čemu slouží a jak můžete své preference kdykoli změnit."
+})

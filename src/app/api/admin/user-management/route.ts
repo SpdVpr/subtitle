@@ -11,7 +11,7 @@ async function getServerFirestore() {
     return getAdminDb()
   } catch (error) {
     console.warn('⚠️ Falling back to client Firestore. Admin SDK not configured:', error)
-    const { db } = await import('@/lib/firebase')
+    const { db } = await import('@/lib/firebase-db')
     return db
   }
 }
@@ -94,7 +94,7 @@ async function adjustUserCredits(db: any, userId: string, data: any, adminEmail:
   if (!userRef) {
     // Client SDK fallback
     const { doc, updateDoc, getDoc } = await import('firebase/firestore')
-    const { db: clientDb } = await import('@/lib/firebase')
+    const { db: clientDb } = await import('@/lib/firebase-db')
     const userDocRef = doc(clientDb, 'users', userId)
     
     const userDoc = await getDoc(userDocRef)
@@ -154,7 +154,7 @@ async function blockUser(db: any, userId: string, data: any, adminEmail: string)
   if (!userRef) {
     // Client SDK fallback
     const { doc, updateDoc, getDoc } = await import('firebase/firestore')
-    const { db: clientDb } = await import('@/lib/firebase')
+    const { db: clientDb } = await import('@/lib/firebase-db')
     const userDocRef = doc(clientDb, 'users', userId)
     
     const userDoc = await getDoc(userDocRef)
@@ -194,7 +194,7 @@ async function unblockUser(db: any, userId: string, adminEmail: string) {
   if (!userRef) {
     // Client SDK fallback
     const { doc, updateDoc, getDoc } = await import('firebase/firestore')
-    const { db: clientDb } = await import('@/lib/firebase')
+    const { db: clientDb } = await import('@/lib/firebase-db')
     const userDocRef = doc(clientDb, 'users', userId)
     
     const userDoc = await getDoc(userDocRef)
@@ -244,7 +244,7 @@ async function updateUserPlan(db: any, userId: string, data: any, adminEmail: st
   if (!userRef) {
     // Client SDK fallback
     const { doc, updateDoc, getDoc } = await import('firebase/firestore')
-    const { db: clientDb } = await import('@/lib/firebase')
+    const { db: clientDb } = await import('@/lib/firebase-db')
     const userDocRef = doc(clientDb, 'users', userId)
     
     const userDoc = await getDoc(userDocRef)
@@ -296,7 +296,7 @@ async function resetUserUsage(db: any, userId: string, adminEmail: string) {
   if (!userRef) {
     // Client SDK fallback
     const { doc, updateDoc, getDoc } = await import('firebase/firestore')
-    const { db: clientDb } = await import('@/lib/firebase')
+    const { db: clientDb } = await import('@/lib/firebase-db')
     const userDocRef = doc(clientDb, 'users', userId)
     
     const userDoc = await getDoc(userDocRef)
@@ -340,7 +340,7 @@ async function logCreditTransaction(db: any, userId: string, deltaCredits: numbe
   } else {
     // Client SDK fallback
     const { collection, addDoc } = await import('firebase/firestore')
-    const { db: clientDb } = await import('@/lib/firebase')
+    const { db: clientDb } = await import('@/lib/firebase-db')
     await addDoc(collection(clientDb, 'creditTransactions'), transaction)
   }
 }
