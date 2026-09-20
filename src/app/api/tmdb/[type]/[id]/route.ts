@@ -95,7 +95,13 @@ export async function GET(
 
     console.log(`✅ TMDB data fetched successfully for ${type} ID: ${id}`)
 
-    return NextResponse.json(result)
+    // Public metadata is identical for every visitor. Caching only the
+    // upstream fetch still invokes this function for every client request.
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+      },
+    })
 
   } catch (error) {
     console.error('TMDB API error:', error)

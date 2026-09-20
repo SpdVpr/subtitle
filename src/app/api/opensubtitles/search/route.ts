@@ -181,7 +181,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(transformedData, {
-      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=900' },
+      headers: { 'Cache-Control': 'public, max-age=60, s-maxage=900, stale-while-revalidate=900' },
     })
 
   } catch (error) {
@@ -196,4 +196,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

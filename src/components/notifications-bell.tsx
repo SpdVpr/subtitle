@@ -22,34 +22,53 @@ export default function NotificationsBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
-    if (user?.uid) {
-      loadNotifications()
-      // Poll for new notifications every 30 seconds
-      const interval = setInterval(loadNotifications, 30000)
-      return () => clearInterval(interval)
-    }
-  }, [user?.uid])
-
-  const loadNotifications = async () => {
-    if (!user?.uid) return
-    
-    try {
-      setLoading(true)
-      const response = await authFetch('/api/notifications')
-      
-      if (response.ok) {
-        const data = await response.json()
-        setNotifications(data.notifications || [])
-        setUnreadCount(data.notifications?.filter((n: Notification) => !n.read).length || 0)
-      }
-    } catch (error) {
-      console.error('Failed to load notifications:', error)
-    } finally {
+    if (!user?.uid) {
+      setNotifications([])
+      setUnreadCount(0)
       setLoading(false)
+      return
     }
-  }
+    let active = true
+    let inFlight = false
+    let lastFetch = 0
+    const controller = new AbortController()
+    const loadNotifications = async () => {
+      // Background tabs need no polling; never overlap slow requests.
+      if (document.hidden || inFlight) return
+      inFlight = true
+      lastFetch = Date.now()
+      setLoading(true)
+      try {
+        const response = await authFetch('/api/notifications', { signal: controller.signal })
+        if (response.ok) {
+          const data = await response.json()
+          if (!active) return
+          setNotifications(data.notifications || [])
+          setUnreadCount(data.notifications?.filter((n: Notification) => !n.read).length || 0)
+        }
+      } catch (error) {
+        if (active) console.error('Failed to load notifications:', error)
+      } finally {
+        inFlight = false
+        if (active) setLoading(false)
+      }
+    }
+    const onVisibilityChange = () => {
+      if (!document.hidden && Date.now() - lastFetch >= 30000) void loadNotifications()
+    }
+    void loadNotifications()
+    const interval = setInterval(loadNotifications, 120000)
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      active = false
+      controller.abort()
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [user?.uid, refreshKey])
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -91,7 +110,10 @@ export default function NotificationsBell() {
     <div className="relative">
       {/* Bell Icon */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (!isOpen) setRefreshKey(key => key + 1)
+          setIsOpen(!isOpen)
+        }}
         className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
         aria-label="Notifications"
       >
