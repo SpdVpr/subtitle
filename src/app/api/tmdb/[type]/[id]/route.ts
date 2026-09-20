@@ -34,6 +34,10 @@ export async function GET(
         poster_path: null,
         overview: null,
         release_date: null
+      }, {
+        // A missing integration also returns the same public placeholder for
+        // everyone. Keep this short so configuring the key takes effect soon.
+        headers: { 'Cache-Control': 'public, max-age=60, s-maxage=300' },
       })
     }
 
