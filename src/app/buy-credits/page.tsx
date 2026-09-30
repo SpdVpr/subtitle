@@ -12,7 +12,7 @@ import { Coins, Zap, Star, Crown, ArrowRight, Check, ExternalLink, Bitcoin } fro
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { STRIPE_PAYMENT_LINKS, createPaymentUrl, formatPrice, getPricePerCredit } from '@/lib/stripe-payment-links'
-import { getLinesForCredits } from '@/lib/credit-policy'
+import { TYPICAL_EPISODE_LINES, TYPICAL_MOVIE_LINES, getFilesForCredits, getLinesForCredits } from '@/lib/credit-policy'
 import { authFetch } from '@/lib/auth-fetch'
 import { analytics } from '@/lib/analytics'
 import { getStoredAttribution } from '@/components/analytics/attribution-tracker'
@@ -43,6 +43,7 @@ function getPackageName(credits: number): string {
 function getPackageFeatures(credits: number): string[] {
   const features = [
     `${credits.toLocaleString()} credits`,
+    `≈ ${getFilesForCredits(credits, 'standard', TYPICAL_MOVIE_LINES)} movies or ${getFilesForCredits(credits, 'standard', TYPICAL_EPISODE_LINES)} TV episodes (Standard)`,
     `Up to ${getLinesForCredits(credits, 'standard').toLocaleString()} Standard subtitle lines`,
     `Up to ${getLinesForCredits(credits, 'premium').toLocaleString()} Premium subtitle lines`,
     'No expiration'
@@ -185,7 +186,7 @@ Complete payment in the new window.`, {
             💰 Buy Credits
           </h1>
           <p className="text-xl text-muted-foreground mb-6">
-            Your first complete subtitle file is free in either quality. Continuing translations use 0.5 Standard or 1.5 Premium credits per 20 subtitles. Purchased credits never expire.
+            A typical movie costs about $0.25 to translate (Standard quality). Your first complete file is free, and purchased credits never expire.
           </p>
 
           {/* Current Balance - only for logged in users */}
@@ -364,7 +365,7 @@ Complete payment in the new window.`, {
 
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-300">
-                <strong>Example:</strong> A 100-subtitle file costs 2.5 credits (Standard) or 7.5 credits (Premium).
+                <strong>Example:</strong> A typical movie (~1,000 subtitles) costs 25 credits (~$0.25) in Standard or 75 credits (~$0.75) in Premium.
                 Your first complete file is free; credits are used from the second file onward.
               </p>
             </div>

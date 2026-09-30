@@ -20,6 +20,7 @@ export function useAuth() {
 
 export function useAuthProvider(): AuthContextType {
   const [user, setUser] = useState<FirebaseUser | null>(null)
+  const [, setUserVersion] = useState(0)
   const [loading, setLoading] = useState(true)
   const [firebaseServices, setFirebaseServices] = useState<{
     auth: any
@@ -306,6 +307,24 @@ export function useAuthProvider(): AuthContextType {
     })
   }
 
+  // Firebase caches emailVerified until the user object is reloaded, so a user who
+  // clicked the link in another tab still looks unverified here. Reload, refresh the
+  // ID token (the API checks its email_verified claim) and re-render consumers.
+  const refreshEmailVerification = async (): Promise<boolean> => {
+    const currentUser = firebaseServices?.auth?.currentUser
+    if (!currentUser) return false
+    try {
+      await currentUser.reload()
+      if (!currentUser.emailVerified) return false
+      await currentUser.getIdToken(true)
+      setUserVersion((version) => version + 1)
+      return true
+    } catch (error) {
+      console.warn('Failed to refresh email verification:', error)
+      return false
+    }
+  }
+
   const signInWithGoogle = async () => {
     if (!firebaseServices?.isConfigured || !firebaseServices.auth) {
       throw new Error('Firebase is not configured. Please set up your environment variables.')
@@ -445,6 +464,7 @@ export function useAuthProvider(): AuthContextType {
     resetPassword,
     signInWithGoogle,
     sendVerificationEmail,
+    refreshEmailVerification,
   }
 }
 

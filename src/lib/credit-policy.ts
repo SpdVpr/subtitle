@@ -20,6 +20,17 @@ export function getLinesForCredits(credits: number, model: TranslationModel): nu
   return Math.floor(credits / CREDIT_RATES[model]) * SUBTITLES_PER_CREDIT_BATCH
 }
 
+// Typical subtitle file sizes, used to express credits as something people buy:
+// a feature film is ~1,000 lines (median of real jobs), a TV episode ~500.
+export const TYPICAL_MOVIE_LINES = 1000
+export const TYPICAL_EPISODE_LINES = 500
+
+/** How many files of `lines` subtitles the given credits translate. */
+export function getFilesForCredits(credits: number, model: TranslationModel, lines: number): number {
+  const perFile = getTranslationCredits(lines, model)
+  return perFile > 0 ? Math.floor(credits / perFile) : 0
+}
+
 export const FREE_TRANSLATION_COPY = {
   en: 'Your first subtitle file is free. No card required.',
   cs: 'První soubor titulků přeložíme zdarma. Bez platební karty.',

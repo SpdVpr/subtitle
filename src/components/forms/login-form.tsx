@@ -158,8 +158,8 @@ export function LoginForm({ locale = 'en' }: LoginFormProps) {
         {/* Google Sign-in Button */}
         <Button
           type="button"
-          variant="outline"
           className="w-full"
+          size="lg"
           onClick={handleGoogleSignIn}
           disabled={isLoading}
         >

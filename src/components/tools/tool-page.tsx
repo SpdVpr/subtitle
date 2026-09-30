@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowLeft, LockKeyhole } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Languages, LockKeyhole } from 'lucide-react'
 import type { ToolDefinition } from '@/content/tools'
 import { SubtitleWorkbench } from './subtitle-workbench'
 
@@ -32,6 +32,13 @@ export function ToolPage({ tool }: { tool: ToolDefinition }) {
           <div className="inline-flex items-center gap-2 text-sm text-green-700 dark:text-green-400 font-medium mt-5"><LockKeyhole className="h-4 w-4" />{isCs ? 'Lokální zpracování — soubor se neodesílá na server' : 'Local processing — your file is not sent to a server'}</div>
         </header>
         <section className="rounded-2xl border bg-card p-5 sm:p-8 shadow-sm"><SubtitleWorkbench tool={tool} /></section>
+        <aside className="mt-8 flex flex-col gap-4 rounded-xl border border-primary/15 bg-primary/5 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-bold text-lg mb-1 flex items-center gap-2"><Languages className="h-5 w-5 text-primary" />{isCs ? 'Potřebujete titulky v jiném jazyce?' : 'Need this subtitle in another language?'}</h2>
+            <p className="text-sm text-muted-foreground">{isCs ? 'AI přeloží celý soubor a zachová časování. První soubor je zdarma, bez karty.' : 'Our AI translates the whole file and keeps the timing. Your first file is free, no card needed.'}</p>
+          </div>
+          <Link href={`${prefix}/translate?from=tool-${tool.mode}`} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">{isCs ? 'Přeložit první soubor zdarma' : 'Translate first file free'} <ArrowRight className="h-4 w-4" /></Link>
+        </aside>
         <section className="mt-14 grid gap-10 md:grid-cols-2">
           <div><h2 className="text-2xl font-bold mb-5">{isCs ? 'Jak nástroj použít' : 'How to use this tool'}</h2><ol className="space-y-4">{tool.steps.map((step, index) => <li key={step} className="flex gap-4"><span className="w-8 h-8 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">{index + 1}</span><span className="pt-1">{step}</span></li>)}</ol></div>
           <div><h2 className="text-2xl font-bold mb-5">{isCs ? 'Časté otázky' : 'Frequently asked questions'}</h2><dl className="space-y-5">{tool.faq.map((item) => <div key={item.question}><dt className="font-bold mb-1">{item.question}</dt><dd className="text-sm text-muted-foreground leading-relaxed">{item.answer}</dd></div>)}</dl></div>

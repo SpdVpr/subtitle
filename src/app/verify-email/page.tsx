@@ -19,17 +19,28 @@ import {
 } from 'lucide-react'
 
 function VerifyEmailPageInner() {
-  const { user, sendVerificationEmail } = useAuth()
+  const { user, sendVerificationEmail, refreshEmailVerification } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'pending'>('loading')
   const [message, setMessage] = useState('')
   const [isResending, setIsResending] = useState(false)
+  const [isChecking, setIsChecking] = useState(false)
+
+  const finishVerified = (uid: string) => {
+    setStatus('success')
+    setMessage('Your email has been verified successfully!')
+    import('@/lib/database').then(({ UserService }) =>
+      UserService.updateUser(uid, { emailVerified: true } as any)
+    ).catch(console.warn)
+    setTimeout(() => {
+      window.location.href = safeInternalRedirect(searchParams.get('redirect'), '/translate')
+    }, 800)
+  }
 
   useEffect(() => {
     const actionCode = searchParams.get('oobCode')
     const continueUrl = searchParams.get('continueUrl')
-    const redirectPath = safeInternalRedirect(searchParams.get('redirect'), '/translate')
 
     if (actionCode) {
       // Verify email with action code
@@ -37,18 +48,51 @@ function VerifyEmailPageInner() {
     } else {
       // Just show verification status
       if (user?.emailVerified) {
-        setStatus('success')
-        setMessage('Your email has been verified successfully!')
-        import('@/lib/database').then(({ UserService }) =>
-          UserService.updateUser(user.uid, { emailVerified: true } as any)
-        ).catch(console.warn)
-        setTimeout(() => { window.location.href = redirectPath }, 800)
+        finishVerified(user.uid)
       } else {
         setStatus('pending')
         setMessage('Check your email for a verification link')
       }
     }
   }, [searchParams, user])
+
+  // The link in the email is usually opened in another tab, which does not update
+  // this one. Re-check whenever the user comes back here and every few seconds.
+  useEffect(() => {
+    if (status !== 'pending' || !user) return
+    let cancelled = false
+    const check = async () => {
+      if (cancelled || document.visibilityState === 'hidden') return
+      if (await refreshEmailVerification() && !cancelled) {
+        analytics.emailVerified('email_link_other_tab')
+        finishVerified(user.uid)
+      }
+    }
+    const interval = window.setInterval(check, 5000)
+    window.addEventListener('focus', check)
+    document.addEventListener('visibilitychange', check)
+    return () => {
+      cancelled = true
+      window.clearInterval(interval)
+      window.removeEventListener('focus', check)
+      document.removeEventListener('visibilitychange', check)
+    }
+  }, [status, user])
+
+  const handleCheckVerified = async () => {
+    if (!user) return
+    setIsChecking(true)
+    try {
+      if (await refreshEmailVerification()) {
+        analytics.emailVerified('email_link_other_tab')
+        finishVerified(user.uid)
+      } else {
+        setMessage('Not verified yet. Open the link in the email we sent, then come back to this tab.')
+      }
+    } finally {
+      setIsChecking(false)
+    }
+  }
 
   const verifyEmailWithCode = async (actionCode: string, continueUrl: string | null) => {
     try {
@@ -152,7 +196,28 @@ function VerifyEmailPageInner() {
                   </p>
                   <p className="font-medium text-gray-900 dark:text-foreground">{user.email}</p>
                 </div>
-                
+
+                <Button
+                  onClick={handleCheckVerified}
+                  disabled={isChecking}
+                  className="w-full"
+                >
+                  {isChecking ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      I&apos;ve verified my email, continue
+                    </>
+                  )}
+                </Button>
+                <p className="text-xs text-center text-gray-500 dark:text-muted-foreground">
+                  This page continues automatically once your email is verified.
+                </p>
+
                 <div className="text-center">
                   <p className="text-sm text-gray-600 dark:text-muted-foreground mb-4">
                     Didn't receive the email? Check your spam folder or request a new one.
@@ -183,7 +248,7 @@ function VerifyEmailPageInner() {
             {status === 'success' && (
               <div className="text-center">
                 <p className="text-sm text-gray-600 dark:text-muted-foreground mb-4">
-                  Redirecting to your translation in 2 seconds...
+                  Taking you back to your translation...
                 </p>
                 <Button
                   onClick={() => {
@@ -197,7 +262,7 @@ function VerifyEmailPageInner() {
                   }}
                   className="w-full"
                 >
-                  Go to Dashboard Now
+                  Continue now
                 </Button>
               </div>
             )}

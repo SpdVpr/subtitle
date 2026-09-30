@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Download, ExternalLink, Calendar, Hash, Film, BookOpen, Image } from 'lucide-react'
 import { toast } from 'sonner'
 import { analytics } from '@/lib/analytics'
+import { SUPPORTED_LANGUAGES } from '@/types/subtitle'
+import { detectPreferredLanguage } from '@/lib/subtitle-catalog-languages'
 
 interface JimakuEntry {
   id: number
@@ -70,7 +72,19 @@ const LANGUAGE_OPTIONS = [
   { value: 'zh', label: '中文' },
 ]
 
-export function AnimeSubtitleSearch() {
+// Jimaku files are mostly Japanese; the translate target is the visitor's own language.
+function preferredTargetLanguage(): string {
+  const supported = new Set(SUPPORTED_LANGUAGES.map((lang) => lang.code))
+  supported.delete('ja')
+  try {
+    const saved = window.localStorage.getItem('subtitlebot.catalog.language') || ''
+    if (supported.has(saved)) return saved
+  } catch {}
+  return detectPreferredLanguage(navigator.languages || [navigator.language], supported) || 'en'
+}
+
+export function AnimeSubtitleSearch({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
+  const isCs = locale === 'cs'
   const [query, setQuery] = useState('')
   const [type, setType] = useState<'anime'>('anime')
   const [language, setLanguage] = useState('en')
@@ -99,7 +113,7 @@ export function AnimeSubtitleSearch() {
 
       if (!response.ok) {
         const error = await response.json()
-        const errorMessage = error.details || error.error || 'Chyba při vyhledávání'
+        const errorMessage = error.details || error.error || (isCs ? 'Chyba při vyhledávání' : 'Search error')
         throw new Error(errorMessage)
       }
 
@@ -117,7 +131,7 @@ export function AnimeSubtitleSearch() {
       }
     } catch (error) {
       console.error('Search error:', error)
-      toast.error(error instanceof Error ? error.message : 'Chyba při vyhledávání')
+      toast.error(error instanceof Error ? error.message : (isCs ? 'Chyba při vyhledávání' : 'Search error'))
     } finally {
       setLoading(false)
     }
@@ -126,11 +140,21 @@ export function AnimeSubtitleSearch() {
   const handleDownload = (entry: JimakuEntry) => {
     analytics.subtitleSourceOpened('jimaku')
     window.open(`https://jimaku.cc/entry/${entry.id}`, '_blank')
-    toast.info('Přesměrováváme vás na Jimaku pro zobrazení titulků')
+    toast.info(isCs ? 'Přesměrováváme vás na Jimaku pro zobrazení titulků' : 'Opening Jimaku to download the subtitles')
+  }
+
+  const handleTranslate = (entry: JimakuEntry) => {
+    const params = new URLSearchParams({
+      from: 'anime-search',
+      sourceLanguage: 'ja',
+      targetLanguage: preferredTargetLanguage(),
+      title: entry.english_name || entry.name,
+    })
+    window.open(`${isCs ? '/cs' : ''}/translate?${params.toString()}`, '_blank')
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('cs-CZ')
+    return new Date(dateString).toLocaleDateString(isCs ? 'cs-CZ' : 'en-US')
   }
 
   return (
@@ -180,7 +204,9 @@ export function AnimeSubtitleSearch() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">
-              Nalezeno {results.length} {results.length === 1 ? 'položka' : 'položek'}
+              {isCs
+                ? `Nalezeno ${results.length} ${results.length === 1 ? 'položka' : results.length <= 4 ? 'položky' : 'položek'}`
+                : `Found ${results.length} ${results.length === 1 ? 'title' : 'titles'}`}
             </h3>
           </div>
 
@@ -262,6 +288,13 @@ export function AnimeSubtitleSearch() {
                     >
                       <ExternalLink className="h-4 w-4" />
                       <span>View on Jimaku</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleTranslate(entry)}
+                    >
+                      {isCs ? 'Přeložit • první soubor zdarma' : 'Translate • first file free'}
                     </Button>
                   </div>
                 </CardContent>

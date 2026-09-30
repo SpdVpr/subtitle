@@ -64,6 +64,8 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
       confirmPassword: 'Confirm Password',
       createAccount: 'Create Account',
       signUpWithGoogle: 'Sign up with Google',
+      googleHint: 'Fastest: start translating right away, no email verification',
+      orEmail: 'Or continue with email',
       alreadyHaveAccount: 'Already have an account?',
       signIn: 'Sign in',
       accountCreated: 'Account Created!',
@@ -82,6 +84,8 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
       confirmPassword: 'Potvrdit Heslo',
       createAccount: 'Vytvořit Účet',
       signUpWithGoogle: 'Registrovat se přes Google',
+      googleHint: 'Nejrychlejší: překládat můžete hned, bez ověřování e-mailu',
+      orEmail: 'Nebo pokračujte s e-mailem',
       alreadyHaveAccount: 'Už máte účet?',
       signIn: 'Přihlásit se',
       accountCreated: 'Účet Vytvořen!',
@@ -201,28 +205,31 @@ export function RegisterForm({ locale = 'en' }: RegisterFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Google Sign-up Button */}
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={handleGoogleSignUp}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Chrome className="h-4 w-4 mr-2" />
-          )}
-          {t.signUpWithGoogle}
-        </Button>
+        {/* Google Sign-up Button: the primary path, it needs no email verification */}
+        <div className="space-y-1.5">
+          <Button
+            type="button"
+            className="w-full"
+            size="lg"
+            onClick={handleGoogleSignUp}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Chrome className="h-4 w-4 mr-2" />
+            )}
+            {t.signUpWithGoogle}
+          </Button>
+          <p className="text-center text-xs text-muted-foreground">{t.googleHint}</p>
+        </div>
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white dark:bg-background px-2 text-gray-500 dark:text-muted-foreground">Or continue with email</span>
+            <span className="bg-white dark:bg-background px-2 text-gray-500 dark:text-muted-foreground">{t.orEmail}</span>
           </div>
         </div>
 

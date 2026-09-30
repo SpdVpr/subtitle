@@ -59,13 +59,17 @@ function SuccessPageInner() {
   }, [user, payment, chargeId, credits])
 
   useEffect(() => {
-    const transactionId = sessionId || chargeId
+    // Payment Link redirects without {CHECKOUT_SESSION_ID} carry no id, so count only a
+    // fresh arrival from checkout (not a reload or back/forward) under a generated id.
+    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
+    const transactionId = sessionId || chargeId ||
+      (credits && navigation?.type === 'navigate' ? `pl_${credits}_${Date.now()}` : null)
     if (!success || !transactionId || !parsedAmount) return
     const key = `subtitlebot_purchase_tracked_${transactionId}`
     if (sessionStorage.getItem(key)) return
     trackPurchase(transactionId, parsedAmount, 'USD')
     sessionStorage.setItem(key, '1')
-  }, [success, sessionId, chargeId, parsedAmount])
+  }, [success, sessionId, chargeId, parsedAmount, credits])
 
   if (!success) {
     router.push('/buy-credits')

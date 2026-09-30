@@ -84,8 +84,12 @@ export default function CzechSubtitlesSearchPage() {
                 Prohledejte filmové a seriálové titulky podle názvu, jazyka, typu, roku a kvality zdroje
               </p>
             </div>
-            <HierarchicalSubtitleSearch />
+            <HierarchicalSubtitleSearch locale="cs" />
           </div>
+        </div>
+
+        <div className="-mt-10 mb-12 sm:-mt-14 sm:mb-16">
+          <TranslatePromo locale="cs" />
         </div>
 
         {/* Separator */}
@@ -114,13 +118,12 @@ export default function CzechSubtitlesSearchPage() {
                 Prohledejte anime titulky přes Jimaku s identifikátory AniList
               </p>
             </div>
-            <AnimeSubtitleSearch />
+            <AnimeSubtitleSearch locale="cs" />
           </div>
         </div>
 
         <SubtitleHubLinks locale="cs" />
         <UltiQuizTeaser locale="cs" />
-        <TranslatePromo locale="cs" />
         <SubtitleSearchGuide locale="cs" />
       </div>
     </div>

@@ -12,7 +12,7 @@ import { Coins, Zap, Star, Crown, ArrowRight, Check, ExternalLink, Bitcoin } fro
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { STRIPE_PAYMENT_LINKS, createPaymentUrl, formatPrice, getPricePerCredit } from '@/lib/stripe-payment-links'
-import { getLinesForCredits } from '@/lib/credit-policy'
+import { TYPICAL_EPISODE_LINES, TYPICAL_MOVIE_LINES, getFilesForCredits, getLinesForCredits } from '@/lib/credit-policy'
 import { authFetch } from '@/lib/auth-fetch'
 import { analytics } from '@/lib/analytics'
 import { getStoredAttribution } from '@/components/analytics/attribution-tracker'
@@ -43,6 +43,7 @@ function getPackageName(credits: number): string {
 function getPackageFeatures(credits: number): string[] {
   const features = [
     `${credits.toLocaleString()} kreditů`,
+    `≈ ${getFilesForCredits(credits, 'standard', TYPICAL_MOVIE_LINES)} filmů nebo ${getFilesForCredits(credits, 'standard', TYPICAL_EPISODE_LINES)} dílů seriálu (Standard)`,
     `Až ${getLinesForCredits(credits, 'standard').toLocaleString()} titulků ve Standard kvalitě`,
     `Až ${getLinesForCredits(credits, 'premium').toLocaleString()} titulků v Premium kvalitě`,
     'Bez vypršení'
@@ -193,7 +194,7 @@ Dokončete platbu v novém okně.`, {
             💰 Koupit Kredity
           </h1>
           <p className="text-xl text-muted-foreground mb-6">
-            První kompletní soubor titulků je zdarma ve Standard nebo Premium kvalitě. Další překlady stojí 0,5 Standard nebo 1,5 Premium kreditu za 20 titulků. Zakoupené kredity nevyprší.
+            Překlad běžného filmu vyjde zhruba na $0,25 (Standard kvalita). První kompletní soubor je zdarma a zakoupené kredity nevyprší.
           </p>
 
           {/* Current Balance - only for logged in users */}
@@ -372,7 +373,7 @@ Dokončete platbu v novém okně.`, {
 
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-300">
-                <strong>Příklad:</strong> Soubor se 100 titulky stojí 2,5 kreditu (Standard) nebo 7,5 kreditu (Premium).
+                <strong>Příklad:</strong> Běžný film (~1 000 titulků) stojí 25 kreditů (~$0,25) ve Standard nebo 75 kreditů (~$0,75) v Premium kvalitě.
                 První kompletní soubor je zdarma; kredity se používají až od druhého souboru.
               </p>
             </div>

@@ -26,6 +26,11 @@ import {
   getTranslationCredits,
 } from '@/lib/credit-policy'
 
+const STARTER_PACK = { credits: 500, price: 5 }
+
+// S01E02, 1x02 or "Episode 2" in a file name means the visitor is watching a series.
+const EPISODE_FILE_PATTERN = /S\d{1,2}\s*E\d{1,3}|\b\d{1,2}x\d{2}\b|episode[\s._-]*\d+/i
+
 interface TranslationInterfaceProps {
   locale?: 'en' | 'cs'
 }
@@ -39,7 +44,9 @@ declare global {
 
 export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProps) {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, refreshEmailVerification } = useAuth()
+  const isCs = locale === 'cs'
+  const langPrefix = isCs ? '/cs' : ''
   const { isFavorite, toggleFavorite } = useFavoriteLanguages()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [sourceLanguage, setSourceLanguage] = useState<string>('auto') // Default to auto-detect
@@ -82,7 +89,9 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
     if (requestedTarget) setTargetLanguage(requestedTarget)
     const from = params.get('from') || 'direct'
     const catalogTitle = params.get('title')?.trim()
-    if (from.startsWith('subtitle-catalog') && catalogTitle) setCatalogContext({ title: catalogTitle.slice(0, 120) })
+    if ((from.startsWith('subtitle-catalog') || from.startsWith('subtitle-search')) && catalogTitle && requestedTarget) {
+      setCatalogContext({ title: catalogTitle.slice(0, 120) })
+    }
     analytics.translationIntent(from)
   }, [])
 
@@ -130,6 +139,12 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
       }
     }
   }, [translationResult?.downloadUrl])
+
+  // Visitors often verify in another tab and come back here with a stale
+  // "unverified" user; refresh once so the button does not send them away again.
+  useEffect(() => {
+    if (user && !user.emailVerified) void refreshEmailVerification()
+  }, [user])
 
   // Fetch user credits
   useEffect(() => {
@@ -618,8 +633,8 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
               <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-800/40 dark:bg-blue-950/30 dark:text-blue-200">
                 <strong>{catalogContext.title}</strong>
                 {locale === 'cs'
-                  ? ': nahrajte anglický soubor .srt stažený z OpenSubtitles. Cílový jazyk je předvyplněný níže.'
-                  : ': upload the English .srt you downloaded from OpenSubtitles. Your target language is already selected below.'}
+                  ? ': nahrajte soubor titulků stažený z OpenSubtitles. Cílový jazyk je předvyplněný níže.'
+                  : ': upload the subtitle file you downloaded from OpenSubtitles. Your target language is already selected below.'}
               </div>
             )}
             {user && (
@@ -831,15 +846,19 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                 </div>
 
                 {userCredits !== null && userCredits < estimatedCost && (
-                  <div className="mt-3 p-2 bg-destructive/10 border border-destructive/20 rounded">
+                  <div className="mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded">
                     <div className="flex items-center gap-2 text-destructive">
                       <AlertCircle className="h-4 w-4" />
-                      <span className="font-medium text-sm">Insufficient Credits</span>
+                      <span className="font-medium text-sm">{isCs ? 'Nedostatek kreditů' : 'Insufficient Credits'}</span>
                     </div>
                     <p className="text-destructive/80 text-xs mt-1">
-                      You have {userCredits.toFixed(1)} credits but need {estimatedCost.toFixed(1)} credits.
-                      <a href="/buy-credits" className="underline ml-1">Buy more credits</a>
+                      {isCs
+                        ? `Tento soubor stojí ${estimatedCost.toFixed(1)} kreditů (~$${(estimatedCost / 100).toFixed(2)}), máte ${userCredits.toFixed(1)}. Balíček za $${STARTER_PACK.price} pokryje přibližně ${Math.floor(STARTER_PACK.credits / estimatedCost)} takových souborů a kredity nevyprší.`
+                        : `This file costs ${estimatedCost.toFixed(1)} credits (~$${(estimatedCost / 100).toFixed(2)}) and you have ${userCredits.toFixed(1)}. The $${STARTER_PACK.price} pack covers about ${Math.floor(STARTER_PACK.credits / estimatedCost)} files like this, and credits never expire.`}
                     </p>
+                    <Button asChild size="sm" className="mt-2">
+                      <a href={`${langPrefix}/buy-credits`}>{isCs ? 'Koupit kredity' : 'Buy credits'}</a>
+                    </Button>
                   </div>
                 )}
 
@@ -967,30 +986,52 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                   </Button>
                 </div>
 
-                {translationResult?.paymentKind === 'free' && (
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800/40 dark:bg-blue-950/30">
-                    <h4 className="font-semibold text-blue-950 dark:text-blue-200">{locale === 'cs' ? 'Bezplatný překlad je hotový' : 'Your free translation is complete'}</h4>
-                    <p className="mt-1 text-sm text-blue-800 dark:text-blue-300">
-                      {locale === 'cs'
-                        ? 'Výsledek si ponechte a pokračujte jen tehdy, pokud vám SubtitleBot vyhovuje. Startovní balíček za $5 pokryje až 20 000 Standard titulků a zakoupené kredity nevyprší.'
-                        : 'Keep the result and continue only if SubtitleBot worked for you. The $5 Starter Pack covers up to 20,000 Standard subtitle lines, and purchased credits never expire.'}
-                    </p>
-                    <Button asChild className="mt-3" size="sm">
-                      <a href={locale === 'cs' ? '/cs/buy-credits' : '/buy-credits'}>{locale === 'cs' ? 'Přeložit další soubor pomocí kreditů' : 'Translate another file with credits'}</a>
-                    </Button>
-                  </div>
-                )}
+                {translationResult?.paymentKind === 'free' && (() => {
+                  // Price the next file like this one, in dollars, instead of abstract credits.
+                  const nextCost = getTranslationCredits(subtitleCount || 1000, translationModel)
+                  const filesPerPack = Math.floor(STARTER_PACK.credits / nextCost)
+                  const isEpisode = EPISODE_FILE_PATTERN.test(selectedFile?.name || '')
+                  return (
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800/40 dark:bg-blue-950/30">
+                      <h4 className="font-semibold text-blue-950 dark:text-blue-200">{isCs ? 'Bezplatný překlad je hotový' : 'Your free translation is complete'}</h4>
+                      <p className="mt-1 text-sm text-blue-800 dark:text-blue-300">
+                        {isCs
+                          ? `Další soubor této délky stojí jen ~$${(nextCost / 100).toFixed(2)}. Balíček za $${STARTER_PACK.price} vystačí zhruba na ${filesPerPack} takových souborů a kredity nevyprší.`
+                          : `Your next file of this length costs only ~$${(nextCost / 100).toFixed(2)}. The $${STARTER_PACK.price} pack covers about ${filesPerPack} files like this, and credits never expire.`}
+                      </p>
+                      {isEpisode && (
+                        <p className="mt-2 text-sm text-blue-800 dark:text-blue-300">
+                          {isCs
+                            ? `Sledujete seriál? Nahrajte zbytek série najednou v hromadném překladu. ${Math.min(filesPerPack, 10)} dílů vyjde zhruba na $${((nextCost * Math.min(filesPerPack, 10)) / 100).toFixed(2)}.`
+                            : `Watching a series? Upload the rest of the season at once with batch translation. ${Math.min(filesPerPack, 10)} episodes cost about $${((nextCost * Math.min(filesPerPack, 10)) / 100).toFixed(2)}.`}
+                        </p>
+                      )}
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Button asChild size="sm">
+                          <a href={`${langPrefix}/buy-credits`}>{isCs ? `Koupit kredity od $${STARTER_PACK.price}` : `Get credits from $${STARTER_PACK.price}`}</a>
+                        </Button>
+                        {isEpisode && (
+                          <Button asChild size="sm" variant="outline">
+                            <a href={`${langPrefix}/batch`}>{isCs ? 'Přeložit celou sérii' : 'Translate the whole season'}</a>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
             ) : (
               // Before/during translation
               <Button
-                onClick={() => {
+                onClick={async () => {
                   const returnTo = `${window.location.pathname}${window.location.search}`
                   if (!user) {
-                    window.location.href = `${locale === 'cs' ? '/cs/login' : '/login'}?redirect=${encodeURIComponent(returnTo)}`
+                    // Most visitors reaching this button are new, so start at sign-up;
+                    // the form links to sign-in and keeps the redirect.
+                    window.location.href = `${langPrefix}/register?redirect=${encodeURIComponent(returnTo)}`
                     return
                   }
-                  if (!user.emailVerified) {
+                  if (!user.emailVerified && !(await refreshEmailVerification())) {
                     window.location.href = `/verify-email?redirect=${encodeURIComponent(returnTo)}`
                     return
                   }
@@ -1006,7 +1047,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                 className="w-full"
                 size="lg"
               >
-                {isTranslating ? 'Translating...' : !user ? 'Sign in to translate your first file free' : !user.emailVerified ? 'Verify email to start' : creditStatusLoading ? 'Checking your free file...' :
+                {isTranslating ? 'Translating...' : !user ? (isCs ? 'Zaregistrujte se a přeložte první soubor zdarma' : 'Sign up free to translate your first file') : !user.emailVerified ? 'Verify email to start' : creditStatusLoading ? 'Checking your free file...' :
                   (userCredits !== null && estimatedCost !== null && userCredits < estimatedCost) ?
                     'Insufficient Credits' : 'Start Translation'}
               </Button>

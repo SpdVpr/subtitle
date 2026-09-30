@@ -13,4 +13,5 @@ export interface AuthContextType {
   resetPassword: (email: string) => Promise<void>
   signInWithGoogle: () => Promise<void>
   sendVerificationEmail: (continueUrl?: string) => Promise<void>
+  refreshEmailVerification: () => Promise<boolean>
 }

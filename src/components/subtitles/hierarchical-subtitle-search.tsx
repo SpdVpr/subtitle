@@ -10,6 +10,13 @@ import { Search, Download, ExternalLink, Calendar, Star, Users, Clock, ChevronRi
 import { toast } from 'sonner'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { analytics } from '@/lib/analytics'
+import { SUPPORTED_LANGUAGES } from '@/types/subtitle'
+import {
+  POPULAR_TARGET_LANGUAGES,
+  detectPreferredLanguage,
+  fromOpenSubtitlesLanguageCode,
+  toOpenSubtitlesLanguageCodes,
+} from '@/lib/subtitle-catalog-languages'
 
 interface SubtitleFile {
   file_id: number
@@ -198,29 +205,123 @@ const TMDBImage = ({ tmdbId, type, title, year, className, openSubtitlesImageUrl
   )
 }
 
+// Shared with the catalog language finder: "the language I watch in".
+const LANGUAGE_STORAGE_KEY = 'subtitlebot.catalog.language'
+
+// Every translation language that OpenSubtitles also lists, popular ones first.
+const SEARCHABLE_LANGUAGES = SUPPORTED_LANGUAGES.filter((lang) => toOpenSubtitlesLanguageCodes(lang.code).length > 0)
+const SEARCHABLE_CODES = new Set(SEARCHABLE_LANGUAGES.map((lang) => lang.code))
+const LANGUAGE_BY_CODE = new Map(SEARCHABLE_LANGUAGES.map((lang) => [lang.code, lang]))
+const POPULAR_CODES = new Set<string>(POPULAR_TARGET_LANGUAGES)
 const LANGUAGE_OPTIONS = [
-  { value: 'en', label: 'English' },
-  { value: 'cs', label: 'Czech' },
-  { value: 'sk', label: 'Slovak' },
-  { value: 'de', label: 'German' },
-  { value: 'fr', label: 'French' },
-  { value: 'es', label: 'Spanish' },
-  { value: 'it', label: 'Italian' },
-  { value: 'pt', label: 'Portuguese' },
-  { value: 'ru', label: 'Russian' },
-  { value: 'pl', label: 'Polish' },
-  { value: 'nl', label: 'Dutch' },
-  { value: 'sv', label: 'Swedish' },
-  { value: 'da', label: 'Danish' },
-  { value: 'no', label: 'Norwegian' },
-  { value: 'fi', label: 'Finnish' },
+  ...POPULAR_TARGET_LANGUAGES.filter((code) => SEARCHABLE_CODES.has(code)).map((code) => LANGUAGE_BY_CODE.get(code)!),
+  ...SEARCHABLE_LANGUAGES.filter((lang) => !POPULAR_CODES.has(lang.code)).sort((a, b) => a.name.localeCompare(b.name)),
 ]
 
-export function HierarchicalSubtitleSearch() {
-  console.log('🎬 HierarchicalSubtitleSearch component loaded')
+const osLanguages = (code: string) => toOpenSubtitlesLanguageCodes(code).join(',') || code
+
+// OpenSubtitles search is fuzzy and nearly always returns something, so "missing" means
+// no result title contains every word of the query (years ignored, punctuation-insensitive).
+const normalizeTitle = (value: string) => value.toLowerCase().replace(/[\s\-_:;.,'"’!?&()[\]]+/g, '')
+const titleMatchesQuery = (title: string, searchQuery: string) => {
+  const words = searchQuery
+    .split(/\s+/)
+    .filter((word) => word && !/^(19|20)\d{2}$/.test(word))
+    .map(normalizeTitle)
+    .filter(Boolean)
+  const normalized = normalizeTitle(title)
+  return words.length > 0 && words.every((word) => normalized.includes(word))
+}
+
+const TEXTS = {
+  en: {
+    enterQuery: 'Please enter a movie or TV series name',
+    searchError: 'Search error',
+    noResults: 'No subtitles found',
+    found: (n: number) => `Found ${n} ${n === 1 ? 'show/movie' : 'shows/movies'}`,
+    subtitleCount: (n: number) => `${n} ${n === 1 ? 'subtitle' : 'subtitles'}`,
+    season: (n: number) => `Season ${n}`,
+    episodeCount: (n: number) => `${n} ${n === 1 ? 'episode' : 'episodes'}`,
+    episode: (n: number) => `Episode ${n}`,
+    loadingEpisodes: 'Loading episodes...',
+    translate: 'Translate • first file free',
+    translateTo: (lang: string) => `Translate to ${lang} • first file free`,
+    missingTitle: (lang: string, q: string) => `No ${lang} subtitles for “${q}” yet`,
+    missingBody: (lang: string) => `Download the English subtitles and our AI translates them to ${lang} in about a minute, with the timing kept. Your first file is free.`,
+    showEnglish: 'Show English subtitles',
+    translateNow: (lang: string) => `Translate to ${lang} free`,
+    needLanguage: (lang: string) => `Need ${lang}? Download any English file below and translate it to ${lang}. Your first file is free.`,
+    redirecting: 'Redirecting to OpenSubtitles for subtitle download',
+    title: 'Search Subtitles',
+    description: 'Search subtitles grouped by TV series and movies for better organization',
+    queryPlaceholder: 'Movie or TV series name...',
+    typeAll: 'All',
+    typeMovie: 'Movie',
+    typeSeries: 'TV Series',
+    yearPlaceholder: 'Year (optional)',
+    includeAI: 'Include AI/Machine translated',
+    trustedOnly: 'Trusted sources only',
+    search: 'Search',
+    searching: 'Searching...',
+    movieLabel: '🎬 Movie',
+    seriesLabel: '📺 TV Series',
+    trusted: 'Trusted',
+    hearingImpaired: 'Hearing Impaired',
+    aiTranslation: 'AI Translation',
+    release: 'Release',
+    download: 'Download',
+    downloads: (n: number) => `${n.toLocaleString('en-US')} downloads`,
+  },
+  cs: {
+    enterQuery: 'Zadejte název filmu nebo seriálu',
+    searchError: 'Chyba při vyhledávání',
+    noResults: 'Žádné titulky nenalezeny',
+    found: (n: number) => `Nalezeno ${n} ${n === 1 ? 'seriál/film' : 'seriálů/filmů'}`,
+    subtitleCount: (n: number) => `${n} ${n === 1 ? 'titulek' : n >= 2 && n <= 4 ? 'titulky' : 'titulků'}`,
+    season: (n: number) => `Série ${n}`,
+    episodeCount: (n: number) => `${n} ${n === 1 ? 'díl' : n >= 2 && n <= 4 ? 'díly' : 'dílů'}`,
+    episode: (n: number) => `Díl ${n}`,
+    loadingEpisodes: 'Načítání epizod...',
+    translate: 'Přeložit • první soubor zdarma',
+    translateTo: (lang: string) => `Přeložit do: ${lang} • zdarma`,
+    missingTitle: (lang: string, q: string) => `Titulky „${q}“ zatím nejsou dostupné (${lang})`,
+    missingBody: (lang: string) => `Stáhněte anglické titulky a naše AI je zhruba za minutu přeloží do cílového jazyka (${lang}) se zachovaným časováním. První soubor je zdarma.`,
+    showEnglish: 'Zobrazit anglické titulky',
+    translateNow: (lang: string) => `Přeložit do: ${lang} zdarma`,
+    needLanguage: (lang: string) => `Chcete titulky v jiném jazyce (${lang})? Stáhněte kterýkoli anglický soubor níže a přeložte ho. První soubor je zdarma.`,
+    redirecting: 'Přesměrováváme vás na OpenSubtitles ke stažení titulků',
+    title: 'Hledat titulky',
+    description: 'Výsledky seskupené podle seriálů a filmů',
+    queryPlaceholder: 'Název filmu nebo seriálu...',
+    typeAll: 'Vše',
+    typeMovie: 'Film',
+    typeSeries: 'Seriál',
+    yearPlaceholder: 'Rok (nepovinné)',
+    includeAI: 'Včetně AI/strojových překladů',
+    trustedOnly: 'Jen důvěryhodné zdroje',
+    search: 'Hledat',
+    searching: 'Hledám...',
+    movieLabel: '🎬 Film',
+    seriesLabel: '📺 Seriál',
+    trusted: 'Ověřené',
+    hearingImpaired: 'Pro neslyšící',
+    aiTranslation: 'AI překlad',
+    release: 'Release',
+    download: 'Stáhnout',
+    downloads: (n: number) => `${n.toLocaleString('cs-CZ')} stažení`,
+  },
+}
+
+export function HierarchicalSubtitleSearch({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
+  const isCs = locale === 'cs'
+  const t = TEXTS[locale]
+  const langPrefix = isCs ? '/cs' : ''
 
   const [query, setQuery] = useState('')
   const [language, setLanguage] = useState('en')
+  // The language the visitor actually wants; stays set while they browse English files to translate.
+  const [wantedLanguage, setWantedLanguage] = useState<string | null>(null)
+  const [lastSearch, setLastSearch] = useState<{ query: string; language: string; found: number } | null>(null)
   const [type, setType] = useState<'movie' | 'episode' | 'all'>('all')
   const [year, setYear] = useState('')
   const [shows, setShows] = useState<Show[]>([])
@@ -414,7 +515,7 @@ export function HierarchicalSubtitleSearch() {
     try {
       // Search for all episodes of this specific show
       const params = new URLSearchParams({
-        languages: language,
+        languages: osLanguages(lastSearch?.language || language),
         per_page: '100',
         type: 'episode',
         parent_imdb_id: show.imdb_id?.toString() || ''
@@ -485,10 +586,11 @@ export function HierarchicalSubtitleSearch() {
     }
   }
 
-  const handleSearch = async (queryOverride?: string) => {
+  const handleSearch = async (queryOverride?: string, languageOverride?: string) => {
     const effectiveQuery = typeof queryOverride === 'string' ? queryOverride.trim() : query.trim()
+    const searchLanguage = languageOverride || language
     if (!effectiveQuery) {
-      toast.error('Please enter a movie or TV series name')
+      toast.error(t.enterQuery)
       return
     }
 
@@ -500,7 +602,7 @@ export function HierarchicalSubtitleSearch() {
     try {
       const params = new URLSearchParams({
         query: effectiveQuery,
-        languages: language,
+        languages: osLanguages(searchLanguage),
         per_page: '200', // Get more results for better coverage
       })
 
@@ -527,12 +629,12 @@ export function HierarchicalSubtitleSearch() {
 
       if (!response.ok) {
         const error = await response.json()
-        const errorMessage = error.details || error.error || 'Chyba při vyhledávání'
+        const errorMessage = error.details || error.error || t.searchError
         throw new Error(errorMessage)
       }
 
       const data: SearchResponse = await response.json()
-      analytics.subtitleSearchCompleted('opensubtitles', language, data.total_count)
+      analytics.subtitleSearchCompleted('opensubtitles', searchLanguage, data.total_count)
       console.log('📊 Raw API data:', data.data.length, 'subtitles')
       let groupedShows = groupSubtitles(data.data, effectiveQuery)
       console.log('🎭 Grouped shows:', groupedShows.length, 'shows')
@@ -545,7 +647,7 @@ export function HierarchicalSubtitleSearch() {
         try {
           const episodeParams = new URLSearchParams({
             query: effectiveQuery,
-            languages: language,
+            languages: osLanguages(searchLanguage),
             per_page: '100',
             type: 'episode'
           })
@@ -580,6 +682,11 @@ export function HierarchicalSubtitleSearch() {
 
       setShows(groupedShows)
       setTotalCount(data.total_count)
+      setLastSearch({
+        query: effectiveQuery,
+        language: searchLanguage,
+        found: groupedShows.filter((show) => titleMatchesQuery(show.title, effectiveQuery)).length,
+      })
 
       // Auto-expand first show if there's only one
       if (groupedShows.length === 1) {
@@ -594,17 +701,56 @@ export function HierarchicalSubtitleSearch() {
       }
 
       if (groupedShows.length === 0) {
-        toast.info('No subtitles found')
+        // Non-English misses get the translate card below instead of a dead-end toast.
+        if (searchLanguage === 'en') toast.info(t.noResults)
       } else {
-        toast.success(`Found ${groupedShows.length} ${groupedShows.length === 1 ? 'show/movie' : 'shows/movies'}`)
+        toast.success(t.found(groupedShows.length))
       }
     } catch (error) {
       console.error('Search error:', error)
-      toast.error(error instanceof Error ? error.message : 'Search error')
+      toast.error(error instanceof Error ? error.message : t.searchError)
     } finally {
       setLoading(false)
     }
   }
+
+  // Preselect the visitor's language: last choice, then the page locale, then the browser.
+  useEffect(() => {
+    let initial = ''
+    try {
+      initial = window.localStorage.getItem(LANGUAGE_STORAGE_KEY) || ''
+    } catch {}
+    if (!SEARCHABLE_CODES.has(initial)) {
+      initial = (isCs ? 'cs' : '') || detectPreferredLanguage(navigator.languages || [navigator.language], SEARCHABLE_CODES) || 'en'
+    }
+    if (initial !== 'en') setWantedLanguage(initial)
+    // A ?q= link (e.g. "Get English .srt" from the catalog) searches in English on mount.
+    if (!new URLSearchParams(window.location.search).get('q')?.trim()) setLanguage(initial)
+  }, [isCs])
+
+  const handleLanguageChange = (code: string) => {
+    setLanguage(code)
+    setWantedLanguage(code === 'en' ? null : code)
+    try {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, code)
+    } catch {}
+  }
+
+  const showEnglishInstead = () => {
+    if (!lastSearch) return
+    setLanguage('en')
+    void handleSearch(lastSearch.query, 'en')
+  }
+
+  const translateHref = (sourceLanguage: string, title?: string, from = 'subtitle-search') => {
+    const params = new URLSearchParams({ from, sourceLanguage })
+    if (wantedLanguage && wantedLanguage !== sourceLanguage) params.set('targetLanguage', wantedLanguage)
+    if (title) params.set('title', title)
+    return `${langPrefix}/translate?${params.toString()}`
+  }
+
+  const translateLabel = (sourceLanguage: string) =>
+    wantedLanguage && wantedLanguage !== sourceLanguage ? t.translateTo(getLanguageLabel(wantedLanguage)) : t.translate
 
   useEffect(() => {
     if (autoSearchDone.current) return
@@ -642,18 +788,23 @@ export function HierarchicalSubtitleSearch() {
   const handleDownload = (subtitle: GroupedSubtitle) => {
     analytics.subtitleSourceOpened('opensubtitles')
     window.open(subtitle.attributes.download_url, '_blank')
-    toast.info('Redirecting to OpenSubtitles for subtitle download')
+    toast.info(t.redirecting)
   }
 
 
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('cs-CZ')
+    return new Date(dateString).toLocaleDateString(isCs ? 'cs-CZ' : 'en-US')
   }
 
+  // Accepts SubtitleBot codes and OpenSubtitles codes (pt-br, zh-cn, ...).
   const getLanguageLabel = (code: string) => {
-    return LANGUAGE_OPTIONS.find(lang => lang.value === code)?.label || code.toUpperCase()
+    const entry = LANGUAGE_BY_CODE.get(fromOpenSubtitlesLanguageCode(code).code)
+    if (!entry) return code.toUpperCase()
+    return isCs ? entry.nativeName : entry.name
   }
+
+  const toAppLanguage = (osCode: string) => fromOpenSubtitlesLanguageCode(osCode).code
 
   // Helper function to get OpenSubtitles image URL from a group of subtitles
   const getOpenSubtitlesImageUrl = (subtitles: GroupedSubtitle[]): string | undefined => {
@@ -675,30 +826,30 @@ export function HierarchicalSubtitleSearch() {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Search className="h-5 w-5" />
-            <span>Search Subtitles</span>
+            <span>{t.title}</span>
           </CardTitle>
           <CardDescription>
-            Search subtitles grouped by TV series and movies for better organization
+            {t.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="lg:col-span-2">
               <Input
-                placeholder="Movie or TV series name..."
+                placeholder={t.queryPlaceholder}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
-            <Select value={language} onValueChange={setLanguage}>
+            <Select value={language} onValueChange={handleLanguageChange}>
               <SelectTrigger aria-label="Subtitle language">
                 <SelectValue placeholder="Language" />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGE_OPTIONS.map(lang => (
-                  <SelectItem key={lang.value} value={lang.value}>
-                    {lang.label}
+                  <SelectItem key={lang.code} value={lang.code}>
+                    {isCs ? lang.nativeName : lang.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -708,9 +859,9 @@ export function HierarchicalSubtitleSearch() {
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="movie">Movie</SelectItem>
-                <SelectItem value="episode">TV Series</SelectItem>
+                <SelectItem value="all">{t.typeAll}</SelectItem>
+                <SelectItem value="movie">{t.typeMovie}</SelectItem>
+                <SelectItem value="episode">{t.typeSeries}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -718,7 +869,7 @@ export function HierarchicalSubtitleSearch() {
           {/* Advanced Search Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Input
-              placeholder="Year (optional)"
+              placeholder={t.yearPlaceholder}
               value={year}
               onChange={(e) => setYear(e.target.value)}
               className="max-w-32"
@@ -732,7 +883,7 @@ export function HierarchicalSubtitleSearch() {
                 className="rounded"
               />
               <label htmlFor="includeAI" className="text-sm text-gray-700 dark:text-foreground">
-                Include AI/Machine translated
+                {t.includeAI}
               </label>
             </div>
             <div className="flex items-center space-x-2">
@@ -744,7 +895,7 @@ export function HierarchicalSubtitleSearch() {
                 className="rounded"
               />
               <label htmlFor="trustedOnly" className="text-sm text-gray-700 dark:text-foreground">
-                Trusted sources only
+                {t.trustedOnly}
               </label>
             </div>
           </div>
@@ -754,20 +905,50 @@ export function HierarchicalSubtitleSearch() {
               console.log('🔘 Search button clicked')
               handleSearch()
             }} disabled={loading}>
-              {loading ? 'Searching...' : 'Search'}
+              {loading ? t.searching : t.search}
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Nothing in the visitor's language: the moment translation is worth paying for */}
+      {!loading && lastSearch && lastSearch.found === 0 && lastSearch.language !== 'en' && (
+        <Card className="border-blue-300 bg-blue-50 dark:border-blue-800/50 dark:bg-blue-950/30">
+          <CardContent className="p-5 sm:p-6 space-y-3">
+            <h3 className="text-lg font-semibold text-blue-950 dark:text-blue-100">
+              {t.missingTitle(getLanguageLabel(lastSearch.language), lastSearch.query)}
+            </h3>
+            <p className="text-sm text-blue-900/80 dark:text-blue-200/80">
+              {t.missingBody(getLanguageLabel(lastSearch.language))}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button onClick={showEnglishInstead}>
+                <Search className="h-4 w-4 mr-2" />
+                {t.showEnglish}
+              </Button>
+              <Button asChild variant="outline">
+                <a href={translateHref('en', lastSearch.query, 'subtitle-search-missing')}>
+                  {t.translateNow(getLanguageLabel(lastSearch.language))}
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Results */}
       {shows.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">
-              Nalezeno {shows.length} {shows.length === 1 ? 'seriál/film' : 'seriálů/filmů'}
+              {t.found(shows.length)}
             </h3>
           </div>
+          {lastSearch?.language === 'en' && wantedLanguage && (
+            <p className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-800/40 dark:bg-blue-950/30 dark:text-blue-200">
+              {t.needLanguage(getLanguageLabel(wantedLanguage))}
+            </p>
+          )}
 
           <div className="space-y-4">
             {shows.map((show) => {
@@ -825,7 +1006,7 @@ export function HierarchicalSubtitleSearch() {
                               <div className="text-sm text-gray-600 mb-3">
                                 <div className="flex items-center space-x-4">
                                   <span className="font-medium">
-                                    {show.feature_type === 'Movie' ? '🎬 Movie' : '📺 TV Series'}
+                                    {show.feature_type === 'Movie' ? t.movieLabel : t.seriesLabel}
                                   </span>
                                   {show.tmdb_id && (
                                     <span className="text-xs bg-gray-100 dark:bg-muted px-2 py-1 rounded">
@@ -843,16 +1024,13 @@ export function HierarchicalSubtitleSearch() {
                               {/* Subtitle count and quality indicators */}
                               <div className="flex items-center space-x-3 text-sm">
                                 <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950/30">
-                                  {show.feature_type === 'Movie'
+                                  {t.subtitleCount(show.feature_type === 'Movie'
                                     ? (show.movie_subtitles?.length || 0)
-                                    : (show.total_subtitles || 0)
-                                  } subtitle{((show.feature_type === 'Movie'
-                                    ? (show.movie_subtitles?.length || 0)
-                                    : (show.total_subtitles || 0)) !== 1) ? 's' : ''}
+                                    : (show.total_subtitles || 0))}
                                 </Badge>
                                 {((show.feature_type === 'Movie' ? show.movie_subtitles : show.subtitles) || []).some(s => s.attributes.from_trusted) && (
                                   <Badge variant="outline" className="bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300">
-                                    ✓ Trusted
+                                    ✓ {t.trusted}
                                   </Badge>
                                 )}
                                 {((show.feature_type === 'Movie' ? show.movie_subtitles : show.subtitles) || []).some(s => s.attributes.hd) && (
@@ -865,7 +1043,7 @@ export function HierarchicalSubtitleSearch() {
                           </div>
                           <div className="flex items-center space-x-2">
                             <Badge variant="outline">
-                              {show.total_subtitles || 0} titulků
+                              {t.subtitleCount(show.total_subtitles || 0)}
                             </Badge>
                             {isExpanded ? (
                               <ChevronDown className="h-4 w-4" />
@@ -894,18 +1072,18 @@ export function HierarchicalSubtitleSearch() {
                                         <Badge variant="outline" className="text-green-600">HD</Badge>
                                       )}
                                       {subtitle.attributes.hearing_impaired && (
-                                        <Badge variant="outline" className="text-blue-600">Hearing Impaired</Badge>
+                                        <Badge variant="outline" className="text-blue-600">{t.hearingImpaired}</Badge>
                                       )}
                                       {subtitle.attributes.from_trusted && (
-                                        <Badge variant="outline" className="text-purple-600 dark:text-purple-400">Trusted</Badge>
+                                        <Badge variant="outline" className="text-purple-600 dark:text-purple-400">{t.trusted}</Badge>
                                       )}
                                       {subtitle.attributes.ai_translated && (
-                                        <Badge variant="outline" className="text-orange-600 dark:text-orange-400">AI Translation</Badge>
+                                        <Badge variant="outline" className="text-orange-600 dark:text-orange-400">{t.aiTranslation}</Badge>
                                       )}
                                     </div>
 
                                     <p className="text-sm text-muted-foreground">
-                                      Release: {subtitle.attributes.release}
+                                      {t.release}: {subtitle.attributes.release}
                                     </p>
 
                                     <div className="flex items-center space-x-4 text-sm text-muted-foreground">
@@ -943,15 +1121,15 @@ export function HierarchicalSubtitleSearch() {
                                       className="flex items-center space-x-2"
                                     >
                                       <ExternalLink className="h-4 w-4" />
-                                      <span>Download</span>
+                                      <span>{t.download}</span>
                                     </Button>
                                     <Button
-                                      onClick={() => window.open(`/translate?from=subtitle-search&sourceLanguage=${encodeURIComponent(subtitle.attributes.language)}`, '_blank')}
+                                      onClick={() => window.open(translateHref(toAppLanguage(subtitle.attributes.language), `${show.title} (${show.year})`), '_blank')}
                                       size="sm"
                                       variant="outline"
                                       className="text-xs"
                                     >
-                                      Translate • first file free
+                                      {translateLabel(toAppLanguage(subtitle.attributes.language))}
                                     </Button>
 
                                   </div>
@@ -967,7 +1145,7 @@ export function HierarchicalSubtitleSearch() {
                               if (!detailedShow || !detailedShow.seasons?.length) {
                                 return (
                                   <div className="p-4 text-center text-muted-foreground">
-                                    Načítání epizod...
+                                    {t.loadingEpisodes}
                                   </div>
                                 )
                               }
@@ -982,9 +1160,9 @@ export function HierarchicalSubtitleSearch() {
                                     <CollapsibleTrigger asChild>
                                       <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-card transition-colors">
                                         <div className="flex items-center space-x-2">
-                                          <h4 className="font-semibold">Série {season.season_number}</h4>
+                                          <h4 className="font-semibold">{t.season(season.season_number)}</h4>
                                           <Badge variant="outline">
-                                            {season.episodes?.length || 0} {(season.episodes?.length || 0) === 1 ? 'díl' : 'dílů'}
+                                            {t.episodeCount(season.episodes?.length || 0)}
                                           </Badge>
                                         </div>
                                         {isSeasonExpanded ? (
@@ -1001,9 +1179,9 @@ export function HierarchicalSubtitleSearch() {
                                           <div key={`${seasonKey}-episode-${episode.episode_number}`} className="border rounded-lg p-3 bg-gray-50 dark:bg-card dark:border-border">
                                             <div className="mb-3">
                                               <h5 className="font-medium">
-                                                Díl {episode.episode_number}
+                                                {t.episode(episode.episode_number)}
                                                 <Badge variant="outline" className="ml-2">
-                                                  {episode.subtitles?.length || 0} {(episode.subtitles?.length || 0) === 1 ? 'titulek' : 'titulků'}
+                                                  {t.subtitleCount(episode.subtitles?.length || 0)}
                                                 </Badge>
                                               </h5>
                                             </div>
@@ -1030,7 +1208,7 @@ export function HierarchicalSubtitleSearch() {
                                                       {subtitle.attributes.release}
                                                     </p>
                                                     <div className="flex items-center space-x-3 text-xs text-muted-foreground mt-1">
-                                                      <span>{subtitle.attributes.download_count.toLocaleString()} downloads</span>
+                                                      <span>{t.downloads(subtitle.attributes.download_count)}</span>
                                                       {subtitle.attributes.votes > 0 && (
                                                         <span>⭐ {subtitle.attributes.ratings}/10</span>
                                                       )}
@@ -1042,16 +1220,16 @@ export function HierarchicalSubtitleSearch() {
                                                       size="sm"
                                                       variant="outline"
                                                       className="text-xs px-2 py-1"
-                                                      title="Download"
+                                                      title={t.download}
                                                     >
                                                       <ExternalLink className="h-3 w-3" />
                                                     </Button>
                                                     <Button
-                                                      onClick={() => window.open(`/translate?from=subtitle-search&sourceLanguage=${encodeURIComponent(subtitle.attributes.language)}`, '_blank')}
+                                                      onClick={() => window.open(translateHref(toAppLanguage(subtitle.attributes.language), `${show.title} S${String(season.season_number).padStart(2, '0')}E${String(episode.episode_number).padStart(2, '0')}`), '_blank')}
                                                       size="sm"
                                                       variant="outline"
                                                       className="text-xs px-2 py-1"
-                                                      title="Translate — first file free"
+                                                      title={translateLabel(toAppLanguage(subtitle.attributes.language))}
                                                     >
                                                       Translate
                                                     </Button>

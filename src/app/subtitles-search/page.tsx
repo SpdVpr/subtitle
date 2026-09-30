@@ -85,8 +85,12 @@ export default function SubtitlesSearchPage() {
                 Search movie and TV subtitle listings by title, language, content type, year and source quality
               </p>
             </div>
-            <HierarchicalSubtitleSearch />
+            <HierarchicalSubtitleSearch locale="en" />
           </div>
+        </div>
+
+        <div className="-mt-10 mb-12 sm:-mt-14 sm:mb-16">
+          <TranslatePromo locale="en" />
         </div>
 
         {/* Separator */}
@@ -115,12 +119,11 @@ export default function SubtitlesSearchPage() {
                 Search anime subtitle listings through Jimaku with AniList identifiers
               </p>
             </div>
-            <AnimeSubtitleSearch />
+            <AnimeSubtitleSearch locale="en" />
           </div>
         </div>
         <SubtitleHubLinks locale="en" />
         <UltiQuizTeaser locale="en" />
-        <TranslatePromo locale="en" />
         <SubtitleSearchGuide locale="en" />
       </div>
     </div>
