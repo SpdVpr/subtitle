@@ -1,5 +1,5 @@
 {
-  "deploymentTrigger": "seo-perf-pass-2",
+  "deploymentTrigger": "conversion-funnel-1",
   "sourceBranch": "main",
-  "triggeredAt": "2026-09-10T15:20:00+02:00"
+  "triggeredAt": "2026-09-30T12:00:00+02:00"
 }
