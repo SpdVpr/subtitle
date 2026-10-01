@@ -35,7 +35,7 @@ export function SubtitleHubLinks({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <span className="font-semibold text-muted-foreground">{isCs ? 'Procházet katalog:' : 'Browse the catalog:'}</span>
         {hubs.map(([label, path]) => (
-          <Link key={path} className="font-medium text-primary hover:underline" href={`${prefix}${path}`}>
+          <Link prefetch={false} key={path} className="font-medium text-primary hover:underline" href={`${prefix}${path}`}>
             {label}
           </Link>
         ))}
@@ -43,7 +43,7 @@ export function SubtitleHubLinks({ locale = 'en' }: { locale?: 'en' | 'cs' }) {
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
         <span className="font-semibold text-muted-foreground">{isCs ? 'Titulky podle jazyka:' : 'Subtitles by language:'}</span>
         {languages.map((language) => (
-          <Link key={language.code} className="font-medium text-primary hover:underline" href={`${prefix}/subtitles/${language.slug}`}>
+          <Link prefetch={false} key={language.code} className="font-medium text-primary hover:underline" href={`${prefix}/subtitles/${language.slug}`}>
             {isCs ? `Titulky v ${language.csName}` : `${language.name} subtitles`}
           </Link>
         ))}

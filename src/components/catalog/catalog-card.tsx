@@ -5,7 +5,7 @@ import type { CatalogSeed } from '@/lib/subtitle-catalog'
 export function CatalogCard({ media, locale = 'en', count, language }: { media: CatalogSeed; locale?: 'en' | 'cs'; count?: number; language?: string }) {
   const prefix = locale === 'cs' ? '/cs' : ''
   return (
-    <Link
+    <Link prefetch={false}
       href={`${prefix}/subtitles/${media.type}/${media.slug}`}
       className="group block rounded-xl border bg-card p-5 transition-all hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >

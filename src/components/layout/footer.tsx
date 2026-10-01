@@ -40,7 +40,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
               }
             </p>
             <div className="flex items-center space-x-4">
-              <Link
+              <Link prefetch={false}
                 href={`${langPrefix}/contact`}
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Contact"
@@ -56,7 +56,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
                 </span>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/live`}
                   className="text-xs font-semibold tracking-wide text-foreground hover:text-primary transition-colors"
                 >
@@ -87,7 +87,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
             </h3>
             <ul className="space-y-3">
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/translate`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -95,7 +95,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/subtitles-search`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -103,7 +103,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/subtitles/movies`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -111,7 +111,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/tools`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -119,7 +119,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/guides`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -127,7 +127,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/video-tools`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -135,7 +135,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/buy-credits`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -143,7 +143,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href="https://ultiquiz.com"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -164,7 +164,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
             </h3>
             <ul className="space-y-3">
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/about`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -172,7 +172,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/contact`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -180,7 +180,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/feedback`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -197,7 +197,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
             </h3>
             <ul className="space-y-3">
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/privacy`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -205,7 +205,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/terms`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -213,7 +213,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/cookies`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -221,7 +221,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/cookie-settings`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -229,7 +229,7 @@ export function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/gdpr`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >

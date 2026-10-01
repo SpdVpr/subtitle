@@ -57,7 +57,7 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href={langPrefix || "/"} className="flex items-center space-x-2">
+            <Link prefetch={false} href={langPrefix || "/"} className="flex items-center space-x-2">
               <Image
                 src="/logo-sub.png"
                 alt="SubtitleBot"
@@ -72,26 +72,26 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-5 text-base xl:text-lg">
-            <Link
+            <Link prefetch={false}
               href={`${langPrefix}/translate`}
               className="text-muted-foreground hover:text-foreground transition-colors font-semibold py-2"
             >
               {navLabels.translate}
             </Link>
             {/* Batch is now integrated into translate page for both languages */}
-            <Link
+            <Link prefetch={false}
               href={`${langPrefix}/subtitles-search`}
               className="text-muted-foreground hover:text-foreground transition-colors font-semibold py-2"
             >
               {navLabels.findSubtitles}
             </Link>
-            <Link
+            <Link prefetch={false}
               href={`${langPrefix}/video-tools`}
               className="text-muted-foreground hover:text-foreground transition-colors font-semibold py-2"
             >
               {navLabels.videoTools}
             </Link>
-            <Link
+            <Link prefetch={false}
               href={`${langPrefix}/subtitle-editor`}
               className="text-muted-foreground hover:text-foreground transition-colors font-semibold py-2"
             >
@@ -132,11 +132,11 @@ export function Header() {
             ) : user ? (
               <div className="flex items-center space-x-0.5">
                 <Button variant="ghost" size="sm" asChild className="px-2">
-                  <Link href={`${langPrefix}/dashboard`}>{navLabels.dashboard}</Link>
+                  <Link prefetch={false} href={`${langPrefix}/dashboard`}>{navLabels.dashboard}</Link>
                 </Button>
                 {user && isAdmin(user) && (
                   <Button variant="ghost" size="sm" asChild className="text-destructive hover:text-destructive/80 px-2">
-                    <Link href="/admin" className="flex items-center space-x-1">
+                    <Link prefetch={false} href="/admin" className="flex items-center space-x-1">
                       <Shield className="h-3 w-3" />
                       <span className="hidden xl:inline">Admin</span>
                     </Link>
@@ -150,10 +150,10 @@ export function Header() {
             ) : (
               <div className="flex items-center space-x-2">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href={`${langPrefix}/login`}>{navLabels.signIn}</Link>
+                  <Link prefetch={false} href={`${langPrefix}/login`}>{navLabels.signIn}</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link href={`${langPrefix}/register`}>{navLabels.getStarted}</Link>
+                  <Link prefetch={false} href={`${langPrefix}/register`}>{navLabels.getStarted}</Link>
                 </Button>
               </div>
             )}
@@ -166,7 +166,7 @@ export function Header() {
             <div className="px-4 py-4 space-y-4">
               {/* Navigation Links */}
               <nav className="space-y-3">
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/translate`}
                   className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -174,21 +174,21 @@ export function Header() {
                   {navLabels.translate}
                 </Link>
                 {/* Batch is now integrated into translate page for both languages */}
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/subtitles-search`}
                   className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {navLabels.findSubtitles}
                 </Link>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/video-tools`}
                   className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {navLabels.videoTools}
                 </Link>
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/subtitle-editor`}
                   className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -196,7 +196,7 @@ export function Header() {
                   {navLabels.subtitleEditor}
                 </Link>
                 {user && isAdmin(user) && (
-                  <Link
+                  <Link prefetch={false}
                     href="/admin"
                     className="block text-destructive hover:text-destructive/80 transition-colors font-medium py-2 flex items-center space-x-2"
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -205,7 +205,7 @@ export function Header() {
                     <span>Admin</span>
                   </Link>
                 )}
-                <Link
+                <Link prefetch={false}
                   href={`${langPrefix}/buy-credits`}
                   className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -222,7 +222,7 @@ export function Header() {
                   <div className="space-y-3">
                     <div className="flex flex-col space-y-2">
                       <Button variant="ghost" size="sm" asChild className="justify-start">
-                        <Link href={`${langPrefix}/dashboard`} onClick={() => setIsMobileMenuOpen(false)}>
+                        <Link prefetch={false} href={`${langPrefix}/dashboard`} onClick={() => setIsMobileMenuOpen(false)}>
                           {navLabels.dashboard}
                         </Link>
                       </Button>
@@ -242,12 +242,12 @@ export function Header() {
                 ) : (
                   <div className="flex flex-col space-y-2">
                     <Button variant="ghost" size="sm" asChild className="justify-start">
-                      <Link href={`${langPrefix}/login`} onClick={() => setIsMobileMenuOpen(false)}>
+                      <Link prefetch={false} href={`${langPrefix}/login`} onClick={() => setIsMobileMenuOpen(false)}>
                         {navLabels.signIn}
                       </Link>
                     </Button>
                     <Button size="sm" asChild className="justify-start">
-                      <Link href={`${langPrefix}/register`} onClick={() => setIsMobileMenuOpen(false)}>
+                      <Link prefetch={false} href={`${langPrefix}/register`} onClick={() => setIsMobileMenuOpen(false)}>
                         {navLabels.getStarted}
                       </Link>
                     </Button>
