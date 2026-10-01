@@ -129,11 +129,11 @@ export function SubtitleSearchGuide({ locale = 'en' }: { locale?: 'en' | 'cs' })
           <span className="text-muted-foreground font-semibold">
             {isCs ? 'Související nástroje:' : 'Related tools:'}
           </span>
-          <Link className="text-primary hover:underline" href={isCs ? '/cs/translate' : '/translate'}>{isCs ? 'AI překladač titulků' : 'AI subtitle translator'}</Link>
-          <Link className="text-primary hover:underline" href={isCs ? '/cs/subtitle-editor' : '/subtitle-editor'}>{isCs ? 'Editor a synchronizace' : 'Subtitle editor and sync'}</Link>
-          <Link className="text-primary hover:underline" href={isCs ? '/cs/video-tools' : '/video-tools'}>{isCs ? 'Video přehrávač s titulky' : 'Video player with subtitles'}</Link>
-          <Link className="text-primary hover:underline" href={isCs ? '/cs/subtitles/movies' : '/subtitles/movies'}>{isCs ? 'Katalog filmových titulků' : 'Movie subtitle catalog'}</Link>
-          <Link className="text-primary hover:underline" href={isCs ? '/cs/guides' : '/guides'}>{isCs ? 'Návody pro titulky' : 'Subtitle guides'}</Link>
+          <Link prefetch={false} className="text-primary hover:underline" href={isCs ? '/cs/translate' : '/translate'}>{isCs ? 'AI překladač titulků' : 'AI subtitle translator'}</Link>
+          <Link prefetch={false} className="text-primary hover:underline" href={isCs ? '/cs/subtitle-editor' : '/subtitle-editor'}>{isCs ? 'Editor a synchronizace' : 'Subtitle editor and sync'}</Link>
+          <Link prefetch={false} className="text-primary hover:underline" href={isCs ? '/cs/video-tools' : '/video-tools'}>{isCs ? 'Video přehrávač s titulky' : 'Video player with subtitles'}</Link>
+          <Link prefetch={false} className="text-primary hover:underline" href={isCs ? '/cs/subtitles/movies' : '/subtitles/movies'}>{isCs ? 'Katalog filmových titulků' : 'Movie subtitle catalog'}</Link>
+          <Link prefetch={false} className="text-primary hover:underline" href={isCs ? '/cs/guides' : '/guides'}>{isCs ? 'Návody pro titulky' : 'Subtitle guides'}</Link>
         </div>
       </nav>
     </div>
