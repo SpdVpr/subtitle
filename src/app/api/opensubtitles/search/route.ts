@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { resolveSubtitleTitles } from '@/lib/opensubtitles-title-search'
 
 // OpenSubtitles API configuration
 const OPENSUBTITLES_API_URL = 'https://api.opensubtitles.com/api/v1'
@@ -105,6 +106,30 @@ export async function GET(request: NextRequest) {
     apiUrl.searchParams.set('page', page)
     apiUrl.searchParams.set('per_page', per_page)
 
+    for (const key of ['trusted_sources', 'ai_translated', 'machine_translated']) {
+      const value = searchParams.get(key)
+      if (value && ['only', 'include', 'exclude'].includes(value)) apiUrl.searchParams.set(key, value)
+    }
+
+    // Resolve exact titles with explicit media types; untyped fuzzy searches favor old films.
+    if (query && !imdb_id && !parent_imdb_id && !tmdb_id && !parent_tmdb_id) {
+      try {
+        const titles = await resolveSubtitleTitles(query, type, year, url => fetch(url, {
+          headers: { 'Api-Key': API_KEY, 'User-Agent': 'SubtitleBot v1.0' },
+          signal: AbortSignal.timeout(10000),
+          next: { revalidate: 3600 },
+        }))
+        if (titles.length) {
+          // Use the most recent exact title. Supplying a year selects an older remake.
+          const title = titles[0]
+          apiUrl.searchParams.delete('query')
+          apiUrl.searchParams.set(title.type === 'episode' ? 'parent_imdb_id' : 'imdb_id', title.imdbId)
+          apiUrl.searchParams.set('type', title.type)
+        }
+      } catch {
+        // A temporary title lookup failure can still use the provider's text search.
+      }
+    }
     console.log('Calling OpenSubtitles API:', apiUrl.toString())
 
     // Make request to OpenSubtitles API with retry logic
@@ -115,6 +140,7 @@ export async function GET(request: NextRequest) {
     do {
       response = await fetch(apiUrl.toString(), {
         method: 'GET',
+        signal: AbortSignal.timeout(15000),
         headers: {
           'Api-Key': API_KEY,
           'Content-Type': 'application/json',

@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const targetLanguage = (formData.get('targetLanguage') as string) || 'cs'
-    const sourceLanguage = (formData.get('sourceLanguage') as string) || 'en'
+    const sourceLanguage = (formData.get('sourceLanguage') as string) || 'auto'
     const userId = authUser.uid
     const translationModel: TranslationModel = formData.get('translationModel') === 'premium' ? 'premium' : 'standard'
 
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
           }
 
           const fileText = await file.text()
-          const entries = SubtitleProcessor.parseSRT(fileText)
+          const entries = SubtitleProcessor.parseSubtitleFile(fileText, file.name)
           parsedSubtitleCount = entries.length
           if (!entries.length) {
             controller.enqueue(sse({ type: 'error', message: 'No valid subtitles found in file' }))
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
           }
 
           const translatedContent = SubtitleProcessor.generateSRT(translated, targetLanguage)
-          const translatedFileName = file.name.replace('.srt', `_${targetLanguage}.srt`)
+          const translatedFileName = file.name.replace(/\.[^.]+$/, `_${targetLanguage}.srt`)
 
           // Check if controller is still open before sending result
           if (controllerClosed) {

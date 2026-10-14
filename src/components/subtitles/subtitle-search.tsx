@@ -64,6 +64,7 @@ interface SearchResponse {
 
 const LANGUAGE_OPTIONS = [
   { value: 'en', label: 'English' },
+  { value: 'he', label: 'Hebrew (עברית)' },
   { value: 'cs', label: 'Čeština' },
   { value: 'sk', label: 'Slovenčina' },
   { value: 'de', label: 'Deutsch' },

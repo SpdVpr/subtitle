@@ -346,18 +346,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
         error instanceof Error ? error.message : 'Unknown error'
       )
 
-      // Automatic retry logic
-      if (retryCount < maxRetries && error instanceof Error &&
-        (error.message.includes('timeout') || error.message.includes('stuck') || error.message.includes('network'))) {
-        setRetryCount(prev => prev + 1)
-
-        // Wait a bit before retrying
-        setTimeout(() => {
-          handleTranslate()
-        }, 3000)
-        return
-      }
-
+      // A disconnected request may still finish on the server. Do not submit it again automatically.
       // Reset retry count on final failure
       setRetryCount(0)
 
@@ -381,6 +370,7 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
     let buffer = ''
     let lastProgressTime = Date.now()
     let progressStuckCount = 0
+    let streamFailure: Error | null = null
 
     // Adaptive timeout based on subtitle count
       const subtitleCount = window.subtitleCount || 500 // Get from global or default
@@ -392,7 +382,8 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
     )
 
     const timeoutId = setTimeout(() => {
-      reader.cancel()
+      streamFailure = new Error('Translation timeout')
+      void reader.cancel()
     }, adaptiveTimeout)
 
     // Progress monitoring to detect stuck translation (more lenient for translation phase)
@@ -414,9 +405,9 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
 
         if (progressStuckCount >= 3) { // Reduced from 5 to 3
           console.error('❌ Translation appears stuck, cancelling...')
-          reader.cancel()
+          streamFailure = new Error('Translation timeout - progress stuck')
+          void reader.cancel()
           clearInterval(progressMonitor)
-          throw new Error('Translation timeout - progress stuck')
         }
       }
     }, 10000) // Check every 10 seconds (more frequent)
@@ -461,7 +452,8 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
                 throw new Error(data.error || data.message)
               }
             } catch (parseError) {
-              console.warn('⚠️ Failed to parse streaming line:', line, parseError)
+              if (!(parseError instanceof SyntaxError)) throw parseError
+              console.warn('Invalid streaming JSON:', parseError)
             }
           }
         }
@@ -491,9 +483,11 @@ export function TranslationInterface({ locale = 'en' }: TranslationInterfaceProp
             }
           }
         } catch (parseError) {
-          console.warn('⚠️ Failed to parse final buffer:', buffer, parseError)
+          if (!(parseError instanceof SyntaxError)) throw parseError
+          console.warn('Invalid final streaming JSON:', parseError)
         }
       }
+      throw streamFailure || new Error('Translation connection closed before a result was received. Check translation history before retrying.')
     } finally {
       clearTimeout(timeoutId)
       clearInterval(progressMonitor)

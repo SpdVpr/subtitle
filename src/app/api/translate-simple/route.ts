@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const targetLanguage = (formData.get('targetLanguage') as string) || 'cs'
-    const sourceLanguage = (formData.get('sourceLanguage') as string) || 'en'
+    const sourceLanguage = (formData.get('sourceLanguage') as string) || 'auto'
     const model: TranslationModel = formData.get('translationModel') === 'premium' ? 'premium' : 'standard'
     if (!file) return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
     fileName = file.name
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     const geminiKey = process.env.GEMINI_API_KEY
     if (!geminiKey) return NextResponse.json({ error: 'Translation service is not configured.' }, { status: 500 })
 
-    const entries = SubtitleProcessor.parseSRT(await file.text())
+    const entries = SubtitleProcessor.parseSubtitleFile(await file.text(), file.name)
     if (!entries.length) return NextResponse.json({ error: 'No valid subtitles found in file' }, { status: 400 })
 
     try {

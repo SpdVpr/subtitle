@@ -1,4 +1,4 @@
-import { SubtitleEntry } from './subtitle-processor'
+import type { SubtitleEntry } from '@/types/subtitle'
 
 interface ResearchData {
   title: string
@@ -79,9 +79,6 @@ export class PremiumTranslationService {
     progressCallback?: ProgressCallback
   ): Promise<SubtitleEntry[]> {
     console.log('🎬 Premium Research-Based AI Translation started:', entries.length, 'subtitles')
-    console.log('🔑 API Key check:', this.apiKey ? `${this.apiKey.substring(0, 10)}...` : 'NO KEY')
-    console.log('🔑 API Key length:', this.apiKey?.length || 0)
-    console.log('🔑 API Key starts with sk-:', this.apiKey?.startsWith('sk-') || false)
 
     // Initialize progress with debouncing
     let lastProgressTime = 0
@@ -111,8 +108,7 @@ export class PremiumTranslationService {
     // Check for Gemini API key
     const geminiApiKey = process.env.GEMINI_API_KEY
     if (!geminiApiKey) {
-      console.log('🎭 No GEMINI_API_KEY found - using mock translation')
-      return this.createHighQualityMockTranslation(entries, targetLanguage, fileName, safeProgressCallback)
+      throw new Error('Translation service is not configured')
     }
     console.log('🔑 Gemini API key found, proceeding with translation')
 
@@ -140,7 +136,6 @@ export class PremiumTranslationService {
           const translatedEntries: SubtitleEntry[] = []
           const translatedBatchResults: { index: number; entries: SubtitleEntry[] }[] = []
           let completedBatches = 0
-          let consecutiveFailures = 0
 
           const languageNames: Record<string, string> = {
             'cs': 'Czech', 'sk': 'Slovak', 'de': 'German', 'fr': 'French',
@@ -149,7 +144,7 @@ export class PremiumTranslationService {
             'zh': 'Chinese', 'ar': 'Arabic', 'hi': 'Hindi', 'tr': 'Turkish',
             'sv': 'Swedish', 'da': 'Danish', 'fi': 'Finnish', 'no': 'Norwegian',
             'hu': 'Hungarian', 'ro': 'Romanian', 'bg': 'Bulgarian', 'hr': 'Croatian',
-            'uk': 'Ukrainian', 'en': 'English',
+            'uk': 'Ukrainian', 'en': 'English', 'he': 'Hebrew', 'auto': 'the automatically detected source language',
           }
           const targetLangName = languageNames[targetLanguage] || targetLanguage
           const sourceLangName = languageNames[sourceLanguage] || sourceLanguage
@@ -203,23 +198,17 @@ ${numberedInput}`
                       const m = matchLine.match(/^(\d+)[\.:\)]\s*(.*)$/)
                       // Restore newlines from placeholder
                       const translatedText = m![2].replace(/<NEWLINE>/g, '\n')
+                      if (!translatedText.trim()) throw new Error(`Empty translated subtitle ${k + 1}`)
                       translated.push({ ...batch[k], text: translatedText })
-                    } else if (responseLines[k]) {
-                      const cleaned = responseLines[k].replace(/^\d+[\.:\)]\s*/, '')
-                      const restoredText = (cleaned || batch[k].text).replace(/<NEWLINE>/g, '\n')
-                      translated.push({ ...batch[k], text: restoredText })
                     } else {
-                      translated.push(batch[k])
+                      throw new Error(`Missing translated subtitle ${k + 1}`)
                     }
                   }
 
-                  consecutiveFailures = 0
                   return { index: batchIdx, entries: translated }
                 } catch (err) {
                   console.warn(`\u26A0\uFE0F Gemini Flash batch ${batchIdx + 1} failed:`, err instanceof Error ? err.message : err)
-                  consecutiveFailures++
-                  if (consecutiveFailures >= 5) throw new Error('Too many Gemini failures')
-                  return { index: batchIdx, entries: batch }
+                  throw new Error(`Translation batch ${batchIdx + 1} failed`, { cause: err })
                 }
               })()
 
@@ -506,7 +495,7 @@ ${numberedInput}`
         }, null, 2))
       } catch (e) { /* ignore */ }
       safeProgressCallback('error', 0, `Translation failed: ${error instanceof Error ? error.message : String(error)}`)
-      return this.createHighQualityMockTranslation(entries, targetLanguage, fileName, safeProgressCallback)
+      throw error
     }
   }
 

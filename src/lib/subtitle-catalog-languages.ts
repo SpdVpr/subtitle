@@ -69,4 +69,4 @@ export function detectPreferredLanguage(tags: readonly string[], supported: Read
 }
 
 /** Target languages shown first in the finder. Ordered by real-world subtitle demand. */
-export const POPULAR_TARGET_LANGUAGES = ['en', 'es', 'pt', 'fr', 'de', 'it', 'id', 'hi', 'ar', 'tr', 'pl', 'cs', 'vi', 'th', 'ms', 'tl'] as const
+export const POPULAR_TARGET_LANGUAGES = ['en', 'es', 'pt', 'fr', 'de', 'it', 'id', 'hi', 'ar', 'he', 'tr', 'pl', 'cs', 'vi', 'th', 'ms', 'tl'] as const

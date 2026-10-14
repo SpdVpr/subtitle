@@ -334,7 +334,10 @@ export function HierarchicalSubtitleSearch({ locale = 'en' }: { locale?: 'en' | 
   const [trustedOnly, setTrustedOnly] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
+  const searchResults = useRef<SubtitleResult[]>([])
   const autoSearchDone = useRef(false)
+  const [episodePages, setEpisodePages] = useState<Map<string, { page: number; total: number }>>(new Map())
+  const [episodeLoading, setEpisodeLoading] = useState(false)
 
   console.log('🔧 Component state:', { query, loading, shows: shows.length, totalCount })
 
@@ -501,37 +504,50 @@ export function HierarchicalSubtitleSearch({ locale = 'en' }: { locale?: 'en' | 
   }
 
   // Load detailed episodes for a specific show
-  const loadShowEpisodes = async (show: Show) => {
+  const loadShowEpisodes = async (show: Show, searchLanguage = lastSearch?.language || language, page = 1, force = false) => {
     // Use the same key format as in groupSubtitles
     const showKey = show.feature_type === 'Episode'
       ? `series-${show.imdb_id}-${show.title}`
       : `${show.imdb_id}-${show.title}-${show.year}`
 
     // If already loaded, don't reload
-    if (showEpisodes.has(showKey)) {
+    if (!force && page === 1 && showEpisodes.has(showKey)) {
       return
     }
 
+    setEpisodeLoading(true)
     try {
       // Search for all episodes of this specific show
       const params = new URLSearchParams({
-        languages: osLanguages(lastSearch?.language || language),
+        languages: osLanguages(searchLanguage),
         per_page: '100',
         type: 'episode',
+        page: String(page),
         parent_imdb_id: show.imdb_id?.toString() || ''
       })
 
+      if (trustedOnly) params.set('trusted_sources', 'only')
+      if (!includeAI) {
+        params.set('ai_translated', 'exclude')
+        params.set('machine_translated', 'exclude')
+      }
       const response = await fetch(`/api/opensubtitles/search?${params}`)
       if (!response.ok) throw new Error('Failed to fetch episodes')
 
       const data = await response.json()
 
       // Group the detailed results by season/episode
-      const detailedShow = groupDetailedSubtitles(data.data, show)
+      const previous = page > 1 ? showEpisodes.get(showKey)?.subtitles || [] : []
+      const combined: SubtitleResult[] = Array.from(new Map<string, SubtitleResult>([...previous, ...data.data].map(item => [item.id, item])).values())
+      const detailedShow = groupDetailedSubtitles(combined, show)
+      setEpisodePages(prev => new Map(prev).set(showKey, { page, total: data.total_pages }))
 
       setShowEpisodes(prev => new Map(prev).set(showKey, detailedShow))
     } catch (error) {
       console.error('Error loading show episodes:', error)
+      toast.error(t.searchError)
+    } finally {
+      setEpisodeLoading(false)
     }
   }
 
@@ -586,7 +602,7 @@ export function HierarchicalSubtitleSearch({ locale = 'en' }: { locale?: 'en' | 
     }
   }
 
-  const handleSearch = async (queryOverride?: string, languageOverride?: string) => {
+  const handleSearch = async (queryOverride?: string, languageOverride?: string, page = 1) => {
     const effectiveQuery = typeof queryOverride === 'string' ? queryOverride.trim() : query.trim()
     const searchLanguage = languageOverride || language
     if (!effectiveQuery) {
@@ -597,7 +613,16 @@ export function HierarchicalSubtitleSearch({ locale = 'en' }: { locale?: 'en' | 
     console.log('🔍 HierarchicalSubtitleSearch: Starting search for:', effectiveQuery)
     console.log('🎯 Current type value:', type)
     setLoading(true)
-    setCurrentPage(1)
+    if (page === 1) {
+      searchResults.current = []
+      setShows([])
+      setHasMore(false)
+      setLastSearch(null)
+      setShowEpisodes(new Map())
+      setEpisodePages(new Map())
+      setExpandedShows(new Set())
+      setExpandedSeasons(new Set())
+    }
 
     try {
       const params = new URLSearchParams({
@@ -623,7 +648,7 @@ export function HierarchicalSubtitleSearch({ locale = 'en' }: { locale?: 'en' | 
       }
 
       // Add page parameter
-      params.set('page', currentPage.toString())
+      params.set('page', String(page))
 
       const response = await fetch(`/api/opensubtitles/search?${params}`)
 
@@ -636,12 +661,15 @@ export function HierarchicalSubtitleSearch({ locale = 'en' }: { locale?: 'en' | 
       const data: SearchResponse = await response.json()
       analytics.subtitleSearchCompleted('opensubtitles', searchLanguage, data.total_count)
       console.log('📊 Raw API data:', data.data.length, 'subtitles')
-      let groupedShows = groupSubtitles(data.data, effectiveQuery)
+      searchResults.current = Array.from(new Map([...searchResults.current, ...data.data].map(item => [item.id, item])).values())
+      setCurrentPage(page)
+      setHasMore(page < data.total_pages)
+      let groupedShows = groupSubtitles(searchResults.current, effectiveQuery)
       console.log('🎭 Grouped shows:', groupedShows.length, 'shows')
 
       // If no TV series found and we're searching for "all", try specific episode search
       const hasEpisodes = groupedShows.some(show => show.feature_type === 'Episode')
-      if (!hasEpisodes && type === 'all' && groupedShows.length < 5) {
+      if (page === 1 && !hasEpisodes && type === 'all' && groupedShows.length < 5) {
         console.log('🔄 No TV series found, trying episode-specific search...')
 
         try {
@@ -689,7 +717,7 @@ export function HierarchicalSubtitleSearch({ locale = 'en' }: { locale?: 'en' | 
       })
 
       // Auto-expand first show if there's only one
-      if (groupedShows.length === 1) {
+      if (page === 1 && groupedShows.length === 1) {
         const firstShow = groupedShows[0]
         const showKey = firstShow.feature_type === 'Episode'
           ? `series-${firstShow.imdb_id}-${firstShow.title}`
@@ -697,7 +725,7 @@ export function HierarchicalSubtitleSearch({ locale = 'en' }: { locale?: 'en' | 
 
         setExpandedShows(prev => new Set(prev).add(showKey))
         // Load episodes for the first show
-        setTimeout(() => loadShowEpisodes(firstShow), 100)
+        if (firstShow.feature_type === 'Episode') void loadShowEpisodes(firstShow, searchLanguage, 1, true)
       }
 
       if (groupedShows.length === 0) {
@@ -950,6 +978,11 @@ export function HierarchicalSubtitleSearch({ locale = 'en' }: { locale?: 'en' | 
             </p>
           )}
 
+          {hasMore && lastSearch && (
+            <Button disabled={loading} variant="outline" onClick={() => handleSearch(lastSearch.query, lastSearch.language, currentPage + 1)}>
+              {isCs ? 'Načíst další výsledky' : 'Load more results'}
+            </Button>
+          )}
           <div className="space-y-4">
             {shows.map((show) => {
               // Use the same key format as in groupSubtitles
@@ -1140,12 +1173,19 @@ export function HierarchicalSubtitleSearch({ locale = 'en' }: { locale?: 'en' | 
                         ) : (
                           // TV Series seasons and episodes
                           <div className="space-y-4">
+                            {(episodePages.get(showKey)?.page || 0) < (episodePages.get(showKey)?.total || 0) && (
+                              <Button disabled={episodeLoading} variant="outline" onClick={() => loadShowEpisodes(show, lastSearch?.language || language, (episodePages.get(showKey)?.page || 1) + 1)}>
+                                {isCs ? 'Načíst další titulky / díly' : 'Load more subtitles / episodes'}
+                              </Button>
+                            )}
                             {(() => {
                               const detailedShow = showEpisodes.get(showKey)
                               if (!detailedShow || !detailedShow.seasons?.length) {
                                 return (
                                   <div className="p-4 text-center text-muted-foreground">
-                                    {t.loadingEpisodes}
+                                    {episodeLoading ? t.loadingEpisodes : (
+                                      <Button variant="outline" onClick={() => loadShowEpisodes(show)}>{isCs ? 'Zkusit znovu' : 'Retry'}</Button>
+                                    )}
                                   </div>
                                 )
                               }
