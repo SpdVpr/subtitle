@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { CatalogHub } from '@/components/catalog/catalog-hub'
 import { LanguageCatalogPage } from '@/components/catalog/language-catalog-page'
-import { catalogLanguages, catalogSeeds, fetchCatalogResult } from '@/lib/subtitle-catalog'
+import { catalogLanguages, fetchLanguageCatalogTitles } from '@/lib/subtitle-catalog'
+import { toOpenSubtitlesLanguageCodes } from '@/lib/subtitle-catalog-languages'
 
 const fixed = ['movies', 'tv', 'popular', 'latest']
 export const revalidate = 21_600
@@ -13,8 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ type: str
   const { type: category } = await params
   const language = catalogLanguages.find((item) => item.slug === category)
   if (language) {
-    const samples = await Promise.all([...catalogSeeds].sort((a, b) => b.popularity - a.popularity).slice(0, 12).map(fetchCatalogResult))
-    const available = samples.filter((result) => result.languageCounts[language.code] > 0).length
+    const available = (await fetchLanguageCatalogTitles(toOpenSubtitlesLanguageCodes(language.code))).length
     return { title: `Titulky v ${language.csName} pro filmy a seriály`, description: `Procházejte ověřenou dostupnost titulků v ${language.csName}, porovnejte release a otevřete výsledek u zdroje.`, robots: { index: available >= 3, follow: true }, alternates: { canonical: `/cs/subtitles/${category}`, languages: { en: `/subtitles/${category}`, cs: `/cs/subtitles/${category}`, 'x-default': `/subtitles/${category}` } }, openGraph: { title: `${language.name} titulky | SubtitleBot`, description: `Aktuální dostupnost titulků v ${language.csName}.`, url: `/cs/subtitles/${category}`, images: ['/og-image-cs.png'] } }
   }
   const metadata: Record<string, [string, string]> = {

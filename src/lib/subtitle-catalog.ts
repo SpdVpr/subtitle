@@ -173,8 +173,9 @@ function countLanguages(subtitles: CatalogSubtitle[]) {
 
 /** One cached OpenSubtitles search. Returns null on any non-OK response after retries. */
 async function fetchOpenSubtitles(url: URL, key: string, tag: string, fallbackRelease: string): Promise<{ total: number; subtitles: CatalogSubtitle[] } | null> {
+  const attempts = 4
   let response: Response | null = null
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
     response = await fetch(url, {
       headers: {
         'Api-Key': key,
@@ -183,8 +184,12 @@ async function fetchOpenSubtitles(url: URL, key: string, tag: string, fallbackRe
       },
       next: { revalidate: CACHE_SECONDS, tags: [tag] },
     })
-    if (response.ok || (response.status !== 429 && response.status < 500)) break
-    await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)))
+    if (response.ok || (response.status !== 429 && response.status < 500) || attempt === attempts - 1) break
+    // The API allows ~5 requests/second and answers bursts with 429 + Retry-After: 1.
+    // Jitter keeps parallel retries from colliding again in the next window.
+    const retryAfter = Number(response.headers.get('retry-after'))
+    const delay = (retryAfter > 0 ? retryAfter * 1000 : 400 * (attempt + 1)) + Math.random() * 600
+    await new Promise((resolve) => setTimeout(resolve, delay))
   }
   if (!response?.ok) return null
   const data = await response.json()
@@ -250,6 +255,31 @@ export async function fetchCatalogLanguageAvailability(media: CatalogSeed, osCod
   } catch {
     return none
   }
+}
+
+export interface CatalogLanguageTitle {
+  media: CatalogSeed
+  total: number
+}
+
+/**
+ * Featured titles that currently have subtitles in one catalog language
+ * (`osCodes` from toOpenSubtitlesLanguageCodes). Each title gets its own
+ * per-language search (shared with the finder's cache), so catalog languages
+ * never compete for slots in one mixed 50-item sample.
+ */
+export async function fetchLanguageCatalogTitles(osCodes: string[], limit = 12): Promise<CatalogLanguageTitle[]> {
+  const featured = [...catalogSeeds].sort((a, b) => b.popularity - a.popularity).slice(0, limit)
+  const titles: CatalogLanguageTitle[] = []
+  // A few workers at a time stay under the API's per-second limit on a cold cache.
+  let next = 0
+  await Promise.all(Array.from({ length: 4 }, async () => {
+    while (next < featured.length) {
+      const index = next++
+      titles[index] = { media: featured[index], total: (await fetchCatalogLanguageAvailability(featured[index], osCodes)).total }
+    }
+  }))
+  return titles.filter((title) => title.total > 0)
 }
 
 export function relatedCatalogSeeds(media: CatalogSeed, limit = 6) {

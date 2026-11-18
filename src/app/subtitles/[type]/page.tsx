@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { CatalogHub } from '@/components/catalog/catalog-hub'
 import { LanguageCatalogPage } from '@/components/catalog/language-catalog-page'
-import { catalogLanguages, catalogSeeds, fetchCatalogResult } from '@/lib/subtitle-catalog'
+import { catalogLanguages, fetchLanguageCatalogTitles } from '@/lib/subtitle-catalog'
+import { toOpenSubtitlesLanguageCodes } from '@/lib/subtitle-catalog-languages'
 
 const fixed = ['movies', 'tv', 'popular', 'latest']
 export const revalidate = 21_600
@@ -13,8 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ type: str
   const { type: category } = await params
   const language = catalogLanguages.find((item) => item.slug === category)
   if (language) {
-    const samples = await Promise.all([...catalogSeeds].sort((a, b) => b.popularity - a.popularity).slice(0, 12).map(fetchCatalogResult))
-    const available = samples.filter((result) => result.languageCounts[language.code] > 0).length
+    const available = (await fetchLanguageCatalogTitles(toOpenSubtitlesLanguageCodes(language.code))).length
     return { title: `${language.name} Subtitles for Movies and TV Shows`, description: `Browse verified ${language.name} subtitle availability for popular movies and TV shows, compare releases, and open results at the source.`, robots: { index: available >= 3, follow: true }, alternates: { canonical: `/subtitles/${category}`, languages: { en: `/subtitles/${category}`, cs: `/cs/subtitles/${category}`, 'x-default': `/subtitles/${category}` } }, openGraph: { title: `${language.name} Subtitles | SubtitleBot`, description: `Browse current ${language.name} subtitle availability.`, url: `/subtitles/${category}`, images: ['/og-image-en.png'] } }
   }
   const metadata: Record<string, [string, string]> = {
