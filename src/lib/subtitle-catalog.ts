@@ -171,11 +171,36 @@ function countLanguages(subtitles: CatalogSubtitle[]) {
   }, {})
 }
 
+// The API allows ~5 requests/second per client and answers bursts with 429 +
+// Retry-After: 1. Searches that miss the CDN count against that limit, so after a
+// 429 every search in this server instance is paced through shared slots instead
+// of retrying in parallel and colliding again. Pacing switches off again once no
+// 429 has been seen for a while, so cached (warm) renders stay fast.
+const PACE_MS = 250
+const THROTTLE_WINDOW_MS = 10_000
+let throttledUntil = 0
+let nextSlot = 0
+
+async function takeRequestSlot() {
+  const now = Date.now()
+  if (now >= throttledUntil) return
+  const slot = Math.max(now, nextSlot)
+  nextSlot = slot + PACE_MS
+  if (slot > now) await new Promise((resolve) => setTimeout(resolve, slot - now))
+}
+
+function noteRateLimited(retryAfterMs: number) {
+  const now = Date.now()
+  throttledUntil = now + THROTTLE_WINDOW_MS
+  nextSlot = Math.max(nextSlot, now + retryAfterMs)
+}
+
 /** One cached OpenSubtitles search. Returns null on any non-OK response after retries. */
 async function fetchOpenSubtitles(url: URL, key: string, tag: string, fallbackRelease: string): Promise<{ total: number; subtitles: CatalogSubtitle[] } | null> {
-  const attempts = 4
+  const attempts = 5
   let response: Response | null = null
   for (let attempt = 0; attempt < attempts; attempt += 1) {
+    await takeRequestSlot()
     response = await fetch(url, {
       headers: {
         'Api-Key': key,
@@ -185,13 +210,17 @@ async function fetchOpenSubtitles(url: URL, key: string, tag: string, fallbackRe
       next: { revalidate: CACHE_SECONDS, tags: [tag] },
     })
     if (response.ok || (response.status !== 429 && response.status < 500) || attempt === attempts - 1) break
-    // The API allows ~5 requests/second and answers bursts with 429 + Retry-After: 1.
-    // Jitter keeps parallel retries from colliding again in the next window.
-    const retryAfter = Number(response.headers.get('retry-after'))
-    const delay = (retryAfter > 0 ? retryAfter * 1000 : 400 * (attempt + 1)) + Math.random() * 600
-    await new Promise((resolve) => setTimeout(resolve, delay))
+    if (response.status === 429) {
+      const retryAfter = Number(response.headers.get('retry-after'))
+      noteRateLimited(retryAfter > 0 ? retryAfter * 1000 : 1000)
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1) + Math.random() * 400))
+    }
   }
-  if (!response?.ok) return null
+  if (!response?.ok) {
+    console.warn(`[subtitle-catalog] OpenSubtitles search failed (${response?.status ?? 'no response'}): ${url.search}`)
+    return null
+  }
   const data = await response.json()
   const subtitles = parseSubtitles(data, fallbackRelease)
   return { total: Number(data.total_count || subtitles.length), subtitles }
