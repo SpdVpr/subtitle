@@ -9,6 +9,7 @@ const notes: Record<string, { en: string; cs: string }> = {
   indonesian: { en: 'Indonesian subtitle files are commonly labeled with the ISO code id. UTF-8 prevents broken characters across modern players.', cs: 'Indonéské titulky se běžně označují kódem id. UTF-8 omezuje problémy se znaky v moderních přehrávačích.' },
   tagalog: { en: 'Tagalog subtitle metadata commonly uses the code tl. Availability varies by title and release.', cs: 'Tagalog se v metadatech titulků běžně označuje kódem tl. Dostupnost závisí na titulu a release.' },
   hindi: { en: 'Hindi subtitles should use Unicode-compatible encoding such as UTF-8 so Devanagari text displays correctly.', cs: 'Hindi titulky by měly používat Unicode kódování, například UTF-8, aby se dévanágarí zobrazilo správně.' },
+  arabic: { en: 'Arabic subtitles are written right-to-left and need UTF-8 (or legacy Windows-1256) encoding; players that do not support RTL text may display punctuation in the wrong place.', cs: 'Arabské titulky se píší zprava doleva a potřebují kódování UTF-8 (případně starší Windows-1256); přehrávače bez podpory RTL mohou špatně umístit interpunkci.' },
   czech: { en: 'Czech subtitle files require correct handling of diacritics. UTF-8 is the safest choice for current players.', cs: 'České titulky vyžadují správné zobrazení diakritiky. UTF-8 je nejbezpečnější volba pro současné přehrávače.' },
 }
 

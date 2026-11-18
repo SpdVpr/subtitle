@@ -41,6 +41,7 @@ export const catalogLanguages = [
   { code: 'id', slug: 'indonesian', name: 'Indonesian', csName: 'indonéštině' },
   { code: 'tl', slug: 'tagalog', name: 'Tagalog', csName: 'tagalogu' },
   { code: 'hi', slug: 'hindi', name: 'Hindi', csName: 'hindštině' },
+  { code: 'ar', slug: 'arabic', name: 'Arabic', csName: 'arabštině' },
   { code: 'cs', slug: 'czech', name: 'Czech', csName: 'češtině' },
 ] as const
 
