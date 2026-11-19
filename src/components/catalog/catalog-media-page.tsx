@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import type { CatalogResult } from '@/lib/subtitle-catalog'
 import { pickBestSubtitle, relatedCatalogSeeds } from '@/lib/subtitle-catalog'
 import { fromOpenSubtitlesLanguageCode } from '@/lib/subtitle-catalog-languages'
+import { releaseLabel } from '@/lib/subtitle-release-label'
 import { SUPPORTED_LANGUAGES } from '@/types/subtitle'
 import { CatalogCard } from './catalog-card'
 import { CatalogLanguageFinder } from './catalog-language-finder'
@@ -35,12 +36,11 @@ export function CatalogMediaPage({ result, locale = 'en' }: { result: CatalogRes
       { '@type': 'ListItem', position: 2, name: isCs ? (media.type === 'movie' ? 'Filmové titulky' : 'Seriálové titulky') : (media.type === 'movie' ? 'Movie subtitles' : 'TV subtitles'), item: `${baseUrl}${prefix}/subtitles/${media.type === 'movie' ? 'movies' : 'tv'}` },
       { '@type': 'ListItem', position: 3, name: media.title, item: url },
     ] },
-    ...(sorted.length ? [{ '@type': 'ItemList', '@id': `${url}#releases`, name: `${media.title} subtitle release sample`, numberOfItems: sorted.length, itemListElement: sorted.slice(0, 20).map((subtitle, index) => ({ '@type': 'ListItem', position: index + 1, name: `${subtitle.language.toUpperCase()} – ${subtitle.release}`, url: subtitle.sourceUrl })) }] : []),
   ] }
 
   const tips = isCs
-    ? ['Název release musí odpovídat názvu vašeho videosouboru.', 'Zkontrolujte střih, zdroj (BluRay, WEB) a release skupinu.', 'Když titulky postupně ujíždějí, porovnejte FPS.', 'Před použitím soubor vždy krátce zkontrolujte v přehrávači.']
-    : ['Match the release name to your video filename.', 'Check the cut, source (BluRay, WEB) and release group.', 'If timing drifts gradually, compare the FPS.', 'Preview the file in your player before relying on it.']
+    ? ['Vyberte soubor ze stejného zdroje jako vaše video (Blu-ray, Web, DVD).', 'Zkontrolujte verzi filmu: prodloužené a režisérské verze mají jiné časování.', 'Když titulky postupně ujíždějí, porovnejte FPS.', 'Před použitím soubor vždy krátce zkontrolujte v přehrávači.']
+    : ['Pick a file from the same source as your video (Blu-ray, Web, DVD).', 'Check the cut: extended and director’s editions have different timing.', 'If timing drifts gradually, compare the FPS.', 'Preview the file in your player before relying on it.']
 
   return (
     <main className="py-8 sm:py-12">
@@ -55,7 +55,7 @@ export function CatalogMediaPage({ result, locale = 'en' }: { result: CatalogRes
             {result.fetched && result.total > 0 && <span className="rounded-full bg-muted px-3 py-1 text-sm font-semibold">{result.total.toLocaleString(isCs ? 'cs-CZ' : 'en-US')} {isCs ? 'souborů na OpenSubtitles' : 'files on OpenSubtitles'}</span>}
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">{media.title} {isCs ? 'titulky' : 'subtitles'}</h1>
-          <p className="text-lg text-muted-foreground leading-relaxed">{media.description} {isCs ? 'Stáhněte titulky z OpenSubtitles, nebo si anglický soubor přeložte do svého jazyka.' : 'Download subtitles from OpenSubtitles, or translate the English file into your own language.'}</p>
+          <p className="text-lg text-muted-foreground leading-relaxed">{media.description} {isCs ? 'Najděte titulky na OpenSubtitles, nebo si anglický soubor přeložte do svého jazyka.' : 'Find subtitles on OpenSubtitles, or translate the English file into your own language.'}</p>
         </header>
 
         <CatalogLanguageFinder
@@ -69,16 +69,16 @@ export function CatalogMediaPage({ result, locale = 'en' }: { result: CatalogRes
           <section className="mt-12" aria-labelledby="release-list">
             <div className="mb-5">
               <h2 id="release-list" className="text-2xl font-bold">{isCs ? 'Soubory titulků na OpenSubtitles' : 'Subtitle files on OpenSubtitles'}</h2>
-              <p className="text-sm text-muted-foreground mt-2">{isCs ? 'Seřazeno podle důvěryhodnosti a stažení. Každý soubor můžete otevřít u zdroje, nebo ho rovnou přeložit do jiného jazyka.' : 'Sorted by trust and downloads. Open any file at the source, or translate it straight into another language.'}</p>
+              <p className="text-sm text-muted-foreground mt-2">{isCs ? 'Seřazeno podle důvěryhodnosti a oblíbenosti. Každý soubor můžete otevřít u zdroje, nebo ho rovnou přeložit do jiného jazyka.' : 'Sorted by trust and popularity. Open any file at the source, or translate it straight into another language.'}</p>
             </div>
             <div className="overflow-x-auto rounded-xl border">
               <table className="w-full text-sm">
-                <thead className="bg-muted"><tr><th className="p-3 text-left">{isCs ? 'Jazyk' : 'Language'}</th><th className="p-3 text-left">Release</th><th className="p-3 text-right">FPS</th><th className="p-3 text-center">{isCs ? 'Vlastnosti' : 'Signals'}</th><th className="p-3 text-right">{isCs ? 'Akce' : 'Actions'}</th></tr></thead>
+                <thead className="bg-muted"><tr><th className="p-3 text-left">{isCs ? 'Jazyk' : 'Language'}</th><th className="p-3 text-left">{isCs ? 'Zdroj' : 'Source'}</th><th className="p-3 text-right">FPS</th><th className="p-3 text-center">{isCs ? 'Vlastnosti' : 'Signals'}</th><th className="p-3 text-right">{isCs ? 'Akce' : 'Actions'}</th></tr></thead>
                 <tbody>
                   {sorted.map((subtitle) => (
                     <tr key={subtitle.id} className="border-t">
                       <td className="p-3 font-semibold whitespace-nowrap">{languageLabel(subtitle.language)}</td>
-                      <td className="p-3 min-w-[260px] break-all">{subtitle.release}</td>
+                      <td className="p-3 whitespace-nowrap">{releaseLabel(subtitle.release, locale) || '—'}</td>
                       <td className="p-3 text-right">{subtitle.fps || '—'}</td>
                       <td className="p-3"><div className="flex flex-wrap justify-center gap-1">{subtitle.trusted && <span className="text-xs bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300 rounded px-2 py-1">trusted</span>}{subtitle.hearingImpaired && <span className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 rounded px-2 py-1">HI</span>}{(subtitle.aiTranslated || subtitle.machineTranslated) && <span className="text-xs bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 rounded px-2 py-1">machine</span>}</div></td>
                       <td className="p-3 text-right whitespace-nowrap">
@@ -102,7 +102,7 @@ export function CatalogMediaPage({ result, locale = 'en' }: { result: CatalogRes
           <div className="rounded-xl bg-primary/5 border border-primary/15 p-6">
             <Sparkles className="h-5 w-5 text-primary mb-3" />
             <h2 className="text-xl font-bold mb-2">{isCs ? `Chybí vám ${media.title} ve vašem jazyce?` : `Need ${media.title} in another language?`}</h2>
-            <p className="text-sm text-foreground/75 mb-5">{isCs ? 'Stáhněte anglický soubor a přeložte ho se zachováním časování. První kompletní soubor je zdarma, bez karty.' : 'Grab the English file and translate it with the timing intact. Your first complete file is free, no card needed.'}</p>
+            <p className="text-sm text-foreground/75 mb-5">{isCs ? 'Vezměte anglický soubor a přeložte ho se zachováním časování. První kompletní soubor je zdarma, bez karty.' : 'Start from the English file and translate it with the timing intact. Your first complete file is free, no card needed.'}</p>
             <Button asChild><Link href={translateHref('subtitle-catalog-bottom')}>{isCs ? 'Přeložit první soubor zdarma' : 'Translate your first file free'} <ArrowRight className="h-4 w-4" /></Link></Button>
           </div>
         </section>

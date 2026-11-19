@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { SUPPORTED_LANGUAGES } from '@/types/subtitle'
 import { POPULAR_TARGET_LANGUAGES, detectPreferredLanguage, fromOpenSubtitlesLanguageCode } from '@/lib/subtitle-catalog-languages'
 import { analytics } from '@/lib/analytics'
+import { releaseLabel } from '@/lib/subtitle-release-label'
 
 const STORAGE_KEY = 'subtitlebot.catalog.language'
 const LANGUAGE_BY_CODE = new Map(SUPPORTED_LANGUAGES.map((language) => [language.code, language]))
@@ -141,13 +142,13 @@ export function CatalogLanguageFinder({ media, locale, englishSourceUrl, sampled
         popular: 'Nejžádanější',
         all: 'Všechny jazyky',
         onOs: 'Už na OpenSubtitles:',
-        idle: ['Vyberte jazyk', 'Ověříme OpenSubtitles', 'Stáhněte je, nebo přeložte anglický soubor zdarma'],
+        idle: ['Vyberte jazyk', 'Ověříme OpenSubtitles', 'Otevřete je u zdroje, nebo přeložte anglický soubor zdarma'],
         loading: `Ověřujeme OpenSubtitles: ${name}…`,
         availableTitle: `${name}: titulky jsou k dispozici`,
         availableBody: `${files} na OpenSubtitles.`,
         bestMatch: 'Nejlepší shoda',
         open: 'Otevřít na OpenSubtitles',
-        instead: 'Špatný release nebo časování? Přeložte si anglický soubor',
+        instead: 'Špatná verze nebo časování? Přeložte si anglický soubor',
         englishHint: 'Potřebujete jiný jazyk? Vyberte ho výše a ověříme ho.',
         machineTitle: `${name}: jen strojově přeložené soubory`,
         machineBody: `${files}, žádný od člověka. Vytvořte lepší z anglického souboru:`,
@@ -157,9 +158,9 @@ export function CatalogLanguageFinder({ media, locale, englishSourceUrl, sampled
         unlistedTitle: `${name}: OpenSubtitles tento jazyk nenabízí`,
         errorTitle: 'OpenSubtitles se teď nepodařilo kontaktovat',
         errorBody: 'Anglický soubor si můžete přeložit i tak:',
-        step1Title: 'Stáhněte anglické titulky',
-        step1Text: englishIsExternal ? 'Nejlépe hodnocený anglický soubor pro tento titul. Časování už sedí.' : 'Najděte anglický soubor pro svůj díl nebo release.',
-        step1Button: englishIsExternal ? 'Stáhnout anglické .srt' : 'Najít anglické titulky',
+        step1Title: 'Získejte anglické titulky',
+        step1Text: englishIsExternal ? 'Nejlépe hodnocený anglický soubor pro tento titul. Časování už sedí.' : 'Najděte anglický soubor pro svůj díl nebo verzi.',
+        step1Button: englishIsExternal ? 'Otevřít anglické .srt' : 'Najít anglické titulky',
         step1Done: 'Otevřeno',
         step2Title: `Přeložte je do jazyka ${name}`,
         step2Text: 'Nahrajte soubor do SubtitleBotu. Zabere to pár minut, první soubor je zdarma.',
@@ -173,13 +174,13 @@ export function CatalogLanguageFinder({ media, locale, englishSourceUrl, sampled
         popular: 'Popular',
         all: 'All languages',
         onOs: 'Already on OpenSubtitles:',
-        idle: ['Pick your language', 'We check OpenSubtitles', 'Download it, or translate the English file free'],
+        idle: ['Pick your language', 'We check OpenSubtitles', 'Open it at the source, or translate the English file free'],
         loading: `Checking OpenSubtitles for ${name} subtitles…`,
         availableTitle: `${name} subtitles are available`,
         availableBody: `${files} on OpenSubtitles.`,
         bestMatch: 'Best match',
         open: `Open ${name} subtitles`,
-        instead: 'Wrong release or timing off? Translate the English file instead',
+        instead: 'Wrong version or timing off? Translate the English file instead',
         englishHint: 'Need another language? Choose it above and we check it for you.',
         machineTitle: `Only machine-translated ${name} files exist`,
         machineBody: `${files}, none made by a person. Make a better one from the English file:`,
@@ -189,8 +190,8 @@ export function CatalogLanguageFinder({ media, locale, englishSourceUrl, sampled
         unlistedTitle: `OpenSubtitles has no ${name} section`,
         errorTitle: 'We could not reach OpenSubtitles right now',
         errorBody: 'You can still translate the English file:',
-        step1Title: 'Download the English subtitles',
-        step1Text: englishIsExternal ? 'Best-rated English file for this title. Timing already fits.' : 'Find the English file for your episode or release.',
+        step1Title: 'Get the English subtitles',
+        step1Text: englishIsExternal ? 'Best-rated English file for this title. Timing already fits.' : 'Find the English file for your episode or version.',
         step1Button: englishIsExternal ? 'Get English .srt' : 'Find English subtitles',
         step1Done: 'Opened',
         step2Title: `Translate it to ${name}`,
@@ -305,7 +306,7 @@ export function CatalogLanguageFinder({ media, locale, englishSourceUrl, sampled
                 <p className="text-lg font-semibold leading-snug">{t.availableTitle}</p>
                 <p className="text-sm text-muted-foreground mt-1">
                   {t.availableBody}
-                  {availability.best && <span className="block truncate">{t.bestMatch}: <span className="font-mono text-xs">{availability.best.release}</span></span>}
+                  {availability.best && releaseLabel(availability.best.release, isCs ? 'cs' : 'en') && <span className="block truncate">{t.bestMatch}: {releaseLabel(availability.best.release, isCs ? 'cs' : 'en')}</span>}
                 </p>
               </div>
             </div>
