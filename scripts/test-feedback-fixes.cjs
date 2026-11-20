@@ -24,9 +24,10 @@ const originalLoad = Module._load
 if (!live) Module._load = function (request, ...args) {
   if (request === '@google/genai') return {
     ThinkingLevel: { MINIMAL: 'minimal' },
-    GoogleGenAI: class { models = { generateContent: async () => {
-      if (reply instanceof Error) throw reply
-      return { text: reply }
+    GoogleGenAI: class { models = { generateContent: async ({ contents }) => {
+      const text = typeof reply === 'function' ? reply(contents) : reply
+      if (text instanceof Error) throw text
+      return { text }
     } } },
   }
   return originalLoad.call(this, request, ...args)
@@ -67,9 +68,24 @@ async function main() {
     await assert.rejects(() => consume(new Response('data: {"type":"progress","progress":10}\n\n')), /before a result/)
     await consume(new Response('data: {"type":"result","translatedContent":"שלום"}\n\n'))
     assert.equal(completed.translatedContent, 'שלום')
-    for (const broken of ['1. Only one line.', '', new Error('Provider unavailable')]) {
+    // The subtitle lines are the prompt's last paragraph.
+    const sentLines = prompt => prompt.slice(prompt.lastIndexOf('\n\n') + 2).split('\n').map(l => l.replace(/^\d+\. /, ''))
+    const hebrew = { 'Hello world.': 'שלום עולם.', 'See you tomorrow.': 'להתראות.' }
+    // Gemini's content filter blocks the scene as a whole but passes each line on its own.
+    reply = prompt => {
+      const lines = sentLines(prompt)
+      return lines.length > 1 ? '' : `1. ${hebrew[lines[0]]}`
+    }
+    const recovered = await translator.translateSubtitles(entries, 'he', 'en', 'test.srt')
+    assert.deepEqual(recovered.map(x => x.text), ['שלום עולם.', 'להתראות.'])
+    // A line that never comes back fails the job instead of shipping untranslated.
+    for (const broken of [
+      prompt => sentLines(prompt).includes('See you tomorrow.') ? '' : '1. שלום עולם.',
+      '',
+      new Error('Provider unavailable'),
+    ]) {
       reply = broken
-      await assert.rejects(() => translator.translateSubtitles(entries, 'he', 'en', 'test.srt'))
+      await assert.rejects(() => translator.translateSubtitles(entries, 'he', 'en', 'test.srt'), /could not be translated/)
     }
     const urls = []
     const titles = await resolveSubtitleTitles('Superman', null, null, async url => {

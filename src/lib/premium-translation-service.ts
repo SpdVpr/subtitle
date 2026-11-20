@@ -12,6 +12,91 @@ interface ResearchData {
 
 type ProgressCallback = (stage: string, progress: number, details?: string) => void
 
+const NUMBERED_LINE = /^(\d+)[\.:\)]\s*(.*)$/
+const SINGLE_LINE_ATTEMPTS = 3
+/** Extra Gemini requests one job may spend on retries and splits before it gives up. */
+const RETRY_BUDGET_PER_JOB = 40
+
+interface BatchContext {
+  buildPrompt: (numberedInput: string, count: number) => string
+  generate: (prompt: string) => Promise<{ text: string; finishReason?: string }>
+  budget: { remaining: number }
+}
+
+const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+/** One request for one batch. Throws unless every line comes back translated. */
+async function requestBatch(batch: SubtitleEntry[], ctx: BatchContext): Promise<SubtitleEntry[]> {
+  // Replace newlines within subtitle text with placeholder to keep each entry on one line
+  const numberedInput = batch.map((entry, idx) => `${idx + 1}. ${entry.text.replace(/\n/g, '<NEWLINE>')}`).join('\n')
+  const { text, finishReason } = await ctx.generate(ctx.buildPrompt(numberedInput, batch.length))
+
+  const byNumber = new Map<number, string>()
+  for (const line of text.split('\n')) {
+    const m = line.trim().match(NUMBERED_LINE)
+    if (m && !byNumber.has(Number(m[1]))) byNumber.set(Number(m[1]), m[2])
+  }
+
+  return batch.map((entry, k) => {
+    const translated = byNumber.get(k + 1)?.replace(/<NEWLINE>/g, '\n')
+    if (!translated?.trim()) {
+      const reason = finishReason && finishReason !== 'STOP' ? ` (finish reason: ${finishReason})` : ''
+      throw new Error(`${translated === undefined ? 'Missing' : 'Empty'} translated subtitle ${k + 1}${reason}`)
+    }
+    return { ...entry, text: translated }
+  })
+}
+
+/**
+ * Translates one batch and never hands back a line the model did not translate.
+ * When a reply is unusable (Gemini's content filter blocked it, a line is missing or
+ * empty, or the request failed), the batch is split in half and each half is sent on
+ * its own, down to single lines, which get a few attempts each.
+ *
+ * Why: Gemini's PROHIBITED_CONTENT filter cannot be turned off and misfires on ordinary
+ * films. In Halloween (1978) it blocked one 30-line scene (a six-year-old and a killing)
+ * on 5 of 6 tries while passing each 15-line half every time. Failing the job on the
+ * first unusable reply lost the whole file; the older fallback shipped those lines
+ * untranslated.
+ */
+async function translateBatchResilient(
+  batch: SubtitleEntry[],
+  firstLineNumber: number,
+  ctx: BatchContext
+): Promise<SubtitleEntry[]> {
+  const lastLineNumber = firstLineNumber + batch.length - 1
+  const attempts = batch.length === 1 ? SINGLE_LINE_ATTEMPTS : 1
+  let lastError: unknown
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    if (attempt > 1) {
+      if (ctx.budget.remaining < 1) break
+      ctx.budget.remaining--
+      await pause(500 * attempt)
+    }
+    try {
+      return await requestBatch(batch, ctx)
+    } catch (err) {
+      lastError = err
+      console.warn(`⚠️ Subtitles ${firstLineNumber}-${lastLineNumber} failed (attempt ${attempt}/${attempts}):`, err instanceof Error ? err.message : err)
+    }
+  }
+
+  if (batch.length > 1 && ctx.budget.remaining >= 2) {
+    ctx.budget.remaining -= 2
+    await pause(500)
+    const mid = Math.ceil(batch.length / 2)
+    const [firstHalf, secondHalf] = await Promise.all([
+      translateBatchResilient(batch.slice(0, mid), firstLineNumber, ctx),
+      translateBatchResilient(batch.slice(mid), firstLineNumber + mid, ctx),
+    ])
+    return [...firstHalf, ...secondHalf]
+  }
+
+  const where = batch.length === 1 ? `Subtitle ${firstLineNumber}` : `Subtitles ${firstLineNumber}-${lastLineNumber}`
+  throw new Error(`${where} could not be translated after several attempts. Please try again.`, { cause: lastError })
+}
+
 export class PremiumTranslationService {
   private apiKey: string
   private model: string
@@ -149,22 +234,11 @@ export class PremiumTranslationService {
           const targetLangName = languageNames[targetLanguage] || targetLanguage
           const sourceLangName = languageNames[sourceLanguage] || sourceLanguage
 
-          for (let i = 0; i < entries.length; i += batchSize * maxConcurrency) {
-            const batchPromises: Promise<{ index: number; entries: SubtitleEntry[] }>[] = []
-
-            for (let j = 0; j < maxConcurrency && i + j * batchSize < entries.length; j++) {
-              const batchStart = i + j * batchSize
-              const batch = entries.slice(batchStart, batchStart + batchSize)
-              const batchIdx = Math.floor(batchStart / batchSize)
-
-              const batchPromise = (async () => {
-                // Replace newlines within subtitle text with placeholder to keep each entry on one line
-                const numberedInput = batch.map((entry, idx) => `${idx + 1}. ${entry.text.replace(/\n/g, '<NEWLINE>')}`).join('\n')
-                try {
-                  const prompt = `You are a professional subtitle translator. Translate from ${sourceLangName} to ${targetLangName}.
+          const ctx: BatchContext = {
+            buildPrompt: (numberedInput, count) => `You are a professional subtitle translator. Translate from ${sourceLangName} to ${targetLangName}.
 
 CRITICAL RULES:
-1. Return EXACTLY ${batch.length} numbered lines, format: "N. translated text"
+1. Return EXACTLY ${count} numbered lines, format: "N. translated text"
 2. Translate the COMPLETE text of every line - do NOT shorten, truncate, or omit any part
 3. Some lines contain <NEWLINE> markers - these represent line breaks within a single subtitle. PRESERVE all <NEWLINE> markers in the exact same positions in your translation
 4. When a line has [Speaker Name] followed by dialogue, translate the ENTIRE dialogue after the bracket
@@ -174,45 +248,33 @@ CRITICAL RULES:
 8. Use natural, idiomatic ${targetLangName}
 9. Do NOT add any explanations or comments
 
-${numberedInput}`
+${numberedInput}`,
+            generate: async (contents) => {
+              const result = await ai.models.generateContent({
+                model: 'gemini-3-flash-preview',
+                contents,
+                config: {
+                  thinkingConfig: {
+                    thinkingLevel: ThinkingLevel.MINIMAL,
+                  },
+                },
+              })
+              return { text: result.text || '', finishReason: result.candidates?.[0]?.finishReason ?? result.promptFeedback?.blockReason }
+            },
+            budget: { remaining: RETRY_BUDGET_PER_JOB },
+          }
 
-                  const result = await ai.models.generateContent({
-                    model: 'gemini-3-flash-preview',
-                    contents: prompt,
-                    config: {
-                      thinkingConfig: {
-                        thinkingLevel: ThinkingLevel.MINIMAL,
-                      },
-                    },
-                  })
-                  const response = result.text || ''
-                  const responseLines = response.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0)
-                  const translated: SubtitleEntry[] = []
+          for (let i = 0; i < entries.length; i += batchSize * maxConcurrency) {
+            const batchPromises: Promise<{ index: number; entries: SubtitleEntry[] }>[] = []
 
-                  for (let k = 0; k < batch.length; k++) {
-                    const matchLine = responseLines.find((l: string) => {
-                      const m = l.match(/^(\d+)[\.:\)]\s*(.*)$/)
-                      return m && parseInt(m[1]) === k + 1
-                    })
-                    if (matchLine) {
-                      const m = matchLine.match(/^(\d+)[\.:\)]\s*(.*)$/)
-                      // Restore newlines from placeholder
-                      const translatedText = m![2].replace(/<NEWLINE>/g, '\n')
-                      if (!translatedText.trim()) throw new Error(`Empty translated subtitle ${k + 1}`)
-                      translated.push({ ...batch[k], text: translatedText })
-                    } else {
-                      throw new Error(`Missing translated subtitle ${k + 1}`)
-                    }
-                  }
+            for (let j = 0; j < maxConcurrency && i + j * batchSize < entries.length; j++) {
+              const batchStart = i + j * batchSize
+              const batch = entries.slice(batchStart, batchStart + batchSize)
+              const batchIdx = Math.floor(batchStart / batchSize)
 
-                  return { index: batchIdx, entries: translated }
-                } catch (err) {
-                  console.warn(`\u26A0\uFE0F Gemini Flash batch ${batchIdx + 1} failed:`, err instanceof Error ? err.message : err)
-                  throw new Error(`Translation batch ${batchIdx + 1} failed`, { cause: err })
-                }
-              })()
-
-              batchPromises.push(batchPromise)
+              batchPromises.push(
+                translateBatchResilient(batch, batchStart + 1, ctx).then(translated => ({ index: batchIdx, entries: translated }))
+              )
             }
 
             const results = await Promise.all(batchPromises)
@@ -369,7 +431,6 @@ Return ONLY valid JSON, no markdown or explanations.`
       const totalBatches = Math.ceil(entries.length / batchSize)
       const maxConcurrency = Math.min(Math.max(3, Math.floor(totalBatches / 3)), 5)
       let completedBatches = 0
-      let consecutiveFailures = 0
 
       console.log(`\uD83D\uDE80 Premium Hybrid | Research: Pro | Translation: Flash | Batch ${batchSize} | Concurrency ${maxConcurrency} | ${totalBatches} batches (${entries.length} subtitles)`)
 
@@ -383,22 +444,11 @@ Return ONLY valid JSON, no markdown or explanations.`
         ? `\nContext: "${researchData.title}" - ${Array.isArray(researchData.genre) ? researchData.genre.join(', ') : researchData.genre}. ${settingStr} Characters: ${charactersStr}`
         : ''
 
-      for (let i = 0; i < entries.length; i += batchSize * maxConcurrency) {
-        const batchPromises: Promise<{ index: number; entries: SubtitleEntry[] }>[] = []
-
-        for (let j = 0; j < maxConcurrency && i + j * batchSize < entries.length; j++) {
-          const batchStart = i + j * batchSize
-          const batch = entries.slice(batchStart, batchStart + batchSize)
-          const batchIdx = Math.floor(batchStart / batchSize)
-
-          const batchPromise = (async () => {
-            // Replace newlines within subtitle text with placeholder to keep each entry on one line
-            const numberedInput = batch.map((entry, idx) => `${idx + 1}. ${entry.text.replace(/\n/g, '<NEWLINE>')}`).join('\n')
-            try {
-              const prompt = `You are an expert subtitle translator. Translate from ${sourceLangName} to ${targetLangName}.${contextInfo}
+      const ctx: BatchContext = {
+        buildPrompt: (numberedInput, count) => `You are an expert subtitle translator. Translate from ${sourceLangName} to ${targetLangName}.${contextInfo}
 
 CRITICAL RULES:
-1. Return EXACTLY ${batch.length} numbered lines, format: "N. translated text"
+1. Return EXACTLY ${count} numbered lines, format: "N. translated text"
 2. Translate the COMPLETE text of every line - do NOT shorten, truncate, or omit any part
 3. Some lines contain <NEWLINE> markers - these represent line breaks within a single subtitle. PRESERVE all <NEWLINE> markers in the exact same positions in your translation
 4. When a line has [Speaker Name] followed by dialogue, translate the ENTIRE dialogue after the bracket
@@ -410,51 +460,33 @@ CRITICAL RULES:
 8. Use natural, idiomatic ${targetLangName} - maintain character voice and emotion
 9. Do NOT add any explanations or comments
 
-${numberedInput}`
+${numberedInput}`,
+        generate: async (contents) => {
+          const result = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents,
+            config: {
+              thinkingConfig: {
+                thinkingLevel: ThinkingLevel.LOW,
+              },
+            },
+          })
+          return { text: result.text || '', finishReason: result.candidates?.[0]?.finishReason ?? result.promptFeedback?.blockReason }
+        },
+        budget: { remaining: RETRY_BUDGET_PER_JOB },
+      }
 
-              const result = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
-                contents: prompt,
-                config: {
-                  thinkingConfig: {
-                    thinkingLevel: ThinkingLevel.LOW,
-                  },
-                },
-              })
-              const response = result.text || ''
-              const responseLines = response.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0)
-              const translated: SubtitleEntry[] = []
+      for (let i = 0; i < entries.length; i += batchSize * maxConcurrency) {
+        const batchPromises: Promise<{ index: number; entries: SubtitleEntry[] }>[] = []
 
-              for (let k = 0; k < batch.length; k++) {
-                const matchLine = responseLines.find((l: string) => {
-                  const m = l.match(/^(\d+)[\.:\)]\s*(.*)$/)
-                  return m && parseInt(m[1]) === k + 1
-                })
-                if (matchLine) {
-                  const m = matchLine.match(/^(\d+)[\.:\)]\s*(.*)$/)
-                  // Restore newlines from placeholder
-                  const translatedText = m![2].replace(/<NEWLINE>/g, '\n')
-                  translated.push({ ...batch[k], text: translatedText })
-                } else if (responseLines[k]) {
-                  const cleaned = responseLines[k].replace(/^\d+[\.:\)]\s*/, '')
-                  const restoredText = (cleaned || batch[k].text).replace(/<NEWLINE>/g, '\n')
-                  translated.push({ ...batch[k], text: restoredText })
-                } else {
-                  translated.push(batch[k])
-                }
-              }
+        for (let j = 0; j < maxConcurrency && i + j * batchSize < entries.length; j++) {
+          const batchStart = i + j * batchSize
+          const batch = entries.slice(batchStart, batchStart + batchSize)
+          const batchIdx = Math.floor(batchStart / batchSize)
 
-              consecutiveFailures = 0
-              return { index: batchIdx, entries: translated }
-            } catch (err) {
-              console.warn(`\u26A0\uFE0F Gemini Pro batch ${batchIdx + 1} failed:`, err instanceof Error ? err.message : err)
-              consecutiveFailures++
-              if (consecutiveFailures >= 5) throw new Error('Too many Gemini Flash failures')
-              return { index: batchIdx, entries: batch }
-            }
-          })()
-
-          batchPromises.push(batchPromise)
+          batchPromises.push(
+            translateBatchResilient(batch, batchStart + 1, ctx).then(translated => ({ index: batchIdx, entries: translated }))
+          )
         }
 
         const results = await Promise.all(batchPromises)
