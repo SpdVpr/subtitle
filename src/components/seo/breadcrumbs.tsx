@@ -86,7 +86,7 @@ export const breadcrumbConfigs = {
       { label: 'Translate Subtitles', href: '/translate', current: true }
     ],
     'subtitles-search': [
-      { label: 'Search Subtitles', href: '/subtitles-search', current: true }
+      { label: 'Download Subtitles', href: '/subtitles-search', current: true }
     ],
     'subtitle-editor': [
       { label: 'Subtitle Editor', href: '/subtitle-editor', current: true }
@@ -112,7 +112,7 @@ export const breadcrumbConfigs = {
       { label: 'Překlad Titulků', href: '/cs/translate', current: true }
     ],
     'subtitles-search': [
-      { label: 'Hledat Titulky', href: '/cs/subtitles-search', current: true }
+      { label: 'Titulky ke stažení', href: '/cs/subtitles-search', current: true }
     ],
     'subtitle-editor': [
       { label: 'Editor Titulků', href: '/cs/subtitle-editor', current: true }

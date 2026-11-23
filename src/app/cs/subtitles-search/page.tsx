@@ -10,9 +10,14 @@ import { SubtitleHubLinks } from '@/components/subtitles/subtitle-hub-links'
 import { TranslatePromo } from '@/components/promo/translate-promo'
 
 export const metadata: Metadata = {
-  title: 'Vyhledávač titulků pro filmy, seriály a anime',
-  description: 'Najděte filmové, seriálové, anime i anglické titulky podle názvu, roku a jazyka. Prohledejte OpenSubtitles a Jimaku, poté soubor přeložte nebo synchronizujte.',
+  // Obecná stránka nástroje: slovo "stáhnout" je tu bezpečné. Nikdy ho nepoužívat
+  // na katalogových stránkách konkrétních filmů (DMCA 2026-11-18).
+  title: 'Titulky ke stažení k filmům, seriálům a anime',
+  description: 'Stáhněte titulky k filmům, seriálům a anime v češtině, angličtině a 60+ dalších jazycích. Vyhledejte podle názvu, stáhněte SRT a případně ho přeložte nebo synchronizujte.',
   keywords: [
+    'titulky ke stažení',
+    'stáhnout titulky',
+    'české titulky',
     'hledání titulků',
     'stahování titulků',
     'OpenSubtitles',
@@ -25,7 +30,7 @@ export const metadata: Metadata = {
     'zdarma titulky'
   ],
   openGraph: {
-    title: 'Hledat Titulky - SubtitleBot',
+    title: 'Titulky ke stažení k filmům, seriálům a anime | SubtitleBot',
     description: 'Vyhledávejte a stahujte titulky z databází OpenSubtitles a Jimaku. Najděte titulky pro filmy, TV seriály a anime.',
     url: '/cs/subtitles-search',
     images: [
@@ -39,7 +44,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Hledat Titulky - SubtitleBot',
+    title: 'Titulky ke stažení k filmům, seriálům a anime | SubtitleBot',
     description: 'Vyhledávejte a stahujte titulky z databází OpenSubtitles a Jimaku.',
     images: ['/og-image-cs.png'],
   },
@@ -61,9 +66,9 @@ export default function CzechSubtitlesSearchPage() {
 
         {/* Header */}
         <div className="mb-8 sm:mb-10 md:mb-12 text-center">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2">Najděte titulky pro filmy, seriály a anime</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2">Stáhněte titulky k filmům, seriálům a anime</h1>
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto px-4">
-            Vyhledávejte filmové, seriálové, anime i anglické titulky podle názvu, roku a jazyka. Vyberte správnou verzi a soubor poté stáhněte, přeložte nebo synchronizujte.
+            Titulky ke stažení zdarma: české, anglické i další titulky k filmům, seriálům a anime. Vyhledejte podle názvu, roku a jazyka, stáhněte SRT k vašemu videu a případně ho přeložte nebo synchronizujte.
           </p>
         </div>
 

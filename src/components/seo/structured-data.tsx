@@ -30,7 +30,7 @@ export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataP
   const pageNames: Record<NonNullable<StructuredDataProps['page']>, { en: string; cs: string }> = {
     home: { en: 'SubtitleBot AI Subtitle Tools', cs: 'SubtitleBot AI nástroje pro titulky' },
     translate: { en: 'AI Subtitle Translator', cs: 'AI překladač titulků' },
-    search: { en: 'Subtitle Finder for Movies, TV Shows and Anime', cs: 'Vyhledávač titulků pro filmy, seriály a anime' },
+    search: { en: 'Subtitle Downloader for Movies, TV Shows and Anime', cs: 'Titulky ke stažení k filmům, seriálům a anime' },
     editor: { en: 'Online Subtitle Editor', cs: 'Online editor titulků' },
     'video-tools': { en: 'Online Video and Subtitle Tools', cs: 'Online nástroje pro video a titulky' },
     pricing: { en: 'SubtitleBot Pricing', cs: 'Ceník SubtitleBot' },
@@ -120,8 +120,8 @@ export function StructuredData({ locale = 'en', page = 'home' }: StructuredDataP
       operatingSystem: 'Any',
       isAccessibleForFree: true,
       description: isCs
-        ? 'Bezplatný vyhledávač titulků podle názvu, roku, typu obsahu a jazyka.'
-        : 'Free subtitle finder with title, year, content-type, and language filters.',
+        ? 'Bezplatné vyhledávání a stahování titulků podle názvu, roku, typu obsahu a jazyka.'
+        : 'Free subtitle downloader with title, year, content-type, and language filters.',
       featureList: [
         isCs ? 'Filmy a seriály přes OpenSubtitles' : 'Movies and TV shows via OpenSubtitles',
         isCs ? 'Anime titulky přes Jimaku' : 'Anime subtitles via Jimaku',

@@ -11,11 +11,18 @@ import { TranslatePromo } from '@/components/promo/translate-promo'
 
 
 export const metadata: Metadata = {
-  title: 'Subtitle Finder: Movie, TV & English Subtitles',
-  description: 'Find movie, TV series, anime and English subtitles by title, year and language. Search OpenSubtitles and Jimaku, then translate or sync your file.',
+  // Generic, title-agnostic tool page: "download" wording is safe and carries the
+  // biggest GSC queries ("subtitles download", "subtitle downloader"). Never use it on
+  // per-title catalog pages (DMCA notice 2026-11-18, see src/lib/subtitle-release-label.ts).
+  title: 'Subtitles Download: Movie, TV & English Subtitle Downloader',
+  description: 'Download subtitles for movies, TV shows and anime in English and 60+ languages. Free subtitle downloader: search by title, get the SRT, then translate or sync it.',
   keywords: [
-    'subtitle search',
+    'subtitles download',
+    'subtitle downloader',
     'download subtitles',
+    'download subtitles for movies',
+    'english subtitles',
+    'subtitle search',
     'OpenSubtitles',
     'Jimaku subtitles',
     'movie subtitles',
@@ -26,8 +33,8 @@ export const metadata: Metadata = {
     'free subtitles'
   ],
   openGraph: {
-    title: 'Subtitle Finder for Movies, TV Shows & Anime | SubtitleBot',
-    description: 'Search movie, TV, anime and English subtitles by title, year and language, then translate or sync the file.',
+    title: 'Subtitles Download: Free Subtitle Downloader for Movies, TV & Anime | SubtitleBot',
+    description: 'Download movie, TV, anime and English subtitles by title, year and language, then translate or sync the SRT file.',
     url: '/subtitles-search',
     images: [
       {
@@ -40,8 +47,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Subtitle Finder for Movies, TV Shows & Anime | SubtitleBot',
-    description: 'Search movie, TV, anime and English subtitles by title, year and language.',
+    title: 'Subtitles Download: Free Subtitle Downloader for Movies, TV & Anime | SubtitleBot',
+    description: 'Download movie, TV, anime and English subtitles by title, year and language.',
     images: ['/og-image-en.png'],
   },
   alternates: {
@@ -62,9 +69,9 @@ export default function SubtitlesSearchPage() {
 
         {/* Header */}
         <div className="mb-8 sm:mb-10 md:mb-12 text-center">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2">Find Subtitles for Movies, TV Shows & Anime</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2">Download Subtitles for Movies, TV Shows & Anime</h1>
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto px-4">
-            Search movie, TV, anime and English subtitles by title, year and language. Match the right release, then download, translate or sync your subtitle file.
+            Free subtitle downloader for movie, TV, anime and English subtitles. Search by title, year and language, download the SRT that matches your video, then translate or sync it.
           </p>
         </div>
 

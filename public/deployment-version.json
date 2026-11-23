@@ -1,5 +1,5 @@
 {
-  "deploymentTrigger": "translation-batch-split-1",
+  "deploymentTrigger": "search-download-wording-1",
   "sourceBranch": "main",
-  "triggeredAt": "2026-11-20T12:00:00+01:00"
+  "triggeredAt": "2026-11-23T12:00:00+01:00"
 }
