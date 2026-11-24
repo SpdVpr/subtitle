@@ -20,10 +20,15 @@ export interface LlmResult {
   finishReason?: string
 }
 
+// gemini-3.8-flash replaced gemini-3-flash on 2026-11-24 after a blind benchmark on three films
+// (cs/sl): better Czech (7.3 vs 6.2 of 10), no mangled <NEWLINE> markers, ~$0.03 more per film.
 const MODELS = {
-  gateway: { flash: 'google/gemini-3-flash', pro: 'google/gemini-3.1-pro-preview' },
+  gateway: { flash: 'google/gemini-3.8-flash', pro: 'google/gemini-3.1-pro-preview' },
   gemini: { flash: 'gemini-3-flash-preview', pro: 'gemini-3.1-pro-preview' },
 } as const
+
+/** Models that answer thinkingLevel 'minimal' with a 400; 'low' is the closest level they take. */
+const NO_MINIMAL_THINKING: ReadonlySet<string> = new Set(['google/gemini-3.8-flash'])
 
 type Provider = keyof typeof MODELS
 
@@ -80,11 +85,13 @@ export async function generate(options: {
 
 async function viaGateway({ model, prompt, thinkingLevel }: Parameters<typeof generate>[0]): Promise<LlmResult> {
   const { generateText } = await import('ai')
+  const modelId = MODELS.gateway[model]
+  const level = thinkingLevel === 'minimal' && NO_MINIMAL_THINKING.has(modelId) ? 'low' : thinkingLevel
   const result = await generateText({
-    model: MODELS.gateway[model],
+    model: modelId,
     prompt,
     providerOptions: {
-      google: { thinkingConfig: { thinkingLevel } },
+      google: { thinkingConfig: { thinkingLevel: level } },
     },
   })
   return { text: result.text, finishReason: result.finishReason }

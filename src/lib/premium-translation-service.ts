@@ -39,6 +39,37 @@ const LANGUAGE_NAMES: Record<string, string> = {
 
 const languageName = (code: string) => LANGUAGE_NAMES[code] || code
 
+/** Formatting tags a subtitle may legitimately carry; the prompt tells the model to keep them. */
+const KNOWN_TAG = /<\/?(?:i|b|u|s|font)(?:\s[^<>]*)?>/gi
+const NEWLINE_MARKER = /[ \t]*<\s*NEWLINE\s*>[ \t]*/gi
+
+/** '<' and '>' left once the real tags are removed. */
+const strayBrackets = (s: string) => (s.replace(KNOWN_TAG, '').match(/[<>]/g) || []).length
+
+/** Turns bracketed junk such as "<LEWLINE>" into a line break and drops lone brackets. */
+function cleanStrayMarkup(s: string): string {
+  return s
+    .replace(/<(?!\/?(?:i|b|u|s|font)\b)[^<>\s]{1,12}>/gi, '\n')
+    .replace(/(<\/?(?:i|b|u|s|font)(?:\s[^<>]*)?>)|[<>]/gi, (_m, tag) => tag || '')
+    .replace(/[ \t]*\n[ \t]*/g, '\n')
+    .replace(/\n{2,}/g, '\n')
+    .trim()
+}
+
+/**
+ * The reply was complete but the model mangled the <NEWLINE> placeholder in some lines
+ * ("<回vy", "<LEWLINE>", "<企>"), which would show up as junk on screen. gemini-3-flash did
+ * this in 4 of 9 benchmark runs. `repaired` is the same reply with the junk cleaned out.
+ */
+class GarbledMarkerError extends Error {
+  readonly repaired: SubtitleEntry[]
+  constructor(message: string, repaired: SubtitleEntry[]) {
+    super(message)
+    this.name = 'GarbledMarkerError'
+    this.repaired = repaired
+  }
+}
+
 /** One request for one batch. Throws unless every line comes back translated. */
 async function requestBatch(batch: SubtitleEntry[], ctx: BatchContext): Promise<SubtitleEntry[]> {
   // Replace newlines within subtitle text with placeholder to keep each entry on one line
@@ -51,14 +82,32 @@ async function requestBatch(batch: SubtitleEntry[], ctx: BatchContext): Promise<
     if (m && !byNumber.has(Number(m[1]))) byNumber.set(Number(m[1]), m[2])
   }
 
-  return batch.map((entry, k) => {
-    const translated = byNumber.get(k + 1)?.replace(/<NEWLINE>/g, '\n')
+  let garbled = 0
+  const entries = batch.map((entry, k) => {
+    const translated = byNumber.get(k + 1)?.replace(NEWLINE_MARKER, '\n')
     if (!translated?.trim()) {
       const reason = finishReason && finishReason.toUpperCase() !== 'STOP' ? ` (finish reason: ${finishReason})` : ''
       throw new Error(`${translated === undefined ? 'Missing' : 'Empty'} translated subtitle ${k + 1}${reason}`)
     }
-    return { ...entry, text: translated }
+    if (strayBrackets(translated) <= strayBrackets(entry.text)) return { ...entry, text: translated }
+    garbled++
+    return { ...entry, text: cleanStrayMarkup(translated) }
   })
+  if (garbled) throw new GarbledMarkerError(`${garbled} translated subtitle(s) with a garbled line-break marker`, entries)
+  return entries
+}
+
+/** A mangled marker is a glitch, not a refusal: ask once more, else keep the cleaned-up reply. */
+async function retryGarbled(batch: SubtitleEntry[], ctx: BatchContext, first: GarbledMarkerError): Promise<SubtitleEntry[]> {
+  if (ctx.budget.remaining < 1) return first.repaired
+  ctx.budget.remaining--
+  try {
+    return await requestBatch(batch, ctx)
+  } catch (err) {
+    if (err instanceof LlmUnavailableError) throw err
+    console.warn('⚠️ Garbled line-break marker again, keeping the cleaned reply:', err instanceof Error ? err.message : err)
+    return err instanceof GarbledMarkerError ? err.repaired : first.repaired
+  }
 }
 
 /**
@@ -93,6 +142,10 @@ async function translateBatchResilient(
     } catch (err) {
       // Out of credits or bad credentials: splitting and retrying cannot help.
       if (err instanceof LlmUnavailableError) throw err
+      if (err instanceof GarbledMarkerError) {
+        console.warn(`⚠️ Subtitles ${firstLineNumber}-${lastLineNumber}: ${err.message}, retrying once`)
+        return await retryGarbled(batch, ctx, err)
+      }
       lastError = err
       console.warn(`⚠️ Subtitles ${firstLineNumber}-${lastLineNumber} failed (attempt ${attempt}/${attempts}):`, err instanceof Error ? err.message : err)
     }
@@ -125,7 +178,7 @@ export class PremiumTranslationService {
   }
 
   /**
-   * Translates one subtitle with Gemini 3 Flash, for the editor's "regenerate" button.
+   * Translates one subtitle with Gemini Flash, for the editor's "regenerate" button.
    * `context` (neighbouring subtitles) only guides the model and is not translated.
    */
   async translateText(
@@ -204,17 +257,17 @@ ${text}`
 
       const isPremium = this.model === 'gemini-3.1-pro-preview'
 
-      // ===== FAST PATH FOR STANDARD (Gemini 3 Flash) =====
-      // Uses Google Gemini 3 Flash for fastest, cheapest translations
+      // ===== FAST PATH FOR STANDARD (Gemini Flash, model chosen in @/lib/llm) =====
+      // Fastest, cheapest path: no research step
       if (!isPremium) {
-        console.log('\u26A1 FAST PATH: Gemini 3 Flash translation (thinking: minimal)')
-        safeProgressCallback('translating', 10, 'Starting Gemini 3 Flash translation...')
+        console.log('\u26A1 FAST PATH: Gemini Flash translation')
+        safeProgressCallback('translating', 10, 'Starting Gemini Flash translation...')
 
         const batchSize = 30
         const totalBatches = Math.ceil(entries.length / batchSize)
         const maxConcurrency = Math.min(Math.max(3, Math.floor(totalBatches / 3)), 6)
 
-        console.log(`\u26A1 Gemini 3 Flash | Batch ${batchSize} | Concurrency ${maxConcurrency} | ${totalBatches} batches (${entries.length} subtitles)`)
+        console.log(`\u26A1 Gemini Flash | Batch ${batchSize} | Concurrency ${maxConcurrency} | ${totalBatches} batches (${entries.length} subtitles)`)
 
         const translatedEntries: SubtitleEntry[] = []
         const translatedBatchResults: { index: number; entries: SubtitleEntry[] }[] = []
@@ -260,14 +313,14 @@ ${numberedInput}`,
           completedBatches += results.length
 
           const progress = 10 + ((completedBatches / totalBatches) * 85)
-          safeProgressCallback('translating', progress, `Translated ${completedBatches}/${totalBatches} batches (Gemini 3 Flash)`)
+          safeProgressCallback('translating', progress, `Translated ${completedBatches}/${totalBatches} batches (Gemini Flash)`)
         }
 
         translatedBatchResults.sort((a, b) => a.index - b.index)
         for (const r of translatedBatchResults) translatedEntries.push(...r.entries)
 
         safeProgressCallback('completed', 100, 'Translation completed!')
-        console.log(`\u26A1 Gemini 3 Flash translation done: ${translatedEntries.length} entries`)
+        console.log(`\u26A1 Gemini Flash translation done: ${translatedEntries.length} entries`)
         return translatedEntries
       }
 
@@ -368,7 +421,7 @@ Return ONLY valid JSON, no markdown or explanations.`
         progressCallback('analyzing_content', 50, contentResults)
       }
 
-      // PHASE 4: Translate in context-aware batches using Gemini 3 Flash (with Pro research context)
+      // PHASE 4: Translate in context-aware batches using Gemini Flash (with Pro research context)
       console.log('\uD83C\uDF10 PHASE 4: Starting Premium contextual translation (Research: Pro, Translation: Flash)')
       if (typeof progressCallback === 'function') progressCallback('translating', 55, 'Starting contextual translation (Flash + Pro research)...')
 

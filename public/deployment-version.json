@@ -1,5 +1,5 @@
 {
-  "deploymentTrigger": "ai-gateway-translation-1",
+  "deploymentTrigger": "gemini-3.8-flash-1",
   "sourceBranch": "main",
-  "triggeredAt": "2026-11-24T21:00:00+01:00"
+  "triggeredAt": "2026-11-24T22:15:00+01:00"
 }
