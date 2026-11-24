@@ -126,7 +126,7 @@ async function processBatchJob(
       throw new Error('API key not configured')
     }
 
-    const translationService = new PremiumTranslationService(apiKey, translationModel)
+    const translationService = new PremiumTranslationService(translationModel)
     const translatedFiles: { name: string; content: string }[] = []
     let processedFiles = 0
     let failedFiles = 0

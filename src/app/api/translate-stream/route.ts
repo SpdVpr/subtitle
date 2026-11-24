@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { PremiumTranslationService } from '@/lib/premium-translation-service'
+import { isLlmConfigured } from '@/lib/llm'
 import { verifyUser } from '@/lib/user-auth-server'
 import {
   completeFreeTranslation,
@@ -44,10 +45,8 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const geminiKey = process.env.GEMINI_API_KEY
-    console.log('🔑 ROUTE: GEMINI_API_KEY exists:', !!geminiKey, '| OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY)
-    if (!geminiKey) {
-      return new Response('Translation requires a valid GEMINI_API_KEY', { status: 400 })
+    if (!isLlmConfigured()) {
+      return new Response('Translation service is not configured', { status: 500 })
     }
 
     const encoder = new TextEncoder()
@@ -114,7 +113,7 @@ export async function POST(request: NextRequest) {
           }
 
           // Always use PremiumTranslationService but with different models
-          const premium = new PremiumTranslationService(geminiKey, translationModel as 'standard' | 'premium')
+          const premium = new PremiumTranslationService(translationModel as 'standard' | 'premium')
 
           let lastProgressTime = Date.now()
 

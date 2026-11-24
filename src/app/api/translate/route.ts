@@ -239,7 +239,7 @@ export async function POST(req: NextRequest) {
 
         try {
           // Initialize premium service with model selection
-          const premiumService = new PremiumTranslationService(apiKey, translationModel as 'standard' | 'premium')
+          const premiumService = new PremiumTranslationService(translationModel as 'standard' | 'premium')
 
           // Progress callback for real-time updates
           const progressCallback = (stage: string, progress: number, details?: string) => {
@@ -415,7 +415,7 @@ async function processTranslationJob(
 
     if (aiServiceRaw === 'premium') {
       // Use Premium Context AI service with model selection
-      const premiumService = new PremiumTranslationService(process.env.OPENAI_API_KEY || 'demo_key', translationModel as 'standard' | 'premium')
+      const premiumService = new PremiumTranslationService(translationModel as 'standard' | 'premium')
 
       // Progress callback for real-time updates
       const progressCallback = (stage: string, progress: number, details?: string) => {
@@ -680,7 +680,7 @@ async function processRealPremiumTranslation(
 
     // Initialize premium service with model selection
     console.log('🔑 Initializing PremiumTranslationService with API key and model:', translationModel)
-    const premiumService = new PremiumTranslationService(apiKey, translationModel as 'standard' | 'premium')
+    const premiumService = new PremiumTranslationService(translationModel as 'standard' | 'premium')
     console.log('✅ PremiumTranslationService initialized')
 
     // Initial progress

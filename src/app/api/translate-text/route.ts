@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PremiumTranslationService } from '@/lib/premium-translation-service'
 import { verifyUser } from '@/lib/user-auth-server'
+import { isLlmConfigured, LlmUnavailableError } from '@/lib/llm'
 
 // Regenerating one subtitle in the editor is free, so cap what one request may send:
 // without limits this route would be an open Gemini proxy paid for by us.
@@ -36,12 +37,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Subtitle text is too long.' }, { status: 400 })
     }
 
-    const geminiKey = process.env.GEMINI_API_KEY
-    if (!geminiKey) {
+    if (!isLlmConfigured()) {
       return NextResponse.json({ error: 'Translation service is not configured.' }, { status: 500 })
     }
 
-    const translator = new PremiumTranslationService(geminiKey, 'standard')
+    const translator = new PremiumTranslationService('standard')
     const translatedText = await translator.translateText(
       text,
       sourceLanguage,
@@ -59,6 +59,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Translation error:', error)
+
+    if (error instanceof LlmUnavailableError) {
+      return NextResponse.json({ error: error.message, success: false }, { status: 503 })
+    }
 
     return NextResponse.json(
       {

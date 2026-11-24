@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SubtitleProcessor } from '@/lib/subtitle-processor'
 import { PremiumTranslationService } from '@/lib/premium-translation-service'
 import { verifyUser } from '@/lib/user-auth-server'
+import { isLlmConfigured } from '@/lib/llm'
 import {
   completeFreeTranslation,
   releaseFreeTranslation,
@@ -35,8 +36,7 @@ export async function POST(request: NextRequest) {
     if (!file) return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
     fileName = file.name
 
-    const geminiKey = process.env.GEMINI_API_KEY
-    if (!geminiKey) return NextResponse.json({ error: 'Translation service is not configured.' }, { status: 500 })
+    if (!isLlmConfigured()) return NextResponse.json({ error: 'Translation service is not configured.' }, { status: 500 })
 
     const entries = SubtitleProcessor.parseSubtitleFile(await file.text(), file.name)
     if (!entries.length) return NextResponse.json({ error: 'No valid subtitles found in file' }, { status: 400 })
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const startTime = Date.now()
-    const translator = new PremiumTranslationService(geminiKey, model)
+    const translator = new PremiumTranslationService(model)
     const translatedEntries = await translator.translateSubtitles(
       entries,
       targetLanguage,

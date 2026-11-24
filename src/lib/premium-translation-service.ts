@@ -1,4 +1,5 @@
 import type { SubtitleEntry } from '@/types/subtitle'
+import { generate, isLlmConfigured, LlmUnavailableError } from '@/lib/llm'
 
 interface ResearchData {
   title: string
@@ -53,7 +54,7 @@ async function requestBatch(batch: SubtitleEntry[], ctx: BatchContext): Promise<
   return batch.map((entry, k) => {
     const translated = byNumber.get(k + 1)?.replace(/<NEWLINE>/g, '\n')
     if (!translated?.trim()) {
-      const reason = finishReason && finishReason !== 'STOP' ? ` (finish reason: ${finishReason})` : ''
+      const reason = finishReason && finishReason.toUpperCase() !== 'STOP' ? ` (finish reason: ${finishReason})` : ''
       throw new Error(`${translated === undefined ? 'Missing' : 'Empty'} translated subtitle ${k + 1}${reason}`)
     }
     return { ...entry, text: translated }
@@ -90,6 +91,8 @@ async function translateBatchResilient(
     try {
       return await requestBatch(batch, ctx)
     } catch (err) {
+      // Out of credits or bad credentials: splitting and retrying cannot help.
+      if (err instanceof LlmUnavailableError) throw err
       lastError = err
       console.warn(`⚠️ Subtitles ${firstLineNumber}-${lastLineNumber} failed (attempt ${attempt}/${attempts}):`, err instanceof Error ? err.message : err)
     }
@@ -111,13 +114,12 @@ async function translateBatchResilient(
 }
 
 export class PremiumTranslationService {
-  private apiKey: string
   private model: string
   private contextCache: Map<string, string> = new Map()
   private researchCache: Map<string, ResearchData> = new Map()
 
-  constructor(apiKey: string, model: 'standard' | 'premium' = 'premium') {
-    this.apiKey = apiKey
+  /** Which provider is called is decided in `@/lib/llm` (Vercel AI Gateway by default). */
+  constructor(model: 'standard' | 'premium' = 'premium') {
     this.model = model === 'premium' ? 'gemini-3.1-pro-preview' : 'gemini-3-flash'
     console.log(`🤖 PremiumTranslationService initialized with model: ${this.model} (${model})`)
   }
@@ -125,7 +127,6 @@ export class PremiumTranslationService {
   /**
    * Translates one subtitle with Gemini 3 Flash, for the editor's "regenerate" button.
    * `context` (neighbouring subtitles) only guides the model and is not translated.
-   * `this.apiKey` must be a Gemini key.
    */
   async translateText(
     text: string,
@@ -133,8 +134,6 @@ export class PremiumTranslationService {
     targetLanguage: string,
     context?: string
   ): Promise<string> {
-    const { GoogleGenAI, ThinkingLevel } = await import('@google/genai')
-    const ai = new GoogleGenAI({ apiKey: this.apiKey })
     const sourceLangName = languageName(sourceLanguage)
     const targetLangName = languageName(targetLanguage)
 
@@ -151,20 +150,11 @@ ${context ? `\nSurrounding dialogue, for reference only (do NOT translate it):\n
 Subtitle:
 ${text}`
 
-    const result = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: prompt,
-      config: {
-        thinkingConfig: {
-          thinkingLevel: ThinkingLevel.MINIMAL,
-        },
-      },
-    })
+    const { text: reply, finishReason } = await generate({ model: 'flash', prompt, thinkingLevel: 'minimal' })
 
-    const translated = result.text?.trim()
+    const translated = reply.trim()
     if (!translated) {
-      const reason = result.candidates?.[0]?.finishReason ?? result.promptFeedback?.blockReason
-      throw new Error(`No translation received from Gemini${reason ? ` (finish reason: ${reason})` : ''}`)
+      throw new Error(`No translation received from Gemini${finishReason ? ` (finish reason: ${finishReason})` : ''}`)
     }
     return translated
   }
@@ -206,12 +196,9 @@ ${text}`
 
     safeProgressCallback('initializing', 0, 'Starting translation process...')
 
-    // Check for Gemini API key
-    const geminiApiKey = process.env.GEMINI_API_KEY
-    if (!geminiApiKey) {
+    if (!isLlmConfigured()) {
       throw new Error('Translation service is not configured')
     }
-    console.log('🔑 Gemini API key found, proceeding with translation')
 
     try {
 
@@ -220,29 +207,24 @@ ${text}`
       // ===== FAST PATH FOR STANDARD (Gemini 3 Flash) =====
       // Uses Google Gemini 3 Flash for fastest, cheapest translations
       if (!isPremium) {
-        const geminiKey = process.env.GEMINI_API_KEY
-        if (geminiKey) {
-          console.log('\u26A1 FAST PATH: Gemini 3 Flash translation (thinking: minimal)')
-          safeProgressCallback('translating', 10, 'Starting Gemini 3 Flash translation...')
+        console.log('\u26A1 FAST PATH: Gemini 3 Flash translation (thinking: minimal)')
+        safeProgressCallback('translating', 10, 'Starting Gemini 3 Flash translation...')
 
-          const { GoogleGenAI, ThinkingLevel } = await import('@google/genai')
-          const ai = new GoogleGenAI({ apiKey: geminiKey })
+        const batchSize = 30
+        const totalBatches = Math.ceil(entries.length / batchSize)
+        const maxConcurrency = Math.min(Math.max(3, Math.floor(totalBatches / 3)), 6)
 
-          const batchSize = 30
-          const totalBatches = Math.ceil(entries.length / batchSize)
-          const maxConcurrency = Math.min(Math.max(3, Math.floor(totalBatches / 3)), 6)
+        console.log(`\u26A1 Gemini 3 Flash | Batch ${batchSize} | Concurrency ${maxConcurrency} | ${totalBatches} batches (${entries.length} subtitles)`)
 
-          console.log(`\u26A1 Gemini 3 Flash | Batch ${batchSize} | Concurrency ${maxConcurrency} | ${totalBatches} batches (${entries.length} subtitles)`)
+        const translatedEntries: SubtitleEntry[] = []
+        const translatedBatchResults: { index: number; entries: SubtitleEntry[] }[] = []
+        let completedBatches = 0
 
-          const translatedEntries: SubtitleEntry[] = []
-          const translatedBatchResults: { index: number; entries: SubtitleEntry[] }[] = []
-          let completedBatches = 0
+        const targetLangName = languageName(targetLanguage)
+        const sourceLangName = languageName(sourceLanguage)
 
-          const targetLangName = languageName(targetLanguage)
-          const sourceLangName = languageName(sourceLanguage)
-
-          const ctx: BatchContext = {
-            buildPrompt: (numberedInput, count) => `You are a professional subtitle translator. Translate from ${sourceLangName} to ${targetLangName}.
+        const ctx: BatchContext = {
+          buildPrompt: (numberedInput, count) => `You are a professional subtitle translator. Translate from ${sourceLangName} to ${targetLangName}.
 
 CRITICAL RULES:
 1. Return EXACTLY ${count} numbered lines, format: "N. translated text"
@@ -256,51 +238,37 @@ CRITICAL RULES:
 9. Do NOT add any explanations or comments
 
 ${numberedInput}`,
-            generate: async (contents) => {
-              const result = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
-                contents,
-                config: {
-                  thinkingConfig: {
-                    thinkingLevel: ThinkingLevel.MINIMAL,
-                  },
-                },
-              })
-              return { text: result.text || '', finishReason: result.candidates?.[0]?.finishReason ?? result.promptFeedback?.blockReason }
-            },
-            budget: { remaining: RETRY_BUDGET_PER_JOB },
-          }
-
-          for (let i = 0; i < entries.length; i += batchSize * maxConcurrency) {
-            const batchPromises: Promise<{ index: number; entries: SubtitleEntry[] }>[] = []
-
-            for (let j = 0; j < maxConcurrency && i + j * batchSize < entries.length; j++) {
-              const batchStart = i + j * batchSize
-              const batch = entries.slice(batchStart, batchStart + batchSize)
-              const batchIdx = Math.floor(batchStart / batchSize)
-
-              batchPromises.push(
-                translateBatchResilient(batch, batchStart + 1, ctx).then(translated => ({ index: batchIdx, entries: translated }))
-              )
-            }
-
-            const results = await Promise.all(batchPromises)
-            translatedBatchResults.push(...results)
-            completedBatches += results.length
-
-            const progress = 10 + ((completedBatches / totalBatches) * 85)
-            safeProgressCallback('translating', progress, `Translated ${completedBatches}/${totalBatches} batches (Gemini 3 Flash)`)
-          }
-
-          translatedBatchResults.sort((a, b) => a.index - b.index)
-          for (const r of translatedBatchResults) translatedEntries.push(...r.entries)
-
-          safeProgressCallback('completed', 100, 'Translation completed!')
-          console.log(`\u26A1 Gemini 3 Flash translation done: ${translatedEntries.length} entries`)
-          return translatedEntries
-        } else {
-          console.warn('\u26A0\uFE0F No GEMINI_API_KEY found, falling through to Premium path')
+          generate: (prompt) => generate({ model: 'flash', prompt, thinkingLevel: 'minimal' }),
+          budget: { remaining: RETRY_BUDGET_PER_JOB },
         }
+
+        for (let i = 0; i < entries.length; i += batchSize * maxConcurrency) {
+          const batchPromises: Promise<{ index: number; entries: SubtitleEntry[] }>[] = []
+
+          for (let j = 0; j < maxConcurrency && i + j * batchSize < entries.length; j++) {
+            const batchStart = i + j * batchSize
+            const batch = entries.slice(batchStart, batchStart + batchSize)
+            const batchIdx = Math.floor(batchStart / batchSize)
+
+            batchPromises.push(
+              translateBatchResilient(batch, batchStart + 1, ctx).then(translated => ({ index: batchIdx, entries: translated }))
+            )
+          }
+
+          const results = await Promise.all(batchPromises)
+          translatedBatchResults.push(...results)
+          completedBatches += results.length
+
+          const progress = 10 + ((completedBatches / totalBatches) * 85)
+          safeProgressCallback('translating', progress, `Translated ${completedBatches}/${totalBatches} batches (Gemini 3 Flash)`)
+        }
+
+        translatedBatchResults.sort((a, b) => a.index - b.index)
+        for (const r of translatedBatchResults) translatedEntries.push(...r.entries)
+
+        safeProgressCallback('completed', 100, 'Translation completed!')
+        console.log(`\u26A1 Gemini 3 Flash translation done: ${translatedEntries.length} entries`)
+        return translatedEntries
       }
 
 
@@ -308,14 +276,6 @@ ${numberedInput}`,
 
 
       // ===== PREMIUM PATH (Gemini 3 Pro) - Full research + contextual translation =====
-      const geminiKey = process.env.GEMINI_API_KEY
-      if (!geminiKey) {
-        throw new Error('GEMINI_API_KEY is required for Premium translation')
-      }
-
-      const { GoogleGenAI, ThinkingLevel } = await import('@google/genai')
-      const ai = new GoogleGenAI({ apiKey: geminiKey })
-
       // PHASE 1: Extract show information from filename
       console.log('\uD83D\uDCC1 PHASE 1: Analyzing filename')
       if (typeof progressCallback === 'function') progressCallback('analyzing', 10, `**Analyzing File**\n\nFilename: "${fileName}"`)
@@ -363,20 +323,12 @@ Title: "${showInfo.title}"${showInfo.year ? ` (${showInfo.year})` : ''}${showInf
 
 Return ONLY valid JSON, no markdown or explanations.`
 
-        const researchResult = await ai.models.generateContent({
-          model: 'gemini-3.1-pro-preview',
-          contents: researchPrompt,
-          config: {
-            thinkingConfig: {
-              thinkingLevel: ThinkingLevel.LOW,
-            },
-          },
-        })
-        const researchText = researchResult.text || ''
+        const { text: researchText } = await generate({ model: 'pro', prompt: researchPrompt, thinkingLevel: 'low' })
         const cleanJson = researchText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
         researchData = { ...researchData, ...JSON.parse(cleanJson) }
         console.log('\uD83D\uDD0D Research completed:', researchData.title, '-', researchData.genre)
       } catch (researchErr) {
+        if (researchErr instanceof LlmUnavailableError) throw researchErr
         console.warn('\u26A0\uFE0F Research failed, using defaults:', researchErr instanceof Error ? researchErr.message : researchErr)
       }
 
@@ -459,18 +411,7 @@ CRITICAL RULES:
 9. Do NOT add any explanations or comments
 
 ${numberedInput}`,
-        generate: async (contents) => {
-          const result = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents,
-            config: {
-              thinkingConfig: {
-                thinkingLevel: ThinkingLevel.LOW,
-              },
-            },
-          })
-          return { text: result.text || '', finishReason: result.candidates?.[0]?.finishReason ?? result.promptFeedback?.blockReason }
-        },
+        generate: (prompt) => generate({ model: 'flash', prompt, thinkingLevel: 'low' }),
         budget: { remaining: RETRY_BUDGET_PER_JOB },
       }
 
