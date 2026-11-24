@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { SubtitleEntry } from '@/types/preview'
 import { SearchAndReplacePanel } from '@/components/subtitle-editor/search-and-replace-panel'
 import { toast } from 'sonner'
+import { authFetch } from '@/lib/auth-fetch'
 import { 
   Play, 
   Pause, 
@@ -253,15 +254,13 @@ export function SubtitleEditor({
       // Extract translation settings with proper fallbacks
       const sourceLanguage = previewData.sourceLanguage || 'en'
       const targetLanguage = previewData.targetLanguage || 'cs'
-      const aiService = previewData.aiService || 'openai' // Default to openai for better quality
 
       console.log(`🔄 Regenerating subtitle #${entry.index}:`)
       console.log(`   From: ${sourceLanguage} → To: ${targetLanguage}`)
-      console.log(`   Using: ${aiService}`)
       console.log(`   Original text: "${originalEntry.text}"`)
       console.log(`   Current text: "${entry.text}"`)
 
-      const response = await fetch('/api/translate-text', {
+      const response = await authFetch('/api/translate-text', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -270,7 +269,6 @@ export function SubtitleEditor({
           text: originalEntry.text, // Use original text for regeneration
           sourceLanguage: sourceLanguage,
           targetLanguage: targetLanguage,
-          aiService: aiService,
           context: `Subtitle #${entry.index} from video content. Previous subtitle: "${entries[index - 1]?.text || ''}" Next subtitle: "${entries[index + 1]?.text || ''}"`
         }),
       })

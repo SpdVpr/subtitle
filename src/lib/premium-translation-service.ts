@@ -25,6 +25,19 @@ interface BatchContext {
 
 const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
+/** Language codes the UI sends, mapped to the names the prompts use. */
+const LANGUAGE_NAMES: Record<string, string> = {
+  'cs': 'Czech', 'sk': 'Slovak', 'de': 'German', 'fr': 'French',
+  'es': 'Spanish', 'it': 'Italian', 'pt': 'Portuguese', 'pl': 'Polish',
+  'nl': 'Dutch', 'ru': 'Russian', 'ja': 'Japanese', 'ko': 'Korean',
+  'zh': 'Chinese', 'ar': 'Arabic', 'hi': 'Hindi', 'tr': 'Turkish',
+  'sv': 'Swedish', 'da': 'Danish', 'fi': 'Finnish', 'no': 'Norwegian',
+  'hu': 'Hungarian', 'ro': 'Romanian', 'bg': 'Bulgarian', 'hr': 'Croatian',
+  'uk': 'Ukrainian', 'en': 'English', 'he': 'Hebrew', 'auto': 'the automatically detected source language',
+}
+
+const languageName = (code: string) => LANGUAGE_NAMES[code] || code
+
 /** One request for one batch. Throws unless every line comes back translated. */
 async function requestBatch(batch: SubtitleEntry[], ctx: BatchContext): Promise<SubtitleEntry[]> {
   // Replace newlines within subtitle text with placeholder to keep each entry on one line
@@ -110,48 +123,51 @@ export class PremiumTranslationService {
   }
 
   /**
-   * Translate single text with OpenAI
+   * Translates one subtitle with Gemini 3 Flash, for the editor's "regenerate" button.
+   * `context` (neighbouring subtitles) only guides the model and is not translated.
+   * `this.apiKey` must be a Gemini key.
    */
-  async translateWithOpenAI(
+  async translateText(
     text: string,
     sourceLanguage: string,
     targetLanguage: string,
-    contextPrompt?: string
+    context?: string
   ): Promise<string> {
-    const { OpenAI } = await import('openai')
-    const openai = new OpenAI({ apiKey: this.apiKey })
+    const { GoogleGenAI, ThinkingLevel } = await import('@google/genai')
+    const ai = new GoogleGenAI({ apiKey: this.apiKey })
+    const sourceLangName = languageName(sourceLanguage)
+    const targetLangName = languageName(targetLanguage)
 
-    const prompt = contextPrompt || `Translate the following text from ${sourceLanguage} to ${targetLanguage}. Maintain the original meaning and tone:`
+    const prompt = `You are a professional subtitle translator. Translate the subtitle below from ${sourceLangName} to ${targetLangName}.
 
-    try {
-      const response = await openai.chat.completions.create({
-        model: this.model,
-        messages: [
-          {
-            role: 'system',
-            content: prompt
-          },
-          {
-            role: 'user',
-            content: text
-          }
-        ],
-        max_completion_tokens: 1000
-      })
+RULES:
+1. Translate the COMPLETE text - do NOT shorten, truncate, or omit any part
+2. Keep line breaks exactly where they are
+3. Preserve ALL formatting tags exactly as-is: {\\an8}, <i>...</i>, <b>...</b>, etc.
+4. Preserve [sound effects] and ♪ music ♪ markers (translate sound descriptions inside brackets)
+5. Use natural, idiomatic ${targetLangName}
+6. Return ONLY the translated subtitle - no quotes, explanations or comments
+${context ? `\nSurrounding dialogue, for reference only (do NOT translate it):\n${context}\n` : ''}
+Subtitle:
+${text}`
 
-      const translatedText = response.choices[0]?.message?.content?.trim()
-      if (!translatedText) {
-        throw new Error('No translation received from OpenAI')
-      }
+    const result = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: {
+        thinkingConfig: {
+          thinkingLevel: ThinkingLevel.MINIMAL,
+        },
+      },
+    })
 
-      return translatedText
-    } catch (error) {
-      console.error('OpenAI translation error:', error)
-      throw new Error(`OpenAI translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    const translated = result.text?.trim()
+    if (!translated) {
+      const reason = result.candidates?.[0]?.finishReason ?? result.promptFeedback?.blockReason
+      throw new Error(`No translation received from Gemini${reason ? ` (finish reason: ${reason})` : ''}`)
     }
+    return translated
   }
-
-  // Google Translate method removed - using only OpenAI
 
   /**
    * Advanced subtitle translation with perfect timing and context preservation
@@ -222,17 +238,8 @@ export class PremiumTranslationService {
           const translatedBatchResults: { index: number; entries: SubtitleEntry[] }[] = []
           let completedBatches = 0
 
-          const languageNames: Record<string, string> = {
-            'cs': 'Czech', 'sk': 'Slovak', 'de': 'German', 'fr': 'French',
-            'es': 'Spanish', 'it': 'Italian', 'pt': 'Portuguese', 'pl': 'Polish',
-            'nl': 'Dutch', 'ru': 'Russian', 'ja': 'Japanese', 'ko': 'Korean',
-            'zh': 'Chinese', 'ar': 'Arabic', 'hi': 'Hindi', 'tr': 'Turkish',
-            'sv': 'Swedish', 'da': 'Danish', 'fi': 'Finnish', 'no': 'Norwegian',
-            'hu': 'Hungarian', 'ro': 'Romanian', 'bg': 'Bulgarian', 'hr': 'Croatian',
-            'uk': 'Ukrainian', 'en': 'English', 'he': 'Hebrew', 'auto': 'the automatically detected source language',
-          }
-          const targetLangName = languageNames[targetLanguage] || targetLanguage
-          const sourceLangName = languageNames[sourceLanguage] || sourceLanguage
+          const targetLangName = languageName(targetLanguage)
+          const sourceLangName = languageName(sourceLanguage)
 
           const ctx: BatchContext = {
             buildPrompt: (numberedInput, count) => `You are a professional subtitle translator. Translate from ${sourceLangName} to ${targetLangName}.
@@ -413,17 +420,8 @@ Return ONLY valid JSON, no markdown or explanations.`
       console.log('\uD83C\uDF10 PHASE 4: Starting Premium contextual translation (Research: Pro, Translation: Flash)')
       if (typeof progressCallback === 'function') progressCallback('translating', 55, 'Starting contextual translation (Flash + Pro research)...')
 
-      const languageNames: Record<string, string> = {
-        'cs': 'Czech', 'sk': 'Slovak', 'de': 'German', 'fr': 'French',
-        'es': 'Spanish', 'it': 'Italian', 'pt': 'Portuguese', 'pl': 'Polish',
-        'nl': 'Dutch', 'ru': 'Russian', 'ja': 'Japanese', 'ko': 'Korean',
-        'zh': 'Chinese', 'ar': 'Arabic', 'hi': 'Hindi', 'tr': 'Turkish',
-        'sv': 'Swedish', 'da': 'Danish', 'fi': 'Finnish', 'no': 'Norwegian',
-        'hu': 'Hungarian', 'ro': 'Romanian', 'bg': 'Bulgarian', 'hr': 'Croatian',
-        'uk': 'Ukrainian', 'en': 'English',
-      }
-      const targetLangName = languageNames[targetLanguage] || targetLanguage
-      const sourceLangName = languageNames[sourceLanguage] || sourceLanguage
+      const targetLangName = languageName(targetLanguage)
+      const sourceLangName = languageName(sourceLanguage)
 
       const translatedEntries: SubtitleEntry[] = []
       const translatedBatchResults: { index: number; entries: SubtitleEntry[] }[] = []

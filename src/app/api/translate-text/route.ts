@@ -1,50 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PremiumTranslationService } from '@/lib/premium-translation-service'
+import { verifyUser } from '@/lib/user-auth-server'
+
+// Regenerating one subtitle in the editor is free, so cap what one request may send:
+// without limits this route would be an open Gemini proxy paid for by us.
+const MAX_TEXT_LENGTH = 1000
+const MAX_CONTEXT_LENGTH = 2000
+const MAX_LANGUAGE_LENGTH = 20
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, sourceLanguage, targetLanguage, aiService, context } = await request.json()
+    const authUser = await verifyUser(request)
+    if (!authUser) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+    if (!authUser.emailVerified) {
+      return NextResponse.json({ error: 'Email verification required.', code: 'EMAIL_NOT_VERIFIED' }, { status: 403 })
+    }
 
-    if (!text || !sourceLanguage || !targetLanguage) {
+    const { text, sourceLanguage, targetLanguage, context } = await request.json()
+
+    if (
+      typeof text !== 'string' || !text.trim() ||
+      typeof sourceLanguage !== 'string' || !sourceLanguage ||
+      typeof targetLanguage !== 'string' || !targetLanguage
+    ) {
       return NextResponse.json(
         { error: 'Missing required parameters: text, sourceLanguage, targetLanguage' },
         { status: 400 }
       )
     }
-
-    // Only OpenAI service is supported
-    const apiKey = process.env.OPENAI_API_KEY || ''
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
-        { status: 500 }
-      )
+    if (
+      text.length > MAX_TEXT_LENGTH ||
+      sourceLanguage.length > MAX_LANGUAGE_LENGTH ||
+      targetLanguage.length > MAX_LANGUAGE_LENGTH
+    ) {
+      return NextResponse.json({ error: 'Subtitle text is too long.' }, { status: 400 })
     }
 
-    console.log(`🔄 Translating single text: "${text.substring(0, 50)}..." from ${sourceLanguage} to ${targetLanguage} using ${aiService}`)
+    const geminiKey = process.env.GEMINI_API_KEY
+    if (!geminiKey) {
+      return NextResponse.json({ error: 'Translation service is not configured.' }, { status: 500 })
+    }
 
-    const translationService = new PremiumTranslationService(apiKey)
-
-    // Use OpenAI for translation with context
-    const contextPrompt = context
-      ? `Context: ${context}\n\nTranslate the following subtitle text from ${sourceLanguage} to ${targetLanguage}. Maintain the original meaning and tone while ensuring natural flow:`
-      : `Translate the following subtitle text from ${sourceLanguage} to ${targetLanguage}. Maintain the original meaning and tone while ensuring natural flow:`
-
-    const translatedText = await translationService.translateWithOpenAI(
+    const translator = new PremiumTranslationService(geminiKey, 'standard')
+    const translatedText = await translator.translateText(
       text,
       sourceLanguage,
       targetLanguage,
-      contextPrompt
+      typeof context === 'string' ? context.slice(0, MAX_CONTEXT_LENGTH) : undefined
     )
-
-    console.log(`✅ Translation completed: "${translatedText.substring(0, 50)}..."`)
 
     return NextResponse.json({
       translatedText,
       originalText: text,
       sourceLanguage,
       targetLanguage,
-      aiService,
       success: true
     })
 
@@ -60,16 +69,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
-
-// Handle OPTIONS for CORS
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  })
 }
