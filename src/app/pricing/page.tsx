@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Check, Star, Zap, Crown, Coins, Bitcoin, ExternalLink } from 'lucide-react'
+import { Check, Star, Zap, Crown, Coins, ExternalLink } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import Link from 'next/link'
 import { STRIPE_PAYMENT_LINKS, getPricePerCredit } from '@/lib/stripe-payment-links'
@@ -167,19 +167,15 @@ export default function PricingPage() {
 
         {/* Payment Methods */}
         <div className="text-center mb-12">
-          <h2 className="text-2xl font-bold mb-4">Multiple Payment Options</h2>
+          <h2 className="text-2xl font-bold mb-4">Payment Options</h2>
           <div className="flex items-center justify-center gap-8 text-muted-foreground">
             <div className="flex items-center gap-2">
               <ExternalLink className="w-5 h-5" />
               <span>Credit/Debit Cards</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Bitcoin className="w-5 h-5 text-orange-500" />
-              <span>Bitcoin Lightning ⚡</span>
-            </div>
           </div>
           <p className="text-sm text-muted-foreground mt-2">
-            Secure payments powered by Stripe and OpenNode
+            Secure payments powered by Stripe
           </p>
         </div>
 

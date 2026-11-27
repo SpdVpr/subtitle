@@ -108,7 +108,7 @@ export default function CzechTermsPage() {
             <ul>
               <li>Kredity se kupují předem a nikdy nevyprší</li>
               <li>Ceny kreditů jsou uvedeny v USD</li>
-              <li>Platby jsou zpracovány přes Stripe a OpenNode</li>
+              <li>Platby jsou zpracovány přes Stripe</li>
               <li>Kredity jsou nevratné po použití</li>
               <li>Nabízíme 30denní záruku vrácení peněz za nepoužité kredity</li>
             </ul>

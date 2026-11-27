@@ -8,12 +8,11 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCredits } from '@/contexts/credits-context'
 import { CreditsDisplay } from '@/components/ui/credits-display'
 import { VoucherRedemption } from '@/components/ui/voucher-redemption'
-import { Coins, Zap, Star, Crown, ArrowRight, Check, ExternalLink, Bitcoin } from 'lucide-react'
+import { Coins, Zap, Star, Crown, ArrowRight, Check, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { STRIPE_PAYMENT_LINKS, createPaymentUrl, formatPrice, getPricePerCredit } from '@/lib/stripe-payment-links'
 import { TYPICAL_EPISODE_LINES, TYPICAL_MOVIE_LINES, getFilesForCredits, getLinesForCredits } from '@/lib/credit-policy'
-import { authFetch } from '@/lib/auth-fetch'
 import { analytics } from '@/lib/analytics'
 import { getStoredAttribution } from '@/components/analytics/attribution-tracker'
 
@@ -108,72 +107,6 @@ export default function BuyCreditsPage() {
     }
   }
 
-  const handleBitcoinPurchase = async (packageId: string) => {
-    if (!user) {
-      // Redirect to login instead of showing error
-      window.location.href = '/login?redirect=/buy-credits'
-      return
-    }
-
-    setLoading(packageId)
-    try {
-      // Find the package
-      const pkg = CREDIT_PACKAGES.find(p => p.id === packageId)
-      if (!pkg) {
-        throw new Error('Package not found')
-      }
-
-      analytics.packageSelected(pkg.credits, pkg.price, pkg.name)
-      analytics.beginCheckout(pkg.credits, pkg.price, pkg.name, 'bitcoin_lightning')
-
-      console.log(`🟠 Creating Bitcoin invoice for ${pkg.credits} credits`)
-      toast.loading('Creating Bitcoin Lightning invoice...', { id: 'bitcoin-invoice' })
-
-      const response = await authFetch('/api/opennode/create-invoice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.uid,
-          credits: pkg.credits
-        })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create Bitcoin invoice')
-      }
-
-      console.log('✅ Bitcoin charge created:', data.charge)
-
-      // Dismiss loading toast
-      toast.dismiss('bitcoin-invoice')
-
-      // Open OpenNode hosted checkout in new window (with Lightning default)
-      window.open(data.charge.checkoutUrl, '_blank')
-
-      toast.success(`Bitcoin Lightning payment ready!
-
-Amount: $${data.charge.priceUSD} USD
-Package: ${data.charge.packageName}
-Credits: ${data.charge.credits}
-
-Complete payment in the new window.`, {
-        duration: 8000
-      })
-
-    } catch (error) {
-      console.error('🚨 Bitcoin purchase error:', error)
-      toast.dismiss('bitcoin-invoice')
-      toast.error(`Bitcoin payment failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or use card payment.`, {
-        duration: 6000
-      })
-    } finally {
-      setLoading(null)
-    }
-  }
 
 
 
@@ -272,25 +205,6 @@ Complete payment in the new window.`, {
                           <div className="flex items-center space-x-2">
                             <span>Pay with Card - ${pkg.price}</span>
                             <ExternalLink className="w-4 h-4" />
-                          </div>
-                        )}
-                      </Button>
-
-                      <Button
-                        onClick={() => handleBitcoinPurchase(pkg.id)}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white border-orange-500"
-                        disabled={loading === pkg.id}
-                        variant="outline"
-                      >
-                        {loading === pkg.id ? (
-                          <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 border-2 border-orange-300 border-t-transparent rounded-full animate-spin" />
-                            <span>Processing...</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center space-x-2">
-                            <Bitcoin className="w-4 h-4" />
-                            <span>Pay with Bitcoin ⚡</span>
                           </div>
                         )}
                       </Button>

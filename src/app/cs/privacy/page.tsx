@@ -174,7 +174,6 @@ export default function CzechPrivacyPage() {
             <ul>
               <li><strong>Firebase:</strong> Autentifikace a databáze</li>
               <li><strong>Stripe:</strong> Zpracování plateb</li>
-              <li><strong>OpenNode:</strong> Bitcoin platby</li>
               <li><strong>Google Gemini:</strong> AI překlady</li>
               <li><strong>Google Analytics:</strong> Analýzy webu</li>
             </ul>
